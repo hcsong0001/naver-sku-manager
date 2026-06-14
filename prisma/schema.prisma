@@ -1,0 +1,282 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// 1. 스마트스토어 관리 모델
+model Smartstore {
+  id              String           @id @default(uuid())
+  name            String           // 스토어 이름
+  sellerId        String           @unique // 네이버 셀러 ID
+  storeUrl        String?          // 스토어 URL
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  products        NaverProduct[]
+  priceRules      StorePriceRule[]
+  orders          Order[]
+
+  @@index([sellerId])
+}
+
+// 2. SKU (Stock Keeping Unit - 재고 및 데이터의 단일 원천)
+model Sku {
+  id                 String                  @id @default(uuid())
+  skuCode            String                  @unique // SKU 코드 (Source of Truth)
+  sellerProductCode  String?                 // 판매자 상품코드
+  barcode            String?                 // 바코드
+  supplierCode       String?                 // 공급처 코드
+  costPrice          Decimal                 @default(0.0) @db.Decimal(12, 2) // 원가
+  sellingPrice       Decimal                 @default(0.0) @db.Decimal(12, 2) // 기본 판매가
+  stockQuantity      Int                     @default(0)   // 현재 재고 수량
+  safetyStock        Int                     @default(0)   // 안전 재고 임계치
+  createdAt          DateTime                @default(now())
+  updatedAt          DateTime                @updatedAt
+
+  // 네이버 상품 매핑 관계
+  naverProducts      NaverProduct[]
+  naverOptions       NaverProductOption[]
+  naverAdditionals   NaverProductAdditional[]
+
+  // 스토어 가격 규칙
+  storePriceRules    StorePriceRule[]
+
+  // 향후 모듈 확장을 위한 관계들
+  costHistories      SkuCostHistory[]
+  purchaseOrderItems PurchaseOrderItem[]
+  orderItems         OrderItem[]
+  competitorLinks    CompetitorLink[]
+  aliases            SkuAlias[]
+  syncRule           SyncRule?
+
+  @@index([skuCode])
+  @@index([barcode])
+  @@index([supplierCode])
+}
+
+// 3. 네이버 단일/부모 상품 모델
+model NaverProduct {
+  id              String                   @id // 네이버 상품 식별자 (네이버 플랫폼 고유 ID)
+  smartstoreId    String
+  name            String                   // 상품명
+  naverProductId  String                   @unique // 네이버 플랫폼 내의 원본 상품 ID
+  status          String                   @default("SALE") // 판매 상태 (예: SALE, SUSPENDED)
+  skuId           String?                  // 옵션이 없는 단일 상품인 경우 SKU와 직접 매핑
+  createdAt       DateTime                 @default(now())
+  updatedAt       DateTime                 @updatedAt
+
+  smartstore      Smartstore               @relation(fields: [smartstoreId], references: [id], onDelete: Cascade)
+  sku             Sku?                     @relation(fields: [skuId], references: [id], onDelete: SetNull)
+  options         NaverProductOption[]
+  additionals     NaverProductAdditional[]
+
+  @@index([smartstoreId])
+  @@index([skuId])
+  @@index([naverProductId])
+}
+
+// 4. 네이버 옵션 상품 모델
+model NaverProductOption {
+  id              String       @id // 네이버 옵션 식별자 (네이버 플랫폼 고유 ID)
+  naverProductId  String       // 부모 상품 ID
+  optionName      String       // 옵션명 (예: 색상)
+  optionValue     String       // 옵션값 (예: 빨강)
+  optionCode      String?      // 네이버 옵션 코드 / 판매자 옵션 코드
+  skuId           String       // 각 옵션 항목은 재고 추적을 위해 필수 SKU 매핑
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  naverProduct    NaverProduct @relation(fields: [naverProductId], references: [id], onDelete: Cascade)
+  sku             Sku          @relation(fields: [skuId], references: [id], onDelete: Restrict)
+
+  @@index([naverProductId])
+  @@index([skuId])
+  @@index([optionCode])
+}
+
+// 5. 네이버 추가 구성 상품 모델
+model NaverProductAdditional {
+  id              String       @id // 네이버 추가구성 상품 식별자 (네이버 플랫폼 고유 ID)
+  naverProductId  String       // 부모 상품 ID
+  additionalName  String       // 추가 구성 상품 그룹명 (예: 전용 케이스)
+  additionalValue String       // 추가 구성 상품 값 (예: 블랙 케이스)
+  skuId           String       // 자체 재고 추적을 위해 필수 SKU 매핑
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  naverProduct    NaverProduct @relation(fields: [naverProductId], references: [id], onDelete: Cascade)
+  sku             Sku          @relation(fields: [skuId], references: [id], onDelete: Restrict)
+
+  @@index([naverProductId])
+  @@index([skuId])
+}
+
+// 6. 스토어별 SKU 가격 규칙 (사용자 추가 요구사항 반영)
+model StorePriceRule {
+  id            String      @id @default(uuid())
+  storeId       String
+  skuId         String
+  fixedPrice    Decimal?    @db.Decimal(12, 2) // 고정 판매가
+  ratePercent   Decimal?    @db.Decimal(5, 2)  // 원가/기준가 대비 할증/할인율 (%)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  store         Smartstore  @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  sku           Sku         @relation(fields: [skuId], references: [id], onDelete: Cascade)
+
+  @@unique([storeId, skuId])
+  @@index([storeId])
+  @@index([skuId])
+}
+
+// 6-2. SKU 대체 코드 관리 (SkuAlias)
+model SkuAlias {
+  id          String   @id @default(uuid())
+  skuId       String
+  aliasCode   String   // 대체 코드
+  aliasType   String   // 코드 구분 (예: MARKET, OLD_CODE, SUPPLIER 등)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  sku         Sku      @relation(fields: [skuId], references: [id], onDelete: Cascade)
+
+  @@unique([skuId, aliasCode])
+  @@index([skuId])
+  @@index([aliasCode])
+}
+
+// 6-3. SKU 재고/가격 동기화 규칙 (SyncRule)
+model SyncRule {
+  id           String   @id @default(uuid())
+  skuId        String   @unique            // SKU당 하나의 동기화 규칙 적용 (1:1 관계)
+  targetPrice  Decimal  @db.Decimal(12, 2) // 동기화 대상 가격
+  syncStock    Boolean  @default(true)     // 재고 동기화 여부
+  syncPrice    Boolean  @default(true)     // 가격 동기화 여부
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  sku          Sku      @relation(fields: [skuId], references: [id], onDelete: Cascade)
+
+  @@index([skuId])
+}
+
+// ----------------------------------------------------
+// 7. 향후 확장을 위한 미래 모듈 모델
+// ----------------------------------------------------
+
+// 7-1. 원가 관리 모듈 (Cost Management)
+model SkuCostHistory {
+  id            String    @id @default(uuid())
+  skuId         String
+  costPrice     Decimal   @db.Decimal(12, 2) // 해당 시점의 원가
+  effectiveFrom DateTime  // 원가 적용 시작일
+  effectiveTo   DateTime? // 원가 적용 종료일
+  createdAt     DateTime  @default(now())
+
+  sku           Sku       @relation(fields: [skuId], references: [id], onDelete: Cascade)
+
+  @@index([skuId])
+}
+
+// 7-2. 발주 관리 모듈 (Purchase Orders)
+model PurchaseOrder {
+  id            String              @id @default(uuid())
+  supplierId    String              // 공급처 식별 코드
+  status        String              @default("PENDING") // PENDING, ORDERED, COMPLETED, CANCELLED
+  orderDate     DateTime            @default(now())
+  completedAt   DateTime?
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+
+  items         PurchaseOrderItem[]
+
+  @@index([supplierId])
+  @@index([status])
+}
+
+model PurchaseOrderItem {
+  id              String        @id @default(uuid())
+  purchaseOrderId String
+  skuId           String
+  quantity        Int           // 발주 수량
+  receivedQuantity Int          @default(0) // 실제 입고 완료 수량
+  unitPrice       Decimal       @db.Decimal(12, 2) // 발주 단가
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  purchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+  sku             Sku           @relation(fields: [skuId], references: [id], onDelete: Restrict)
+
+  @@index([purchaseOrderId])
+  @@index([skuId])
+}
+
+// 7-3. 수익 분석 모듈 (Profit Analysis)
+model Order {
+  id              String      @id @default(uuid())
+  smartstoreId    String
+  naverOrderId    String      @unique // 네이버 스마트스토어 주문 번호
+  orderDate       DateTime
+  totalAmount     Decimal     @db.Decimal(12, 2) // 총 결제 금액
+  status          String      // 주문 상태 (PAYMENT_COMPLETED, DELIVERED 등)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  smartstore      Smartstore  @relation(fields: [smartstoreId], references: [id], onDelete: Cascade)
+  items           OrderItem[]
+
+  @@index([smartstoreId])
+  @@index([naverOrderId])
+}
+
+model OrderItem {
+  id                String   @id @default(uuid())
+  orderId           String
+  skuId             String
+  quantity          Int      // 판매 수량
+  sellingPrice      Decimal  @db.Decimal(12, 2) // 판매 단가
+  settlementAmount  Decimal  @db.Decimal(12, 2) // 네이버 정산 예정 금액
+  costAtOrder       Decimal  @db.Decimal(12, 2) // 주문 시점의 원가 (수익 분석용)
+  createdAt         DateTime @default(now())
+
+  order             Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  sku               Sku      @relation(fields: [skuId], references: [id], onDelete: Restrict)
+
+  @@index([orderId])
+  @@index([skuId])
+}
+
+// 7-4. 경쟁사 모니터링 모듈 (Competitor Monitoring)
+model CompetitorLink {
+  id              String                    @id @default(uuid())
+  skuId           String
+  competitorName  String                    // 경쟁사 이름/구분 (예: A사 스마트스토어, 쿠팡 등)
+  targetUrl       String                    // 모니터링할 경쟁사 상품 페이지 URL
+  createdAt       DateTime                  @default(now())
+  updatedAt       DateTime                  @updatedAt
+
+  sku             Sku                       @relation(fields: [skuId], references: [id], onDelete: Cascade)
+  priceHistories  CompetitorPriceHistory[]
+
+  @@index([skuId])
+}
+
+model CompetitorPriceHistory {
+  id                String         @id @default(uuid())
+  competitorLinkId  String
+  price             Decimal        @db.Decimal(12, 2) // 조회 시점의 경쟁사 판매가
+  stockStatus       String?        // 품절 여부, 재고 상태 등
+  checkedAt         DateTime       @default(now())
+
+  competitorLink    CompetitorLink @relation(fields: [competitorLinkId], references: [id], onDelete: Cascade)
+
+  @@index([competitorLinkId])
+}
+
