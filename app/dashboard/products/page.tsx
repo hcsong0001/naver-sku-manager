@@ -221,7 +221,7 @@ export default function ProductsPage() {
                   {products.map((p) => (
                     <tr key={p.id} className="transition-colors hover:bg-[#16161a]">
                       <td className="whitespace-nowrap px-6 py-4 font-medium text-zinc-200 max-w-xs truncate">{p.name}</td>
-                      <td className="whitespace-nowrap px-6 py-4 font-mono text-xs text-zinc-400">{p.channelProductNo || '-'}</td>
+                      <td className="whitespace-nowrap px-6 py-4 font-mono text-xs text-zinc-400">{p.channelProductNo ?? p.naverProductId ?? '-'}</td>
                       <td className="whitespace-nowrap px-6 py-4 text-zinc-400">{p.smartstore?.name || '-'}</td>
                       <td className="whitespace-nowrap px-6 py-4">
                         <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${

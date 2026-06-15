@@ -14,7 +14,16 @@ export async function GET(request: Request) {
     const products = await prisma.naverProduct.findMany({
       where: smartstoreId ? { smartstoreId } : undefined,
       orderBy: { createdAt: 'desc' },
-      include: {
+      select: {
+        id: true,
+        name: true,
+        naverProductId: true,
+        status: true,
+        channelProductNo: true,
+        createdAt: true,
+        updatedAt: true,
+        skuId: true,
+        smartstoreId: true,
         smartstore: { select: { id: true, name: true } },
       },
     });
@@ -75,11 +84,11 @@ export async function POST(request: Request) {
         data: {
           name: productData.name,
           status: productData.status,
+          channelProductNo: productData.channelProductNo,
           smartstoreId: productData.smartstoreId,
         },
       });
     } else {
-      // crypto.randomUUID()을 사용
       savedProduct = await prisma.naverProduct.create({
         data: {
           id: crypto.randomUUID(),
