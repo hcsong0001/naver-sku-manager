@@ -53,6 +53,13 @@ export async function POST(request: Request) {
 
     // 1. 해당 스토어의 API 키 조회
     const store = await prisma.smartstore.findUnique({ where: { id: smartstoreId } });
+    console.log('[DEBUG] Store lookup:', {
+      smartstoreId,
+      storeFound: !!store,
+      storeKeys: store ? Object.keys(store) : [],
+      clientId: store?.clientId ?? '<<MISSING FIELD>>',
+      clientSecret: store?.clientSecret ? '***설정됨***' : '<<MISSING or NULL>>',
+    });
     if (!store) {
       return NextResponse.json({ error: 'Smartstore를 찾을 수 없습니다.' }, { status: 404 });
     }

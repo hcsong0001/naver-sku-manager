@@ -1,4 +1,4 @@
-import crypto from 'crypto';
+import bcrypt from 'bcryptjs';
 import type { NaverTokenResponse, NaverProductApiResponse } from '@/src/types/naver-product.types';
 
 const NAVER_API_BASE = 'https://api.commerce.naver.com';
@@ -12,10 +12,17 @@ export async function getNaverToken(clientId: string, clientSecret: string): Pro
   // password 생성: clientId + _ + timestamp (밀리초)
   const password = `${clientId}_${timestamp}`;
 
-  // HMAC-SHA256 방식으로 전자서명 생성
-  const hmac = crypto.createHmac('sha256', clientSecret);
-  hmac.update(password);
-  const signature = hmac.digest('base64');
+  // BCRYPT 방식으로 전자서명 생성
+  const hashed = bcrypt.hashSync(password, clientSecret);
+  const signature = Buffer.from(hashed, 'utf-8').toString('base64');
+
+  console.log({
+    client_id: clientId,
+    timestamp: timestamp.toString(),
+    client_secret_sign: signature,
+    grant_type: 'client_credentials',
+    type: 'SELF',
+  });
 
   const body = new URLSearchParams({
     client_id: clientId,
