@@ -23,8 +23,9 @@ interface MenuItem {
 
 const menuItems: MenuItem[] = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
+  { name: "Smartstores", href: "/dashboard/smartstores", icon: Store },
   { name: "SKU Management", href: "/sku", icon: Database },
-  { name: "Smartstore Products", href: "/products", icon: ShoppingBag },
+  { name: "Smartstore Products", href: "/dashboard/products", icon: ShoppingBag },
   { name: "Inventory History", href: "/inventory-log", icon: History },
   { name: "Price History", href: "/price-log", icon: TrendingUp },
   { name: "Settings", href: "/settings", icon: Settings },
