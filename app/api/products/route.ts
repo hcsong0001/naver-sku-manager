@@ -79,38 +79,70 @@ export async function POST(request: Request) {
     // 4. originProduct → DB 데이터 변환
     const productData = transformNaverProductToDbData(apiResponse, smartstoreId, channelProductNo);
 
-    // 5. upsert로 DB 저장 (channelProductNo 기준 중복 방지)
-    const existing = await prisma.naverProduct.findFirst({
-      where: { channelProductNo: productData.channelProductNo },
+    // 5. upsert로 DB 저장 (naverProductId 기준)
+    const product = await prisma.naverProduct.upsert({
+      where: { naverProductId: productData.naverProductId },
+      update: {
+        name: productData.name,
+        status: productData.status,
+        channelProductNo: productData.channelProductNo,
+        smartstoreId: productData.smartstoreId,
+      },
+      create: {
+        id: productData.naverProductId, // API에서 제공하는 식별자 활용
+        name: productData.name,
+        naverProductId: productData.naverProductId,
+        status: productData.status,
+        channelProductNo: productData.channelProductNo,
+        smartstoreId: productData.smartstoreId,
+      },
     });
 
-    let savedProduct;
-    if (existing) {
-      savedProduct = await prisma.naverProduct.update({
-        where: { id: existing.id },
-        data: {
-          name: productData.name,
-          status: productData.status,
-          channelProductNo: productData.channelProductNo,
-          smartstoreId: productData.smartstoreId,
-        },
-      });
-    } else {
-      savedProduct = await prisma.naverProduct.create({
-        data: {
-          id: crypto.randomUUID(),
-          name: productData.name,
-          naverProductId: productData.naverProductId,
-          status: productData.status,
-          channelProductNo: productData.channelProductNo,
-          smartstoreId: productData.smartstoreId,
-        },
+    // 6. 옵션 정보 파싱 및 저장 로직 추가
+    const combinations = 
+      apiResponse.originProduct?.detailAttribute
+        ?.optionInfo
+        ?.optionCombinations || [];
+    
+    // 기존 옵션 삭제 (동기화 보장)
+    await prisma.naverProductOption.deleteMany({
+      where: {
+        naverProductId: product.id
+      }
+    });
+
+    const optionData = combinations.map((option: any) => ({
+      id: option.id.toString(),
+      naverProductId: product.id,
+      optionName: [
+        option.optionName1,
+        option.optionName2,
+        option.optionName3
+      ]
+        .filter(Boolean)
+        .join(' / '),
+
+      optionValue: [
+        option.optionName1,
+        option.optionName2,
+        option.optionName3
+      ]
+        .filter(Boolean)
+        .join(' / '),
+
+      optionCode: option.sellerManagerCode || null
+    }));
+
+    if (optionData.length > 0) {
+      await prisma.naverProductOption.createMany({
+        data: optionData,
+        skipDuplicates: true
       });
     }
 
     return NextResponse.json({
       message: '상품이 성공적으로 수집되었습니다.',
-      product: savedProduct,
+      product: product,
       naverData: {
         name: productData.name,
         salePrice: productData.salePrice,
