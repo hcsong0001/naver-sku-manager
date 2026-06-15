@@ -12,7 +12,10 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       where: { id },
       include: {
         smartstore: { select: { id: true, name: true } },
-        options: true,
+        options: {
+          include: { sku: { select: { id: true, skuCode: true, stockQuantity: true } } },
+          orderBy: { createdAt: 'asc' as const },
+        },
         additionals: true,
       },
     });

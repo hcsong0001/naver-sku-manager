@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 type Smartstore = {
   id: string;
@@ -18,6 +19,7 @@ type Product = {
 };
 
 export default function ProductsPage() {
+  const router = useRouter();
   const [stores, setStores] = useState<Smartstore[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [selectedStoreId, setSelectedStoreId] = useState('');
@@ -219,7 +221,7 @@ export default function ProductsPage() {
                 </thead>
                 <tbody className="divide-y divide-[#1e1e22]">
                   {products.map((p) => (
-                    <tr key={p.id} className="transition-colors hover:bg-[#16161a]">
+                    <tr key={p.id} onClick={() => router.push(`/dashboard/products/${p.id}`)} className="cursor-pointer transition-colors hover:bg-[#16161a]">
                       <td className="whitespace-nowrap px-6 py-4 font-medium text-zinc-200 max-w-xs truncate">{p.name}</td>
                       <td className="whitespace-nowrap px-6 py-4 font-mono text-xs text-zinc-400">{p.channelProductNo ?? p.naverProductId ?? '-'}</td>
                       <td className="whitespace-nowrap px-6 py-4 text-zinc-400">{p.smartstore?.name || '-'}</td>
