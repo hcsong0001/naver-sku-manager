@@ -14,6 +14,7 @@ import {
   Store,
   User,
   FileSpreadsheet,
+  Search,
   type LucideIcon,
 } from "lucide-react";
 
@@ -31,6 +32,7 @@ const menuItems: MenuItem[] = [
   { name: "SKU 매핑", href: "/dashboard/sku-mappings", icon: FileSpreadsheet },
   { name: "SKU 코드/키워드", href: "/dashboard/sku-aliases", icon: FileSpreadsheet },
   { name: "SKU 바코드", href: "/dashboard/sku-barcodes", icon: FileSpreadsheet },
+  { name: "키워드 자동매칭", href: "/dashboard/sku-keyword-matching", icon: Search },
   { name: "재고 이력", href: "/inventory-log", icon: History },
   { name: "가격 이력", href: "/price-log", icon: TrendingUp },
   { name: "설정", href: "/settings", icon: Settings },
