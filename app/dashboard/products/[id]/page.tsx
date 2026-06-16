@@ -26,6 +26,7 @@ type ProductDetail = {
     id: string;
     additionalName: string;
     additionalValue: string;
+    sellerManagementCode: string | null;
     skuId: string | null;
   }[];
 };
@@ -203,6 +204,7 @@ export default function ProductDetailPage() {
                   <tr>
                     <th className="px-6 py-3 text-xs font-medium uppercase tracking-wider text-zinc-500">항목</th>
                     <th className="px-6 py-3 text-xs font-medium uppercase tracking-wider text-zinc-500">값</th>
+                    <th className="px-6 py-3 text-xs font-medium uppercase tracking-wider text-zinc-500">판매자관리코드</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#1e1e22]">
@@ -210,6 +212,7 @@ export default function ProductDetailPage() {
                     <tr key={add.id} className="transition-colors hover:bg-[#16161a]">
                       <td className="whitespace-nowrap px-6 py-4 font-medium text-zinc-200">{add.additionalName}</td>
                       <td className="px-6 py-4 text-zinc-400">{add.additionalValue}</td>
+                      <td className="whitespace-nowrap px-6 py-4 font-mono text-xs text-zinc-500">{add.sellerManagementCode ?? '-'}</td>
                     </tr>
                   ))}
                 </tbody>

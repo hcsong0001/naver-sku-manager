@@ -13,22 +13,25 @@ import {
   Boxes,
   Store,
   User,
+  FileSpreadsheet,
+  type LucideIcon,
 } from "lucide-react";
 
 interface MenuItem {
   name: string;
   href: string;
-  icon: React.ComponentType<any>;
+  icon: LucideIcon;
 }
 
 const menuItems: MenuItem[] = [
-  { name: "Dashboard", href: "/", icon: LayoutDashboard },
-  { name: "Smartstores", href: "/dashboard/smartstores", icon: Store },
-  { name: "SKU Management", href: "/sku", icon: Database },
-  { name: "Smartstore Products", href: "/dashboard/products", icon: ShoppingBag },
-  { name: "Inventory History", href: "/inventory-log", icon: History },
-  { name: "Price History", href: "/price-log", icon: TrendingUp },
-  { name: "Settings", href: "/settings", icon: Settings },
+  { name: "대시보드", href: "/", icon: LayoutDashboard },
+  { name: "스토어 관리", href: "/dashboard/smartstores", icon: Store },
+  { name: "SKU 관리", href: "/sku", icon: Database },
+  { name: "상품 수집", href: "/dashboard/products", icon: ShoppingBag },
+  { name: "SKU 매핑", href: "/dashboard/sku-mappings", icon: FileSpreadsheet },
+  { name: "재고 이력", href: "/inventory-log", icon: History },
+  { name: "가격 이력", href: "/price-log", icon: TrendingUp },
+  { name: "설정", href: "/settings", icon: Settings },
 ];
 
 export default function Sidebar() {
@@ -36,7 +39,7 @@ export default function Sidebar() {
 
   return (
     <aside className="w-64 bg-[#121214] border-r border-[#262629] flex flex-col h-full shrink-0">
-      {/* Brand Header */}
+        {/* 브랜드 헤더 */}
       <div className="h-16 flex items-center px-6 border-b border-[#262629] gap-3">
         <div className="bg-indigo-600/20 p-2 rounded-lg border border-indigo-500/30 text-indigo-400">
           <Boxes className="w-5 h-5" />
@@ -46,12 +49,12 @@ export default function Sidebar() {
             NAVER SKU
           </h1>
           <span className="text-[10px] text-zinc-500 font-medium">
-            Manager Admin
+            관리자
           </span>
         </div>
       </div>
 
-      {/* Navigation Menu */}
+      {/* 내비게이션 메뉴 */}
       <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
         {menuItems.map((item) => {
           const isActive = pathname === item.href;
@@ -78,7 +81,7 @@ export default function Sidebar() {
         })}
       </nav>
 
-      {/* User profile footer */}
+      {/* 사용자 영역 */}
       <div className="p-4 border-t border-[#262629] bg-[#0c0c0e]/50">
         <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-[#1a1a1e] transition-colors cursor-pointer">
           <div className="bg-zinc-800 p-2 rounded-full text-zinc-400 border border-zinc-700/50">
@@ -89,7 +92,7 @@ export default function Sidebar() {
               hcsong0001
             </p>
             <p className="text-[10px] text-zinc-500 truncate">
-              Store Owner
+              스토어 관리자
             </p>
           </div>
         </div>
