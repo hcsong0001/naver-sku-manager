@@ -7,9 +7,11 @@ import {
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const rows = await getUnmappedSkuMappingRows();
+    const { searchParams } = new URL(request.url);
+    const includeMapped = searchParams.get('scope') === 'all' || searchParams.get('includeMapped') === 'true';
+    const rows = await getUnmappedSkuMappingRows(includeMapped);
     const workbookBuffer = buildSkuMappingWorkbook(rows);
     const fileName = encodeURIComponent('sku-mappings.xlsx');
 

@@ -10,6 +10,12 @@ type ProductDetail = {
   channelProductNo: string | null;
   status: string;
   skuId: string | null;
+  sku: { id: string; skuCode: string; stockQuantity: number } | null;
+  skuMappings: {
+    id: string;
+    quantity: number;
+    sku: { id: string; skuCode: string; stockQuantity: number };
+  }[];
   createdAt: string;
   updatedAt: string;
   smartstoreId: string;
@@ -21,6 +27,11 @@ type ProductDetail = {
     optionCode: string | null;
     skuId: string | null;
     sku: { id: string; skuCode: string; stockQuantity: number } | null;
+    skuMappings: {
+      id: string;
+      quantity: number;
+      sku: { id: string; skuCode: string; stockQuantity: number };
+    }[];
   }[];
   additionals: {
     id: string;
@@ -28,8 +39,27 @@ type ProductDetail = {
     additionalValue: string;
     sellerManagementCode: string | null;
     skuId: string | null;
+    sku: { id: string; skuCode: string; stockQuantity: number } | null;
+    skuMappings: {
+      id: string;
+      quantity: number;
+      sku: { id: string; skuCode: string; stockQuantity: number };
+    }[];
   }[];
 };
+
+type SkuMappingDisplay = {
+  quantity: number;
+  sku: { skuCode: string };
+};
+
+function formatSkuMappings(mappings: SkuMappingDisplay[], fallback?: { skuCode: string } | null): string {
+  if (mappings.length > 0) {
+    return mappings.map((mapping) => `${mapping.sku.skuCode} x ${mapping.quantity}`).join(', ');
+  }
+
+  return fallback ? `${fallback.skuCode} x 1` : '-';
+}
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -40,7 +70,6 @@ export default function ProductDetailPage() {
 
   useEffect(() => {
     if (!params.id) return;
-    setLoading(true);
     fetch(`/api/products/${params.id}`)
       .then((res) => {
         if (!res.ok) throw new Error('상품을 찾을 수 없습니다.');
@@ -68,7 +97,7 @@ export default function ProductDetailPage() {
     );
   }
 
-  const mappedCount = product.options.filter((o) => o.skuId).length;
+  const mappedCount = product.options.filter((o) => o.skuMappings.length > 0 || o.skuId).length;
   const unmappedCount = product.options.length - mappedCount;
 
   return (
@@ -128,6 +157,13 @@ export default function ProductDetailPage() {
           </div>
         </div>
 
+        <div className="mb-6 rounded-2xl border border-[#262629] bg-[#121214] p-6">
+          <h2 className="mb-3 text-lg font-semibold text-white">단일상품 연결 SKU</h2>
+          <div className="rounded-xl border border-[#1e1e22] bg-[#0c0c0e] px-4 py-3 font-mono text-sm text-emerald-300">
+            {formatSkuMappings(product.skuMappings, product.sku)}
+          </div>
+        </div>
+
         {/* 옵션 목록 */}
         <div className="rounded-2xl border border-[#262629] bg-[#121214] overflow-hidden">
           <div className="flex items-center justify-between border-b border-[#262629] px-6 py-4">
@@ -171,11 +207,11 @@ export default function ProductDetailPage() {
                       <td className="whitespace-nowrap px-6 py-4 text-zinc-300">
                         {opt.sku ? opt.sku.stockQuantity.toLocaleString() : '-'}
                       </td>
-                      <td className="whitespace-nowrap px-6 py-4">
-                        {opt.skuId && opt.sku ? (
+                      <td className="px-6 py-4">
+                        {opt.skuMappings.length > 0 || (opt.skuId && opt.sku) ? (
                           <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-medium text-emerald-400 ring-1 ring-inset ring-emerald-500/20">
                             <span className="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
-                            {opt.sku.skuCode}
+                            {formatSkuMappings(opt.skuMappings, opt.sku)}
                           </span>
                         ) : (
                           <span className="inline-flex items-center gap-1.5 rounded-full bg-red-500/10 px-2.5 py-0.5 text-xs font-medium text-red-400 ring-1 ring-inset ring-red-500/20">
@@ -205,6 +241,7 @@ export default function ProductDetailPage() {
                     <th className="px-6 py-3 text-xs font-medium uppercase tracking-wider text-zinc-500">항목</th>
                     <th className="px-6 py-3 text-xs font-medium uppercase tracking-wider text-zinc-500">값</th>
                     <th className="px-6 py-3 text-xs font-medium uppercase tracking-wider text-zinc-500">판매자관리코드</th>
+                    <th className="px-6 py-3 text-xs font-medium uppercase tracking-wider text-zinc-500">SKU 매핑</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#1e1e22]">
@@ -213,6 +250,7 @@ export default function ProductDetailPage() {
                       <td className="whitespace-nowrap px-6 py-4 font-medium text-zinc-200">{add.additionalName}</td>
                       <td className="px-6 py-4 text-zinc-400">{add.additionalValue}</td>
                       <td className="whitespace-nowrap px-6 py-4 font-mono text-xs text-zinc-500">{add.sellerManagementCode ?? '-'}</td>
+                      <td className="px-6 py-4 font-mono text-xs text-emerald-300">{formatSkuMappings(add.skuMappings, add.sku)}</td>
                     </tr>
                   ))}
                 </tbody>

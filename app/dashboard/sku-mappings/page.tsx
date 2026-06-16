@@ -36,14 +36,17 @@ async function readJson<T>(response: Response): Promise<T> {
 
 function MappingTypeBadge({ type }: { type: string }) {
   const isOption = type === 'OPTION';
+  const isProduct = type === 'PRODUCT';
 
   return (
     <span className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-semibold ring-1 ring-inset ${
       isOption
         ? 'bg-sky-500/10 text-sky-300 ring-sky-500/20'
-        : 'bg-violet-500/10 text-violet-300 ring-violet-500/20'
+        : isProduct
+          ? 'bg-emerald-500/10 text-emerald-300 ring-emerald-500/20'
+          : 'bg-violet-500/10 text-violet-300 ring-violet-500/20'
     }`}>
-      {isOption ? '옵션' : '추가상품'}
+      {isProduct ? '단일상품' : isOption ? '옵션' : '추가상품'}
     </span>
   );
 }
@@ -77,7 +80,8 @@ function ValidRowsTable({ rows }: { rows: SkuMappingValidRow[] }) {
             <th className="px-4 py-3 text-xs font-medium text-zinc-500">상품번호</th>
             <th className="px-4 py-3 text-xs font-medium text-zinc-500">항목</th>
             <th className="px-4 py-3 text-xs font-medium text-zinc-500">관리코드</th>
-            <th className="px-4 py-3 text-xs font-medium text-zinc-500">신규 SKU</th>
+            <th className="px-4 py-3 text-xs font-medium text-zinc-500">SKU</th>
+            <th className="px-4 py-3 text-xs font-medium text-zinc-500">수량</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-[#1e1e22]">
@@ -89,7 +93,8 @@ function ValidRowsTable({ rows }: { rows: SkuMappingValidRow[] }) {
               <td className="whitespace-nowrap px-4 py-3 font-mono text-xs text-zinc-400">{row.channelProductNo || '-'}</td>
               <td className="min-w-72 px-4 py-3 text-zinc-300">{row.itemName || '-'}</td>
               <td className="whitespace-nowrap px-4 py-3 font-mono text-xs text-zinc-500">{row.managementCode || '-'}</td>
-              <td className="whitespace-nowrap px-4 py-3 font-mono text-xs font-semibold text-emerald-300">{row.newSkuCode}</td>
+              <td className="whitespace-nowrap px-4 py-3 font-mono text-xs font-semibold text-emerald-300">{row.skuCode}</td>
+              <td className="whitespace-nowrap px-4 py-3 font-mono text-xs text-zinc-300">{row.quantity}</td>
             </tr>
           ))}
         </tbody>
@@ -116,7 +121,8 @@ function ErrorRowsTable({ rows }: { rows: SkuMappingErrorRow[] }) {
             <th className="px-4 py-3 text-xs font-medium text-red-300">구분</th>
             <th className="px-4 py-3 text-xs font-medium text-red-300">항목 ID</th>
             <th className="px-4 py-3 text-xs font-medium text-red-300">항목</th>
-            <th className="px-4 py-3 text-xs font-medium text-red-300">신규 SKU</th>
+            <th className="px-4 py-3 text-xs font-medium text-red-300">SKU</th>
+            <th className="px-4 py-3 text-xs font-medium text-red-300">수량</th>
             <th className="px-4 py-3 text-xs font-medium text-red-300">오류</th>
           </tr>
         </thead>
@@ -127,7 +133,8 @@ function ErrorRowsTable({ rows }: { rows: SkuMappingErrorRow[] }) {
               <td className="whitespace-nowrap px-4 py-3 text-zinc-300">{row.mappingType || '-'}</td>
               <td className="whitespace-nowrap px-4 py-3 font-mono text-xs text-zinc-400">{row.itemId || '-'}</td>
               <td className="min-w-72 px-4 py-3 text-zinc-300">{row.itemName || '-'}</td>
-              <td className="whitespace-nowrap px-4 py-3 font-mono text-xs text-zinc-400">{row.newSkuCode || '-'}</td>
+              <td className="whitespace-nowrap px-4 py-3 font-mono text-xs text-zinc-400">{row.skuCode || '-'}</td>
+              <td className="whitespace-nowrap px-4 py-3 font-mono text-xs text-zinc-400">{row.quantity || '-'}</td>
               <td className="min-w-80 px-4 py-3 text-red-300">{row.errors.join(' / ')}</td>
             </tr>
           ))}
@@ -211,7 +218,7 @@ export default function SkuMappingsPage() {
       const result = data as SkuMappingApplyResponse;
       setMessage({
         type: 'success',
-        text: `총 ${result.appliedCount.toLocaleString()}건을 적용했습니다. 옵션 ${result.optionCount.toLocaleString()}건, 추가상품 ${result.additionalCount.toLocaleString()}건`,
+        text: `총 ${result.appliedCount.toLocaleString()}건을 적용했습니다. 단일상품 ${result.productCount.toLocaleString()}건, 옵션 ${result.optionCount.toLocaleString()}건, 추가상품 ${result.additionalCount.toLocaleString()}건`,
       });
     } catch (error) {
       const text = error instanceof Error ? error.message : 'SKU 매핑 적용에 실패했습니다.';
@@ -227,7 +234,7 @@ export default function SkuMappingsPage() {
         <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight text-white">SKU 매핑</h1>
-            <p className="mt-2 text-sm text-zinc-400">옵션과 추가상품의 SKU를 엑셀로 일괄 연결합니다.</p>
+            <p className="mt-2 text-sm text-zinc-400">단일상품, 옵션, 추가상품의 SKU를 엑셀로 일괄 연결합니다.</p>
           </div>
           <button
             onClick={handleDownload}

@@ -26,9 +26,11 @@ interface MenuItem {
 const menuItems: MenuItem[] = [
   { name: "대시보드", href: "/", icon: LayoutDashboard },
   { name: "스토어 관리", href: "/dashboard/smartstores", icon: Store },
-  { name: "SKU 관리", href: "/sku", icon: Database },
+  { name: "SKU 관리", href: "/dashboard/skus", icon: Database },
   { name: "상품 수집", href: "/dashboard/products", icon: ShoppingBag },
   { name: "SKU 매핑", href: "/dashboard/sku-mappings", icon: FileSpreadsheet },
+  { name: "SKU 코드/키워드", href: "/dashboard/sku-aliases", icon: FileSpreadsheet },
+  { name: "SKU 바코드", href: "/dashboard/sku-barcodes", icon: FileSpreadsheet },
   { name: "재고 이력", href: "/inventory-log", icon: History },
   { name: "가격 이력", href: "/price-log", icon: TrendingUp },
   { name: "설정", href: "/settings", icon: Settings },

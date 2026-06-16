@@ -7,12 +7,13 @@ export const SKU_MAPPING_HEADERS = [
   'itemName',
   'managementCode',
   'currentSkuCode',
-  'newSkuCode',
+  'skuCode',
+  'quantity',
 ] as const;
 
 export type SkuMappingHeader = (typeof SKU_MAPPING_HEADERS)[number];
 
-export type SkuMappingType = 'OPTION' | 'ADDITIONAL';
+export type SkuMappingType = 'PRODUCT' | 'OPTION' | 'ADDITIONAL';
 
 export type SkuMappingExcelRow = Record<SkuMappingHeader, string>;
 
@@ -23,6 +24,7 @@ export type SkuMappingParsedRow = SkuMappingExcelRow & {
 export type SkuMappingValidRow = SkuMappingParsedRow & {
   mappingType: SkuMappingType;
   skuId: string;
+  quantityValue: number;
 };
 
 export type SkuMappingErrorRow = SkuMappingParsedRow & {
@@ -37,6 +39,7 @@ export type SkuMappingPreviewResponse = {
 
 export type SkuMappingApplyResponse = {
   appliedCount: number;
+  productCount: number;
   optionCount: number;
   additionalCount: number;
 };

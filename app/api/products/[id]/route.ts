@@ -12,11 +12,31 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       where: { id },
       include: {
         smartstore: { select: { id: true, name: true } },
-        options: {
+        skuMappings: {
           include: { sku: { select: { id: true, skuCode: true, stockQuantity: true } } },
           orderBy: { createdAt: 'asc' as const },
         },
-        additionals: true,
+        sku: { select: { id: true, skuCode: true, stockQuantity: true } },
+        options: {
+          include: {
+            sku: { select: { id: true, skuCode: true, stockQuantity: true } },
+            skuMappings: {
+              include: { sku: { select: { id: true, skuCode: true, stockQuantity: true } } },
+              orderBy: { createdAt: 'asc' as const },
+            },
+          },
+          orderBy: { createdAt: 'asc' as const },
+        },
+        additionals: {
+          include: {
+            sku: { select: { id: true, skuCode: true, stockQuantity: true } },
+            skuMappings: {
+              include: { sku: { select: { id: true, skuCode: true, stockQuantity: true } } },
+              orderBy: { createdAt: 'asc' as const },
+            },
+          },
+          orderBy: { createdAt: 'asc' as const },
+        },
       },
     });
 

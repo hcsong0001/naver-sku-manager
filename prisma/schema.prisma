@@ -43,9 +43,13 @@ model Sku {
   naverProducts      NaverProduct[]
   naverAdditionals   NaverProductAdditional[]
   naverOptions       NaverProductOption[]
+  productMappings    NaverProductSku[]
+  optionMappings     NaverProductOptionSku[]
+  additionalMappings NaverProductAdditionalSku[]
   orderItems         OrderItem[]
   purchaseOrderItems PurchaseOrderItem[]
   aliases            SkuAlias[]
+  barcodes           SkuBarcode[]
   costHistories      SkuCostHistory[]
   storePriceRules    StorePriceRule[]
   syncRule           SyncRule?
@@ -69,6 +73,7 @@ model NaverProduct {
   smartstore       Smartstore               @relation(fields: [smartstoreId], references: [id], onDelete: Cascade)
   additionals      NaverProductAdditional[]
   options          NaverProductOption[]
+  skuMappings      NaverProductSku[]
 
   @@index([smartstoreId])
   @@index([skuId])
@@ -86,6 +91,7 @@ model NaverProductOption {
   updatedAt      DateTime     @updatedAt
   naverProduct   NaverProduct @relation(fields: [naverProductId], references: [id], onDelete: Cascade)
   sku            Sku?         @relation(fields: [skuId], references: [id])
+  skuMappings    NaverProductOptionSku[]
 
   @@index([naverProductId])
   @@index([skuId])
@@ -107,10 +113,56 @@ model NaverProductAdditional {
   updatedAt            DateTime     @updatedAt
   naverProduct         NaverProduct @relation(fields: [naverProductId], references: [id], onDelete: Cascade)
   sku                  Sku?         @relation(fields: [skuId], references: [id])
+  skuMappings          NaverProductAdditionalSku[]
 
   @@index([naverProductId])
   @@index([skuId])
   @@index([sellerManagementCode])
+}
+
+model NaverProductSku {
+  id             String       @id @default(uuid())
+  naverProductId String
+  skuId          String
+  quantity       Int          @default(1)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  naverProduct   NaverProduct @relation(fields: [naverProductId], references: [id], onDelete: Cascade)
+  sku            Sku          @relation(fields: [skuId], references: [id], onDelete: Cascade)
+
+  @@unique([naverProductId, skuId])
+  @@index([naverProductId])
+  @@index([skuId])
+}
+
+model NaverProductOptionSku {
+  id        String             @id @default(uuid())
+  optionId  String
+  skuId     String
+  quantity  Int                @default(1)
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+  option    NaverProductOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  sku       Sku                @relation(fields: [skuId], references: [id], onDelete: Cascade)
+
+  @@unique([optionId, skuId])
+  @@index([optionId])
+  @@index([skuId])
+}
+
+model NaverProductAdditionalSku {
+  id           String                 @id @default(uuid())
+  additionalId String
+  skuId        String
+  quantity     Int                    @default(1)
+  createdAt    DateTime               @default(now())
+  updatedAt    DateTime               @updatedAt
+  additional   NaverProductAdditional @relation(fields: [additionalId], references: [id], onDelete: Cascade)
+  sku          Sku                    @relation(fields: [skuId], references: [id], onDelete: Cascade)
+
+  @@unique([additionalId, skuId])
+  @@index([additionalId])
+  @@index([skuId])
 }
 
 model StorePriceRule {
@@ -132,15 +184,38 @@ model StorePriceRule {
 model SkuAlias {
   id        String   @id @default(uuid())
   skuId     String
-  aliasCode String
   aliasType String
+  value     String
+  source    String?
+  memo      String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   sku       Sku      @relation(fields: [skuId], references: [id], onDelete: Cascade)
 
-  @@unique([skuId, aliasCode])
+  @@unique([skuId, aliasType, value])
   @@index([skuId])
-  @@index([aliasCode])
+  @@index([aliasType])
+  @@index([value])
+}
+
+model SkuBarcode {
+  id          String   @id @default(uuid())
+  skuId       String
+  barcode     String
+  unitName    String
+  quantity    Int      @default(1)
+  barcodeType String?
+  isPrimary   Boolean  @default(false)
+  source      String?
+  memo        String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  sku         Sku      @relation(fields: [skuId], references: [id], onDelete: Cascade)
+
+  @@unique([skuId, barcode])
+  @@index([skuId])
+  @@index([barcode])
+  @@index([unitName])
 }
 
 model SyncRule {
