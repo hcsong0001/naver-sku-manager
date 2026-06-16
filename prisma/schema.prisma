@@ -8,37 +8,53 @@ datasource db {
 }
 
 model Smartstore {
-  id               String           @id @default(uuid())
-  name             String
-  sellerId         String           @unique
-  storeUrl         String?
-  clientId         String?
-  clientSecret     String?
-  accessToken      String?
-  tokenExpiresAt   DateTime?
-  naverPartnerType String           @default("SELF")
-  naverAccountId   String?
-  createdAt        DateTime         @default(now())
-  updatedAt        DateTime         @updatedAt
-  products         NaverProduct[]
-  orders           Order[]
-  priceRules       StorePriceRule[]
+  id                     String                     @id @default(uuid())
+  name                   String
+  sellerId               String                     @unique
+  storeUrl               String?
+  clientId               String?
+  clientSecret           String?
+  accessToken            String?
+  tokenExpiresAt         DateTime?
+  naverPartnerType       String                     @default("SELF")
+  naverAccountId         String?
+  createdAt              DateTime                   @default(now())
+  updatedAt              DateTime                   @updatedAt
+  products               NaverProduct[]
+  productCollectionJobs  ProductCollectionJob[]
+  productCollectionItems ProductCollectionJobItem[]
+  orders                 Order[]
+  priceRules             StorePriceRule[]
 
   @@index([sellerId])
 }
 
+enum ProductCollectionJobStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum ProductCollectionJobItemStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
 model Sku {
-  id                 String                   @id @default(uuid())
-  skuCode            String                   @unique
+  id                 String                      @id @default(uuid())
+  skuCode            String                      @unique
   sellerProductCode  String?
   barcode            String?
   supplierCode       String?
-  costPrice          Decimal                  @default(0.0) @db.Decimal(12, 2)
-  sellingPrice       Decimal                  @default(0.0) @db.Decimal(12, 2)
-  stockQuantity      Int                      @default(0)
-  safetyStock        Int                      @default(0)
-  createdAt          DateTime                 @default(now())
-  updatedAt          DateTime                 @updatedAt
+  costPrice          Decimal                     @default(0.0) @db.Decimal(12, 2)
+  sellingPrice       Decimal                     @default(0.0) @db.Decimal(12, 2)
+  stockQuantity      Int                         @default(0)
+  safetyStock        Int                         @default(0)
+  createdAt          DateTime                    @default(now())
+  updatedAt          DateTime                    @updatedAt
   competitorLinks    CompetitorLink[]
   naverProducts      NaverProduct[]
   naverAdditionals   NaverProductAdditional[]
@@ -80,17 +96,62 @@ model NaverProduct {
   @@index([naverProductId])
 }
 
+model ProductCollectionJob {
+  id              String                     @id @default(uuid())
+  storeId         String
+  status          ProductCollectionJobStatus @default(PENDING)
+  searchCondition Json
+  totalCount      Int?
+  collectedCount  Int                        @default(0)
+  successCount    Int                        @default(0)
+  failCount       Int                        @default(0)
+  currentPage     Int                        @default(1)
+  pageSize        Int                        @default(500)
+  startedAt       DateTime?
+  finishedAt      DateTime?
+  errorMessage    String?
+  createdAt       DateTime                   @default(now())
+  updatedAt       DateTime                   @updatedAt
+  store           Smartstore                 @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  items           ProductCollectionJobItem[]
+
+  @@index([storeId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model ProductCollectionJobItem {
+  id               String                         @id @default(uuid())
+  jobId            String
+  storeId          String
+  channelProductNo String
+  originProductNo  String?
+  productName      String?
+  status           ProductCollectionJobItemStatus @default(PENDING)
+  errorMessage     String?
+  collectedAt      DateTime?
+  createdAt        DateTime                       @default(now())
+  updatedAt        DateTime                       @updatedAt
+  job              ProductCollectionJob           @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  store            Smartstore                     @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  @@unique([jobId, channelProductNo])
+  @@index([jobId])
+  @@index([storeId, channelProductNo])
+  @@index([status])
+}
+
 model NaverProductOption {
-  id             String       @id
+  id             String                  @id
   naverProductId String
   optionName     String
   optionValue    String
   optionCode     String?
   skuId          String?
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
-  naverProduct   NaverProduct @relation(fields: [naverProductId], references: [id], onDelete: Cascade)
-  sku            Sku?         @relation(fields: [skuId], references: [id])
+  createdAt      DateTime                @default(now())
+  updatedAt      DateTime                @updatedAt
+  naverProduct   NaverProduct            @relation(fields: [naverProductId], references: [id], onDelete: Cascade)
+  sku            Sku?                    @relation(fields: [skuId], references: [id])
   skuMappings    NaverProductOptionSku[]
 
   @@index([naverProductId])
@@ -99,7 +160,7 @@ model NaverProductOption {
 }
 
 model NaverProductAdditional {
-  id                   String       @id
+  id                   String                      @id
   naverProductId       String
   additionalName       String
   additionalValue      String
@@ -109,10 +170,10 @@ model NaverProductAdditional {
   usable               Boolean?
   sortType             String?
   skuId                String?
-  createdAt            DateTime     @default(now())
-  updatedAt            DateTime     @updatedAt
-  naverProduct         NaverProduct @relation(fields: [naverProductId], references: [id], onDelete: Cascade)
-  sku                  Sku?         @relation(fields: [skuId], references: [id])
+  createdAt            DateTime                    @default(now())
+  updatedAt            DateTime                    @updatedAt
+  naverProduct         NaverProduct                @relation(fields: [naverProductId], references: [id], onDelete: Cascade)
+  sku                  Sku?                        @relation(fields: [skuId], references: [id])
   skuMappings          NaverProductAdditionalSku[]
 
   @@index([naverProductId])

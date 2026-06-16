@@ -109,6 +109,52 @@ export interface NaverChannelProductsResponse {
   size: number;
 }
 
+export type NaverProductListSearchCondition = {
+  storeId: string;
+  productStatusTypes?: string[];
+  searchKeywordType?: string;
+  keyword?: string;
+  channelProductNos?: string[];
+  originProductNos?: string[];
+  sellerManagementCode?: string;
+  periodType?: string;
+  fromDate?: string;
+  toDate?: string;
+  orderType?: string;
+  page?: number;
+  size?: number;
+};
+
+export type NaverProductListRequestBody = {
+  productStatusTypes?: string[];
+  searchKeywordType?: string;
+  keyword?: string;
+  channelProductNos?: number[];
+  originProductNos?: number[];
+  sellerManagementCode?: string;
+  periodType?: string;
+  fromDate?: string;
+  toDate?: string;
+  orderType?: string;
+  page: number;
+  size: number;
+};
+
+export type NaverProductListItem = {
+  channelProductNo: string;
+  originProductNo?: string;
+  productName?: string;
+  statusType?: string;
+};
+
+export type NaverProductListResult = {
+  items: NaverProductListItem[];
+  totalCount: number;
+  totalPages: number;
+  page: number;
+  size: number;
+};
+
 // DB 저장용 상품 데이터
 export interface ProductSaveData {
   id: string;

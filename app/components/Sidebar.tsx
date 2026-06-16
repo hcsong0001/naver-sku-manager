@@ -29,6 +29,7 @@ const menuItems: MenuItem[] = [
   { name: "스토어 관리", href: "/dashboard/smartstores", icon: Store },
   { name: "SKU 관리", href: "/dashboard/skus", icon: Database },
   { name: "상품 수집", href: "/dashboard/products", icon: ShoppingBag },
+  { name: "상품 대량 수집", href: "/dashboard/product-collection", icon: ShoppingBag },
   { name: "SKU 매핑", href: "/dashboard/sku-mappings", icon: FileSpreadsheet },
   { name: "SKU 코드/키워드", href: "/dashboard/sku-aliases", icon: FileSpreadsheet },
   { name: "SKU 바코드", href: "/dashboard/sku-barcodes", icon: FileSpreadsheet },
