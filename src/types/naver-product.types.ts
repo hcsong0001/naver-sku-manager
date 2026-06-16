@@ -9,6 +9,29 @@ export interface NaverTokenResponse {
   token_type: string;
 }
 
+export interface NaverOptionCombination {
+  id: number;
+  optionName1?: string;
+  optionName2?: string;
+  optionName3?: string;
+  sellerManagerCode?: string;
+}
+
+export interface NaverSupplementProduct {
+  id: number;
+  groupName: string;
+  name: string;
+  price?: number;
+  stockQuantity?: number;
+  sellerManagementCode?: string;
+  usable?: boolean;
+}
+
+export interface NaverSupplementProductInfo {
+  sortType?: string;
+  supplementProducts?: NaverSupplementProduct[];
+}
+
 // 네이버 originProduct 내부 주요 필드
 export interface NaverOriginProduct {
   statusType: string;
@@ -23,6 +46,10 @@ export interface NaverOriginProduct {
   salePrice: number;
   stockQuantity: number;
   detailAttribute?: {
+    optionInfo?: {
+      optionCombinations?: NaverOptionCombination[];
+    };
+    supplementProductInfo?: NaverSupplementProductInfo;
     naverShoppingSearchInfo?: {
       modelId?: string;
       modelName?: string;
@@ -60,7 +87,7 @@ export interface NaverProductApiResponse {
     storeKeepExclusiveProduct: boolean;
     channelProductDisplayStatusType: string;
   };
-  windowChannelProduct?: any;
+  windowChannelProduct?: unknown;
 }
 
 // 네이버 상품 채널 상품 목록 조회 응답

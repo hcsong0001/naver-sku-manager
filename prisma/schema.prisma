@@ -93,18 +93,24 @@ model NaverProductOption {
 }
 
 model NaverProductAdditional {
-  id              String       @id
-  naverProductId  String
-  additionalName  String
-  additionalValue String
-  skuId           String?
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
-  naverProduct    NaverProduct @relation(fields: [naverProductId], references: [id], onDelete: Cascade)
-  sku             Sku?         @relation(fields: [skuId], references: [id])
+  id                   String       @id
+  naverProductId       String
+  additionalName       String
+  additionalValue      String
+  price                Int?
+  stockQuantity        Int?
+  sellerManagementCode String?
+  usable               Boolean?
+  sortType             String?
+  skuId                String?
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
+  naverProduct         NaverProduct @relation(fields: [naverProductId], references: [id], onDelete: Cascade)
+  sku                  Sku?         @relation(fields: [skuId], references: [id])
 
   @@index([naverProductId])
   @@index([skuId])
+  @@index([sellerManagementCode])
 }
 
 model StorePriceRule {

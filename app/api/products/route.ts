@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getNaverToken, fetchNaverProduct, transformNaverProductToDbData } from '@/src/services/naver-product.service';
+import type { NaverOptionCombination, NaverSupplementProduct } from '@/src/types/naver-product.types';
 
 /**
  * GET /api/products
@@ -111,7 +112,7 @@ export async function POST(request: Request) {
       }
     });
 
-    const optionData = combinations.map((option: any) => ({
+    const optionData = combinations.map((option: NaverOptionCombination) => ({
       id: option.id.toString(),
       naverProductId: product.id,
       optionName: [
@@ -140,6 +141,39 @@ export async function POST(request: Request) {
       });
     }
 
+    // 7. 추가상품 정보 파싱 및 저장
+    const supplementProductInfo =
+      apiResponse.originProduct?.detailAttribute?.supplementProductInfo;
+    const supplementProducts = Array.isArray(supplementProductInfo?.supplementProducts)
+      ? supplementProductInfo.supplementProducts
+      : [];
+
+    // 기존 추가상품 삭제 (동기화 보장)
+    await prisma.naverProductAdditional.deleteMany({
+      where: {
+        naverProductId: product.id
+      }
+    });
+
+    const additionalData = supplementProducts.map((supplementProduct: NaverSupplementProduct) => ({
+      id: supplementProduct.id.toString(),
+      naverProductId: product.id,
+      additionalName: supplementProduct.groupName,
+      additionalValue: supplementProduct.name,
+      price: supplementProduct.price ?? null,
+      stockQuantity: supplementProduct.stockQuantity ?? null,
+      sellerManagementCode: supplementProduct.sellerManagementCode ?? null,
+      usable: supplementProduct.usable ?? null,
+      sortType: supplementProductInfo?.sortType ?? null
+    }));
+
+    if (additionalData.length > 0) {
+      await prisma.naverProductAdditional.createMany({
+        data: additionalData,
+        skipDuplicates: true
+      });
+    }
+
     return NextResponse.json({
       message: '상품이 성공적으로 수집되었습니다.',
       product: product,
@@ -151,10 +185,11 @@ export async function POST(request: Request) {
         imageUrl: productData.imageUrl,
       },
     }, { status: 201 });
-  } catch (error: any) {
-    console.error('Failed to collect product:', error);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Failed to collect product';
+    console.error('상품 수집 실패:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to collect product' },
+      { error: message },
       { status: 500 }
     );
   }
