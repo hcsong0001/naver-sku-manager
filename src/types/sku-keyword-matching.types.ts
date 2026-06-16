@@ -3,7 +3,7 @@
 export type SkuMappingType = 'PRODUCT' | 'OPTION' | 'ADDITIONAL';
 
 /** 매칭 방법 */
-export type MatchMethod = 'EXACT' | 'EXACT_NORMALIZED' | 'PARTIAL';
+export type MatchMethod = 'EXACT' | 'NORMALIZED_EXACT' | 'PARTIAL';
 
 /** ERP 미매핑 엑셀 파싱 결과 */
 export type ErpUnmappedRow = {
@@ -51,6 +51,8 @@ export type SkuKeywordMatchedRow = {
   matchMethod: MatchMethod;
   confidence: number;
   memo: string;
+  applyEligible: boolean;
+  reviewReason: string;
 };
 
 /** 경고 행 */
@@ -68,6 +70,7 @@ export type SkuKeywordWarningRow = {
   warningMessage: string;
   matchMethod: MatchMethod;
   confidence: number;
+  memo: string;
 };
 
 /** 오류 행 */
@@ -88,6 +91,38 @@ export type SkuKeywordSummary = {
   skuMatchCount: number;
   warningCount: number;
   errorCount: number;
+  matchedRowsCount: number;
+  applyEligibleCount: number;
+  applyIneligibleCount: number;
+  duplicateCount: number;
+  possibleSetCount: number;
+  possibleDuplicateCount: number;
+};
+
+/** 중복 의심 그룹 */
+export type SkuKeywordDuplicateRow = {
+  mappingType: SkuMappingType;
+  channelProductNo: string;
+  itemId: string;
+  sourceText: string;
+  matchedRowCount: number;
+  barcodes: string;
+  skuCodes: string;
+  productManagementRowNos: string;
+  possibleSet: boolean;
+  possibleDuplicate: boolean;
+  reviewReason: string;
+};
+
+/** 대표 검증 사례 */
+export type SkuKeywordRepresentativeCase = {
+  caseKey: 'A' | 'B' | 'C';
+  channelProductNo: string;
+  itemId: string;
+  expectedBarcode: string;
+  actualBarcode: string;
+  currentResult: string;
+  reviewReason: string;
 };
 
 /** Preview API 응답 */
@@ -95,17 +130,24 @@ export type SkuKeywordPreviewResponse = {
   matchedRows: SkuKeywordMatchedRow[];
   warningRows: SkuKeywordWarningRow[];
   errorRows: SkuKeywordErrorRow[];
+  duplicates: SkuKeywordDuplicateRow[];
+  representativeCases: SkuKeywordRepresentativeCase[];
   summary: SkuKeywordSummary;
 };
 
 /** Apply API 요청 */
 export type SkuKeywordApplyRequest = {
   rows: SkuKeywordMatchedRow[];
+  forceApplyWarningRows?: boolean;
+  forceApplyIneligibleRows?: boolean;
 };
 
 /** Apply API 응답 */
 export type SkuKeywordApplyResponse = {
   appliedCount: number;
+  applyTargetCount: number;
+  excludedCount: number;
+  excludedReasonCounts: Record<string, number>;
   productCount: number;
   optionCount: number;
   additionalCount: number;

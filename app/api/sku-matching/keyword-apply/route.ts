@@ -17,8 +17,18 @@ function isMappingType(value: string): value is SkuMappingType {
   return value === 'PRODUCT' || value === 'OPTION' || value === 'ADDITIONAL';
 }
 
-function isMatchMethod(value: string): value is MatchMethod {
-  return value === 'EXACT' || value === 'EXACT_NORMALIZED' || value === 'PARTIAL';
+function toMatchMethod(value: string): MatchMethod | null {
+  if (value === 'EXACT' || value === 'NORMALIZED_EXACT' || value === 'PARTIAL') {
+    return value;
+  }
+  if (value === 'EXACT_NORMALIZED') {
+    return 'NORMALIZED_EXACT';
+  }
+  return null;
+}
+
+function toBoolean(value: unknown): boolean {
+  return value === true || value === 'true';
 }
 
 function toMatchedRows(payload: unknown): SkuKeywordMatchedRow[] | null {
@@ -32,10 +42,10 @@ function toMatchedRows(payload: unknown): SkuKeywordMatchedRow[] | null {
     if (!isRecord(item)) continue;
 
     const mappingType = toStringCell(item.mappingType);
-    const matchMethod = toStringCell(item.matchMethod);
+    const matchMethod = toMatchMethod(toStringCell(item.matchMethod));
 
     if (!isMappingType(mappingType)) continue;
-    if (!isMatchMethod(matchMethod)) continue;
+    if (!matchMethod) continue;
 
     const quantity = Number(item.quantity);
     const confidence = Number(item.confidence);
@@ -54,16 +64,33 @@ function toMatchedRows(payload: unknown): SkuKeywordMatchedRow[] | null {
       matchMethod,
       confidence: Number.isFinite(confidence) ? confidence : 0,
       memo: toStringCell(item.memo),
+      applyEligible: toBoolean(item.applyEligible),
+      reviewReason: toStringCell(item.reviewReason),
     });
   }
 
   return rows.length > 0 ? rows : null;
 }
 
+function getApplyOptions(payload: unknown): {
+  forceApplyWarningRows: boolean;
+  forceApplyIneligibleRows: boolean;
+} {
+  if (!isRecord(payload)) {
+    return { forceApplyWarningRows: false, forceApplyIneligibleRows: false };
+  }
+
+  return {
+    forceApplyWarningRows: toBoolean(payload.forceApplyWarningRows),
+    forceApplyIneligibleRows: toBoolean(payload.forceApplyIneligibleRows),
+  };
+}
+
 export async function POST(request: Request) {
   try {
     const payload = (await request.json()) as unknown;
     const rows = toMatchedRows(payload);
+    const options = getApplyOptions(payload);
 
     if (!rows) {
       return NextResponse.json(
@@ -72,7 +99,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const result = await applyKeywordMatching(rows);
+    const result = await applyKeywordMatching(rows, options);
 
     return NextResponse.json(result);
   } catch (error) {

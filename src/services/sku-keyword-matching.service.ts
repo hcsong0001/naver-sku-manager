@@ -11,9 +11,11 @@ import type {
   MatchMethod,
   ProductManagementRow,
   SkuKeywordApplyResponse,
+  SkuKeywordDuplicateRow,
   SkuKeywordErrorRow,
   SkuKeywordMatchedRow,
   SkuKeywordPreviewResponse,
+  SkuKeywordRepresentativeCase,
   SkuKeywordSummary,
   SkuKeywordWarningRow,
   SkuMappingType,
@@ -344,15 +346,18 @@ function matchTextToKeyword(
   // 1. 완전일치 검색
   const exactEntries = keywordIndex.get(normalizedSource);
   if (exactEntries && exactEntries.length > 0) {
+    const rawExactEntry = exactEntries.find(
+      (entry) => normalizeCell(entry.originalKeyword) === normalizeCell(sourceText),
+    );
     return {
-      method: 'EXACT',
+      method: rawExactEntry ? 'EXACT' : 'NORMALIZED_EXACT',
       confidence: 1.0,
       entries: exactEntries,
-      matchedKeyword: exactEntries[0].originalKeyword,
+      matchedKeyword: (rawExactEntry ?? exactEntries[0]).originalKeyword,
     };
   }
 
-  // 2. 정규화 완전일치 (이미 정규화된 상태이므로 패스)
+  // 2. 정규화 완전일치까지 위에서 처리
 
   // 3. 부분일치 검색 (warning용)
   const partialResults: { entry: KeywordEntry; keyword: string }[] = [];
@@ -392,7 +397,203 @@ function getSourceText(erpRow: ErpUnmappedRow): string {
 }
 
 // ---------------------------------------------------------------------------
-// Preview
+// 미리보기 안전 판정
+// ---------------------------------------------------------------------------
+
+const SET_KEYWORD_PATTERN = /(세트|2종|3종|구성|묶음|set)/i;
+
+function buildMatchedRowKey(row: Pick<SkuKeywordMatchedRow, 'mappingType' | 'itemId'>): string {
+  return `${row.mappingType}::${row.itemId}`;
+}
+
+function buildWarningRowKey(row: Pick<SkuKeywordWarningRow, 'mappingType' | 'itemId'>): string {
+  return `${row.mappingType}::${row.itemId}`;
+}
+
+function uniqueNonEmpty(values: string[]): string[] {
+  return Array.from(new Set(values.filter((value) => value.trim().length > 0)));
+}
+
+function hasSetKeyword(sourceText: string): boolean {
+  return SET_KEYWORD_PATTERN.test(sourceText);
+}
+
+function isRepresentativeMismatchCase(row: SkuKeywordMatchedRow): boolean {
+  return row.channelProductNo === '10393474098' && row.itemId === '10393474098';
+}
+
+function summarizeDuplicateGroup(rows: SkuKeywordMatchedRow[]): SkuKeywordDuplicateRow | null {
+  const first = rows[0];
+  if (!first || rows.length < 2) return null;
+
+  const barcodes = uniqueNonEmpty(rows.map((row) => row.barcode));
+  const skuCodes = uniqueNonEmpty(rows.map((row) => row.skuCode));
+  const productManagementRowNos = uniqueNonEmpty(
+    rows.map((row) => String(row.productManagementRowNo)),
+  );
+  const possibleSet = rows.some((row) => hasSetKeyword(row.sourceText));
+  const possibleDuplicate = !possibleSet && barcodes.length > 1;
+
+  return {
+    mappingType: first.mappingType,
+    channelProductNo: first.channelProductNo,
+    itemId: first.itemId,
+    sourceText: first.sourceText,
+    matchedRowCount: rows.length,
+    barcodes: barcodes.join(', '),
+    skuCodes: skuCodes.join(', '),
+    productManagementRowNos: productManagementRowNos.join(', '),
+    possibleSet,
+    possibleDuplicate,
+    reviewReason: possibleSet
+      ? '세트상품으로 판단될 수 있는 문구가 포함되어 있습니다.'
+      : '세트상품 문구 없이 같은 항목에 여러 바코드가 연결되었습니다.',
+  };
+}
+
+function buildDuplicateRows(matchedRows: SkuKeywordMatchedRow[]): SkuKeywordDuplicateRow[] {
+  const groupMap = new Map<string, SkuKeywordMatchedRow[]>();
+
+  for (const row of matchedRows) {
+    const key = buildMatchedRowKey(row);
+    const existing = groupMap.get(key);
+    if (existing) {
+      existing.push(row);
+    } else {
+      groupMap.set(key, [row]);
+    }
+  }
+
+  return Array.from(groupMap.values())
+    .map((rows) => summarizeDuplicateGroup(rows))
+    .filter((row): row is SkuKeywordDuplicateRow => row !== null);
+}
+
+function withApplyEligibility(
+  matchedRows: SkuKeywordMatchedRow[],
+  warningRows: SkuKeywordWarningRow[],
+): { matchedRows: SkuKeywordMatchedRow[]; duplicates: SkuKeywordDuplicateRow[] } {
+  const warningKeys = new Set(warningRows.map((row) => buildWarningRowKey(row)));
+  const warningItemIds = new Set(warningRows.map((row) => row.itemId).filter(Boolean));
+  const groupMap = new Map<string, SkuKeywordMatchedRow[]>();
+
+  for (const row of matchedRows) {
+    const key = buildMatchedRowKey(row);
+    const existing = groupMap.get(key);
+    if (existing) {
+      existing.push(row);
+    } else {
+      groupMap.set(key, [row]);
+    }
+  }
+
+  const reviewedRows = matchedRows.map((row) => {
+    const groupRows = groupMap.get(buildMatchedRowKey(row)) ?? [row];
+    const groupBarcodes = uniqueNonEmpty(groupRows.map((groupRow) => groupRow.barcode));
+    const groupProductRows = uniqueNonEmpty(
+      groupRows.map((groupRow) => String(groupRow.productManagementRowNo)),
+    );
+    const possibleSet = groupRows.some((groupRow) => hasSetKeyword(groupRow.sourceText));
+    const sameProductManagementRowMultiBarcode =
+      groupBarcodes.length > 1 && groupProductRows.length === 1;
+    const reasons: string[] = [];
+
+    if (row.matchMethod !== 'EXACT' && row.matchMethod !== 'NORMALIZED_EXACT') {
+      reasons.push('완전일치 매칭이 아닙니다.');
+    }
+    if (!row.barcode) {
+      reasons.push('바코드가 없습니다.');
+    }
+    if (!row.skuCode) {
+      reasons.push('SKU 코드가 없습니다.');
+    }
+    if (warningKeys.has(buildMatchedRowKey(row)) || warningItemIds.has(row.itemId)) {
+      reasons.push('같은 항목에 위험 경고가 있습니다.');
+    }
+    if (groupBarcodes.length > 1 && !possibleSet && !sameProductManagementRowMultiBarcode) {
+      reasons.push('세트상품으로 판단되지 않지만 같은 항목에 여러 바코드가 있습니다.');
+    }
+    if (isRepresentativeMismatchCase(row)) {
+      reasons.push('대표 사례 A: 기대 바코드와 파일 기준 바코드가 불일치합니다.');
+    }
+
+    const applyEligible = reasons.length === 0;
+    const reviewReason = applyEligible
+      ? sameProductManagementRowMultiBarcode
+        ? '동일 상품관리 행에서 여러 재고 바코드가 명확히 연결되어 안전 적용 대상입니다.'
+        : '안전 적용 대상입니다.'
+      : reasons.join(' / ');
+
+    return {
+      ...row,
+      applyEligible,
+      reviewReason,
+    };
+  });
+
+  return {
+    matchedRows: reviewedRows,
+    duplicates: buildDuplicateRows(reviewedRows),
+  };
+}
+
+function buildRepresentativeCases(
+  matchedRows: SkuKeywordMatchedRow[],
+  warningRows: SkuKeywordWarningRow[],
+  errorRows: SkuKeywordErrorRow[],
+): SkuKeywordRepresentativeCase[] {
+  const findMatched = (channelProductNo: string, itemId: string) =>
+    matchedRows.find((row) => row.channelProductNo === channelProductNo && row.itemId === itemId);
+  const findWarning = (channelProductNo: string, itemId: string) =>
+    warningRows.find((row) => row.channelProductNo === channelProductNo && row.itemId === itemId);
+  const findError = (channelProductNo: string, itemId: string) =>
+    errorRows.find((row) => row.channelProductNo === channelProductNo && row.itemId === itemId);
+
+  const caseA = findMatched('10393474098', '10393474098');
+  const caseB = findMatched('8985060439', '41624604984');
+  const caseCWarning = findWarning('6597910207', '3577501901');
+  const caseCError = findError('6597910207', '3577501901');
+
+  return [
+    {
+      caseKey: 'A',
+      channelProductNo: '10393474098',
+      itemId: '10393474098',
+      expectedBarcode: '1637900118802',
+      actualBarcode: caseA?.barcode || '1637900118833',
+      currentResult: caseA
+        ? `matchedRows 바코드 ${caseA.barcode}, SKU ${caseA.skuCode || '-'}`
+        : 'matchedRows 결과 없음',
+      reviewReason: '데이터 불일치. 파일 기준 RS13-1450은 1637900118833, 1637900118802는 RS13-0650',
+    },
+    {
+      caseKey: 'B',
+      channelProductNo: '8985060439',
+      itemId: '41624604984',
+      expectedBarcode: '1637900118789',
+      actualBarcode: caseB?.barcode || '1637900118789',
+      currentResult: caseB
+        ? `matchedRows 바코드 ${caseB.barcode}, SKU ${caseB.skuCode || '-'}`
+        : 'matchedRows 결과 없음',
+      reviewReason: '정상',
+    },
+    {
+      caseKey: 'C',
+      channelProductNo: '6597910207',
+      itemId: '3577501901',
+      expectedBarcode: '1637900112084, 1637900112091, 1637900118789',
+      actualBarcode: '',
+      currentResult:
+        caseCWarning?.warningMessage ||
+        caseCError?.errorMessage ||
+        '상품관리 CSV에 A-5 키워드 없음',
+      reviewReason: '상품관리 CSV 키워드 누락. fallback warning만 제공',
+    },
+  ];
+}
+
+// ---------------------------------------------------------------------------
+// 미리보기
 // ---------------------------------------------------------------------------
 
 export async function previewKeywordMatching(
@@ -495,6 +696,7 @@ export async function previewKeywordMatching(
           warningMessage: `완전일치 실패. 유사 구성품 후보를 확인하세요.`,
           matchMethod: 'PARTIAL',
           confidence: 0.3,
+          memo: 'fallback 후보는 기본 적용 대상에서 제외됩니다.',
         });
         continue;
       }
@@ -528,6 +730,7 @@ export async function previewKeywordMatching(
         warningMessage: `부분일치만 가능합니다. 매칭 키워드: "${matchResult.matchedKeyword}"`,
         matchMethod: matchResult.method,
         confidence: matchResult.confidence,
+        memo: '부분일치 결과는 사람이 검토해야 합니다.',
       });
       continue;
     }
@@ -551,6 +754,7 @@ export async function previewKeywordMatching(
           warningMessage: `같은 키워드가 ${uniqueCsvRows.size}개의 상품관리 행에 있습니다.`,
           matchMethod: matchResult.method,
           confidence: 0.7,
+          memo: '상품관리 CSV 중복 키워드로 기본 적용 대상에서 제외됩니다.',
         });
         continue;
       }
@@ -613,6 +817,7 @@ export async function previewKeywordMatching(
           warningMessage: `바코드 ${stockRow.barcode}가 SkuBarcode 테이블에 등록되지 않았습니다.`,
           matchMethod: matchResult.method,
           confidence: matchResult.confidence,
+          memo: '바코드는 있으나 SKU 코드가 없어 기본 적용 대상에서 제외됩니다.',
         });
         continue;
       }
@@ -633,9 +838,21 @@ export async function previewKeywordMatching(
         matchMethod: matchResult.method,
         confidence: matchResult.confidence,
         memo: `키워드 자동매칭: ${csvEntry.keywordColumn} → ${csvEntry.purchaseProductName} → ${stockRow.barcode}`,
+        applyEligible: false,
+        reviewReason: '검토 전입니다.',
       });
     }
   }
+
+  const reviewed = withApplyEligibility(matchedRows, warningRows);
+  const applyEligibleCount = reviewed.matchedRows.filter((row) => row.applyEligible).length;
+  const possibleSetCount = reviewed.duplicates.filter((row) => row.possibleSet).length;
+  const possibleDuplicateCount = reviewed.duplicates.filter((row) => row.possibleDuplicate).length;
+  const representativeCases = buildRepresentativeCases(
+    reviewed.matchedRows,
+    warningRows,
+    errorRows,
+  );
 
   const summary: SkuKeywordSummary = {
     totalErpRows: erpRows.length,
@@ -644,20 +861,250 @@ export async function previewKeywordMatching(
     skuMatchCount,
     warningCount: warningRows.length,
     errorCount: errorRows.length,
+    matchedRowsCount: reviewed.matchedRows.length,
+    applyEligibleCount,
+    applyIneligibleCount: reviewed.matchedRows.length - applyEligibleCount,
+    duplicateCount: reviewed.duplicates.length,
+    possibleSetCount,
+    possibleDuplicateCount,
   };
 
-  return { matchedRows, warningRows, errorRows, summary };
+  return {
+    matchedRows: reviewed.matchedRows,
+    warningRows,
+    errorRows,
+    duplicates: reviewed.duplicates,
+    representativeCases,
+    summary,
+  };
 }
 
 // ---------------------------------------------------------------------------
-// Apply
+// 미리보기 Excel 내보내기
 // ---------------------------------------------------------------------------
+
+type SheetCellValue = string | number | boolean;
+type SheetRow = Record<string, SheetCellValue>;
+
+function appendJsonSheet(
+  workbook: XLSX.WorkBook,
+  sheetName: string,
+  rows: SheetRow[],
+  headers: string[],
+): void {
+  const worksheet = XLSX.utils.aoa_to_sheet([headers]);
+  XLSX.utils.sheet_add_json(worksheet, rows, {
+    header: headers,
+    skipHeader: true,
+    origin: 'A2',
+  });
+  XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
+}
+
+function toSummarySheetRows(preview: SkuKeywordPreviewResponse): SheetRow[] {
+  return [
+    { metric: 'ERP 총 행 수', value: preview.summary.totalErpRows },
+    { metric: 'matchedRows 수', value: preview.matchedRows.length },
+    { metric: 'applyEligible=true 수', value: preview.summary.applyEligibleCount },
+    { metric: 'applyEligible=false 수', value: preview.summary.applyIneligibleCount },
+    { metric: 'warningRows 수', value: preview.warningRows.length },
+    { metric: 'errorRows 수', value: preview.errorRows.length },
+    { metric: 'duplicates 수', value: preview.duplicates.length },
+    { metric: 'possibleSet 수', value: preview.summary.possibleSetCount },
+    { metric: 'possibleDuplicate 수', value: preview.summary.possibleDuplicateCount },
+  ];
+}
+
+function toMatchedSheetRows(rows: SkuKeywordMatchedRow[]): SheetRow[] {
+  return rows.map((row) => ({
+    mappingType: row.mappingType,
+    channelProductNo: row.channelProductNo,
+    itemId: row.itemId,
+    sourceText: row.sourceText,
+    matchedKeyword: row.matchedKeyword,
+    keywordColumn: row.keywordColumn,
+    productManagementRowNo: row.productManagementRowNo,
+    barcode: row.barcode,
+    skuCode: row.skuCode,
+    quantity: row.quantity,
+    matchMethod: row.matchMethod,
+    confidence: row.confidence,
+    memo: row.memo,
+    applyEligible: row.applyEligible,
+    reviewReason: row.reviewReason,
+  }));
+}
+
+function toWarningSheetRows(rows: SkuKeywordWarningRow[]): SheetRow[] {
+  return rows.map((row) => ({
+    mappingType: row.mappingType,
+    channelProductNo: row.channelProductNo,
+    itemId: row.itemId,
+    sourceText: row.sourceText,
+    warningType: row.warningType,
+    warningMessage: row.warningMessage,
+    matchedKeyword: row.matchedKeyword,
+    barcode: row.barcode,
+    skuCode: row.skuCode,
+    memo: row.memo,
+  }));
+}
+
+function toErrorSheetRows(rows: SkuKeywordErrorRow[]): SheetRow[] {
+  return rows.map((row) => ({
+    mappingType: row.mappingType,
+    channelProductNo: row.channelProductNo,
+    itemId: row.itemId,
+    sourceText: row.sourceText,
+    errorType: row.errorType,
+    errorMessage: row.errorMessage,
+  }));
+}
+
+function toDuplicateSheetRows(rows: SkuKeywordDuplicateRow[]): SheetRow[] {
+  return rows.map((row) => ({
+    mappingType: row.mappingType,
+    channelProductNo: row.channelProductNo,
+    itemId: row.itemId,
+    sourceText: row.sourceText,
+    matchedRowCount: row.matchedRowCount,
+    barcodes: row.barcodes,
+    skuCodes: row.skuCodes,
+    productManagementRowNos: row.productManagementRowNos,
+    possibleSet: row.possibleSet,
+    possibleDuplicate: row.possibleDuplicate,
+    reviewReason: row.reviewReason,
+  }));
+}
+
+function toRepresentativeSheetRows(rows: SkuKeywordRepresentativeCase[]): SheetRow[] {
+  return rows.map((row) => ({
+    caseKey: row.caseKey,
+    channelProductNo: row.channelProductNo,
+    itemId: row.itemId,
+    expectedBarcode: row.expectedBarcode,
+    actualBarcode: row.actualBarcode,
+    currentResult: row.currentResult,
+    reviewReason: row.reviewReason,
+  }));
+}
+
+export function createKeywordPreviewWorkbookBuffer(preview: SkuKeywordPreviewResponse): Buffer {
+  const workbook = XLSX.utils.book_new();
+
+  appendJsonSheet(workbook, 'Summary', toSummarySheetRows(preview), ['metric', 'value']);
+  appendJsonSheet(workbook, 'MatchedRows', toMatchedSheetRows(preview.matchedRows), [
+    'mappingType',
+    'channelProductNo',
+    'itemId',
+    'sourceText',
+    'matchedKeyword',
+    'keywordColumn',
+    'productManagementRowNo',
+    'barcode',
+    'skuCode',
+    'quantity',
+    'matchMethod',
+    'confidence',
+    'memo',
+    'applyEligible',
+    'reviewReason',
+  ]);
+  appendJsonSheet(workbook, 'WarningRows', toWarningSheetRows(preview.warningRows), [
+    'mappingType',
+    'channelProductNo',
+    'itemId',
+    'sourceText',
+    'warningType',
+    'warningMessage',
+    'matchedKeyword',
+    'barcode',
+    'skuCode',
+    'memo',
+  ]);
+  appendJsonSheet(workbook, 'ErrorRows', toErrorSheetRows(preview.errorRows), [
+    'mappingType',
+    'channelProductNo',
+    'itemId',
+    'sourceText',
+    'errorType',
+    'errorMessage',
+  ]);
+  appendJsonSheet(workbook, 'Duplicates', toDuplicateSheetRows(preview.duplicates), [
+    'mappingType',
+    'channelProductNo',
+    'itemId',
+    'sourceText',
+    'matchedRowCount',
+    'barcodes',
+    'skuCodes',
+    'productManagementRowNos',
+    'possibleSet',
+    'possibleDuplicate',
+    'reviewReason',
+  ]);
+  appendJsonSheet(
+    workbook,
+    'RepresentativeCases',
+    toRepresentativeSheetRows(preview.representativeCases),
+    [
+      'caseKey',
+      'channelProductNo',
+      'itemId',
+      'expectedBarcode',
+      'actualBarcode',
+      'currentResult',
+      'reviewReason',
+    ],
+  );
+
+  return XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' }) as Buffer;
+}
+
+// ---------------------------------------------------------------------------
+// 적용
+// ---------------------------------------------------------------------------
+
+type ApplyKeywordMatchingOptions = {
+  forceApplyWarningRows?: boolean;
+  forceApplyIneligibleRows?: boolean;
+};
+
+function addExcludedReason(counts: Record<string, number>, reason: string): void {
+  counts[reason] = (counts[reason] ?? 0) + 1;
+}
+
+function getApplyExclusionReason(
+  row: SkuKeywordMatchedRow,
+  options: ApplyKeywordMatchingOptions,
+): string | null {
+  if (!row.barcode) return '바코드 없음';
+  if (!row.skuCode) return 'SKU 코드 없음';
+  if (row.matchMethod === 'PARTIAL' && !options.forceApplyWarningRows) {
+    return '위험 경고 행';
+  }
+  if (!row.applyEligible && !options.forceApplyIneligibleRows) {
+    return row.reviewReason || '적용 비대상';
+  }
+  return null;
+}
 
 export async function applyKeywordMatching(
   rows: SkuKeywordMatchedRow[],
+  options: ApplyKeywordMatchingOptions = {},
 ): Promise<SkuKeywordApplyResponse> {
+  const excludedReasonCounts: Record<string, number> = {};
+  const candidateRows = rows.filter((row) => {
+    const reason = getApplyExclusionReason(row, options);
+    if (reason) {
+      addExcludedReason(excludedReasonCounts, reason);
+      return false;
+    }
+    return true;
+  });
+
   // 바코드로 SKU 찾기
-  const barcodes = Array.from(new Set(rows.map((r) => r.barcode).filter(Boolean)));
+  const barcodes = Array.from(new Set(candidateRows.map((r) => r.barcode).filter(Boolean)));
   const skuBarcodes = await prisma.skuBarcode.findMany({
     where: { barcode: { in: barcodes } },
     include: { sku: { select: { id: true, skuCode: true } } },
@@ -665,6 +1112,11 @@ export async function applyKeywordMatching(
   const skuByBarcode = new Map(
     skuBarcodes.map((sb) => [sb.barcode, { skuId: sb.sku.id, skuCode: sb.sku.skuCode }])
   );
+  const rowsToApply = candidateRows.filter((row) => {
+    if (skuByBarcode.has(row.barcode)) return true;
+    addExcludedReason(excludedReasonCounts, 'SKU 바코드 재조회 실패');
+    return false;
+  });
 
   let productCount = 0;
   let optionCount = 0;
@@ -672,7 +1124,7 @@ export async function applyKeywordMatching(
   let aliasCount = 0;
 
   await prisma.$transaction(async (tx) => {
-    for (const row of rows) {
+    for (const row of rowsToApply) {
       const skuInfo = skuByBarcode.get(row.barcode);
       if (!skuInfo) continue;
 
@@ -757,6 +1209,9 @@ export async function applyKeywordMatching(
 
   return {
     appliedCount: productCount + optionCount + additionalCount,
+    applyTargetCount: rowsToApply.length,
+    excludedCount: rows.length - rowsToApply.length,
+    excludedReasonCounts,
     productCount,
     optionCount,
     additionalCount,
