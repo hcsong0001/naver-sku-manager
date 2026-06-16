@@ -23,6 +23,41 @@ function unique(values: string[]): string[] {
   return Array.from(new Set(values.filter((value) => value.length > 0)));
 }
 
+function decodeCsvBuffer(buffer: Buffer): string {
+  const utf8Text = new TextDecoder('utf-8', { fatal: false }).decode(buffer);
+  if (!utf8Text.includes('상품일련번호') && !utf8Text.includes('매칭키워드')) {
+    return new TextDecoder('euc-kr').decode(buffer);
+  }
+
+  return utf8Text;
+}
+
+function cleanSkuCode(value: string): string {
+  return value
+    .replace(/^="/, '')
+    .replace(/"$/, '')
+    .trim();
+}
+
+function findFirstHeader(headers: string[], candidates: string[]): string | null {
+  for (const candidate of candidates) {
+    const found = headers.find((header) => header.trim() === candidate);
+    if (found) return found;
+  }
+
+  return null;
+}
+
+function sortKeywordHeaders(headers: string[]): string[] {
+  return headers
+    .filter((header) => header.trim().startsWith('매칭키워드'))
+    .sort((left, right) => {
+      const leftNumber = Number(left.replace('매칭키워드', ''));
+      const rightNumber = Number(right.replace('매칭키워드', ''));
+      return (Number.isFinite(leftNumber) ? leftNumber : 0) - (Number.isFinite(rightNumber) ? rightNumber : 0);
+    });
+}
+
 export function buildSkuAliasTemplateWorkbook(): Buffer {
   const rows: SkuAliasImportExcelRow[] = [
     {
@@ -45,6 +80,62 @@ export function buildSkuAliasTemplateWorkbook(): Buffer {
   worksheet['!cols'] = [{ wch: 18 }, { wch: 28 }, { wch: 36 }, { wch: 20 }, { wch: 36 }];
   XLSX.utils.book_append_sheet(workbook, worksheet, 'SKU코드키워드');
   return XLSX.write(workbook, { bookType: 'xlsx', type: 'buffer' }) as Buffer;
+}
+
+export function parseProductManagementKeywordCsv(buffer: Buffer): SkuAliasImportParsedRow[] {
+  const csvText = decodeCsvBuffer(buffer);
+  const workbook = XLSX.read(csvText, { type: 'string', raw: false });
+  const sheetName = workbook.SheetNames[0];
+
+  if (!sheetName) {
+    throw new Error('상품관리 CSV 파일에 시트가 없습니다.');
+  }
+
+  const worksheet = workbook.Sheets[sheetName];
+  const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(worksheet, {
+    defval: '',
+    raw: false,
+  });
+  const headers = rows[0] ? Object.keys(rows[0]) : [];
+  const skuCodeHeader = findFirstHeader(headers, [
+    'skuCode',
+    'SKU코드',
+    'SKU 코드',
+    '우리자체상품코드',
+    '자체상품코드',
+    '상품코드',
+    '사입상품명',
+  ]);
+  const keywordHeaders = sortKeywordHeaders(headers);
+
+  if (!skuCodeHeader) {
+    throw new Error('SKU 코드로 사용할 컬럼을 찾을 수 없습니다. 자체상품코드, 상품코드, 사입상품명 중 하나가 필요합니다.');
+  }
+
+  if (keywordHeaders.length === 0) {
+    throw new Error('매칭키워드로 시작하는 컬럼을 찾을 수 없습니다.');
+  }
+
+  return rows.flatMap((row, rowIndex) => {
+    const skuCode = cleanSkuCode(normalizeCell(row[skuCodeHeader]));
+    const productName = normalizeCell(row['상품명']);
+
+    return keywordHeaders
+      .map((keywordHeader): SkuAliasImportParsedRow | null => {
+        const value = normalizeCell(row[keywordHeader]);
+        if (!skuCode || !value) return null;
+
+        return {
+          skuCode,
+          aliasType: 'MATCH_KEYWORD',
+          value,
+          source: '상품관리파일',
+          memo: productName ? `${keywordHeader} / ${productName}` : keywordHeader,
+          rowNumber: rowIndex + 2,
+        };
+      })
+      .filter((parsedRow): parsedRow is SkuAliasImportParsedRow => parsedRow !== null);
+  });
 }
 
 export function parseSkuAliasWorkbook(buffer: Buffer): SkuAliasImportParsedRow[] {

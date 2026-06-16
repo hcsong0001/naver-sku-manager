@@ -73,8 +73,11 @@ function ResultTable({ rows, mode }: { rows: (SkuAliasImportValidRow | SkuAliasI
 
 export default function SkuAliasesPage() {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const productManagementFileInputRef = useRef<HTMLInputElement | null>(null);
   const [file, setFile] = useState<File | null>(null);
+  const [productManagementFile, setProductManagementFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<SkuAliasImportPreviewResponse | null>(null);
+  const [previewSource, setPreviewSource] = useState<'alias' | 'productManagement'>('alias');
   const [message, setMessage] = useState<Message | null>(null);
   const [previewing, setPreviewing] = useState(false);
   const [applying, setApplying] = useState(false);
@@ -94,6 +97,7 @@ export default function SkuAliasesPage() {
       const data = await readJson<SkuAliasImportPreviewResponse | { error: string }>(response);
       if (!response.ok) throw new Error(getErrorMessage(data, '검증에 실패했습니다.'));
       setPreview(data as SkuAliasImportPreviewResponse);
+      setPreviewSource('alias');
       setMessage({ type: 'success', text: '검증이 완료되었습니다.' });
     } catch (error) {
       setPreview(null);
@@ -103,11 +107,39 @@ export default function SkuAliasesPage() {
     }
   };
 
+  const previewProductManagementFile = async () => {
+    if (!productManagementFile) {
+      setMessage({ type: 'error', text: '상품관리 CSV 파일을 선택하세요.' });
+      return;
+    }
+
+    setPreviewing(true);
+    setMessage(null);
+    try {
+      const formData = new FormData();
+      formData.append('file', productManagementFile);
+      const response = await fetch('/api/sku-aliases/product-management/preview', { method: 'POST', body: formData });
+      const data = await readJson<SkuAliasImportPreviewResponse | { error: string }>(response);
+      if (!response.ok) throw new Error(getErrorMessage(data, '상품관리 CSV 검증에 실패했습니다.'));
+      setPreview(data as SkuAliasImportPreviewResponse);
+      setPreviewSource('productManagement');
+      setMessage({ type: 'success', text: '상품관리 매칭키워드 검증이 완료되었습니다.' });
+    } catch (error) {
+      setPreview(null);
+      setMessage({ type: 'error', text: error instanceof Error ? error.message : '상품관리 CSV 검증에 실패했습니다.' });
+    } finally {
+      setPreviewing(false);
+    }
+  };
+
   const applyRows = async () => {
     if (!preview || preview.validRows.length === 0) return;
     setApplying(true);
     try {
-      const response = await fetch('/api/sku-aliases/import/apply', {
+      const applyUrl = previewSource === 'productManagement'
+        ? '/api/sku-aliases/product-management/apply'
+        : '/api/sku-aliases/import/apply';
+      const response = await fetch(applyUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ rows: preview.validRows }),
@@ -137,6 +169,7 @@ export default function SkuAliasesPage() {
         </div>
 
         <div className="mb-6 rounded-2xl border border-[#262629] bg-[#121214] p-6">
+          <h2 className="mb-3 text-lg font-semibold text-white">SKU 별칭 엑셀 등록</h2>
           <div className="mb-4 grid gap-2 text-xs text-zinc-400 sm:grid-cols-3">
             {SKU_ALIAS_TYPES.map((type) => <div key={type}>{type}: {aliasTypeLabels[type]}</div>)}
           </div>
@@ -152,6 +185,34 @@ export default function SkuAliasesPage() {
             </button>
             <input ref={fileInputRef} type="file" accept=".xlsx,.xls" className="hidden" onChange={(event) => { setFile(event.target.files?.[0] ?? null); setPreview(null); }} />
           </div>
+        </div>
+
+        <div className="mb-6 rounded-2xl border border-[#262629] bg-[#121214] p-6">
+          <h2 className="mb-2 text-lg font-semibold text-white">상품관리 CSV 매칭키워드 등록</h2>
+          <p className="mb-4 text-sm text-zinc-400">
+            상품관리prd 파일에서 매칭키워드로 시작하는 모든 열을 자동 추출하고, 자체상품코드/상품코드/사입상품명 컬럼의 SKU 코드와 연결해 MATCH_KEYWORD 별칭으로 등록합니다.
+          </p>
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <button onClick={() => productManagementFileInputRef.current?.click()} className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#333] bg-[#1a1a1e] px-4 py-2.5 text-sm font-medium text-zinc-200">
+              <FileSpreadsheet className="h-4 w-4" />
+              CSV 파일 선택
+            </button>
+            <div className="flex min-h-10 flex-1 items-center rounded-xl border border-[#262629] bg-[#0c0c0e] px-4 text-sm text-zinc-400">{productManagementFile ? productManagementFile.name : '선택된 파일 없음'}</div>
+            <button onClick={previewProductManagementFile} disabled={previewing} className="inline-flex items-center justify-center gap-2 rounded-xl bg-zinc-100 px-5 py-2.5 text-sm font-semibold text-zinc-950 disabled:opacity-60">
+              {previewing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+              CSV 검증
+            </button>
+            <input
+              ref={productManagementFileInputRef}
+              type="file"
+              accept=".csv"
+              className="hidden"
+              onChange={(event) => {
+                setProductManagementFile(event.target.files?.[0] ?? null);
+                setPreview(null);
+              }}
+            />
+          </div>
           {message && (
             <div className={`mt-4 flex items-center gap-2 rounded-xl border px-4 py-3 text-sm ${message.type === 'success' ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-300' : 'border-red-500/20 bg-red-500/10 text-red-300'}`}>
               {message.type === 'success' ? <CheckCircle2 className="h-4 w-4" /> : <AlertTriangle className="h-4 w-4" />}
@@ -162,6 +223,9 @@ export default function SkuAliasesPage() {
 
         {preview && (
           <div className="space-y-6">
+            <div className="rounded-xl border border-[#262629] bg-[#0c0c0e] px-4 py-3 text-sm text-zinc-300">
+              검증 출처: {previewSource === 'productManagement' ? '상품관리 CSV 매칭키워드 자동 추출' : 'SKU 별칭 엑셀'}
+            </div>
             <div className="grid gap-4 sm:grid-cols-4">
               {[
                 ['전체 행', preview.totalRows],
