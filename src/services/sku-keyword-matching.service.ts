@@ -79,6 +79,21 @@ function sortKeywordHeaders(headers: string[]): string[] {
     });
 }
 
+/** 헤더명 후보로 실제 컬럼명을 찾고 없으면 fallback을 사용 */
+function findHeaderByCandidates(
+  headers: string[],
+  candidates: string[],
+  fallbackHeader = '',
+): string {
+  const normalizedCandidates = candidates.map((candidate) => normalizeText(candidate));
+  return (
+    headers.find((header) => {
+      const normalizedHeader = normalizeText(header);
+      return normalizedCandidates.some((candidate) => normalizedHeader.includes(candidate));
+    }) ?? fallbackHeader
+  );
+}
+
 /** 사입상품명에서 ="..." 래핑 제거 */
 function cleanCellValue(value: string): string {
   return value.replace(/^="/, '').replace(/"$/, '').trim();
@@ -214,10 +229,30 @@ export function parseStockListXls(buffer: Buffer): StockListRow[] {
   const headers = Object.keys(rawRows[0]);
 
   // 바코드번호(서식) = 인덱스 7, 상품명 = 인덱스 9, 사입상품명 = 인덱스 14, 바코드번호 = 인덱스 6
-  const barcodeFormattedHeader = headers[7]; // 바코드번호(서식)
-  const productNameHeader = headers[9];       // 상품명
-  const purchaseNameHeader = headers[14];     // 사입상품명
-  const barcodeRawHeader = headers[6];        // 바코드번호
+  const barcodeFormattedHeader = findHeaderByCandidates(
+    headers,
+    ['바코드번호(서식)', '바코드번호 서식', '바코드 서식'],
+    headers[7],
+  );
+  const productNameHeader = findHeaderByCandidates(headers, ['상품명'], headers[9]);
+  const purchaseNameHeader = findHeaderByCandidates(headers, ['사입상품명'], headers[14]);
+  const barcodeRawHeader = findHeaderByCandidates(headers, ['바코드번호'], headers[6]);
+  const optionNameHeader = findHeaderByCandidates(headers, [
+    '옵션명',
+    '옵션값',
+    '옵션',
+    '상품옵션',
+  ]);
+  const optionCodeHeader = findHeaderByCandidates(
+    headers,
+    ['옵션정보일련번호', '옵션코드', '옵션관리코드'],
+    headers[15],
+  );
+  const productCodeHeader = findHeaderByCandidates(
+    headers,
+    ['자체상품코드', '상품코드', '판매자상품코드', '관리코드'],
+    headers[104],
+  );
 
   return rawRows
     .map((row, index) => {
@@ -225,6 +260,9 @@ export function parseStockListXls(buffer: Buffer): StockListRow[] {
       const barcodeRawValue = String(row[barcodeRawHeader] ?? '').trim();
       const productName = String(row[productNameHeader] ?? '').trim();
       const purchaseProductName = String(row[purchaseNameHeader] ?? '').trim();
+      const optionName = String(row[optionNameHeader] ?? '').trim();
+      const optionCode = String(row[optionCodeHeader] ?? '').trim();
+      const productCode = cleanCellValue(String(row[productCodeHeader] ?? '').trim());
 
       // 바코드 결정: 바코드번호(서식)의 raw 숫자값 우선 사용
       let barcode = barcodeFormatted;
@@ -240,6 +278,9 @@ export function parseStockListXls(buffer: Buffer): StockListRow[] {
         rowNumber: index + 2,
         productName,
         purchaseProductName,
+        optionName,
+        optionCode,
+        productCode,
         barcode,
         barcodeRaw: barcodeRawValue.replace(/-/g, ''),
       };
@@ -258,6 +299,8 @@ type KeywordEntry = {
   originalKeyword: string;
   productName: string;
   purchaseProductName: string;
+  productCode: string;
+  keywords: { column: string; value: string }[];
 };
 
 type KeywordIndex = Map<string, KeywordEntry[]>;
@@ -278,6 +321,8 @@ function buildKeywordIndex(csvRows: ProductManagementRow[]): KeywordIndex {
         originalKeyword: kw.value,
         productName: csvRow.productName,
         purchaseProductName: csvRow.purchaseProductName,
+        productCode: csvRow.productCode,
+        keywords: csvRow.keywords,
       };
 
       const existing = index.get(normalizedKey);
@@ -293,35 +338,180 @@ function buildKeywordIndex(csvRows: ProductManagementRow[]): KeywordIndex {
 }
 
 // ---------------------------------------------------------------------------
-// 재고현황 연결 (사입상품명 기반)
+// 재고현황 연결 (옵션명/상품명/사입상품명/바코드/상품코드 기반)
 // ---------------------------------------------------------------------------
 
-type StockIndex = Map<string, StockListRow[]>;
+type StockMatchField =
+  | 'optionName'
+  | 'productName'
+  | 'purchaseProductName'
+  | 'barcode'
+  | 'barcodeRaw'
+  | 'productCode'
+  | 'optionCode';
+
+type StockIndex = Map<StockMatchField, Map<string, StockListRow[]>>;
+
+type StockSearchCandidate = {
+  value: string;
+  label: string;
+  fields: StockMatchField[];
+};
+
+type StockMatch = {
+  row: StockListRow;
+  field: StockMatchField;
+  matchedValue: string;
+  method: MatchMethod;
+  confidence: number;
+  label: string;
+};
+
+const STOCK_TEXT_FIELDS: StockMatchField[] = [
+  'optionName',
+  'productName',
+  'purchaseProductName',
+];
+
+const STOCK_CODE_FIELDS: StockMatchField[] = [
+  'barcode',
+  'barcodeRaw',
+  'productCode',
+  'optionCode',
+];
+
+function getStockFieldValue(row: StockListRow, field: StockMatchField): string {
+  return row[field];
+}
+
+function normalizeCodeText(value: string): string {
+  return normalizeText(value).replace(/[-\s]/g, '');
+}
+
+function normalizeStockLookupValue(field: StockMatchField, value: string): string {
+  if (
+    field === 'barcode' ||
+    field === 'barcodeRaw' ||
+    field === 'productCode' ||
+    field === 'optionCode'
+  ) {
+    return normalizeCodeText(value);
+  }
+  return normalizeText(value);
+}
 
 function buildStockIndex(stockRows: StockListRow[]): StockIndex {
   const index: StockIndex = new Map();
 
-  for (const row of stockRows) {
-    if (!row.purchaseProductName) continue;
-    const key = normalizeText(row.purchaseProductName);
-    const existing = index.get(key);
+  const addToIndex = (field: StockMatchField, value: string, row: StockListRow): void => {
+    const key = normalizeStockLookupValue(field, value);
+    if (!key) return;
+
+    let fieldIndex = index.get(field);
+    if (!fieldIndex) {
+      fieldIndex = new Map();
+      index.set(field, fieldIndex);
+    }
+
+    const existing = fieldIndex.get(key);
     if (existing) {
       existing.push(row);
     } else {
-      index.set(key, [row]);
+      fieldIndex.set(key, [row]);
     }
+  };
+
+  for (const row of stockRows) {
+    addToIndex('optionName', row.optionName, row);
+    addToIndex('productName', row.productName, row);
+    addToIndex('purchaseProductName', row.purchaseProductName, row);
+    addToIndex('barcode', row.barcode, row);
+    addToIndex('barcodeRaw', row.barcodeRaw, row);
+    addToIndex('productCode', row.productCode, row);
+    addToIndex('optionCode', row.optionCode, row);
   }
 
   return index;
+}
+
+function uniqueStockCandidates(candidates: StockSearchCandidate[]): StockSearchCandidate[] {
+  const seen = new Set<string>();
+  const result: StockSearchCandidate[] = [];
+
+  for (const candidate of candidates) {
+    const value = candidate.value.trim();
+    if (!value) continue;
+    const fields = Array.from(new Set(candidate.fields));
+    const key = `${normalizeText(value)}::${fields.join(',')}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    result.push({ ...candidate, value, fields });
+  }
+
+  return result;
+}
+
+function getStockRowKey(row: StockListRow): string {
+  return `${row.rowNumber}::${row.barcode || row.barcodeRaw}`;
+}
+
+function findStockMatches(
+  candidates: StockSearchCandidate[],
+  stockIndex: StockIndex,
+): StockMatch[] {
+  const matches: StockMatch[] = [];
+  const seenRows = new Set<string>();
+
+  for (const candidate of uniqueStockCandidates(candidates)) {
+    for (const field of candidate.fields) {
+      const key = normalizeStockLookupValue(field, candidate.value);
+      if (!key) continue;
+
+      const rows = stockIndex.get(field)?.get(key) ?? [];
+      for (const row of rows) {
+        const rowKey = getStockRowKey(row);
+        if (seenRows.has(rowKey)) continue;
+        seenRows.add(rowKey);
+
+        const stockValue = getStockFieldValue(row, field);
+        const method =
+          normalizeCell(stockValue) === normalizeCell(candidate.value)
+            ? 'EXACT'
+            : 'NORMALIZED_EXACT';
+
+        matches.push({
+          row,
+          field,
+          matchedValue: candidate.value,
+          method,
+          confidence: 1,
+          label: candidate.label,
+        });
+      }
+    }
+  }
+
+  return matches;
+}
+
+function getStockBarcode(row: StockListRow): string {
+  return row.barcode || row.barcodeRaw;
 }
 
 function findStockRowsByPurchaseName(
   purchaseProductName: string,
   stockIndex: StockIndex,
 ): StockListRow[] {
-  if (!purchaseProductName) return [];
-  const key = normalizeText(purchaseProductName);
-  return stockIndex.get(key) ?? [];
+  return findStockMatches(
+    [
+      {
+        value: purchaseProductName,
+        label: '상품DB 사입상품명',
+        fields: ['purchaseProductName'],
+      },
+    ],
+    stockIndex,
+  ).map((match) => match.row);
 }
 
 // ---------------------------------------------------------------------------
@@ -394,6 +584,158 @@ function getSourceText(erpRow: ErpUnmappedRow): string {
   }
 
   return erpRow.productName;
+}
+
+function isOptionBasedOrder(erpRow: ErpUnmappedRow): boolean {
+  return (
+    (erpRow.mappingType === 'OPTION' || erpRow.mappingType === 'ADDITIONAL') &&
+    erpRow.itemName.trim().length > 0
+  );
+}
+
+function buildOptionStockCandidates(
+  erpRow: ErpUnmappedRow,
+  sourceText: string,
+): StockSearchCandidate[] {
+  const directFields: StockMatchField[] = [...STOCK_TEXT_FIELDS, 'barcode', 'barcodeRaw'];
+  const subItemName = extractSubItemName(sourceText);
+
+  return uniqueStockCandidates([
+    ...(subItemName
+      ? [{ value: subItemName, label: '주문 옵션명 일부', fields: directFields }]
+      : []),
+    { value: sourceText, label: '주문 옵션명', fields: directFields },
+    { value: erpRow.itemName, label: 'ERP itemName', fields: directFields },
+    {
+      value: erpRow.productName,
+      label: 'ERP 상품명',
+      fields: ['productName', 'purchaseProductName'],
+    },
+    { value: erpRow.managementCode, label: 'ERP 관리코드', fields: STOCK_CODE_FIELDS },
+  ]);
+}
+
+function buildProductStockCandidates(
+  erpRow: ErpUnmappedRow,
+  sourceText: string,
+  csvEntry: KeywordEntry,
+): StockSearchCandidate[] {
+  return uniqueStockCandidates([
+    {
+      value: csvEntry.productCode,
+      label: '상품DB 상품코드',
+      fields: ['productCode', 'optionCode', 'barcode', 'barcodeRaw'],
+    },
+    {
+      value: csvEntry.purchaseProductName,
+      label: '상품DB 사입상품명',
+      fields: ['purchaseProductName', 'productName', 'optionName'],
+    },
+    {
+      value: csvEntry.productName,
+      label: '상품DB 상품명',
+      fields: ['productName', 'purchaseProductName'],
+    },
+    ...csvEntry.keywords.map((keyword) => ({
+      value: keyword.value,
+      label: `상품DB ${keyword.column}`,
+      fields: STOCK_TEXT_FIELDS,
+    })),
+    {
+      value: sourceText,
+      label: '주문 상품명',
+      fields: ['productName', 'purchaseProductName'],
+    },
+    {
+      value: erpRow.productName,
+      label: 'ERP 상품명',
+      fields: ['productName', 'purchaseProductName'],
+    },
+    { value: erpRow.managementCode, label: 'ERP 관리코드', fields: STOCK_CODE_FIELDS },
+  ]);
+}
+
+function combineMatchMethods(first: MatchMethod, second: MatchMethod): MatchMethod {
+  if (first === 'EXACT' && second === 'EXACT') {
+    return 'EXACT';
+  }
+  return 'NORMALIZED_EXACT';
+}
+
+type SkuBarcodeLookup = Map<string, { skuId: string; skuCode: string }>;
+
+type StockMatchedRowsInput = {
+  mappingType: SkuMappingType;
+  erpRow: ErpUnmappedRow;
+  sourceText: string;
+  stockMatches: StockMatch[];
+  skuByBarcode: SkuBarcodeLookup;
+  matchedKeyword: string;
+  keywordColumn: string;
+  productManagementRowNo: number;
+  matchMethod: MatchMethod;
+  confidence: number;
+  memoPrefix: string;
+};
+
+function buildRowsFromStockMatches(input: StockMatchedRowsInput): {
+  matchedRows: SkuKeywordMatchedRow[];
+  warningRows: SkuKeywordWarningRow[];
+  skuMatchCount: number;
+} {
+  const matchedRows: SkuKeywordMatchedRow[] = [];
+  const warningRows: SkuKeywordWarningRow[] = [];
+  let skuMatchCount = 0;
+
+  for (const stockMatch of input.stockMatches) {
+    const barcode = getStockBarcode(stockMatch.row);
+    const skuInfo = input.skuByBarcode.get(barcode);
+    const finalMatchMethod = combineMatchMethods(input.matchMethod, stockMatch.method);
+    const memo =
+      `${input.memoPrefix}: ${stockMatch.label} -> ${stockMatch.field} ` +
+      `${stockMatch.matchedValue} -> ${barcode}`;
+
+    if (!skuInfo) {
+      warningRows.push({
+        mappingType: input.mappingType,
+        channelProductNo: input.erpRow.channelProductNo,
+        itemId: input.erpRow.itemId,
+        sourceText: input.sourceText,
+        matchedKeyword: input.matchedKeyword,
+        keywordColumn: input.keywordColumn,
+        productManagementRowNo: input.productManagementRowNo,
+        barcode,
+        skuCode: '',
+        warningType: 'BARCODE_NOT_IN_SKU',
+        warningMessage: `바코드 ${barcode}가 SkuBarcode 테이블에 등록되어 있지 않습니다.`,
+        matchMethod: finalMatchMethod,
+        confidence: input.confidence,
+        memo: '재고DB에서 바코드는 찾았지만 SKU 코드가 없어 기본 적용 대상에서 제외합니다.',
+      });
+      continue;
+    }
+
+    skuMatchCount++;
+    matchedRows.push({
+      mappingType: input.mappingType,
+      channelProductNo: input.erpRow.channelProductNo,
+      itemId: input.erpRow.itemId,
+      sourceText: input.sourceText,
+      matchedKeyword: input.matchedKeyword,
+      keywordColumn: input.keywordColumn,
+      productManagementRowNo: input.productManagementRowNo,
+      barcode,
+      skuCode: skuInfo.skuCode,
+      quantity: 1,
+      matchMethod: finalMatchMethod,
+      confidence: input.confidence,
+      memo,
+      applyEligible: false,
+      reviewReason: '검토 전입니다.',
+    });
+  }
+
+  return { matchedRows, warningRows, skuMatchCount };
 }
 
 // ---------------------------------------------------------------------------
@@ -495,7 +837,7 @@ function withApplyEligibility(
     );
     const possibleSet = groupRows.some((groupRow) => hasSetKeyword(groupRow.sourceText));
     const sameProductManagementRowMultiBarcode =
-      groupBarcodes.length > 1 && groupProductRows.length === 1;
+      groupBarcodes.length > 1 && groupProductRows.length === 1 && groupProductRows[0] !== '0';
     const reasons: string[] = [];
 
     if (row.matchMethod !== 'EXACT' && row.matchMethod !== 'NORMALIZED_EXACT') {
@@ -612,7 +954,7 @@ export async function previewKeywordMatching(
 
   // 3. SkuBarcode에서 바코드 → SKU 매핑 가져오기
   const allStockBarcodes = stockRows
-    .map((r) => r.barcode)
+    .map((r) => getStockBarcode(r))
     .filter((b) => b.length > 0);
   const uniqueBarcodes = Array.from(new Set(allStockBarcodes));
 
@@ -648,6 +990,212 @@ export async function previewKeywordMatching(
     }
 
     const sourceText = getSourceText(erpRow);
+    const mappingType: SkuMappingType = erpRow.mappingType;
+
+    if (isOptionBasedOrder(erpRow)) {
+      const stockMatches = findStockMatches(
+        buildOptionStockCandidates(erpRow, sourceText),
+        stockIndex,
+      );
+
+      if (stockMatches.length === 0) {
+        errorRows.push({
+          mappingType,
+          channelProductNo: erpRow.channelProductNo,
+          itemId: erpRow.itemId,
+          sourceText,
+          errorType: 'NO_DIRECT_STOCK_MATCH',
+          errorMessage:
+            '옵션 주문은 재고DB의 옵션명/상품명/사입상품명/바코드 기준으로 직접 매칭되어야 하지만 일치하는 재고를 찾지 못했습니다.',
+        });
+        continue;
+      }
+
+      const stockMatchesWithBarcode = stockMatches.filter((match) => getStockBarcode(match.row));
+      if (stockMatchesWithBarcode.length === 0) {
+        errorRows.push({
+          mappingType,
+          channelProductNo: erpRow.channelProductNo,
+          itemId: erpRow.itemId,
+          sourceText,
+          errorType: 'NO_BARCODE',
+          errorMessage: '재고DB 행은 찾았지만 출고 기준 바코드가 없습니다.',
+        });
+        continue;
+      }
+
+      barcodeMatchCount++;
+
+      const directRows = buildRowsFromStockMatches({
+        mappingType,
+        erpRow,
+        sourceText,
+        stockMatches: stockMatchesWithBarcode,
+        skuByBarcode,
+        matchedKeyword: stockMatchesWithBarcode[0].matchedValue,
+        keywordColumn: `재고DB.${stockMatchesWithBarcode[0].field}`,
+        productManagementRowNo: 0,
+        matchMethod: 'EXACT',
+        confidence: 1,
+        memoPrefix: '재고DB 직접 매칭',
+      });
+
+      matchedRows.push(...directRows.matchedRows);
+      warningRows.push(...directRows.warningRows);
+      skuMatchCount += directRows.skuMatchCount;
+      continue;
+    }
+
+    if (!isOptionBasedOrder(erpRow)) {
+      let matchResult: MatchResult | null = matchTextToKeyword(sourceText, keywordIndex);
+      if (!matchResult && sourceText !== erpRow.productName) {
+        matchResult = matchTextToKeyword(erpRow.productName, keywordIndex);
+      }
+
+      if (!matchResult) {
+        const fallbacks = extractFallbackKeywords(sourceText);
+        const fallbackMatches = new Set<string>();
+
+        for (const token of fallbacks) {
+          const normToken = normalizeText(token);
+          if (normToken.length < 2) continue;
+          for (const [kw, entries] of keywordIndex.entries()) {
+            if (kw.includes(normToken)) {
+              fallbackMatches.add(entries[0].originalKeyword);
+            }
+          }
+        }
+
+        if (fallbackMatches.size > 0) {
+          warningRows.push({
+            mappingType,
+            channelProductNo: erpRow.channelProductNo,
+            itemId: erpRow.itemId,
+            sourceText,
+            matchedKeyword: Array.from(fallbackMatches).slice(0, 5).join(', '),
+            keywordColumn: '후보',
+            productManagementRowNo: 0,
+            barcode: '',
+            skuCode: '',
+            warningType: 'FALLBACK_CANDIDATE',
+            warningMessage: '상품DB 키워드 완전일치가 없어 fallback 후보만 제공합니다.',
+            matchMethod: 'PARTIAL',
+            confidence: 0.3,
+            memo: 'fallback 후보는 재고DB 출고 SKU가 확정되지 않아 기본 적용 대상에서 제외합니다.',
+          });
+          continue;
+        }
+
+        errorRows.push({
+          mappingType,
+          channelProductNo: erpRow.channelProductNo,
+          itemId: erpRow.itemId,
+          sourceText,
+          errorType: 'NO_KEYWORD_MATCH',
+          errorMessage: '상품DB에서 매칭되는 키워드를 찾지 못했습니다.',
+        });
+        continue;
+      }
+
+      keywordMatchCount++;
+
+      if (matchResult.method === 'PARTIAL') {
+        warningRows.push({
+          mappingType,
+          channelProductNo: erpRow.channelProductNo,
+          itemId: erpRow.itemId,
+          sourceText,
+          matchedKeyword: matchResult.matchedKeyword,
+          keywordColumn: matchResult.entries[0].keywordColumn,
+          productManagementRowNo: matchResult.entries[0].csvRowNumber,
+          barcode: '',
+          skuCode: '',
+          warningType: 'PARTIAL_MATCH',
+          warningMessage: `상품DB 키워드 "${matchResult.matchedKeyword}" 부분일치만 가능합니다.`,
+          matchMethod: matchResult.method,
+          confidence: matchResult.confidence,
+          memo: '부분일치 결과는 재고DB 출고 SKU가 확정되지 않아 기본 적용 대상에서 제외합니다.',
+        });
+        continue;
+      }
+
+      if (matchResult.entries.length > 1) {
+        const uniqueCsvRows = new Set(matchResult.entries.map((entry) => entry.csvRowIndex));
+        if (uniqueCsvRows.size > 1) {
+          warningRows.push({
+            mappingType,
+            channelProductNo: erpRow.channelProductNo,
+            itemId: erpRow.itemId,
+            sourceText,
+            matchedKeyword: matchResult.matchedKeyword,
+            keywordColumn: matchResult.entries[0].keywordColumn,
+            productManagementRowNo: matchResult.entries[0].csvRowNumber,
+            barcode: '',
+            skuCode: '',
+            warningType: 'MULTIPLE_CSV_ROWS',
+            warningMessage: `같은 키워드가 ${uniqueCsvRows.size}개의 상품관리 CSV 행에 있습니다.`,
+            matchMethod: matchResult.method,
+            confidence: 0.7,
+            memo: '상품DB 후보가 중복되어 재고DB 출고 SKU를 안전하게 확정할 수 없습니다.',
+          });
+          continue;
+        }
+      }
+
+      const csvEntry = matchResult.entries[0];
+      const stockMatches = findStockMatches(
+        buildProductStockCandidates(erpRow, sourceText, csvEntry),
+        stockIndex,
+      );
+
+      if (stockMatches.length === 0) {
+        errorRows.push({
+          mappingType,
+          channelProductNo: erpRow.channelProductNo,
+          itemId: erpRow.itemId,
+          sourceText,
+          errorType: 'NO_STOCK_MATCH',
+          errorMessage:
+            `상품DB ${csvEntry.csvRowNumber}행의 상품코드/사입상품명/자체상품코드/매칭키워드로 ` +
+            '재고DB 출고 SKU를 찾지 못했습니다.',
+        });
+        continue;
+      }
+
+      const stockMatchesWithBarcode = stockMatches.filter((match) => getStockBarcode(match.row));
+      if (stockMatchesWithBarcode.length === 0) {
+        errorRows.push({
+          mappingType,
+          channelProductNo: erpRow.channelProductNo,
+          itemId: erpRow.itemId,
+          sourceText,
+          errorType: 'NO_BARCODE',
+          errorMessage: '재고DB 행은 찾았지만 출고 기준 바코드가 없습니다.',
+        });
+        continue;
+      }
+
+      barcodeMatchCount++;
+
+      const productRows = buildRowsFromStockMatches({
+        mappingType,
+        erpRow,
+        sourceText,
+        stockMatches: stockMatchesWithBarcode,
+        skuByBarcode,
+        matchedKeyword: matchResult.matchedKeyword,
+        keywordColumn: matchResult.entries[0].keywordColumn,
+        productManagementRowNo: csvEntry.csvRowNumber,
+        matchMethod: matchResult.method,
+        confidence: matchResult.confidence,
+        memoPrefix: '상품DB 후보 확인 후 재고DB 확정',
+      });
+
+      matchedRows.push(...productRows.matchedRows);
+      warningRows.push(...productRows.warningRows);
+      skuMatchCount += productRows.skuMatchCount;
+      continue;
+    }
 
     // ADDITIONAL인 경우 " / " 뒤 부분을 먼저 시도
     let matchResult: MatchResult | null = null;
@@ -1109,7 +1657,7 @@ export async function applyKeywordMatching(
     where: { barcode: { in: barcodes } },
     include: { sku: { select: { id: true, skuCode: true } } },
   });
-  const skuByBarcode = new Map(
+  const skuByBarcode: SkuBarcodeLookup = new Map(
     skuBarcodes.map((sb) => [sb.barcode, { skuId: sb.sku.id, skuCode: sb.sku.skuCode }])
   );
   const rowsToApply = candidateRows.filter((row) => {
