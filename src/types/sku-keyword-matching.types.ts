@@ -39,6 +39,7 @@ export type StockListRow = {
   optionSerialNo: string;
   optionCode: string;
   productCode: string;
+  internalProductCode: string;
   barcode: string;
   barcodeRaw: string;
   barcode2: string;

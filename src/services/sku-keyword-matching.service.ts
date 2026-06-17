@@ -236,9 +236,10 @@ export function parseStockListXls(buffer: Buffer): StockListRow[] {
 
   const productCodeHeader = findHeaderByCandidates(
     headers,
-    ['상품코드', '자체상품코드', '판매자상품코드', '관리코드'],
+    ['상품코드', '판매자상품코드', '관리코드'],
     headers[5],
   );
+  const internalProductCodeHeader = findHeaderByCandidates(headers, ['자체상품코드'], headers[104]);
   const barcodeRawHeader = findHeaderByCandidates(headers, ['바코드번호'], headers[6]);
   const barcodeHeader = findHeaderByCandidates(
     headers,
@@ -285,6 +286,9 @@ export function parseStockListXls(buffer: Buffer): StockListRow[] {
       const optionName = String(row[optionNameHeader] ?? '').trim();
       const accessoryProductName = String(row[accessoryProductNameHeader] ?? '').trim();
       const productCode = cleanCellValue(String(row[productCodeHeader] ?? '').trim());
+      const internalProductCode = cleanCellValue(
+        String(row[internalProductCodeHeader] ?? '').trim(),
+      );
 
       // 바코드 결정: 바코드번호(관리/서식)의 raw 숫자값 우선 사용
       let barcode = barcodeValue;
@@ -307,6 +311,7 @@ export function parseStockListXls(buffer: Buffer): StockListRow[] {
         optionSerialNo,
         optionCode,
         productCode,
+        internalProductCode,
         barcode,
         barcodeRaw: barcodeRawValue.replace(/-/g, ''),
         barcode2: barcode2.replace(/-/g, ''),
@@ -324,6 +329,7 @@ export function parseStockListXls(buffer: Buffer): StockListRow[] {
         row.purchaseOptionName,
         row.accessoryProductName,
         row.productCode,
+        row.internalProductCode,
         row.optionCode,
         row.optionSerialNo,
         row.barcode,
@@ -397,6 +403,7 @@ type StockMatchField =
   | 'barcodeRaw'
   | 'barcode2'
   | 'productCode'
+  | 'internalProductCode'
   | 'optionSerialNo'
   | 'optionCode';
 
@@ -431,9 +438,42 @@ const STOCK_CODE_FIELDS: StockMatchField[] = [
   'barcodeRaw',
   'barcode2',
   'productCode',
+  'internalProductCode',
   'optionSerialNo',
   'optionCode',
 ];
+
+const STRONG_STOCK_CODE_FIELDS: StockMatchField[] = [
+  'barcode',
+  'barcodeRaw',
+  'barcode2',
+  'productCode',
+  'internalProductCode',
+  'optionSerialNo',
+  'optionCode',
+];
+
+const STRONG_STOCK_TEXT_FIELDS: StockMatchField[] = [
+  'purchaseProductName',
+  'productName',
+  'managedProductName',
+  'optionName',
+  'purchaseOptionName',
+  'accessoryProductName',
+];
+
+const GENERIC_OPTION_VALUES = new Set([
+  '화이트',
+  '블랙',
+  '옐로우',
+  '레드',
+  '블루',
+  '그린',
+  '투명',
+  '반투명',
+  'a4',
+  'a5',
+]);
 
 function getStockFieldValue(row: StockListRow, field: StockMatchField): string {
   return row[field];
@@ -449,6 +489,7 @@ function normalizeStockLookupValue(field: StockMatchField, value: string): strin
     field === 'barcodeRaw' ||
     field === 'barcode2' ||
     field === 'productCode' ||
+    field === 'internalProductCode' ||
     field === 'optionSerialNo' ||
     field === 'optionCode'
   ) {
@@ -489,6 +530,7 @@ function buildStockIndex(stockRows: StockListRow[]): StockIndex {
     addToIndex('barcodeRaw', row.barcodeRaw, row);
     addToIndex('barcode2', row.barcode2, row);
     addToIndex('productCode', row.productCode, row);
+    addToIndex('internalProductCode', row.internalProductCode, row);
     addToIndex('optionSerialNo', row.optionSerialNo, row);
     addToIndex('optionCode', row.optionCode, row);
   }
@@ -586,6 +628,67 @@ function findStockMatches(
 
 function getStockBarcode(row: StockListRow): string {
   return row.barcode || row.barcodeRaw || row.barcode2;
+}
+
+function compactMatchValue(value: string): string {
+  return normalizeText(value).replace(/[\s\-_/()\[\].]+/g, '');
+}
+
+function isExactStockMatchMethod(method: MatchMethod): boolean {
+  return method === 'EXACT' || method === 'NORMALIZED_EXACT';
+}
+
+function isGenericOptionValue(value: string): boolean {
+  const compact = compactMatchValue(value);
+  return (
+    GENERIC_OPTION_VALUES.has(compact) ||
+    /^\d+(?:\.\d+)?mm$/i.test(compact) ||
+    /^a-?[45]$/i.test(compact)
+  );
+}
+
+function isCodeLikeValue(value: string): boolean {
+  const compact = compactMatchValue(value);
+  return compact.length >= 5 && /[a-z]/i.test(compact) && /\d/.test(compact);
+}
+
+function isSufficientLongTextMatch(value: string): boolean {
+  if (isGenericOptionValue(value)) return false;
+
+  const normalized = normalizeText(value);
+  const compact = compactMatchValue(value);
+  const tokenCount = normalized.split(/[\s/]+/).filter(Boolean).length;
+
+  return compact.length >= 8 || (compact.length >= 6 && tokenCount >= 2) || isCodeLikeValue(value);
+}
+
+function getWeakStockMatchWarningType(
+  input: StockMatchedRowsInput,
+  stockMatch: StockMatch,
+): 'GENERIC_OPTION_MATCH' | 'WEAK_STOCK_MATCH' | null {
+  const stockValue = getStockFieldValue(stockMatch.row, stockMatch.field);
+
+  if (isGenericOptionValue(stockMatch.matchedValue) || isGenericOptionValue(stockValue)) {
+    return 'GENERIC_OPTION_MATCH';
+  }
+
+  if (!isExactStockMatchMethod(input.matchMethod) || !isExactStockMatchMethod(stockMatch.method)) {
+    return 'WEAK_STOCK_MATCH';
+  }
+
+  if (STRONG_STOCK_CODE_FIELDS.includes(stockMatch.field)) {
+    return null;
+  }
+
+  if (
+    STRONG_STOCK_TEXT_FIELDS.includes(stockMatch.field) &&
+    isSufficientLongTextMatch(stockMatch.matchedValue) &&
+    isSufficientLongTextMatch(stockValue)
+  ) {
+    return null;
+  }
+
+  return 'WEAK_STOCK_MATCH';
 }
 
 // ---------------------------------------------------------------------------
@@ -762,6 +865,36 @@ type StockMatchedRowsInput = {
   memoPrefix: string;
 };
 
+function buildWeakStockMatchWarning(
+  input: StockMatchedRowsInput,
+  stockMatch: StockMatch,
+  barcode: string,
+  skuCode: string,
+  warningType: 'GENERIC_OPTION_MATCH' | 'WEAK_STOCK_MATCH',
+  memo: string,
+): SkuKeywordWarningRow {
+  const isGeneric = warningType === 'GENERIC_OPTION_MATCH';
+
+  return {
+    mappingType: input.mappingType,
+    channelProductNo: input.erpRow.channelProductNo,
+    itemId: input.erpRow.itemId,
+    sourceText: input.sourceText,
+    matchedKeyword: input.matchedKeyword,
+    keywordColumn: input.keywordColumn,
+    productManagementRowNo: input.productManagementRowNo,
+    barcode,
+    skuCode,
+    warningType,
+    warningMessage: isGeneric
+      ? `단독 색상/규격/짧은 옵션값 "${stockMatch.matchedValue}" 기준 매칭이라 자동 적용 대상에서 제외합니다.`
+      : `재고DB.${stockMatch.field} 기준 매칭이 약해 자동 적용 대상에서 제외합니다.`,
+    matchMethod: combineMatchMethods(input.matchMethod, stockMatch.method),
+    confidence: Math.min(input.confidence, stockMatch.confidence),
+    memo,
+  };
+}
+
 function buildRowsFromStockMatches(input: StockMatchedRowsInput): {
   matchedRows: SkuKeywordMatchedRow[];
   warningRows: SkuKeywordWarningRow[];
@@ -778,6 +911,20 @@ function buildRowsFromStockMatches(input: StockMatchedRowsInput): {
     const memo =
       `${input.memoPrefix}: ${stockMatch.label} -> ${stockMatch.field} ` +
       `${stockMatch.matchedValue} -> ${barcode}`;
+    const weakWarningType = getWeakStockMatchWarningType(input, stockMatch);
+    if (weakWarningType) {
+      warningRows.push(
+        buildWeakStockMatchWarning(
+          input,
+          stockMatch,
+          barcode,
+          skuInfo?.skuCode ?? '',
+          weakWarningType,
+          memo,
+        ),
+      );
+      continue;
+    }
 
     if (!skuInfo) {
       warningRows.push({
@@ -1040,6 +1187,80 @@ function withApplyEligibility(
   };
 }
 
+function matchedRowToWarningRow(
+  row: SkuKeywordMatchedRow,
+  warningType: 'WEAK_STOCK_MATCH',
+  warningMessage: string,
+): SkuKeywordWarningRow {
+  return {
+    mappingType: row.mappingType,
+    channelProductNo: row.channelProductNo,
+    itemId: row.itemId,
+    sourceText: row.sourceText,
+    matchedKeyword: row.matchedKeyword,
+    keywordColumn: row.keywordColumn,
+    productManagementRowNo: row.productManagementRowNo,
+    barcode: row.barcode,
+    skuCode: row.skuCode,
+    warningType,
+    warningMessage,
+    matchMethod: row.matchMethod,
+    confidence: row.confidence,
+    memo: row.memo,
+  };
+}
+
+function demoteRepeatedBarcodeMatchedRows(
+  matchedRows: SkuKeywordMatchedRow[],
+  warningRows: SkuKeywordWarningRow[],
+): { matchedRows: SkuKeywordMatchedRow[]; warningRows: SkuKeywordWarningRow[] } {
+  const rowsByBarcode = new Map<string, SkuKeywordMatchedRow[]>();
+
+  for (const row of matchedRows) {
+    if (!row.barcode) continue;
+
+    const rows = rowsByBarcode.get(row.barcode) ?? [];
+    rows.push(row);
+    rowsByBarcode.set(row.barcode, rows);
+  }
+
+  const repeatedBarcodeCounts = new Map<string, number>();
+  for (const [barcode, rows] of rowsByBarcode) {
+    const erpRowKeys = new Set(rows.map((row) => `${row.mappingType}::${row.itemId}`));
+    if (erpRowKeys.size > 1) {
+      repeatedBarcodeCounts.set(barcode, erpRowKeys.size);
+    }
+  }
+
+  if (repeatedBarcodeCounts.size === 0) {
+    return { matchedRows, warningRows };
+  }
+
+  const keptMatchedRows: SkuKeywordMatchedRow[] = [];
+  const demotedWarningRows = [...warningRows];
+
+  for (const row of matchedRows) {
+    const repeatedCount = repeatedBarcodeCounts.get(row.barcode);
+    if (!repeatedCount) {
+      keptMatchedRows.push(row);
+      continue;
+    }
+
+    demotedWarningRows.push(
+      matchedRowToWarningRow(
+        row,
+        'WEAK_STOCK_MATCH',
+        `같은 바코드 ${row.barcode}가 ${repeatedCount}개 ERP row에 반복 매칭되어 자동 적용 대상에서 제외합니다.`,
+      ),
+    );
+  }
+
+  return {
+    matchedRows: keptMatchedRows,
+    warningRows: demotedWarningRows,
+  };
+}
+
 function buildRepresentativeCases(
   matchedRows: SkuKeywordMatchedRow[],
   warningRows: SkuKeywordWarningRow[],
@@ -1135,7 +1356,6 @@ export async function previewKeywordMatching(
 
   let keywordMatchCount = 0;
   let barcodeMatchCount = 0;
-  let skuMatchCount = 0;
 
   for (const erpRow of erpRows) {
     if (!isMappingType(erpRow.mappingType)) {
@@ -1193,7 +1413,6 @@ export async function previewKeywordMatching(
 
         matchedRows.push(...directRows.matchedRows);
         warningRows.push(...directRows.warningRows);
-        skuMatchCount += directRows.skuMatchCount;
         continue;
       }
     }
@@ -1349,7 +1568,6 @@ export async function previewKeywordMatching(
 
       matchedRows.push(...productRows.matchedRows);
       warningRows.push(...productRows.warningRows);
-      skuMatchCount += productRows.skuMatchCount;
       continue;
     }
 
@@ -1521,25 +1739,26 @@ export async function previewKeywordMatching(
 
     matchedRows.push(...productRows.matchedRows);
     warningRows.push(...productRows.warningRows);
-    skuMatchCount += productRows.skuMatchCount;
   }
 
-  const reviewed = withApplyEligibility(matchedRows, warningRows);
+  const stockReviewed = demoteRepeatedBarcodeMatchedRows(matchedRows, warningRows);
+  const reviewed = withApplyEligibility(stockReviewed.matchedRows, stockReviewed.warningRows);
   const applyEligibleCount = reviewed.matchedRows.filter((row) => row.applyEligible).length;
   const possibleSetCount = reviewed.duplicates.filter((row) => row.possibleSet).length;
   const possibleDuplicateCount = reviewed.duplicates.filter((row) => row.possibleDuplicate).length;
   const representativeCases = buildRepresentativeCases(
     reviewed.matchedRows,
-    warningRows,
+    stockReviewed.warningRows,
     errorRows,
   );
+  const finalSkuMatchCount = reviewed.matchedRows.filter((row) => row.skuCode).length;
 
   const summary: SkuKeywordSummary = {
     totalErpRows: erpRows.length,
     keywordMatchCount,
     barcodeMatchCount,
-    skuMatchCount,
-    warningCount: warningRows.length,
+    skuMatchCount: finalSkuMatchCount,
+    warningCount: stockReviewed.warningRows.length,
     errorCount: errorRows.length,
     matchedRowsCount: reviewed.matchedRows.length,
     applyEligibleCount,
@@ -1551,7 +1770,7 @@ export async function previewKeywordMatching(
 
   return {
     matchedRows: reviewed.matchedRows,
-    warningRows,
+    warningRows: stockReviewed.warningRows,
     errorRows,
     duplicates: reviewed.duplicates,
     representativeCases,
