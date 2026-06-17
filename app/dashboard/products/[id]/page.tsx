@@ -1,6 +1,6 @@
 'use client';
 
-import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import {
   AlertTriangle,
@@ -13,6 +13,7 @@ import {
   Plus,
   Save,
   Search,
+  Trash2,
   X,
 } from 'lucide-react';
 import type {
@@ -69,12 +70,25 @@ type ProductDetail = {
 
 type SkuMappingDisplay = {
   quantity: number;
-  sku: { skuCode: string };
+  sku: { id?: string; skuCode: string; stockQuantity?: number };
 };
 
 type Message = { type: 'success' | 'error'; text: string };
+type ExistingVariantSku = {
+  skuId: string;
+  skuCode: string;
+  quantity: number;
+  stockQuantity: number;
+  source: string;
+};
 type SelectedVariantSku = SkuKeywordManualSkuCandidate & { quantity: number };
 type VariantManualSelections = Record<string, SelectedVariantSku[]>;
+type SkuKeywordManualUnapplyResponse = {
+  deletedCount: number;
+  directCleared: boolean;
+  aliasDeletedCount: number;
+  removedSkus: { skuId: string; skuCode: string; quantity: number }[];
+};
 type VariantCandidateFilter =
   | 'ALL'
   | 'SET'
@@ -119,6 +133,33 @@ function formatSkuMappings(mappings: SkuMappingDisplay[], fallback?: { skuCode: 
 function formatMaybe(value: string | number | null | undefined): string {
   if (value === null || value === undefined || String(value).trim() === '') return '-';
   return String(value);
+}
+
+function formatExistingSkuMappings(
+  mappings: SkuMappingDisplay[],
+  fallback?: { id: string; skuCode: string; stockQuantity: number } | null,
+): ExistingVariantSku[] {
+  if (mappings.length > 0) {
+    return mappings.map((mapping) => ({
+      skuId: mapping.sku.id ?? '',
+      skuCode: mapping.sku.skuCode,
+      quantity: mapping.quantity,
+      stockQuantity: mapping.sku.stockQuantity ?? 0,
+      source: 'SKU 매핑',
+    }));
+  }
+
+  return fallback
+    ? [
+        {
+          skuId: fallback.id,
+          skuCode: fallback.skuCode,
+          quantity: 1,
+          stockQuantity: fallback.stockQuantity,
+          source: '직접 연결',
+        },
+      ]
+    : [];
 }
 
 function getVariantRowKey(row: ProductVariantKeywordPreviewRow): string {
@@ -489,14 +530,81 @@ function VariantSkuSearch({
   );
 }
 
+function CurrentMappedSkuList({
+  mappedSkus,
+  onUnapply,
+  unapplying,
+}: {
+  mappedSkus: ExistingVariantSku[];
+  onUnapply: () => void;
+  unapplying: boolean;
+}) {
+  if (mappedSkus.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="mb-4 rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-3">
+      <div className="mb-3 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+        <div>
+          <p className="text-sm font-semibold text-emerald-200">현재 연결 SKU</p>
+          <p className="mt-0.5 text-xs text-zinc-500">
+            잘못 연결된 경우 매핑해제 후 다시 SKU를 선택해 수동확정할 수 있습니다.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={onUnapply}
+          disabled={unapplying}
+          className="inline-flex items-center gap-2 rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs font-semibold text-red-200 transition hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {unapplying ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+          매핑해제
+        </button>
+      </div>
+
+      <div className="overflow-x-auto rounded-md border border-emerald-500/10">
+        <table className="w-full min-w-[620px] text-left text-xs">
+          <thead className="bg-emerald-500/5">
+            <tr>
+              <th className="px-3 py-2 font-medium text-emerald-200">skuCode</th>
+              <th className="px-3 py-2 font-medium text-emerald-200">quantity</th>
+              <th className="px-3 py-2 font-medium text-emerald-200">재고</th>
+              <th className="px-3 py-2 font-medium text-emerald-200">출처</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-emerald-500/10">
+            {mappedSkus.map((sku) => (
+              <tr key={`${sku.skuId}-${sku.skuCode}`}>
+                <td className="whitespace-nowrap px-3 py-2 font-mono text-emerald-200">{sku.skuCode}</td>
+                <td className="whitespace-nowrap px-3 py-2 text-zinc-300">{sku.quantity}</td>
+                <td className="whitespace-nowrap px-3 py-2 text-zinc-300">{sku.stockQuantity.toLocaleString()}</td>
+                <td className="whitespace-nowrap px-3 py-2 text-zinc-400">{sku.source}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
 function VariantCandidateDetail({
   row,
+  isMapped,
+  mappedSkus,
+  onUnapply,
+  unapplying,
   selectedSkus,
   onAddManualSku,
   onRemoveManualSku,
   onManualSkuQuantityChange,
 }: {
   row: ProductVariantKeywordPreviewRow;
+  isMapped: boolean;
+  mappedSkus: ExistingVariantSku[];
+  onUnapply: () => void;
+  unapplying: boolean;
   selectedSkus: SelectedVariantSku[];
   onAddManualSku: (candidate: SkuKeywordManualSkuCandidate) => void;
   onRemoveManualSku: (skuId: string) => void;
@@ -507,6 +615,7 @@ function VariantCandidateDetail({
       <div className="mb-3 text-xs text-zinc-500">
         ProductVariantKeyword 상품옵션: <span className="text-zinc-300">{formatMaybe(row.productOptionText)}</span>
       </div>
+      <CurrentMappedSkuList mappedSkus={mappedSkus} onUnapply={onUnapply} unapplying={unapplying} />
       <div className="mb-3">
         <div className="mb-2 text-xs font-medium text-zinc-500">SKU 후보</div>
         <VariantSkuChips row={row} />
@@ -549,13 +658,19 @@ function VariantCandidateDetail({
           </tbody>
         </table>
       </div>
-      <VariantSkuSearch
-        row={row}
-        selectedSkus={selectedSkus}
-        onAdd={onAddManualSku}
-        onRemove={onRemoveManualSku}
-        onQuantityChange={onManualSkuQuantityChange}
-      />
+      {isMapped ? (
+        <p className="mt-4 rounded-lg border border-[#262629] bg-[#121214] px-3 py-2 text-xs text-zinc-400">
+          매핑완료 후보는 먼저 매핑해제한 뒤 새 SKU를 선택해 다시 수동확정할 수 있습니다.
+        </p>
+      ) : (
+        <VariantSkuSearch
+          row={row}
+          selectedSkus={selectedSkus}
+          onAdd={onAddManualSku}
+          onRemove={onRemoveManualSku}
+          onQuantityChange={onManualSkuQuantityChange}
+        />
+      )}
     </div>
   );
 }
@@ -565,8 +680,10 @@ function isRowMapped(
   row: ProductVariantKeywordPreviewRow,
   product: ProductDetail,
   newlyMappedRowKeys: Record<string, boolean>,
+  unmappedRowKeys: Record<string, boolean>,
 ): boolean {
   if (newlyMappedRowKeys[getVariantRowKey(row)]) return true;
+  if (unmappedRowKeys[getVariantRowKey(row)]) return false;
 
   if (row.mappingType === 'OPTION') {
     const option = product.options.find((o) => o.id === row.itemId);
@@ -577,6 +694,26 @@ function isRowMapped(
     return !!additional && (additional.skuId !== null || additional.skuMappings.length > 0);
   }
   return false;
+}
+
+function getExistingVariantSkus(
+  row: ProductVariantKeywordPreviewRow,
+  product: ProductDetail,
+  unmappedRowKeys: Record<string, boolean>,
+): ExistingVariantSku[] {
+  if (unmappedRowKeys[getVariantRowKey(row)]) return [];
+
+  if (row.mappingType === 'OPTION') {
+    const option = product.options.find((o) => o.id === row.itemId);
+    return option ? formatExistingSkuMappings(option.skuMappings, option.sku) : [];
+  }
+
+  if (row.mappingType === 'ADDITIONAL') {
+    const additional = product.additionals.find((a) => a.id === row.itemId);
+    return additional ? formatExistingSkuMappings(additional.skuMappings, additional.sku) : [];
+  }
+
+  return [];
 }
 
 function getVariantMatchStatus(row: ProductVariantKeywordPreviewRow, mapped: boolean): VariantMatchStatus {
@@ -590,11 +727,18 @@ function canSelectVariantRow(
   row: ProductVariantKeywordPreviewRow,
   product: ProductDetail,
   newlyMappedRowKeys: Record<string, boolean>,
+  unmappedRowKeys: Record<string, boolean>,
 ): boolean {
-  return !isRowMapped(row, product, newlyMappedRowKeys);
+  return !isRowMapped(row, product, newlyMappedRowKeys, unmappedRowKeys);
 }
 
-function ProductVariantKeywordPanel({ product }: { product: ProductDetail }) {
+function ProductVariantKeywordPanel({
+  product,
+  onProductRefresh,
+}: {
+  product: ProductDetail;
+  onProductRefresh: () => Promise<void>;
+}) {
   const fileRef = useRef<HTMLInputElement | null>(null);
   const [variantFile, setVariantFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<ProductVariantKeywordPreviewResponse | null>(null);
@@ -605,19 +749,21 @@ function ProductVariantKeywordPanel({ product }: { product: ProductDetail }) {
   const [message, setMessage] = useState<Message | null>(null);
   const [previewing, setPreviewing] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [unapplyingRowKeys, setUnapplyingRowKeys] = useState<Record<string, boolean>>({});
   const [newlyMappedRowKeys, setNewlyMappedRowKeys] = useState<Record<string, boolean>>({});
+  const [unmappedRowKeys, setUnmappedRowKeys] = useState<Record<string, boolean>>({});
 
   const filteredRows = useMemo(
     () => filterVariantRows(preview?.rows ?? [], activeFilter),
     [activeFilter, preview],
   );
   const selectableRows = useMemo(
-    () => preview?.rows.filter((row) => canSelectVariantRow(row, product, newlyMappedRowKeys)) ?? [],
-    [preview, product, newlyMappedRowKeys],
+    () => preview?.rows.filter((row) => canSelectVariantRow(row, product, newlyMappedRowKeys, unmappedRowKeys)) ?? [],
+    [preview, product, newlyMappedRowKeys, unmappedRowKeys],
   );
   const mappedRowCount = useMemo(
-    () => preview?.rows.filter((row) => isRowMapped(row, product, newlyMappedRowKeys)).length ?? 0,
-    [preview, product, newlyMappedRowKeys]
+    () => preview?.rows.filter((row) => isRowMapped(row, product, newlyMappedRowKeys, unmappedRowKeys)).length ?? 0,
+    [preview, product, newlyMappedRowKeys, unmappedRowKeys]
   );
   const checkedRows = useMemo(
     () => selectableRows.filter((row) => selectedRows[getVariantRowKey(row)]),
@@ -637,6 +783,9 @@ function ProductVariantKeywordPanel({ product }: { product: ProductDetail }) {
     setSelectedRows({});
     setManualSelections({});
     setExpandedRows({});
+    setUnapplyingRowKeys({});
+    setNewlyMappedRowKeys({});
+    setUnmappedRowKeys({});
     setActiveFilter('ALL');
 
     try {
@@ -708,6 +857,13 @@ function ProductVariantKeywordPanel({ product }: { product: ProductDetail }) {
         });
         return next;
       });
+      setUnmappedRowKeys((prev) => {
+        const next = { ...prev };
+        checkedRows.forEach((row) => {
+          delete next[getVariantRowKey(row)];
+        });
+        return next;
+      });
       setSelectedRows({});
       setManualSelections((current) => {
         const next = { ...current };
@@ -735,6 +891,67 @@ function ProductVariantKeywordPanel({ product }: { product: ProductDetail }) {
     setSelectedRows(
       Object.fromEntries(selectableRows.map((row) => [getVariantRowKey(row), !allSelected])),
     );
+  };
+
+  const handleUnapply = async (row: ProductVariantKeywordPreviewRow) => {
+    const rowKey = getVariantRowKey(row);
+    const confirmed = window.confirm('이 후보의 SKU 매핑을 해제하시겠습니까?');
+    if (!confirmed) return;
+
+    setUnapplyingRowKeys((current) => ({ ...current, [rowKey]: true }));
+    setMessage(null);
+
+    try {
+      const response = await fetch('/api/sku-matching/manual-unapply', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mappingType: row.mappingType,
+          itemId: row.itemId,
+        }),
+      });
+      const data = await readJson<SkuKeywordManualUnapplyResponse | { error: string }>(response);
+
+      if (!response.ok) {
+        throw new Error(getErrorMessage(data, '수동 매핑해제에 실패했습니다.'));
+      }
+
+      const result = data as SkuKeywordManualUnapplyResponse;
+      setNewlyMappedRowKeys((current) => {
+        const next = { ...current };
+        delete next[rowKey];
+        return next;
+      });
+      setUnmappedRowKeys((current) => ({ ...current, [rowKey]: true }));
+      setSelectedRows((current) => ({ ...current, [rowKey]: false }));
+      setManualSelections((current) => {
+        const next = { ...current };
+        delete next[rowKey];
+        return next;
+      });
+
+      try {
+        await onProductRefresh();
+      } catch {
+        setMessage({
+          type: 'success',
+          text: '매핑해제는 완료됐지만 상품 상세 갱신에 실패했습니다. 새로고침하면 최신 상태를 확인할 수 있습니다.',
+        });
+        return;
+      }
+
+      setMessage({
+        type: 'success',
+        text:
+          `매핑해제 완료: SKU 매핑 ${result.deletedCount.toLocaleString()}건 삭제` +
+          `${result.directCleared ? ', 직접 연결 1건 해제' : ''}.`,
+      });
+    } catch (error) {
+      const text = error instanceof Error ? error.message : '수동 매핑해제에 실패했습니다.';
+      setMessage({ type: 'error', text });
+    } finally {
+      setUnapplyingRowKeys((current) => ({ ...current, [rowKey]: false }));
+    }
   };
 
   const addManualSku = (rowKey: string, candidate: SkuKeywordManualSkuCandidate) => {
@@ -805,6 +1022,8 @@ function ProductVariantKeywordPanel({ product }: { product: ProductDetail }) {
           setSelectedRows({});
           setManualSelections({});
           setExpandedRows({});
+          setUnapplyingRowKeys({});
+          setUnmappedRowKeys({});
           setActiveFilter('ALL');
           setMessage(null);
         }}
@@ -893,17 +1112,20 @@ function ProductVariantKeywordPanel({ product }: { product: ProductDetail }) {
                     <th className="sticky top-0 z-20 w-28 px-4 py-3 text-xs font-medium text-zinc-500 bg-[#0c0c0e] whitespace-nowrap">유형</th>
                     <th className="sticky top-0 z-20 w-32 px-4 py-3 text-xs font-medium text-zinc-500 bg-[#0c0c0e] whitespace-nowrap">SKU 개수</th>
                     <th className="sticky top-0 z-20 w-32 px-4 py-3 text-xs font-medium text-zinc-500 bg-[#0c0c0e] whitespace-nowrap">매칭 상태</th>
+                    <th className="sticky top-0 z-20 w-28 px-4 py-3 text-xs font-medium text-zinc-500 bg-[#0c0c0e] whitespace-nowrap">관리</th>
                     <th className="sticky top-0 z-20 w-20 px-4 py-3 text-xs font-medium text-zinc-500 bg-[#0c0c0e] whitespace-nowrap">펼치기</th>
                   </tr>
               </thead>
               <tbody className="divide-y divide-[#1e1e22]">
                 {filteredRows.map((row) => {
                   const rowKey = getVariantRowKey(row);
-                  const isMapped = isRowMapped(row, product, newlyMappedRowKeys);
-                  const selectable = canSelectVariantRow(row, product, newlyMappedRowKeys);
+                  const isMapped = isRowMapped(row, product, newlyMappedRowKeys, unmappedRowKeys);
+                  const selectable = canSelectVariantRow(row, product, newlyMappedRowKeys, unmappedRowKeys);
                   const expanded = expandedRows[rowKey] ?? false;
                   const resolvedSkuCount = getResolvedSkuCount(row);
                   const manualSkuCount = manualSelections[rowKey]?.length ?? 0;
+                  const mappedSkus = getExistingVariantSkus(row, product, unmappedRowKeys);
+                  const unapplying = unapplyingRowKeys[rowKey] ?? false;
                   const matchStatus = getVariantMatchStatus(row, isMapped);
 
                   return (
@@ -969,6 +1191,25 @@ function ProductVariantKeywordPanel({ product }: { product: ProductDetail }) {
                           <VariantStatusBadge status={matchStatus} />
                         </td>
                         <td className="whitespace-nowrap px-4 py-3">
+                          {isMapped ? (
+                            <button
+                              type="button"
+                              onClick={() => void handleUnapply(row)}
+                              disabled={unapplying}
+                              className="inline-flex items-center gap-1.5 rounded-md border border-red-500/30 bg-red-500/10 px-2.5 py-1.5 text-xs font-semibold text-red-200 transition hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-60"
+                            >
+                              {unapplying ? (
+                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                              ) : (
+                                <Trash2 className="h-3.5 w-3.5" />
+                              )}
+                              매핑해제
+                            </button>
+                          ) : (
+                            <span className="text-xs text-zinc-500">-</span>
+                          )}
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-3">
                           <button
                             type="button"
                             onClick={() =>
@@ -986,9 +1227,13 @@ function ProductVariantKeywordPanel({ product }: { product: ProductDetail }) {
                       </tr>
                       {expanded && (
                         <tr key={`${rowKey}:detail`} className="bg-[#0f0f12]">
-                          <td colSpan={8} className="px-4 py-4">
+                          <td colSpan={9} className="px-4 py-4">
                             <VariantCandidateDetail
                               row={row}
+                              isMapped={isMapped}
+                              mappedSkus={mappedSkus}
+                              onUnapply={() => void handleUnapply(row)}
+                              unapplying={unapplying}
                               selectedSkus={manualSelections[rowKey] ?? []}
                               onAddManualSku={(candidate) => addManualSku(rowKey, candidate)}
                               onRemoveManualSku={(skuId) => removeManualSku(rowKey, skuId)}
@@ -1017,25 +1262,52 @@ function ProductVariantKeywordPanel({ product }: { product: ProductDetail }) {
   );
 }
 
+async function fetchProductDetail(productId: string): Promise<ProductDetail> {
+  const response = await fetch(`/api/products/${productId}`);
+  if (!response.ok) throw new Error('상품을 찾을 수 없습니다.');
+  return (await response.json()) as ProductDetail;
+}
+
 export default function ProductDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const productId = Array.isArray(params.id) ? params.id[0] : params.id;
   const [product, setProduct] = useState<ProductDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    if (!params.id) return;
+  const refreshProduct = useCallback(
+    async () => {
+      if (!productId) return;
+      const data = await fetchProductDetail(productId);
+      setProduct(data);
+      setError('');
+    },
+    [productId],
+  );
 
-    fetch(`/api/products/${params.id}`)
-      .then((response) => {
-        if (!response.ok) throw new Error('상품을 찾을 수 없습니다.');
-        return response.json();
+  useEffect(() => {
+    if (!productId) return;
+    let cancelled = false;
+
+    fetchProductDetail(productId)
+      .then((data) => {
+        if (cancelled) return;
+        setProduct(data);
+        setError('');
       })
-      .then((data: ProductDetail) => setProduct(data))
-      .catch((fetchError: Error) => setError(fetchError.message))
-      .finally(() => setLoading(false));
-  }, [params.id]);
+      .catch((fetchError: Error) => {
+        if (cancelled) return;
+        setError(fetchError.message);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [productId]);
 
   if (loading) {
     return (
@@ -1107,7 +1379,7 @@ export default function ProductDetailPage() {
           </div>
         </section>
 
-        <ProductVariantKeywordPanel product={product} />
+        <ProductVariantKeywordPanel product={product} onProductRefresh={refreshProduct} />
 
         <section className="rounded-lg border border-[#262629] bg-[#121214] p-6">
           <h2 className="mb-3 text-lg font-semibold text-white">단일상품 연결 SKU</h2>
