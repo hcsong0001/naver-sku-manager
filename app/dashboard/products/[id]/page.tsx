@@ -17,6 +17,17 @@ import {
   Trash2,
   X,
 } from 'lucide-react';
+import PageSizeSelect from '@/app/components/PageSizeSelect';
+import PaginationControls from '@/app/components/PaginationControls';
+import {
+  DEFAULT_PAGE_SIZE,
+  getPaginatedRows,
+  getPaginationRange,
+  getRowNumber,
+  getSafeCurrentPage,
+  getTotalPages,
+  type CommonPageSize,
+} from '@/src/utils/pagination';
 import type {
   ProductVariantKeywordPreviewResponse,
   ProductVariantKeywordPreviewRow,
@@ -107,6 +118,7 @@ type ProductVariantReportSummary = {
   selectableCount: number;
 };
 type ProductVariantExportRow = {
+  rowNumber: number;
   mappingType: string;
   itemName: string;
   serialNo: string;
@@ -132,7 +144,6 @@ type VariantCandidateFilter =
   | 'SELECTABLE';
 type VariantMatchStatus = 'MAPPED' | 'RESOLVED' | 'PARTIAL' | 'UNRESOLVED';
 type VariantSelectionPreset = 'FILTER_ALL' | 'PAGE' | 'RESOLVED' | 'SINGLE' | 'SET' | 'CLEAR';
-type VariantPageSize = 20 | 50 | 100 | 'ALL';
 type VariantQualityRiskType =
   | 'DIFFERENT_FROM_EXISTING'
   | 'SET_COMPONENT_MISSING'
@@ -148,6 +159,7 @@ type VariantQualityIssue = {
 };
 type VariantQualityRow = {
   rowKey: string;
+  rowNumber: number;
   mappingType: string;
   itemName: string;
   serialNo: string;
@@ -181,13 +193,6 @@ const variantCandidateFilters: { key: VariantCandidateFilter; label: string }[] 
   { key: 'SET', label: '세트상품' },
   { key: 'SINGLE', label: '단품' },
   { key: 'SELECTABLE', label: '선택 가능 후보' },
-];
-
-const variantPageSizeOptions: { value: VariantPageSize; label: string }[] = [
-  { value: 20, label: '20개' },
-  { value: 50, label: '50개' },
-  { value: 100, label: '100개' },
-  { value: 'ALL', label: '전체 보기' },
 ];
 
 const variantQualityRiskLabels: Record<VariantQualityRiskType, string> = {
@@ -733,9 +738,25 @@ function VariantReportCards({ summary }: { summary: ProductVariantReportSummary 
 function VariantQualitySection({
   summary,
   rows,
+  totalCount,
+  pageSize,
+  currentPage,
+  totalPages,
+  paginationStart,
+  paginationEnd,
+  onPageSizeChange,
+  onPageChange,
 }: {
   summary: VariantQualitySummary;
   rows: VariantQualityRow[];
+  totalCount: number;
+  pageSize: CommonPageSize;
+  currentPage: number;
+  totalPages: number;
+  paginationStart: number;
+  paginationEnd: number;
+  onPageSizeChange: (value: CommonPageSize) => void;
+  onPageChange: (page: number) => void;
 }) {
   return (
     <section className="rounded-lg border border-[#262629] bg-[#0c0c0e] p-4">
@@ -767,13 +788,29 @@ function VariantQualitySection({
         ))}
       </div>
 
+      <div className="mt-4 rounded-lg border border-[#262629] bg-[#121214] px-4 py-3">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <PageSizeSelect value={pageSize} onChange={onPageSizeChange} />
+          <PaginationControls
+            currentPage={currentPage}
+            totalPages={totalPages}
+            pageSize={pageSize}
+            start={paginationStart}
+            end={paginationEnd}
+            totalCount={totalCount}
+            onChangePage={onPageChange}
+          />
+        </div>
+      </div>
+
       <div className="mt-4 overflow-x-auto rounded-lg border border-[#262629]">
         <table className="w-full min-w-[1200px] text-left text-xs">
           <thead className="bg-[#121214]">
             <tr>
+              <th className="px-3 py-2 font-medium text-zinc-500">No.</th>
               <th className="px-3 py-2 font-medium text-zinc-500">구분</th>
               <th className="px-3 py-2 font-medium text-zinc-500">옵션/추가상품명</th>
-              <th className="px-3 py-2 font-medium text-zinc-500">일련번호</th>
+              <th className="px-3 py-2 font-medium text-zinc-500">원본 일련번호</th>
               <th className="px-3 py-2 font-medium text-zinc-500">매핑완료율</th>
               <th className="px-3 py-2 font-medium text-zinc-500">기존 연결 SKU</th>
               <th className="px-3 py-2 font-medium text-zinc-500">후보 SKU</th>
@@ -784,6 +821,7 @@ function VariantQualitySection({
           <tbody className="divide-y divide-[#1e1e22]">
             {rows.map((row) => (
               <tr key={row.rowKey} className="align-top">
+                <td className="whitespace-nowrap px-3 py-3 font-mono text-zinc-400">{row.rowNumber}</td>
                 <td className="whitespace-nowrap px-3 py-3 text-zinc-300">{row.mappingType}</td>
                 <td className="px-3 py-3 text-zinc-200">
                   <div className="font-medium">{row.itemName}</div>
@@ -1141,6 +1179,7 @@ function createVariantQualityRow(
 
   return {
     rowKey,
+    rowNumber: 0,
     mappingType: row.mappingType,
     itemName: row.itemName,
     serialNo: row.serialNo,
@@ -1162,15 +1201,16 @@ function createVariantQualityRows(args: {
   unmappedRowKeys: Record<string, boolean>;
   manualSelections: VariantManualSelections;
 }): VariantQualityRow[] {
-  return args.rows.map((row) =>
-    createVariantQualityRow(
+  return args.rows.map((row, index) => ({
+    ...createVariantQualityRow(
       row,
       args.product,
       args.newlyMappedRowKeys,
       args.unmappedRowKeys,
       args.manualSelections,
     ),
-  );
+    rowNumber: index + 1,
+  }));
 }
 
 function createVariantQualitySummary(rows: VariantQualityRow[]): VariantQualitySummary {
@@ -1210,8 +1250,9 @@ function createVariantExportRows({
   manualSelections: VariantManualSelections;
   qualityRowsByKey: Record<string, VariantQualityRow>;
 }): ProductVariantExportRow[] {
-  return rows.flatMap((row) => {
+  return rows.flatMap((row, index) => {
     const rowKey = getVariantRowKey(row);
+    const rowNumber = index + 1;
     const isMapped = isRowMapped(row, product, newlyMappedRowKeys, unmappedRowKeys);
     const statusLabel = getVariantMatchStatusLabel(getVariantMatchStatus(row, isMapped));
     const mappedSkus = getExistingVariantSkus(row, product, unmappedRowKeys);
@@ -1238,6 +1279,7 @@ function createVariantExportRows({
     if (candidateSkus.length === 0) {
       return [
         {
+          rowNumber,
           mappingType: row.mappingType,
           itemName: row.itemName,
           serialNo: row.serialNo,
@@ -1257,6 +1299,7 @@ function createVariantExportRows({
     }
 
     return candidateSkus.map((sku) => ({
+      rowNumber,
       mappingType: row.mappingType,
       itemName: row.itemName,
       serialNo: row.serialNo,
@@ -1367,8 +1410,10 @@ function ProductVariantKeywordPanel({
   const [manualSelections, setManualSelections] = useState<VariantManualSelections>({});
   const [expandedRows, setExpandedRows] = useState<Record<string, boolean>>({});
   const [activeFilter, setActiveFilter] = useState<VariantCandidateFilter>('ALL');
-  const [pageSize, setPageSize] = useState<VariantPageSize>(20);
+  const [pageSize, setPageSize] = useState<CommonPageSize>(DEFAULT_PAGE_SIZE);
   const [currentPage, setCurrentPage] = useState(1);
+  const [qualityPageSize, setQualityPageSize] = useState<CommonPageSize>(DEFAULT_PAGE_SIZE);
+  const [qualityCurrentPage, setQualityCurrentPage] = useState(1);
   const [message, setMessage] = useState<Message | null>(null);
   const [previewing, setPreviewing] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -1390,17 +1435,12 @@ function ProductVariantKeywordPanel({
     () => preview?.rows.filter((row) => canSelectVariantRow(row, product, newlyMappedRowKeys, unmappedRowKeys)) ?? [],
     [preview, product, newlyMappedRowKeys, unmappedRowKeys],
   );
-  const totalPages = useMemo(() => {
-    if (filteredRows.length === 0) return 1;
-    if (pageSize === 'ALL') return 1;
-    return Math.max(1, Math.ceil(filteredRows.length / pageSize));
-  }, [filteredRows.length, pageSize]);
-  const safeCurrentPage = Math.min(currentPage, totalPages);
-  const paginatedRows = useMemo(() => {
-    if (pageSize === 'ALL') return filteredRows;
-    const startIndex = (safeCurrentPage - 1) * pageSize;
-    return filteredRows.slice(startIndex, startIndex + pageSize);
-  }, [filteredRows, pageSize, safeCurrentPage]);
+  const totalPages = useMemo(() => getTotalPages(filteredRows.length, pageSize), [filteredRows.length, pageSize]);
+  const safeCurrentPage = getSafeCurrentPage(currentPage, totalPages);
+  const paginatedRows = useMemo(
+    () => getPaginatedRows(filteredRows, pageSize, safeCurrentPage),
+    [filteredRows, pageSize, safeCurrentPage],
+  );
   const currentPageSelectableRows = useMemo(
     () => paginatedRows.filter((row) => canSelectVariantRow(row, product, newlyMappedRowKeys, unmappedRowKeys)),
     [paginatedRows, product, newlyMappedRowKeys, unmappedRowKeys],
@@ -1452,14 +1492,21 @@ function ProductVariantKeywordPanel({
     () => Object.fromEntries(qualityRows.map((row) => [row.rowKey, row])),
     [qualityRows],
   );
-  const paginationStart =
-    filteredRows.length === 0 ? 0 : pageSize === 'ALL' ? 1 : (safeCurrentPage - 1) * pageSize + 1;
-  const paginationEnd =
-    filteredRows.length === 0
-      ? 0
-      : pageSize === 'ALL'
-        ? filteredRows.length
-        : Math.min(filteredRows.length, safeCurrentPage * pageSize);
+  const { start: paginationStart, end: paginationEnd } = getPaginationRange(
+    filteredRows.length,
+    pageSize,
+    safeCurrentPage,
+  );
+  const qualityTotalPages = useMemo(
+    () => getTotalPages(qualityRows.length, qualityPageSize),
+    [qualityRows.length, qualityPageSize],
+  );
+  const safeQualityCurrentPage = getSafeCurrentPage(qualityCurrentPage, qualityTotalPages);
+  const paginatedQualityRows = useMemo(
+    () => getPaginatedRows(qualityRows, qualityPageSize, safeQualityCurrentPage),
+    [qualityRows, qualityPageSize, safeQualityCurrentPage],
+  );
+  const qualityPagination = getPaginationRange(qualityRows.length, qualityPageSize, safeQualityCurrentPage);
 
   const handlePreview = async () => {
     if (!variantFile) {
@@ -1478,8 +1525,10 @@ function ProductVariantKeywordPanel({
     setUnmappedRowKeys({});
     setLastApplySummary(null);
     setActiveFilter('ALL');
-    setPageSize(20);
+    setPageSize(DEFAULT_PAGE_SIZE);
     setCurrentPage(1);
+    setQualityPageSize(DEFAULT_PAGE_SIZE);
+    setQualityCurrentPage(1);
 
     try {
       const formData = new FormData();
@@ -1634,6 +1683,7 @@ function ProductVariantKeywordPanel({
           summary: filteredReportSummary,
           rows,
           qualityRows: qualityRows.map((row) => ({
+            rowNumber: row.rowNumber,
             mappingType: row.mappingType,
             itemName: row.itemName,
             serialNo: row.serialNo,
@@ -1836,8 +1886,10 @@ function ProductVariantKeywordPanel({
           setUnapplyingRowKeys({});
           setUnmappedRowKeys({});
           setActiveFilter('ALL');
-          setPageSize(20);
+          setPageSize(DEFAULT_PAGE_SIZE);
           setCurrentPage(1);
+          setQualityPageSize(DEFAULT_PAGE_SIZE);
+          setQualityCurrentPage(1);
           setMessage(null);
         }}
       />
@@ -1887,7 +1939,21 @@ function ProductVariantKeywordPanel({
       {preview && (
         <div className="mt-5 space-y-4">
           <VariantReportCards summary={reportSummary} />
-          <VariantQualitySection summary={qualitySummary} rows={qualityRows} />
+          <VariantQualitySection
+            summary={qualitySummary}
+            rows={paginatedQualityRows}
+            totalCount={qualityRows.length}
+            pageSize={qualityPageSize}
+            currentPage={safeQualityCurrentPage}
+            totalPages={qualityTotalPages}
+            paginationStart={qualityPagination.start}
+            paginationEnd={qualityPagination.end}
+            onPageSizeChange={(value) => {
+              setQualityPageSize(value);
+              setQualityCurrentPage(1);
+            }}
+            onPageChange={setQualityCurrentPage}
+          />
 
           <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
             <div className="flex flex-wrap gap-2">
@@ -1898,6 +1964,7 @@ function ProductVariantKeywordPanel({
                   onClick={() => {
                     setActiveFilter(filter.key);
                     setCurrentPage(1);
+                    setQualityCurrentPage(1);
                   }}
                   className={`rounded-lg px-3 py-2 text-xs font-semibold transition ${
                     activeFilter === filter.key
@@ -1962,61 +2029,22 @@ function ProductVariantKeywordPanel({
           </div>
 
           <div className="flex flex-col gap-3 rounded-lg border border-[#262629] bg-[#0c0c0e] px-4 py-3 lg:flex-row lg:items-center lg:justify-between">
-            <div className="flex flex-wrap items-center gap-3 text-sm text-zinc-400">
-              <label className="flex items-center gap-2">
-                페이지당 표시
-                <select
-                  value={String(pageSize)}
-                  onChange={(event) => {
-                    setPageSize(event.target.value === 'ALL' ? 'ALL' : (Number(event.target.value) as VariantPageSize));
-                    setCurrentPage(1);
-                  }}
-                  className="h-9 rounded-lg border border-[#333] bg-[#121214] px-3 text-sm text-white outline-none transition focus:border-indigo-400"
-                >
-                  {variantPageSizeOptions.map((option) => (
-                    <option key={option.label} value={String(option.value)}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <span>{paginationStart}-{paginationEnd} / 총 {filteredRows.length.toLocaleString()}개</span>
-              <span>{safeCurrentPage} / {totalPages} 페이지</span>
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setCurrentPage(1)}
-                disabled={safeCurrentPage <= 1 || pageSize === 'ALL'}
-                className="rounded-lg border border-[#333] bg-[#121214] px-3 py-2 text-xs font-semibold text-zinc-200 transition hover:border-indigo-500/60 hover:text-white disabled:opacity-60"
-              >
-                처음
-              </button>
-              <button
-                type="button"
-                onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
-                disabled={safeCurrentPage <= 1 || pageSize === 'ALL'}
-                className="rounded-lg border border-[#333] bg-[#121214] px-3 py-2 text-xs font-semibold text-zinc-200 transition hover:border-indigo-500/60 hover:text-white disabled:opacity-60"
-              >
-                이전
-              </button>
-              <button
-                type="button"
-                onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
-                disabled={safeCurrentPage >= totalPages || pageSize === 'ALL'}
-                className="rounded-lg border border-[#333] bg-[#121214] px-3 py-2 text-xs font-semibold text-zinc-200 transition hover:border-indigo-500/60 hover:text-white disabled:opacity-60"
-              >
-                다음
-              </button>
-              <button
-                type="button"
-                onClick={() => setCurrentPage(totalPages)}
-                disabled={safeCurrentPage >= totalPages || pageSize === 'ALL'}
-                className="rounded-lg border border-[#333] bg-[#121214] px-3 py-2 text-xs font-semibold text-zinc-200 transition hover:border-indigo-500/60 hover:text-white disabled:opacity-60"
-              >
-                마지막
-              </button>
-            </div>
+            <PageSizeSelect
+              value={pageSize}
+              onChange={(value) => {
+                setPageSize(value);
+                setCurrentPage(1);
+              }}
+            />
+            <PaginationControls
+              currentPage={safeCurrentPage}
+              totalPages={totalPages}
+              pageSize={pageSize}
+              start={paginationStart}
+              end={paginationEnd}
+              totalCount={filteredRows.length}
+              onChangePage={setCurrentPage}
+            />
           </div>
 
           <div className="text-xs text-zinc-500">
@@ -2059,10 +2087,11 @@ function ProductVariantKeywordPanel({
               <table className="min-w-[2400px] table-fixed text-left text-sm relative w-full">
                 <thead className="bg-[#0c0c0e]">
                   <tr>
-                    <th className="sticky left-0 top-0 z-40 w-[56px] min-w-[56px] px-4 py-3 text-xs font-medium text-zinc-500 bg-[#0c0c0e]">선택</th>
-                    <th className="sticky left-[56px] top-0 z-40 w-[96px] min-w-[96px] px-4 py-3 text-xs font-medium text-zinc-500 bg-[#0c0c0e]">구분</th>
-                    <th className="sticky left-[152px] top-0 z-40 w-[420px] min-w-[420px] px-4 py-3 text-xs font-medium text-zinc-500 bg-[#0c0c0e] shadow-[6px_0_12px_rgba(0,0,0,0.35)] border-r border-[#262629]">옵션/추가상품명</th>
-                    <th className="sticky top-0 z-20 w-24 px-4 py-3 text-xs font-medium text-zinc-500 bg-[#0c0c0e] whitespace-nowrap">일련번호</th>
+                    <th className="sticky left-0 top-0 z-40 w-[72px] min-w-[72px] px-4 py-3 text-xs font-medium text-zinc-500 bg-[#0c0c0e]">No.</th>
+                    <th className="sticky left-[72px] top-0 z-40 w-[56px] min-w-[56px] px-4 py-3 text-xs font-medium text-zinc-500 bg-[#0c0c0e]">선택</th>
+                    <th className="sticky left-[128px] top-0 z-40 w-[96px] min-w-[96px] px-4 py-3 text-xs font-medium text-zinc-500 bg-[#0c0c0e]">구분</th>
+                    <th className="sticky left-[224px] top-0 z-40 w-[420px] min-w-[420px] px-4 py-3 text-xs font-medium text-zinc-500 bg-[#0c0c0e] shadow-[6px_0_12px_rgba(0,0,0,0.35)] border-r border-[#262629]">옵션/추가상품명</th>
+                    <th className="sticky top-0 z-20 w-24 px-4 py-3 text-xs font-medium text-zinc-500 bg-[#0c0c0e] whitespace-nowrap">원본 일련번호</th>
                     <th className="sticky top-0 z-20 w-28 px-4 py-3 text-xs font-medium text-zinc-500 bg-[#0c0c0e] whitespace-nowrap">유형</th>
                     <th className="sticky top-0 z-20 w-32 px-4 py-3 text-xs font-medium text-zinc-500 bg-[#0c0c0e] whitespace-nowrap">SKU 개수</th>
                     <th className="sticky top-0 z-20 w-32 px-4 py-3 text-xs font-medium text-zinc-500 bg-[#0c0c0e] whitespace-nowrap">매칭 상태</th>
@@ -2071,8 +2100,9 @@ function ProductVariantKeywordPanel({
                   </tr>
               </thead>
               <tbody className="divide-y divide-[#1e1e22]">
-                {paginatedRows.map((row) => {
+                {paginatedRows.map((row, index) => {
                   const rowKey = getVariantRowKey(row);
+                  const rowNumber = getRowNumber(index, safeCurrentPage, pageSize);
                   const isMapped = isRowMapped(row, product, newlyMappedRowKeys, unmappedRowKeys);
                   const selectable = canSelectVariantRow(row, product, newlyMappedRowKeys, unmappedRowKeys);
                   const expanded = expandedRows[rowKey] ?? false;
@@ -2086,7 +2116,10 @@ function ProductVariantKeywordPanel({
                   return (
                     <Fragment key={rowKey}>
                       <tr className="align-top group hover:bg-[#16161a]">
-                        <td className="sticky left-0 z-20 px-4 py-3 bg-[#121214] group-hover:bg-[#16161a]">
+                        <td className="sticky left-0 z-20 px-4 py-3 font-mono text-xs text-zinc-400 bg-[#121214] group-hover:bg-[#16161a]">
+                          {rowNumber}
+                        </td>
+                        <td className="sticky left-[72px] z-20 px-4 py-3 bg-[#121214] group-hover:bg-[#16161a]">
                           <div className="flex flex-col gap-1 items-start">
                             <input
                               type="checkbox"
@@ -2120,8 +2153,8 @@ function ProductVariantKeywordPanel({
                             )}
                           </div>
                         </td>
-                        <td className="sticky left-[56px] z-20 px-4 py-3 text-xs text-zinc-300 bg-[#121214] group-hover:bg-[#16161a]">{row.mappingType}</td>
-                        <td className="sticky left-[152px] z-20 px-4 py-3 bg-[#121214] group-hover:bg-[#16161a] shadow-[6px_0_12px_rgba(0,0,0,0.35)] border-r border-[#262629]">
+                        <td className="sticky left-[128px] z-20 px-4 py-3 text-xs text-zinc-300 bg-[#121214] group-hover:bg-[#16161a]">{row.mappingType}</td>
+                        <td className="sticky left-[224px] z-20 px-4 py-3 bg-[#121214] group-hover:bg-[#16161a] shadow-[6px_0_12px_rgba(0,0,0,0.35)] border-r border-[#262629]">
                           <div className="text-sm font-medium text-zinc-100">{row.itemName}</div>
                           {row.warningMessage && (
                             <div className="mt-1 text-xs text-amber-200">{row.warningMessage}</div>
@@ -2187,7 +2220,7 @@ function ProductVariantKeywordPanel({
                       </tr>
                       {expanded && (
                         <tr key={`${rowKey}:detail`} className="bg-[#0f0f12]">
-                          <td colSpan={9} className="px-4 py-4">
+                          <td colSpan={10} className="px-4 py-4">
                             <VariantCandidateDetail
                               row={row}
                               isMapped={isMapped}
@@ -2216,6 +2249,19 @@ function ProductVariantKeywordPanel({
               필터 조건에 맞는 후보가 없습니다.
             </div>
           )}
+          {filteredRows.length > 0 && (
+            <div className="mt-3 rounded-lg border border-[#262629] bg-[#0c0c0e] px-4 py-3">
+              <PaginationControls
+                currentPage={safeCurrentPage}
+                totalPages={totalPages}
+                pageSize={pageSize}
+                start={paginationStart}
+                end={paginationEnd}
+                totalCount={filteredRows.length}
+                onChangePage={setCurrentPage}
+              />
+            </div>
+          )}
         </div>
       )}
     </section>
@@ -2233,6 +2279,10 @@ export default function ProductDetailPage() {
   const router = useRouter();
   const productId = Array.isArray(params.id) ? params.id[0] : params.id;
   const [product, setProduct] = useState<ProductDetail | null>(null);
+  const [optionsPageSize, setOptionsPageSize] = useState<CommonPageSize>(DEFAULT_PAGE_SIZE);
+  const [optionsCurrentPage, setOptionsCurrentPage] = useState(1);
+  const [additionalsPageSize, setAdditionalsPageSize] = useState<CommonPageSize>(DEFAULT_PAGE_SIZE);
+  const [additionalsCurrentPage, setAdditionalsCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -2290,6 +2340,22 @@ export default function ProductDetailPage() {
 
   const mappedCount = product.options.filter((option) => option.skuMappings.length > 0 || option.skuId).length;
   const unmappedCount = product.options.length - mappedCount;
+  const optionsTotalPages = getTotalPages(product.options.length, optionsPageSize);
+  const safeOptionsCurrentPage = getSafeCurrentPage(optionsCurrentPage, optionsTotalPages);
+  const paginatedOptions = getPaginatedRows(product.options, optionsPageSize, safeOptionsCurrentPage);
+  const optionsPagination = getPaginationRange(product.options.length, optionsPageSize, safeOptionsCurrentPage);
+  const additionalsTotalPages = getTotalPages(product.additionals.length, additionalsPageSize);
+  const safeAdditionalsCurrentPage = getSafeCurrentPage(additionalsCurrentPage, additionalsTotalPages);
+  const paginatedAdditionals = getPaginatedRows(
+    product.additionals,
+    additionalsPageSize,
+    safeAdditionalsCurrentPage,
+  );
+  const additionalsPagination = getPaginationRange(
+    product.additionals.length,
+    additionalsPageSize,
+    safeAdditionalsCurrentPage,
+  );
 
   return (
     <div className="min-h-screen p-8">
@@ -2360,10 +2426,32 @@ export default function ProductDetailPage() {
           {product.options.length === 0 ? (
             <div className="py-16 text-center text-sm text-zinc-400">등록된 옵션이 없습니다.</div>
           ) : (
+            <div className="space-y-3">
+              <div className="px-6 pt-4">
+                <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                  <PageSizeSelect
+                    value={optionsPageSize}
+                    onChange={(value) => {
+                      setOptionsPageSize(value);
+                      setOptionsCurrentPage(1);
+                    }}
+                  />
+                  <PaginationControls
+                    currentPage={safeOptionsCurrentPage}
+                    totalPages={optionsTotalPages}
+                    pageSize={optionsPageSize}
+                    start={optionsPagination.start}
+                    end={optionsPagination.end}
+                    totalCount={product.options.length}
+                    onChangePage={setOptionsCurrentPage}
+                  />
+                </div>
+              </div>
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm">
                 <thead className="border-b border-[#262629] bg-[#0c0c0e]">
                   <tr>
+                    <th className="px-6 py-3 text-xs font-medium text-zinc-500">No.</th>
                     <th className="px-6 py-3 text-xs font-medium text-zinc-500">옵션명</th>
                     <th className="px-6 py-3 text-xs font-medium text-zinc-500">옵션값</th>
                     <th className="px-6 py-3 text-xs font-medium text-zinc-500">옵션코드</th>
@@ -2372,10 +2460,13 @@ export default function ProductDetailPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#1e1e22]">
-                  {product.options.map((option) => {
+                  {paginatedOptions.map((option, index) => {
                     const mapped = option.skuMappings.length > 0 || Boolean(option.skuId && option.sku);
                     return (
                       <tr key={option.id} className="transition hover:bg-[#16161a]">
+                        <td className="whitespace-nowrap px-6 py-4 font-mono text-xs text-zinc-400">
+                          {getRowNumber(index, safeOptionsCurrentPage, optionsPageSize)}
+                        </td>
                         <td className="whitespace-nowrap px-6 py-4 font-medium text-zinc-200">{option.optionName}</td>
                         <td className="whitespace-nowrap px-6 py-4 text-zinc-400">{option.optionValue}</td>
                         <td className="whitespace-nowrap px-6 py-4 font-mono text-xs text-zinc-500">
@@ -2393,6 +2484,18 @@ export default function ProductDetailPage() {
                 </tbody>
               </table>
             </div>
+              <div className="px-6 pb-4">
+                <PaginationControls
+                  currentPage={safeOptionsCurrentPage}
+                  totalPages={optionsTotalPages}
+                  pageSize={optionsPageSize}
+                  start={optionsPagination.start}
+                  end={optionsPagination.end}
+                  totalCount={product.options.length}
+                  onChangePage={setOptionsCurrentPage}
+                />
+              </div>
+            </div>
           )}
         </section>
 
@@ -2401,10 +2504,32 @@ export default function ProductDetailPage() {
             <div className="border-b border-[#262629] px-6 py-4">
               <h2 className="text-lg font-semibold text-white">추가상품 정보</h2>
             </div>
+            <div className="space-y-3">
+              <div className="px-6 pt-4">
+                <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                  <PageSizeSelect
+                    value={additionalsPageSize}
+                    onChange={(value) => {
+                      setAdditionalsPageSize(value);
+                      setAdditionalsCurrentPage(1);
+                    }}
+                  />
+                  <PaginationControls
+                    currentPage={safeAdditionalsCurrentPage}
+                    totalPages={additionalsTotalPages}
+                    pageSize={additionalsPageSize}
+                    start={additionalsPagination.start}
+                    end={additionalsPagination.end}
+                    totalCount={product.additionals.length}
+                    onChangePage={setAdditionalsCurrentPage}
+                  />
+                </div>
+              </div>
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm">
                 <thead className="border-b border-[#262629] bg-[#0c0c0e]">
                   <tr>
+                    <th className="px-6 py-3 text-xs font-medium text-zinc-500">No.</th>
                     <th className="px-6 py-3 text-xs font-medium text-zinc-500">항목</th>
                     <th className="px-6 py-3 text-xs font-medium text-zinc-500">값</th>
                     <th className="px-6 py-3 text-xs font-medium text-zinc-500">판매자관리코드</th>
@@ -2412,8 +2537,11 @@ export default function ProductDetailPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#1e1e22]">
-                  {product.additionals.map((additional) => (
+                  {paginatedAdditionals.map((additional, index) => (
                     <tr key={additional.id} className="transition hover:bg-[#16161a]">
+                      <td className="whitespace-nowrap px-6 py-4 font-mono text-xs text-zinc-400">
+                        {getRowNumber(index, safeAdditionalsCurrentPage, additionalsPageSize)}
+                      </td>
                       <td className="whitespace-nowrap px-6 py-4 font-medium text-zinc-200">
                         {additional.additionalName}
                       </td>
@@ -2428,6 +2556,18 @@ export default function ProductDetailPage() {
                   ))}
                 </tbody>
               </table>
+            </div>
+              <div className="px-6 pb-4">
+                <PaginationControls
+                  currentPage={safeAdditionalsCurrentPage}
+                  totalPages={additionalsTotalPages}
+                  pageSize={additionalsPageSize}
+                  start={additionalsPagination.start}
+                  end={additionalsPagination.end}
+                  totalCount={product.additionals.length}
+                  onChangePage={setAdditionalsCurrentPage}
+                />
+              </div>
             </div>
           </section>
         )}

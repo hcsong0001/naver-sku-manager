@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { CheckCircle2, Edit3, Loader2, Plus, Search, Trash2, XCircle } from 'lucide-react';
+import PageSizeSelect from '@/app/components/PageSizeSelect';
+import PaginationControls from '@/app/components/PaginationControls';
 import {
   SKU_ALIAS_TYPES,
   type SkuAliasDto,
@@ -10,6 +12,15 @@ import {
   type SkuDetailDto,
   type SkuDto,
 } from '@/src/types/sku.types';
+import {
+  DEFAULT_PAGE_SIZE,
+  getPaginatedRows,
+  getPaginationRange,
+  getRowNumber,
+  getSafeCurrentPage,
+  getTotalPages,
+  type CommonPageSize,
+} from '@/src/utils/pagination';
 
 type SkuFormState = {
   skuCode: string;
@@ -137,6 +148,10 @@ export default function SkusPage() {
   const [editingSkuId, setEditingSkuId] = useState<string | null>(null);
   const [selectedSku, setSelectedSku] = useState<SkuDetailDto | null>(null);
   const [search, setSearch] = useState('');
+  const [pageSize, setPageSize] = useState<CommonPageSize>(DEFAULT_PAGE_SIZE);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [barcodePageSize, setBarcodePageSize] = useState<CommonPageSize>(DEFAULT_PAGE_SIZE);
+  const [barcodeCurrentPage, setBarcodeCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [detailLoading, setDetailLoading] = useState(false);
@@ -154,6 +169,7 @@ export default function SkusPage() {
       }
 
       setSkus(Array.isArray(data) ? data : []);
+      setCurrentPage(1);
     } catch (error) {
       setMessage({ type: 'error', text: error instanceof Error ? error.message : 'SKU 목록 조회에 실패했습니다.' });
     } finally {
@@ -172,6 +188,7 @@ export default function SkusPage() {
       }
 
       setSelectedSku(data as SkuDetailDto);
+      setBarcodeCurrentPage(1);
     } catch (error) {
       setMessage({ type: 'error', text: error instanceof Error ? error.message : 'SKU 상세 조회에 실패했습니다.' });
     } finally {
@@ -192,6 +209,7 @@ export default function SkusPage() {
           }
 
           setSkus(Array.isArray(data) ? data : []);
+          setCurrentPage(1);
         } catch (error) {
           setMessage({ type: 'error', text: error instanceof Error ? error.message : 'SKU 목록 조회에 실패했습니다.' });
         } finally {
@@ -323,6 +341,16 @@ export default function SkusPage() {
     await fetchSkuDetail(selectedSku.id);
   };
 
+  const totalPages = getTotalPages(skus.length, pageSize);
+  const safeCurrentPage = getSafeCurrentPage(currentPage, totalPages);
+  const paginatedSkus = getPaginatedRows(skus, pageSize, safeCurrentPage);
+  const skuPagination = getPaginationRange(skus.length, pageSize, safeCurrentPage);
+  const barcodeTotalCount = selectedSku?.barcodes.length ?? 0;
+  const barcodeTotalPages = getTotalPages(barcodeTotalCount, barcodePageSize);
+  const safeBarcodeCurrentPage = getSafeCurrentPage(barcodeCurrentPage, barcodeTotalPages);
+  const paginatedBarcodes = getPaginatedRows(selectedSku?.barcodes ?? [], barcodePageSize, safeBarcodeCurrentPage);
+  const barcodePagination = getPaginationRange(barcodeTotalCount, barcodePageSize, safeBarcodeCurrentPage);
+
   return (
     <div className="min-h-screen p-8">
       <div className="mx-auto max-w-7xl">
@@ -391,7 +419,14 @@ export default function SkusPage() {
           <div className="rounded-2xl border border-[#262629] bg-[#121214]">
             <div className="flex flex-col gap-4 border-b border-[#262629] px-6 py-4 lg:flex-row lg:items-center lg:justify-between">
               <h2 className="text-lg font-semibold text-white">SKU 목록 <span className="ml-2 text-sm font-normal text-zinc-500">({skus.length.toLocaleString()}건)</span></h2>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
+                <PageSizeSelect
+                  value={pageSize}
+                  onChange={(value) => {
+                    setPageSize(value);
+                    setCurrentPage(1);
+                  }}
+                />
                 <input
                   value={search}
                   onChange={(event) => setSearch(event.target.value)}
@@ -408,10 +443,22 @@ export default function SkusPage() {
               </div>
             </div>
 
+            <div className="px-6 pt-4">
+              <PaginationControls
+                currentPage={safeCurrentPage}
+                totalPages={totalPages}
+                pageSize={pageSize}
+                start={skuPagination.start}
+                end={skuPagination.end}
+                totalCount={skus.length}
+                onChangePage={setCurrentPage}
+              />
+            </div>
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm">
                 <thead className="border-b border-[#262629] bg-[#0c0c0e]">
                   <tr>
+                    <th className="px-5 py-3 text-xs font-medium text-zinc-500">No.</th>
                     <th className="px-5 py-3 text-xs font-medium text-zinc-500">SKU 코드</th>
                     <th className="px-5 py-3 text-xs font-medium text-zinc-500">판매자상품코드</th>
                     <th className="px-5 py-3 text-xs font-medium text-zinc-500">바코드</th>
@@ -421,8 +468,9 @@ export default function SkusPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#1e1e22]">
-                  {skus.map((sku) => (
+                  {paginatedSkus.map((sku, index) => (
                     <tr key={sku.id} className="transition-colors hover:bg-[#16161a]">
+                      <td className="whitespace-nowrap px-5 py-4 font-mono text-xs text-zinc-400">{getRowNumber(index, safeCurrentPage, pageSize)}</td>
                       <td className="whitespace-nowrap px-5 py-4 font-mono text-xs font-semibold text-zinc-200">{sku.skuCode}</td>
                       <td className="whitespace-nowrap px-5 py-4 text-zinc-400">{sku.sellerProductCode ?? '-'}</td>
                       <td className="whitespace-nowrap px-5 py-4 font-mono text-xs text-zinc-500">{sku.barcode ?? '-'}</td>
@@ -445,6 +493,17 @@ export default function SkusPage() {
                   ))}
                 </tbody>
               </table>
+            </div>
+            <div className="px-6 pb-4 pt-3">
+              <PaginationControls
+                currentPage={safeCurrentPage}
+                totalPages={totalPages}
+                pageSize={pageSize}
+                start={skuPagination.start}
+                end={skuPagination.end}
+                totalCount={skus.length}
+                onChangePage={setCurrentPage}
+              />
             </div>
           </div>
 
@@ -516,10 +575,30 @@ export default function SkusPage() {
                       <button onClick={() => setBarcodeForm(emptyBarcodeForm)} className="rounded-xl border border-[#333] px-4 py-2 text-sm text-zinc-300 transition hover:bg-[#1a1a1e]">바코드 수정 취소</button>
                     )}
                   </div>
-                  <div className="mt-4 overflow-x-auto rounded-xl border border-[#262629]">
+                  <div className="mt-4 space-y-3">
+                    <div className="flex flex-col gap-3 rounded-xl border border-[#262629] bg-[#0c0c0e] px-4 py-3 lg:flex-row lg:items-center lg:justify-between">
+                      <PageSizeSelect
+                        value={barcodePageSize}
+                        onChange={(value) => {
+                          setBarcodePageSize(value);
+                          setBarcodeCurrentPage(1);
+                        }}
+                      />
+                      <PaginationControls
+                        currentPage={safeBarcodeCurrentPage}
+                        totalPages={barcodeTotalPages}
+                        pageSize={barcodePageSize}
+                        start={barcodePagination.start}
+                        end={barcodePagination.end}
+                        totalCount={barcodeTotalCount}
+                        onChangePage={setBarcodeCurrentPage}
+                      />
+                    </div>
+                  <div className="overflow-x-auto rounded-xl border border-[#262629]">
                     <table className="w-full text-left text-xs">
                       <thead className="bg-[#0c0c0e] text-zinc-500">
                         <tr>
+                          <th className="px-3 py-2">No.</th>
                           <th className="px-3 py-2">바코드</th>
                           <th className="px-3 py-2">포장단위</th>
                           <th className="px-3 py-2">수량</th>
@@ -528,8 +607,9 @@ export default function SkusPage() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-[#1e1e22]">
-                        {selectedSku.barcodes.map((barcode) => (
+                        {paginatedBarcodes.map((barcode, index) => (
                           <tr key={barcode.id}>
+                            <td className="px-3 py-2 font-mono text-zinc-400">{getRowNumber(index, safeBarcodeCurrentPage, barcodePageSize)}</td>
                             <td className="px-3 py-2 font-mono text-zinc-200">{barcode.barcode}</td>
                             <td className="px-3 py-2 text-zinc-300">{barcode.unitName}</td>
                             <td className="px-3 py-2 text-right font-mono text-zinc-300">{barcode.quantity}</td>
@@ -542,6 +622,18 @@ export default function SkusPage() {
                         ))}
                       </tbody>
                     </table>
+                  </div>
+                    <div className="rounded-xl border border-[#262629] bg-[#0c0c0e] px-4 py-3">
+                      <PaginationControls
+                        currentPage={safeBarcodeCurrentPage}
+                        totalPages={barcodeTotalPages}
+                        pageSize={barcodePageSize}
+                        start={barcodePagination.start}
+                        end={barcodePagination.end}
+                        totalCount={barcodeTotalCount}
+                        onChangePage={setBarcodeCurrentPage}
+                      />
+                    </div>
                   </div>
                 </section>
               </div>

@@ -14,6 +14,7 @@ type ExportSummary = {
 };
 
 type ExportRow = {
+  rowNumber: number;
   mappingType: string;
   itemName: string;
   serialNo: string;
@@ -31,6 +32,7 @@ type ExportRow = {
 };
 
 type ExportQualityRow = {
+  rowNumber: number;
   mappingType: string;
   itemName: string;
   serialNo: string;
@@ -105,6 +107,7 @@ function parseRows(value: unknown): ExportRow[] {
   if (!Array.isArray(value)) return [];
 
   return value.filter(isRecord).map((row) => ({
+    rowNumber: toNumberCell(row.rowNumber),
     mappingType: toStringCell(row.mappingType),
     itemName: toStringCell(row.itemName),
     serialNo: toStringCell(row.serialNo),
@@ -126,6 +129,7 @@ function parseQualityRows(value: unknown): ExportQualityRow[] {
   if (!Array.isArray(value)) return [];
 
   return value.filter(isRecord).map((row) => ({
+    rowNumber: toNumberCell(row.rowNumber),
     mappingType: toStringCell(row.mappingType),
     itemName: toStringCell(row.itemName),
     serialNo: toStringCell(row.serialNo),
@@ -204,9 +208,10 @@ function createWorkbookBuffer({
   summarySheet['!cols'] = [{ wch: 24 }, { wch: 80 }];
 
   const detailRows = rows.map((row) => ({
+    일련번호: row.rowNumber,
     mappingType: row.mappingType,
     'option/additional/product 이름': row.itemName,
-    일련번호: row.serialNo,
+    원본일련번호: row.serialNo,
     매핑상태: row.mappingStatus,
     '세트상품 여부': row.isSetProduct ? '세트상품' : '단품',
     'SKU 코드': row.skuCode,
@@ -216,11 +221,12 @@ function createWorkbookBuffer({
     '후보 SKU': row.candidateSku,
     '경고/비고': row.warningMessage,
     '품질 검증 상태': row.qualityStatus,
-    '위험유형': row.riskTypes,
+    위험유형: row.riskTypes,
     '후보 완성도(%)': row.completionRate,
   }));
   const detailSheet = XLSX.utils.json_to_sheet(detailRows);
   detailSheet['!cols'] = [
+    { wch: 10 },
     { wch: 14 },
     { wch: 64 },
     { wch: 14 },
@@ -254,9 +260,10 @@ function createWorkbookBuffer({
 
   const qualityDetailSheet = XLSX.utils.json_to_sheet(
     qualityRows.map((row) => ({
+      일련번호: row.rowNumber,
       mappingType: row.mappingType,
       'option/additional/product 이름': row.itemName,
-      일련번호: row.serialNo,
+      원본일련번호: row.serialNo,
       '세트상품 여부': row.isSetProduct ? '세트상품' : '단품',
       매핑완료: row.isMapped ? '예' : '아니오',
       '기존 연결 SKU 수': row.existingSkuCount,
@@ -269,6 +276,7 @@ function createWorkbookBuffer({
     })),
   );
   qualityDetailSheet['!cols'] = [
+    { wch: 10 },
     { wch: 14 },
     { wch: 48 },
     { wch: 14 },

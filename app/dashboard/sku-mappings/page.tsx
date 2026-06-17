@@ -9,6 +9,17 @@ import {
   Loader2,
   Upload,
 } from 'lucide-react';
+import PageSizeSelect from '@/app/components/PageSizeSelect';
+import PaginationControls from '@/app/components/PaginationControls';
+import {
+  DEFAULT_PAGE_SIZE,
+  getPaginatedRows,
+  getPaginationRange,
+  getRowNumber,
+  getSafeCurrentPage,
+  getTotalPages,
+  type CommonPageSize,
+} from '@/src/utils/pagination';
 import type {
   SkuMappingApplyResponse,
   SkuMappingErrorRow,
@@ -60,7 +71,19 @@ function SummaryCard({ label, value }: { label: string; value: number }) {
   );
 }
 
-function ValidRowsTable({ rows }: { rows: SkuMappingValidRow[] }) {
+function ValidRowsTable({
+  rows,
+  pageSize,
+  currentPage,
+  onPageSizeChange,
+  onPageChange,
+}: {
+  rows: SkuMappingValidRow[];
+  pageSize: CommonPageSize;
+  currentPage: number;
+  onPageSizeChange: (value: CommonPageSize) => void;
+  onPageChange: (page: number) => void;
+}) {
   if (rows.length === 0) {
     return (
       <div className="rounded-xl border border-[#262629] bg-[#0c0c0e] px-4 py-8 text-center text-sm text-zinc-500">
@@ -69,11 +92,24 @@ function ValidRowsTable({ rows }: { rows: SkuMappingValidRow[] }) {
     );
   }
 
+  const totalPages = getTotalPages(rows.length, pageSize);
+  const safeCurrentPage = getSafeCurrentPage(currentPage, totalPages);
+  const paginatedRows = getPaginatedRows(rows, pageSize, safeCurrentPage);
+  const pagination = getPaginationRange(rows.length, pageSize, safeCurrentPage);
+
   return (
-    <div className="overflow-x-auto rounded-xl border border-[#262629]">
+    <div className="space-y-3">
+      <div className="rounded-xl border border-[#262629] bg-[#0c0c0e] px-4 py-3">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <PageSizeSelect value={pageSize} onChange={onPageSizeChange} />
+          <PaginationControls currentPage={safeCurrentPage} totalPages={totalPages} pageSize={pageSize} start={pagination.start} end={pagination.end} totalCount={rows.length} onChangePage={onPageChange} />
+        </div>
+      </div>
+      <div className="overflow-x-auto rounded-xl border border-[#262629]">
       <table className="w-full text-left text-sm">
         <thead className="bg-[#0c0c0e]">
           <tr>
+            <th className="px-4 py-3 text-xs font-medium text-zinc-500">No.</th>
             <th className="px-4 py-3 text-xs font-medium text-zinc-500">행</th>
             <th className="px-4 py-3 text-xs font-medium text-zinc-500">구분</th>
             <th className="px-4 py-3 text-xs font-medium text-zinc-500">스토어</th>
@@ -85,8 +121,9 @@ function ValidRowsTable({ rows }: { rows: SkuMappingValidRow[] }) {
           </tr>
         </thead>
         <tbody className="divide-y divide-[#1e1e22]">
-          {rows.map((row) => (
+          {paginatedRows.map((row, index) => (
             <tr key={`${row.mappingType}-${row.itemId}-${row.rowNumber}`} className="hover:bg-[#16161a]">
+              <td className="whitespace-nowrap px-4 py-3 font-mono text-xs text-zinc-400">{getRowNumber(index, safeCurrentPage, pageSize)}</td>
               <td className="whitespace-nowrap px-4 py-3 text-zinc-500">{row.rowNumber}</td>
               <td className="whitespace-nowrap px-4 py-3"><MappingTypeBadge type={row.mappingType} /></td>
               <td className="whitespace-nowrap px-4 py-3 text-zinc-300">{row.smartstoreName || '-'}</td>
@@ -100,10 +137,26 @@ function ValidRowsTable({ rows }: { rows: SkuMappingValidRow[] }) {
         </tbody>
       </table>
     </div>
+      <div className="rounded-xl border border-[#262629] bg-[#0c0c0e] px-4 py-3">
+        <PaginationControls currentPage={safeCurrentPage} totalPages={totalPages} pageSize={pageSize} start={pagination.start} end={pagination.end} totalCount={rows.length} onChangePage={onPageChange} />
+      </div>
+    </div>
   );
 }
 
-function ErrorRowsTable({ rows }: { rows: SkuMappingErrorRow[] }) {
+function ErrorRowsTable({
+  rows,
+  pageSize,
+  currentPage,
+  onPageSizeChange,
+  onPageChange,
+}: {
+  rows: SkuMappingErrorRow[];
+  pageSize: CommonPageSize;
+  currentPage: number;
+  onPageSizeChange: (value: CommonPageSize) => void;
+  onPageChange: (page: number) => void;
+}) {
   if (rows.length === 0) {
     return (
       <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-4 py-8 text-center text-sm text-emerald-300">
@@ -112,11 +165,24 @@ function ErrorRowsTable({ rows }: { rows: SkuMappingErrorRow[] }) {
     );
   }
 
+  const totalPages = getTotalPages(rows.length, pageSize);
+  const safeCurrentPage = getSafeCurrentPage(currentPage, totalPages);
+  const paginatedRows = getPaginatedRows(rows, pageSize, safeCurrentPage);
+  const pagination = getPaginationRange(rows.length, pageSize, safeCurrentPage);
+
   return (
-    <div className="overflow-x-auto rounded-xl border border-red-500/20">
+    <div className="space-y-3">
+      <div className="rounded-xl border border-red-500/20 bg-[#0c0c0e] px-4 py-3">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <PageSizeSelect value={pageSize} onChange={onPageSizeChange} />
+          <PaginationControls currentPage={safeCurrentPage} totalPages={totalPages} pageSize={pageSize} start={pagination.start} end={pagination.end} totalCount={rows.length} onChangePage={onPageChange} />
+        </div>
+      </div>
+      <div className="overflow-x-auto rounded-xl border border-red-500/20">
       <table className="w-full text-left text-sm">
         <thead className="bg-red-500/5">
           <tr>
+            <th className="px-4 py-3 text-xs font-medium text-red-300">No.</th>
             <th className="px-4 py-3 text-xs font-medium text-red-300">행</th>
             <th className="px-4 py-3 text-xs font-medium text-red-300">구분</th>
             <th className="px-4 py-3 text-xs font-medium text-red-300">항목 ID</th>
@@ -127,8 +193,9 @@ function ErrorRowsTable({ rows }: { rows: SkuMappingErrorRow[] }) {
           </tr>
         </thead>
         <tbody className="divide-y divide-red-500/10">
-          {rows.map((row) => (
+          {paginatedRows.map((row, index) => (
             <tr key={`${row.mappingType}-${row.itemId}-${row.rowNumber}`} className="hover:bg-red-500/5">
+              <td className="whitespace-nowrap px-4 py-3 font-mono text-xs text-zinc-400">{getRowNumber(index, safeCurrentPage, pageSize)}</td>
               <td className="whitespace-nowrap px-4 py-3 text-zinc-500">{row.rowNumber}</td>
               <td className="whitespace-nowrap px-4 py-3 text-zinc-300">{row.mappingType || '-'}</td>
               <td className="whitespace-nowrap px-4 py-3 font-mono text-xs text-zinc-400">{row.itemId || '-'}</td>
@@ -141,6 +208,10 @@ function ErrorRowsTable({ rows }: { rows: SkuMappingErrorRow[] }) {
         </tbody>
       </table>
     </div>
+      <div className="rounded-xl border border-red-500/20 bg-[#0c0c0e] px-4 py-3">
+        <PaginationControls currentPage={safeCurrentPage} totalPages={totalPages} pageSize={pageSize} start={pagination.start} end={pagination.end} totalCount={rows.length} onChangePage={onPageChange} />
+      </div>
+    </div>
   );
 }
 
@@ -152,6 +223,10 @@ export default function SkuMappingsPage() {
   const [downloading, setDownloading] = useState(false);
   const [previewing, setPreviewing] = useState(false);
   const [applying, setApplying] = useState(false);
+  const [validPageSize, setValidPageSize] = useState<CommonPageSize>(DEFAULT_PAGE_SIZE);
+  const [validCurrentPage, setValidCurrentPage] = useState(1);
+  const [errorPageSize, setErrorPageSize] = useState<CommonPageSize>(DEFAULT_PAGE_SIZE);
+  const [errorCurrentPage, setErrorCurrentPage] = useState(1);
 
   const handleDownload = () => {
     setDownloading(true);
@@ -184,6 +259,10 @@ export default function SkuMappingsPage() {
       }
 
       setPreview(data as SkuMappingPreviewResponse);
+      setValidPageSize(DEFAULT_PAGE_SIZE);
+      setValidCurrentPage(1);
+      setErrorPageSize(DEFAULT_PAGE_SIZE);
+      setErrorCurrentPage(1);
       setMessage({ type: 'success', text: '엑셀 검증이 완료되었습니다.' });
     } catch (error) {
       const text = error instanceof Error ? error.message : '엑셀 검증에 실패했습니다.';
@@ -318,12 +397,30 @@ export default function SkuMappingsPage() {
                   정상 행 적용
                 </button>
               </div>
-              <ValidRowsTable rows={preview.validRows} />
+              <ValidRowsTable
+                rows={preview.validRows}
+                pageSize={validPageSize}
+                currentPage={validCurrentPage}
+                onPageSizeChange={(value) => {
+                  setValidPageSize(value);
+                  setValidCurrentPage(1);
+                }}
+                onPageChange={setValidCurrentPage}
+              />
             </div>
 
             <div className="rounded-2xl border border-[#262629] bg-[#121214] p-6">
               <h2 className="mb-4 text-lg font-semibold text-white">오류 행</h2>
-              <ErrorRowsTable rows={preview.errorRows} />
+              <ErrorRowsTable
+                rows={preview.errorRows}
+                pageSize={errorPageSize}
+                currentPage={errorCurrentPage}
+                onPageSizeChange={(value) => {
+                  setErrorPageSize(value);
+                  setErrorCurrentPage(1);
+                }}
+                onPageChange={setErrorCurrentPage}
+              />
             </div>
           </div>
         )}

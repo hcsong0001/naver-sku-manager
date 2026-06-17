@@ -12,6 +12,17 @@ import {
   Search,
   X,
 } from 'lucide-react';
+import PageSizeSelect from '@/app/components/PageSizeSelect';
+import PaginationControls from '@/app/components/PaginationControls';
+import {
+  DEFAULT_PAGE_SIZE,
+  getPaginatedRows,
+  getPaginationRange,
+  getRowNumber,
+  getSafeCurrentPage,
+  getTotalPages,
+  type CommonPageSize,
+} from '@/src/utils/pagination';
 import type {
   SkuKeywordErrorRow,
   SkuKeywordManualApplyRequest,
@@ -28,6 +39,16 @@ type Message = { type: 'success' | 'error'; text: string };
 type ResultTab = 'matched' | 'warning' | 'error';
 type SelectedSku = SkuKeywordManualSkuCandidate & { quantity: number };
 type ManualSelections = Record<string, SelectedSku[]>;
+type TabPaginationState = {
+  matched: number;
+  warning: number;
+  error: number;
+};
+type TabPageSizeState = {
+  matched: CommonPageSize;
+  warning: CommonPageSize;
+  error: CommonPageSize;
+};
 
 const mappingTypeLabels: Record<string, string> = {
   PRODUCT: '단일상품',
@@ -206,7 +227,19 @@ function FileUploadInput({
   );
 }
 
-function MatchedRowsTable({ rows }: { rows: SkuKeywordMatchedRow[] }) {
+function MatchedRowsTable({
+  rows,
+  pageSize,
+  currentPage,
+  onPageSizeChange,
+  onPageChange,
+}: {
+  rows: SkuKeywordMatchedRow[];
+  pageSize: CommonPageSize;
+  currentPage: number;
+  onPageSizeChange: (value: CommonPageSize) => void;
+  onPageChange: (page: number) => void;
+}) {
   if (rows.length === 0) {
     return (
       <div className="rounded-lg border border-[#262629] bg-[#0c0c0e] px-4 py-8 text-center text-sm text-zinc-500">
@@ -215,11 +248,32 @@ function MatchedRowsTable({ rows }: { rows: SkuKeywordMatchedRow[] }) {
     );
   }
 
+  const totalPages = getTotalPages(rows.length, pageSize);
+  const safeCurrentPage = getSafeCurrentPage(currentPage, totalPages);
+  const paginatedRows = getPaginatedRows(rows, pageSize, safeCurrentPage);
+  const pagination = getPaginationRange(rows.length, pageSize, safeCurrentPage);
+
   return (
-    <div className="overflow-x-auto rounded-lg border border-[#262629]">
+    <div className="space-y-3">
+      <div className="rounded-lg border border-[#262629] bg-[#0c0c0e] px-4 py-3">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <PageSizeSelect value={pageSize} onChange={onPageSizeChange} />
+          <PaginationControls
+            currentPage={safeCurrentPage}
+            totalPages={totalPages}
+            pageSize={pageSize}
+            start={pagination.start}
+            end={pagination.end}
+            totalCount={rows.length}
+            onChangePage={onPageChange}
+          />
+        </div>
+      </div>
+      <div className="overflow-x-auto rounded-lg border border-[#262629]">
       <table className="w-full min-w-[1180px] text-left text-sm">
         <thead className="bg-[#0c0c0e]">
           <tr>
+            <th className="px-4 py-3 text-xs font-medium text-zinc-500">No.</th>
             <th className="px-4 py-3 text-xs font-medium text-zinc-500">구분</th>
             <th className="px-4 py-3 text-xs font-medium text-zinc-500">상품번호</th>
             <th className="px-4 py-3 text-xs font-medium text-zinc-500">항목 ID</th>
@@ -234,8 +288,11 @@ function MatchedRowsTable({ rows }: { rows: SkuKeywordMatchedRow[] }) {
           </tr>
         </thead>
         <tbody className="divide-y divide-[#1e1e22]">
-          {rows.map((row, index) => (
+          {paginatedRows.map((row, index) => (
             <tr key={`${row.itemId}-${row.barcode}-${index}`} className="hover:bg-[#16161a]">
+              <td className="whitespace-nowrap px-4 py-3 font-mono text-xs text-zinc-400">
+                {getRowNumber(index, safeCurrentPage, pageSize)}
+              </td>
               <td className="whitespace-nowrap px-4 py-3">
                 <MappingTypeBadge type={row.mappingType} />
               </td>
@@ -263,6 +320,18 @@ function MatchedRowsTable({ rows }: { rows: SkuKeywordMatchedRow[] }) {
           ))}
         </tbody>
       </table>
+    </div>
+      <div className="rounded-lg border border-[#262629] bg-[#0c0c0e] px-4 py-3">
+        <PaginationControls
+          currentPage={safeCurrentPage}
+          totalPages={totalPages}
+          pageSize={pageSize}
+          start={pagination.start}
+          end={pagination.end}
+          totalCount={rows.length}
+          onChangePage={onPageChange}
+        />
+      </div>
     </div>
   );
 }
@@ -449,12 +518,20 @@ function WarningRowsTable({
   onAddSku,
   onRemoveSku,
   onQuantityChange,
+  pageSize,
+  currentPage,
+  onPageSizeChange,
+  onPageChange,
 }: {
   rows: SkuKeywordWarningRow[];
   selections: ManualSelections;
   onAddSku: (rowKey: string, candidate: SkuKeywordManualSkuCandidate) => void;
   onRemoveSku: (rowKey: string, skuId: string) => void;
   onQuantityChange: (rowKey: string, skuId: string, quantity: number) => void;
+  pageSize: CommonPageSize;
+  currentPage: number;
+  onPageSizeChange: (value: CommonPageSize) => void;
+  onPageChange: (page: number) => void;
 }) {
   if (rows.length === 0) {
     return (
@@ -464,11 +541,32 @@ function WarningRowsTable({
     );
   }
 
+  const totalPages = getTotalPages(rows.length, pageSize);
+  const safeCurrentPage = getSafeCurrentPage(currentPage, totalPages);
+  const paginatedRows = getPaginatedRows(rows, pageSize, safeCurrentPage);
+  const pagination = getPaginationRange(rows.length, pageSize, safeCurrentPage);
+
   return (
-    <div className="overflow-x-auto rounded-lg border border-amber-500/20">
+    <div className="space-y-3">
+      <div className="rounded-lg border border-amber-500/20 bg-[#0c0c0e] px-4 py-3">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <PageSizeSelect value={pageSize} onChange={onPageSizeChange} />
+          <PaginationControls
+            currentPage={safeCurrentPage}
+            totalPages={totalPages}
+            pageSize={pageSize}
+            start={pagination.start}
+            end={pagination.end}
+            totalCount={rows.length}
+            onChangePage={onPageChange}
+          />
+        </div>
+      </div>
+      <div className="overflow-x-auto rounded-lg border border-amber-500/20">
       <table className="w-full min-w-[1900px] text-left text-sm">
         <thead className="bg-amber-500/5">
           <tr>
+            <th className="px-4 py-3 text-xs font-medium text-amber-300">No.</th>
             <th className="px-4 py-3 text-xs font-medium text-amber-300">구분</th>
             <th className="px-4 py-3 text-xs font-medium text-amber-300">상품번호</th>
             <th className="px-4 py-3 text-xs font-medium text-amber-300">항목 ID</th>
@@ -482,12 +580,16 @@ function WarningRowsTable({
           </tr>
         </thead>
         <tbody className="divide-y divide-amber-500/10">
-          {rows.map((row, index) => {
-            const rowKey = getWarningRowKey(row, index);
+          {paginatedRows.map((row, index) => {
+            const actualIndex = getRowNumber(index, safeCurrentPage, pageSize) - 1;
+            const rowKey = getWarningRowKey(row, actualIndex);
             const selectedSkus = selections[rowKey] ?? [];
 
             return (
               <tr key={rowKey} className="align-top hover:bg-amber-500/5">
+                <td className="whitespace-nowrap px-4 py-3 font-mono text-xs text-zinc-400">
+                  {actualIndex + 1}
+                </td>
                 <td className="whitespace-nowrap px-4 py-3">
                   <MappingTypeBadge type={row.mappingType} />
                 </td>
@@ -530,10 +632,34 @@ function WarningRowsTable({
         </tbody>
       </table>
     </div>
+      <div className="rounded-lg border border-amber-500/20 bg-[#0c0c0e] px-4 py-3">
+        <PaginationControls
+          currentPage={safeCurrentPage}
+          totalPages={totalPages}
+          pageSize={pageSize}
+          start={pagination.start}
+          end={pagination.end}
+          totalCount={rows.length}
+          onChangePage={onPageChange}
+        />
+      </div>
+    </div>
   );
 }
 
-function ErrorRowsTable({ rows }: { rows: SkuKeywordErrorRow[] }) {
+function ErrorRowsTable({
+  rows,
+  pageSize,
+  currentPage,
+  onPageSizeChange,
+  onPageChange,
+}: {
+  rows: SkuKeywordErrorRow[];
+  pageSize: CommonPageSize;
+  currentPage: number;
+  onPageSizeChange: (value: CommonPageSize) => void;
+  onPageChange: (page: number) => void;
+}) {
   if (rows.length === 0) {
     return (
       <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 px-4 py-8 text-center text-sm text-emerald-300">
@@ -542,11 +668,32 @@ function ErrorRowsTable({ rows }: { rows: SkuKeywordErrorRow[] }) {
     );
   }
 
+  const totalPages = getTotalPages(rows.length, pageSize);
+  const safeCurrentPage = getSafeCurrentPage(currentPage, totalPages);
+  const paginatedRows = getPaginatedRows(rows, pageSize, safeCurrentPage);
+  const pagination = getPaginationRange(rows.length, pageSize, safeCurrentPage);
+
   return (
-    <div className="overflow-x-auto rounded-lg border border-red-500/20">
+    <div className="space-y-3">
+      <div className="rounded-lg border border-red-500/20 bg-[#0c0c0e] px-4 py-3">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <PageSizeSelect value={pageSize} onChange={onPageSizeChange} />
+          <PaginationControls
+            currentPage={safeCurrentPage}
+            totalPages={totalPages}
+            pageSize={pageSize}
+            start={pagination.start}
+            end={pagination.end}
+            totalCount={rows.length}
+            onChangePage={onPageChange}
+          />
+        </div>
+      </div>
+      <div className="overflow-x-auto rounded-lg border border-red-500/20">
       <table className="w-full min-w-[900px] text-left text-sm">
         <thead className="bg-red-500/5">
           <tr>
+            <th className="px-4 py-3 text-xs font-medium text-red-300">No.</th>
             <th className="px-4 py-3 text-xs font-medium text-red-300">구분</th>
             <th className="px-4 py-3 text-xs font-medium text-red-300">상품번호</th>
             <th className="px-4 py-3 text-xs font-medium text-red-300">항목 ID</th>
@@ -556,8 +703,11 @@ function ErrorRowsTable({ rows }: { rows: SkuKeywordErrorRow[] }) {
           </tr>
         </thead>
         <tbody className="divide-y divide-red-500/10">
-          {rows.map((row, index) => (
+          {paginatedRows.map((row, index) => (
             <tr key={`${row.itemId}-${row.errorType}-${index}`} className="hover:bg-red-500/5">
+              <td className="whitespace-nowrap px-4 py-3 font-mono text-xs text-zinc-400">
+                {getRowNumber(index, safeCurrentPage, pageSize)}
+              </td>
               <td className="whitespace-nowrap px-4 py-3 text-zinc-300">{formatMaybe(row.mappingType)}</td>
               <td className="whitespace-nowrap px-4 py-3 font-mono text-xs text-zinc-400">
                 {formatMaybe(row.channelProductNo)}
@@ -573,6 +723,18 @@ function ErrorRowsTable({ rows }: { rows: SkuKeywordErrorRow[] }) {
         </tbody>
       </table>
     </div>
+      <div className="rounded-lg border border-red-500/20 bg-[#0c0c0e] px-4 py-3">
+        <PaginationControls
+          currentPage={safeCurrentPage}
+          totalPages={totalPages}
+          pageSize={pageSize}
+          start={pagination.start}
+          end={pagination.end}
+          totalCount={rows.length}
+          onChangePage={onPageChange}
+        />
+      </div>
+    </div>
   );
 }
 
@@ -580,18 +742,26 @@ function ResultTabs({
   activeTab,
   preview,
   selections,
+  pageByTab,
+  pageSizeByTab,
   onTabChange,
   onAddSku,
   onRemoveSku,
   onQuantityChange,
+  onPageChange,
+  onPageSizeChange,
 }: {
   activeTab: ResultTab;
   preview: SkuKeywordPreviewResponse;
   selections: ManualSelections;
+  pageByTab: TabPaginationState;
+  pageSizeByTab: TabPageSizeState;
   onTabChange: (tab: ResultTab) => void;
   onAddSku: (rowKey: string, candidate: SkuKeywordManualSkuCandidate) => void;
   onRemoveSku: (rowKey: string, skuId: string) => void;
   onQuantityChange: (rowKey: string, skuId: string, quantity: number) => void;
+  onPageChange: (tab: ResultTab, page: number) => void;
+  onPageSizeChange: (tab: ResultTab, value: CommonPageSize) => void;
 }) {
   const tabs: { key: ResultTab; label: string; count: number }[] = [
     { key: 'matched', label: '자동 매칭', count: preview.matchedRows.length },
@@ -619,7 +789,15 @@ function ResultTabs({
         ))}
       </div>
 
-      {activeTab === 'matched' && <MatchedRowsTable rows={preview.matchedRows} />}
+      {activeTab === 'matched' && (
+        <MatchedRowsTable
+          rows={preview.matchedRows}
+          pageSize={pageSizeByTab.matched}
+          currentPage={pageByTab.matched}
+          onPageSizeChange={(value) => onPageSizeChange('matched', value)}
+          onPageChange={(page) => onPageChange('matched', page)}
+        />
+      )}
       {activeTab === 'warning' && (
         <WarningRowsTable
           rows={preview.warningRows}
@@ -627,9 +805,21 @@ function ResultTabs({
           onAddSku={onAddSku}
           onRemoveSku={onRemoveSku}
           onQuantityChange={onQuantityChange}
+          pageSize={pageSizeByTab.warning}
+          currentPage={pageByTab.warning}
+          onPageSizeChange={(value) => onPageSizeChange('warning', value)}
+          onPageChange={(page) => onPageChange('warning', page)}
         />
       )}
-      {activeTab === 'error' && <ErrorRowsTable rows={preview.errorRows} />}
+      {activeTab === 'error' && (
+        <ErrorRowsTable
+          rows={preview.errorRows}
+          pageSize={pageSizeByTab.error}
+          currentPage={pageByTab.error}
+          onPageSizeChange={(value) => onPageSizeChange('error', value)}
+          onPageChange={(page) => onPageChange('error', page)}
+        />
+      )}
     </div>
   );
 }
@@ -641,6 +831,12 @@ export default function SkuKeywordMatchingPage() {
   const [preview, setPreview] = useState<SkuKeywordPreviewResponse | null>(null);
   const [message, setMessage] = useState<Message | null>(null);
   const [activeTab, setActiveTab] = useState<ResultTab>('warning');
+  const [pageByTab, setPageByTab] = useState<TabPaginationState>({ matched: 1, warning: 1, error: 1 });
+  const [pageSizeByTab, setPageSizeByTab] = useState<TabPageSizeState>({
+    matched: DEFAULT_PAGE_SIZE,
+    warning: DEFAULT_PAGE_SIZE,
+    error: DEFAULT_PAGE_SIZE,
+  });
   const [manualSelections, setManualSelections] = useState<ManualSelections>({});
   const [previewing, setPreviewing] = useState(false);
   const [exporting, setExporting] = useState(false);
@@ -652,6 +848,8 @@ export default function SkuKeywordMatchingPage() {
     setPreview(null);
     setMessage(null);
     setActiveTab('warning');
+    setPageByTab({ matched: 1, warning: 1, error: 1 });
+    setPageSizeByTab({ matched: DEFAULT_PAGE_SIZE, warning: DEFAULT_PAGE_SIZE, error: DEFAULT_PAGE_SIZE });
     setManualSelections({});
   };
 
@@ -723,6 +921,7 @@ export default function SkuKeywordMatchingPage() {
       const previewResult = data as SkuKeywordPreviewResponse;
       setPreview(previewResult);
       setActiveTab(previewResult.warningRows.length > 0 ? 'warning' : 'matched');
+      setPageByTab({ matched: 1, warning: 1, error: 1 });
       setMessage({ type: 'success', text: '키워드 매칭 검증이 완료되었습니다.' });
     } catch (error) {
       const text = error instanceof Error ? error.message : '키워드 매칭 검증에 실패했습니다.';
@@ -952,10 +1151,33 @@ export default function SkuKeywordMatchingPage() {
               activeTab={activeTab}
               preview={preview}
               selections={manualSelections}
-              onTabChange={setActiveTab}
+              pageByTab={pageByTab}
+              pageSizeByTab={pageSizeByTab}
+              onTabChange={(tab) => {
+                setActiveTab(tab);
+                setPageByTab((current) => ({ ...current, [tab]: 1 }));
+              }}
               onAddSku={addManualSku}
               onRemoveSku={removeManualSku}
               onQuantityChange={changeManualSkuQuantity}
+              onPageChange={(tab, page) =>
+                setPageByTab((current) => ({
+                  ...current,
+                  [tab]: page,
+                }))
+              }
+              onPageSizeChange={(tab, value) =>
+                {
+                  setPageSizeByTab((current) => ({
+                    ...current,
+                    [tab]: value,
+                  }));
+                  setPageByTab((current) => ({
+                    ...current,
+                    [tab]: 1,
+                  }));
+                }
+              }
             />
           </div>
         )}

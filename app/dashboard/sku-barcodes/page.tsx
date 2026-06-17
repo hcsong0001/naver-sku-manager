@@ -2,12 +2,23 @@
 
 import { useRef, useState } from 'react';
 import { AlertTriangle, CheckCircle2, Download, FileSpreadsheet, Loader2, Upload } from 'lucide-react';
+import PageSizeSelect from '@/app/components/PageSizeSelect';
+import PaginationControls from '@/app/components/PaginationControls';
 import type {
   SkuBarcodeImportApplyResponse,
   SkuBarcodeImportErrorRow,
   SkuBarcodeImportPreviewResponse,
   SkuBarcodeImportValidRow,
 } from '@/src/types/sku-barcode-import.types';
+import {
+  DEFAULT_PAGE_SIZE,
+  getPaginatedRows,
+  getPaginationRange,
+  getRowNumber,
+  getSafeCurrentPage,
+  getTotalPages,
+  type CommonPageSize,
+} from '@/src/utils/pagination';
 
 type Message = { type: 'success' | 'error'; text: string };
 
@@ -23,16 +34,43 @@ async function readJson<T>(response: Response): Promise<T> {
   return await response.json() as T;
 }
 
-function ResultTable({ rows, mode }: { rows: (SkuBarcodeImportValidRow | SkuBarcodeImportErrorRow)[]; mode: 'valid' | 'error' | 'warning' }) {
+function ResultTable({
+  rows,
+  mode,
+  pageSize,
+  currentPage,
+  onPageSizeChange,
+  onPageChange,
+}: {
+  rows: (SkuBarcodeImportValidRow | SkuBarcodeImportErrorRow)[];
+  mode: 'valid' | 'error' | 'warning';
+  pageSize: CommonPageSize;
+  currentPage: number;
+  onPageSizeChange: (value: CommonPageSize) => void;
+  onPageChange: (page: number) => void;
+}) {
   if (rows.length === 0) {
     return <div className="rounded-xl border border-[#262629] bg-[#0c0c0e] px-4 py-8 text-center text-sm text-zinc-500">표시할 행이 없습니다.</div>;
   }
 
+  const totalPages = getTotalPages(rows.length, pageSize);
+  const safeCurrentPage = getSafeCurrentPage(currentPage, totalPages);
+  const paginatedRows = getPaginatedRows(rows, pageSize, safeCurrentPage);
+  const pagination = getPaginationRange(rows.length, pageSize, safeCurrentPage);
+
   return (
-    <div className="overflow-x-auto rounded-xl border border-[#262629]">
+    <div className="space-y-3">
+      <div className="rounded-xl border border-[#262629] bg-[#0c0c0e] px-4 py-3">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <PageSizeSelect value={pageSize} onChange={onPageSizeChange} />
+          <PaginationControls currentPage={safeCurrentPage} totalPages={totalPages} pageSize={pageSize} start={pagination.start} end={pagination.end} totalCount={rows.length} onChangePage={onPageChange} />
+        </div>
+      </div>
+      <div className="overflow-x-auto rounded-xl border border-[#262629]">
       <table className="w-full text-left text-sm">
         <thead className="bg-[#0c0c0e]">
           <tr>
+            <th className="px-4 py-3 text-xs font-medium text-zinc-500">No.</th>
             <th className="px-4 py-3 text-xs font-medium text-zinc-500">행</th>
             <th className="px-4 py-3 text-xs font-medium text-zinc-500">SKU</th>
             <th className="px-4 py-3 text-xs font-medium text-zinc-500">바코드</th>
@@ -43,8 +81,9 @@ function ResultTable({ rows, mode }: { rows: (SkuBarcodeImportValidRow | SkuBarc
           </tr>
         </thead>
         <tbody className="divide-y divide-[#1e1e22]">
-          {rows.map((row) => (
+          {paginatedRows.map((row, index) => (
             <tr key={`${row.rowNumber}-${row.skuCode}-${row.barcode}`} className="hover:bg-[#16161a]">
+              <td className="whitespace-nowrap px-4 py-3 font-mono text-xs text-zinc-400">{getRowNumber(index, safeCurrentPage, pageSize)}</td>
               <td className="whitespace-nowrap px-4 py-3 text-zinc-500">{row.rowNumber}</td>
               <td className="whitespace-nowrap px-4 py-3 font-mono text-xs text-zinc-300">{row.skuCode}</td>
               <td className="whitespace-nowrap px-4 py-3 font-mono text-xs text-zinc-200">{row.barcode}</td>
@@ -57,6 +96,10 @@ function ResultTable({ rows, mode }: { rows: (SkuBarcodeImportValidRow | SkuBarc
         </tbody>
       </table>
     </div>
+      <div className="rounded-xl border border-[#262629] bg-[#0c0c0e] px-4 py-3">
+        <PaginationControls currentPage={safeCurrentPage} totalPages={totalPages} pageSize={pageSize} start={pagination.start} end={pagination.end} totalCount={rows.length} onChangePage={onPageChange} />
+      </div>
+    </div>
   );
 }
 
@@ -67,6 +110,12 @@ export default function SkuBarcodesPage() {
   const [message, setMessage] = useState<Message | null>(null);
   const [previewing, setPreviewing] = useState(false);
   const [applying, setApplying] = useState(false);
+  const [validPageSize, setValidPageSize] = useState<CommonPageSize>(DEFAULT_PAGE_SIZE);
+  const [validCurrentPage, setValidCurrentPage] = useState(1);
+  const [warningPageSize, setWarningPageSize] = useState<CommonPageSize>(DEFAULT_PAGE_SIZE);
+  const [warningCurrentPage, setWarningCurrentPage] = useState(1);
+  const [errorPageSize, setErrorPageSize] = useState<CommonPageSize>(DEFAULT_PAGE_SIZE);
+  const [errorCurrentPage, setErrorCurrentPage] = useState(1);
 
   const previewFile = async () => {
     if (!file) {
@@ -83,6 +132,9 @@ export default function SkuBarcodesPage() {
       const data = await readJson<SkuBarcodeImportPreviewResponse | { error: string }>(response);
       if (!response.ok) throw new Error(getErrorMessage(data, '검증에 실패했습니다.'));
       setPreview(data as SkuBarcodeImportPreviewResponse);
+      setValidCurrentPage(1);
+      setWarningCurrentPage(1);
+      setErrorCurrentPage(1);
       setMessage({ type: 'success', text: '검증이 완료되었습니다.' });
     } catch (error) {
       setPreview(null);
@@ -172,15 +224,15 @@ export default function SkuBarcodesPage() {
                   정상 행 적용
                 </button>
               </div>
-              <ResultTable rows={preview.validRows} mode="valid" />
+              <ResultTable rows={preview.validRows} mode="valid" pageSize={validPageSize} currentPage={validCurrentPage} onPageSizeChange={(value) => { setValidPageSize(value); setValidCurrentPage(1); }} onPageChange={setValidCurrentPage} />
             </div>
             <div className="rounded-2xl border border-[#262629] bg-[#121214] p-6">
               <h2 className="mb-4 text-lg font-semibold text-white">위험 알림</h2>
-              <ResultTable rows={preview.warningRows} mode="warning" />
+              <ResultTable rows={preview.warningRows} mode="warning" pageSize={warningPageSize} currentPage={warningCurrentPage} onPageSizeChange={(value) => { setWarningPageSize(value); setWarningCurrentPage(1); }} onPageChange={setWarningCurrentPage} />
             </div>
             <div className="rounded-2xl border border-[#262629] bg-[#121214] p-6">
               <h2 className="mb-4 text-lg font-semibold text-white">오류 행</h2>
-              <ResultTable rows={preview.errorRows} mode="error" />
+              <ResultTable rows={preview.errorRows} mode="error" pageSize={errorPageSize} currentPage={errorCurrentPage} onPageSizeChange={(value) => { setErrorPageSize(value); setErrorCurrentPage(1); }} onPageChange={setErrorCurrentPage} />
             </div>
           </div>
         )}
