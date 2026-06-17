@@ -7,27 +7,40 @@ import {
   Download,
   FileSpreadsheet,
   Loader2,
+  Plus,
+  Save,
   Search,
-  Upload,
+  X,
 } from 'lucide-react';
 import type {
-  SkuKeywordApplyResponse,
   SkuKeywordErrorRow,
+  SkuKeywordManualApplyRequest,
+  SkuKeywordManualApplyResponse,
+  SkuKeywordManualSkuCandidate,
   SkuKeywordMatchedRow,
   SkuKeywordPreviewResponse,
   SkuKeywordSummary,
   SkuKeywordWarningRow,
+  SkuMappingType,
 } from '@/src/types/sku-keyword-matching.types';
-
-// ---------------------------------------------------------------------------
-// 유틸리티
-// ---------------------------------------------------------------------------
 
 type Message = { type: 'success' | 'error'; text: string };
 type ResultTab = 'matched' | 'warning' | 'error';
+type SelectedSku = SkuKeywordManualSkuCandidate & { quantity: number };
+type ManualSelections = Record<string, SelectedSku[]>;
+
+const mappingTypeLabels: Record<string, string> = {
+  PRODUCT: '단일상품',
+  OPTION: '옵션',
+  ADDITIONAL: '추가상품',
+};
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
+}
+
+function isManualMappingType(value: string): value is SkuMappingType {
+  return value === 'PRODUCT' || value === 'OPTION' || value === 'ADDITIONAL';
 }
 
 function getErrorMessage(value: unknown, fallback: string): string {
@@ -47,30 +60,39 @@ function makeUploadFormData(erpFile: File, csvFile: File, stockFile: File): Form
   return formData;
 }
 
-function formatExcludedReasons(counts: Record<string, number>): string {
-  const entries = Object.entries(counts);
-  if (entries.length === 0) return '제외 없음';
-  return entries.map(([reason, count]) => `${reason} ${count}건`).join(', ');
+function getWarningRowKey(row: SkuKeywordWarningRow, index: number): string {
+  return `${row.mappingType}:${row.channelProductNo}:${row.itemId}:${row.warningType}:${index}`;
 }
 
-// ---------------------------------------------------------------------------
-// 서브 컴포넌트
-// ---------------------------------------------------------------------------
+function getManualSelectionStats(selections: ManualSelections): { rowCount: number; skuCount: number } {
+  return Object.values(selections).reduce(
+    (stats, selectedSkus) => {
+      if (selectedSkus.length === 0) return stats;
+      return {
+        rowCount: stats.rowCount + 1,
+        skuCount: stats.skuCount + selectedSkus.length,
+      };
+    },
+    { rowCount: 0, skuCount: 0 },
+  );
+}
+
+function formatMaybe(value: string | number | null | undefined): string {
+  if (value === null || value === undefined || String(value).trim() === '') return '-';
+  return String(value);
+}
 
 function MappingTypeBadge({ type }: { type: string }) {
-  const isOption = type === 'OPTION';
-  const isProduct = type === 'PRODUCT';
+  const color =
+    type === 'PRODUCT'
+      ? 'bg-emerald-500/10 text-emerald-300 ring-emerald-500/20'
+      : type === 'OPTION'
+        ? 'bg-sky-500/10 text-sky-300 ring-sky-500/20'
+        : 'bg-violet-500/10 text-violet-300 ring-violet-500/20';
+
   return (
-    <span
-      className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-semibold ring-1 ring-inset ${
-        isOption
-          ? 'bg-sky-500/10 text-sky-300 ring-sky-500/20'
-          : isProduct
-            ? 'bg-emerald-500/10 text-emerald-300 ring-emerald-500/20'
-            : 'bg-violet-500/10 text-violet-300 ring-violet-500/20'
-      }`}
-    >
-      {isProduct ? '단일상품' : isOption ? '옵션' : '추가상품'}
+    <span className={`inline-flex rounded-md px-2 py-0.5 text-[11px] font-semibold ring-1 ring-inset ${color}`}>
+      {mappingTypeLabels[type] ? `${type} · ${mappingTypeLabels[type]}` : type}
     </span>
   );
 }
@@ -83,8 +105,9 @@ function ConfidenceBadge({ confidence }: { confidence: number }) {
       : pct >= 70
         ? 'bg-amber-500/10 text-amber-300 ring-amber-500/20'
         : 'bg-red-500/10 text-red-300 ring-red-500/20';
+
   return (
-    <span className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-semibold ring-1 ring-inset ${color}`}>
+    <span className={`inline-flex rounded-md px-2 py-0.5 text-[11px] font-semibold ring-1 ring-inset ${color}`}>
       {pct}%
     </span>
   );
@@ -93,7 +116,7 @@ function ConfidenceBadge({ confidence }: { confidence: number }) {
 function ApplyEligibleBadge({ eligible }: { eligible: boolean }) {
   return (
     <span
-      className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-semibold ring-1 ring-inset ${
+      className={`inline-flex rounded-md px-2 py-0.5 text-[11px] font-semibold ring-1 ring-inset ${
         eligible
           ? 'bg-emerald-500/10 text-emerald-300 ring-emerald-500/20'
           : 'bg-amber-500/10 text-amber-300 ring-amber-500/20'
@@ -106,7 +129,7 @@ function ApplyEligibleBadge({ eligible }: { eligible: boolean }) {
 
 function SummaryCard({ label, value, accent }: { label: string; value: number; accent?: string }) {
   return (
-    <div className={`rounded-xl border p-4 ${accent ?? 'border-[#262629] bg-[#0c0c0e]'}`}>
+    <div className={`rounded-lg border p-4 ${accent ?? 'border-[#262629] bg-[#0c0c0e]'}`}>
       <p className="text-[11px] font-medium text-zinc-500">{label}</p>
       <p className="mt-1 text-2xl font-semibold text-white">{value.toLocaleString()}</p>
     </div>
@@ -117,29 +140,18 @@ function SummaryCards({ summary }: { summary: SkuKeywordSummary }) {
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6">
       <SummaryCard label="ERP 전체 행" value={summary.totalErpRows} />
-      <SummaryCard label="매칭 행" value={summary.matchedRowsCount} />
+      <SummaryCard label="자동 매칭" value={summary.matchedRowsCount} />
       <SummaryCard
-        label="안전 적용 대상"
+        label="적용 가능"
         value={summary.applyEligibleCount}
         accent="border-emerald-500/20 bg-emerald-500/5"
       />
       <SummaryCard
-        label="검토 제외 대상"
-        value={summary.applyIneligibleCount}
-        accent="border-amber-500/20 bg-amber-500/5"
-      />
-      <SummaryCard label="중복 의심" value={summary.duplicateCount} />
-      <SummaryCard label="세트상품 후보" value={summary.possibleSetCount} />
-      <SummaryCard
-        label="중복 후보"
-        value={summary.possibleDuplicateCount}
-        accent="border-amber-500/20 bg-amber-500/5"
-      />
-      <SummaryCard
-        label="경고"
+        label="검토 필요"
         value={summary.warningCount}
         accent="border-amber-500/20 bg-amber-500/5"
       />
+      <SummaryCard label="중복 의심" value={summary.duplicateCount} />
       <SummaryCard
         label="오류"
         value={summary.errorCount}
@@ -163,6 +175,7 @@ function FileUploadInput({
   onFileChange: (file: File | null) => void;
 }) {
   const ref = useRef<HTMLInputElement | null>(null);
+
   return (
     <div className="space-y-1.5">
       <label htmlFor={id} className="text-xs font-medium text-zinc-400">
@@ -172,12 +185,12 @@ function FileUploadInput({
         <button
           type="button"
           onClick={() => ref.current?.click()}
-          className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#333] bg-[#1a1a1e] px-4 py-2.5 text-sm font-medium text-zinc-200 transition hover:border-indigo-500/60 hover:text-white"
+          className="inline-flex items-center justify-center gap-2 rounded-lg border border-[#333] bg-[#1a1a1e] px-4 py-2.5 text-sm font-medium text-zinc-200 transition hover:border-indigo-500/60 hover:text-white"
         >
           <FileSpreadsheet className="h-4 w-4" />
           파일 선택
         </button>
-        <div className="flex min-h-10 flex-1 items-center rounded-xl border border-[#262629] bg-[#0c0c0e] px-4 text-sm text-zinc-400">
+        <div className="flex min-h-10 flex-1 items-center rounded-lg border border-[#262629] bg-[#0c0c0e] px-4 text-sm text-zinc-400">
           {file ? file.name : '선택된 파일 없음'}
         </div>
       </div>
@@ -196,15 +209,15 @@ function FileUploadInput({
 function MatchedRowsTable({ rows }: { rows: SkuKeywordMatchedRow[] }) {
   if (rows.length === 0) {
     return (
-      <div className="rounded-xl border border-[#262629] bg-[#0c0c0e] px-4 py-8 text-center text-sm text-zinc-500">
-        매칭된 행이 없습니다.
+      <div className="rounded-lg border border-[#262629] bg-[#0c0c0e] px-4 py-8 text-center text-sm text-zinc-500">
+        자동 매칭 행이 없습니다.
       </div>
     );
   }
 
   return (
-    <div className="overflow-x-auto rounded-xl border border-[#262629]">
-      <table className="w-full text-left text-sm">
+    <div className="overflow-x-auto rounded-lg border border-[#262629]">
+      <table className="w-full min-w-[1180px] text-left text-sm">
         <thead className="bg-[#0c0c0e]">
           <tr>
             <th className="px-4 py-3 text-xs font-medium text-zinc-500">구분</th>
@@ -212,10 +225,9 @@ function MatchedRowsTable({ rows }: { rows: SkuKeywordMatchedRow[] }) {
             <th className="px-4 py-3 text-xs font-medium text-zinc-500">항목 ID</th>
             <th className="px-4 py-3 text-xs font-medium text-zinc-500">원문</th>
             <th className="px-4 py-3 text-xs font-medium text-zinc-500">매칭 키워드</th>
-            <th className="px-4 py-3 text-xs font-medium text-zinc-500">키워드 컬럼</th>
             <th className="px-4 py-3 text-xs font-medium text-zinc-500">바코드</th>
             <th className="px-4 py-3 text-xs font-medium text-zinc-500">SKU</th>
-            <th className="px-4 py-3 text-xs font-medium text-zinc-500">매칭 방법</th>
+            <th className="px-4 py-3 text-xs font-medium text-zinc-500">방식</th>
             <th className="px-4 py-3 text-xs font-medium text-zinc-500">신뢰도</th>
             <th className="px-4 py-3 text-xs font-medium text-zinc-500">적용</th>
             <th className="px-4 py-3 text-xs font-medium text-zinc-500">검토 사유</th>
@@ -228,19 +240,16 @@ function MatchedRowsTable({ rows }: { rows: SkuKeywordMatchedRow[] }) {
                 <MappingTypeBadge type={row.mappingType} />
               </td>
               <td className="whitespace-nowrap px-4 py-3 font-mono text-xs text-zinc-400">
-                {row.channelProductNo || '-'}
+                {formatMaybe(row.channelProductNo)}
               </td>
-              <td className="whitespace-nowrap px-4 py-3 font-mono text-xs text-zinc-400">
-                {row.itemId}
-              </td>
-              <td className="min-w-64 px-4 py-3 text-zinc-300">{row.sourceText}</td>
-              <td className="min-w-48 px-4 py-3 text-indigo-300">{row.matchedKeyword}</td>
-              <td className="whitespace-nowrap px-4 py-3 text-xs text-zinc-500">{row.keywordColumn}</td>
+              <td className="whitespace-nowrap px-4 py-3 font-mono text-xs text-zinc-400">{row.itemId}</td>
+              <td className="max-w-72 px-4 py-3 text-zinc-300">{formatMaybe(row.sourceText)}</td>
+              <td className="max-w-48 px-4 py-3 text-indigo-300">{formatMaybe(row.matchedKeyword)}</td>
               <td className="whitespace-nowrap px-4 py-3 font-mono text-xs text-zinc-300">
-                {row.barcode || '-'}
+                {formatMaybe(row.barcode)}
               </td>
               <td className="whitespace-nowrap px-4 py-3 font-mono text-xs font-semibold text-emerald-300">
-                {row.skuCode || '-'}
+                {formatMaybe(row.skuCode)}
               </td>
               <td className="whitespace-nowrap px-4 py-3 text-xs text-zinc-400">{row.matchMethod}</td>
               <td className="whitespace-nowrap px-4 py-3">
@@ -249,7 +258,7 @@ function MatchedRowsTable({ rows }: { rows: SkuKeywordMatchedRow[] }) {
               <td className="whitespace-nowrap px-4 py-3">
                 <ApplyEligibleBadge eligible={row.applyEligible} />
               </td>
-              <td className="min-w-72 px-4 py-3 text-zinc-300">{row.reviewReason || '-'}</td>
+              <td className="max-w-80 px-4 py-3 text-zinc-300">{formatMaybe(row.reviewReason)}</td>
             </tr>
           ))}
         </tbody>
@@ -258,59 +267,266 @@ function MatchedRowsTable({ rows }: { rows: SkuKeywordMatchedRow[] }) {
   );
 }
 
-function WarningRowsTable({ rows }: { rows: SkuKeywordWarningRow[] }) {
+function SelectedSkuList({
+  selectedSkus,
+  onRemove,
+  onQuantityChange,
+}: {
+  selectedSkus: SelectedSku[];
+  onRemove: (skuId: string) => void;
+  onQuantityChange: (skuId: string, quantity: number) => void;
+}) {
+  if (selectedSkus.length === 0) {
+    return <div className="text-xs text-zinc-500">선택된 SKU 없음</div>;
+  }
+
+  return (
+    <div className="space-y-2">
+      {selectedSkus.map((sku) => (
+        <div key={sku.id} className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-2">
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0">
+              <p className="truncate font-mono text-xs font-semibold text-emerald-200">{sku.skuCode}</p>
+              <p className="mt-0.5 line-clamp-2 text-xs text-zinc-300">{sku.skuName}</p>
+              <p className="mt-0.5 font-mono text-[11px] text-zinc-500">{formatMaybe(sku.barcode)}</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => onRemove(sku.id)}
+              className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-emerald-500/20 text-emerald-200 transition hover:bg-emerald-500/10"
+              aria-label="선택 SKU 제거"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </div>
+          <label className="mt-2 flex items-center gap-2 text-[11px] text-zinc-400">
+            수량
+            <input
+              type="number"
+              min={1}
+              value={sku.quantity}
+              onChange={(event) => onQuantityChange(sku.id, Number(event.target.value))}
+              className="h-8 w-20 rounded-md border border-[#333] bg-[#121214] px-2 text-sm text-white outline-none focus:border-emerald-400"
+            />
+          </label>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function SkuSearchCell({
+  row,
+  selectedSkus,
+  onAdd,
+  onRemove,
+  onQuantityChange,
+}: {
+  row: SkuKeywordWarningRow;
+  selectedSkus: SelectedSku[];
+  onAdd: (candidate: SkuKeywordManualSkuCandidate) => void;
+  onRemove: (skuId: string) => void;
+  onQuantityChange: (skuId: string, quantity: number) => void;
+}) {
+  const [query, setQuery] = useState(row.matchedKeyword || row.sourceText || '');
+  const [results, setResults] = useState<SkuKeywordManualSkuCandidate[]>([]);
+  const [searching, setSearching] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const selectedIds = new Set(selectedSkus.map((sku) => sku.id));
+
+  const handleSearch = async () => {
+    const trimmedQuery = query.trim();
+    if (!trimmedQuery) {
+      setError('검색어를 입력해 주세요.');
+      setResults([]);
+      return;
+    }
+
+    setSearching(true);
+    setError(null);
+
+    try {
+      const response = await fetch(
+        `/api/sku-matching/manual-sku-search?q=${encodeURIComponent(trimmedQuery)}&take=8`,
+      );
+      const data = await readJson<SkuKeywordManualSkuCandidate[] | { error: string }>(response);
+
+      if (!response.ok) {
+        throw new Error(getErrorMessage(data, 'SKU 검색에 실패했습니다.'));
+      }
+
+      setResults(data as SkuKeywordManualSkuCandidate[]);
+    } catch (searchError) {
+      const text = searchError instanceof Error ? searchError.message : 'SKU 검색에 실패했습니다.';
+      setError(text);
+      setResults([]);
+    } finally {
+      setSearching(false);
+    }
+  };
+
+  return (
+    <div className="w-[360px] space-y-3">
+      <div className="flex gap-2">
+        <input
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter') {
+              event.preventDefault();
+              void handleSearch();
+            }
+          }}
+          className="h-9 min-w-0 flex-1 rounded-lg border border-[#333] bg-[#0c0c0e] px-3 text-sm text-white outline-none transition placeholder:text-zinc-600 focus:border-indigo-400"
+          placeholder="SKU, 상품명, 바코드, 별칭"
+        />
+        <button
+          type="button"
+          onClick={handleSearch}
+          disabled={searching}
+          className="inline-flex h-9 w-10 items-center justify-center rounded-lg border border-[#333] bg-[#1a1a1e] text-zinc-200 transition hover:border-indigo-500/60 hover:text-white disabled:opacity-60"
+          aria-label="SKU 검색"
+        >
+          {searching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+        </button>
+      </div>
+
+      {error && <p className="text-xs text-red-300">{error}</p>}
+
+      {results.length > 0 && (
+        <div className="max-h-64 space-y-2 overflow-y-auto rounded-lg border border-[#262629] bg-[#0c0c0e] p-2">
+          {results.map((candidate) => {
+            const alreadySelected = selectedIds.has(candidate.id);
+            return (
+              <div key={candidate.id} className="rounded-md border border-[#262629] bg-[#121214] p-2">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="truncate font-mono text-xs font-semibold text-white">{candidate.skuCode}</p>
+                    <p className="mt-0.5 line-clamp-2 text-xs text-zinc-300">{candidate.skuName}</p>
+                    <p className="mt-1 font-mono text-[11px] text-zinc-500">
+                      {formatMaybe(candidate.barcode)} · 재고 {candidate.stockQuantity.toLocaleString()}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => onAdd(candidate)}
+                    disabled={alreadySelected}
+                    className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-zinc-100 text-zinc-950 transition hover:bg-white disabled:bg-[#333] disabled:text-zinc-500"
+                    aria-label="SKU 추가"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </button>
+                </div>
+                {(candidate.productNames.length > 0 || candidate.purchaseNames.length > 0) && (
+                  <div className="mt-2 space-y-1 text-[11px] text-zinc-500">
+                    {candidate.productNames.length > 0 && (
+                      <p className="line-clamp-1">상품명: {candidate.productNames.slice(0, 2).join(', ')}</p>
+                    )}
+                    {candidate.purchaseNames.length > 0 && (
+                      <p className="line-clamp-1">키워드: {candidate.purchaseNames.slice(0, 2).join(', ')}</p>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      <SelectedSkuList
+        selectedSkus={selectedSkus}
+        onRemove={onRemove}
+        onQuantityChange={onQuantityChange}
+      />
+    </div>
+  );
+}
+
+function WarningRowsTable({
+  rows,
+  selections,
+  onAddSku,
+  onRemoveSku,
+  onQuantityChange,
+}: {
+  rows: SkuKeywordWarningRow[];
+  selections: ManualSelections;
+  onAddSku: (rowKey: string, candidate: SkuKeywordManualSkuCandidate) => void;
+  onRemoveSku: (rowKey: string, skuId: string) => void;
+  onQuantityChange: (rowKey: string, skuId: string, quantity: number) => void;
+}) {
   if (rows.length === 0) {
     return (
-      <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-4 py-8 text-center text-sm text-emerald-300">
-        경고 행이 없습니다.
+      <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 px-4 py-8 text-center text-sm text-emerald-300">
+        검토할 warning row가 없습니다.
       </div>
     );
   }
 
   return (
-    <div className="overflow-x-auto rounded-xl border border-amber-500/20">
-      <table className="w-full text-left text-sm">
+    <div className="overflow-x-auto rounded-lg border border-amber-500/20">
+      <table className="w-full min-w-[1900px] text-left text-sm">
         <thead className="bg-amber-500/5">
           <tr>
             <th className="px-4 py-3 text-xs font-medium text-amber-300">구분</th>
             <th className="px-4 py-3 text-xs font-medium text-amber-300">상품번호</th>
             <th className="px-4 py-3 text-xs font-medium text-amber-300">항목 ID</th>
             <th className="px-4 py-3 text-xs font-medium text-amber-300">원문</th>
-            <th className="px-4 py-3 text-xs font-medium text-amber-300">경고 유형</th>
             <th className="px-4 py-3 text-xs font-medium text-amber-300">매칭 키워드</th>
-            <th className="px-4 py-3 text-xs font-medium text-amber-300">바코드</th>
-            <th className="px-4 py-3 text-xs font-medium text-amber-300">SKU</th>
-            <th className="px-4 py-3 text-xs font-medium text-amber-300">메시지</th>
+            <th className="px-4 py-3 text-xs font-medium text-amber-300">경고 유형</th>
+            <th className="px-4 py-3 text-xs font-medium text-amber-300">경고 메시지</th>
             <th className="px-4 py-3 text-xs font-medium text-amber-300">메모</th>
+            <th className="px-4 py-3 text-xs font-medium text-amber-300">상태</th>
+            <th className="px-4 py-3 text-xs font-medium text-amber-300">SKU 검색/선택</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-amber-500/10">
-          {rows.map((row, index) => (
-            <tr key={`${row.itemId}-${row.warningType}-${index}`} className="hover:bg-amber-500/5">
-              <td className="whitespace-nowrap px-4 py-3">
-                <MappingTypeBadge type={row.mappingType} />
-              </td>
-              <td className="whitespace-nowrap px-4 py-3 font-mono text-xs text-zinc-400">
-                {row.channelProductNo || '-'}
-              </td>
-              <td className="whitespace-nowrap px-4 py-3 font-mono text-xs text-zinc-400">
-                {row.itemId}
-              </td>
-              <td className="min-w-48 px-4 py-3 text-zinc-300">{row.sourceText}</td>
-              <td className="whitespace-nowrap px-4 py-3 text-xs text-amber-300">
-                {row.warningType}
-              </td>
-              <td className="min-w-36 px-4 py-3 text-indigo-300">{row.matchedKeyword || '-'}</td>
-              <td className="whitespace-nowrap px-4 py-3 font-mono text-xs text-zinc-300">
-                {row.barcode || '-'}
-              </td>
-              <td className="whitespace-nowrap px-4 py-3 font-mono text-xs text-zinc-300">
-                {row.skuCode || '-'}
-              </td>
-              <td className="min-w-64 px-4 py-3 text-amber-200">{row.warningMessage}</td>
-              <td className="min-w-56 px-4 py-3 text-zinc-300">{row.memo || '-'}</td>
-            </tr>
-          ))}
+          {rows.map((row, index) => {
+            const rowKey = getWarningRowKey(row, index);
+            const selectedSkus = selections[rowKey] ?? [];
+
+            return (
+              <tr key={rowKey} className="align-top hover:bg-amber-500/5">
+                <td className="whitespace-nowrap px-4 py-3">
+                  <MappingTypeBadge type={row.mappingType} />
+                </td>
+                <td className="whitespace-nowrap px-4 py-3 font-mono text-xs text-zinc-400">
+                  {formatMaybe(row.channelProductNo)}
+                </td>
+                <td className="whitespace-nowrap px-4 py-3 font-mono text-xs text-zinc-400">
+                  {formatMaybe(row.itemId)}
+                </td>
+                <td className="max-w-72 px-4 py-3 text-zinc-300">{formatMaybe(row.sourceText)}</td>
+                <td className="max-w-48 px-4 py-3 text-indigo-300">{formatMaybe(row.matchedKeyword)}</td>
+                <td className="whitespace-nowrap px-4 py-3 text-xs text-amber-300">
+                  {formatMaybe(row.warningType)}
+                </td>
+                <td className="max-w-80 px-4 py-3 text-amber-100">{formatMaybe(row.warningMessage)}</td>
+                <td className="max-w-80 px-4 py-3 text-zinc-300">{formatMaybe(row.memo)}</td>
+                <td className="whitespace-nowrap px-4 py-3">
+                  <span
+                    className={`inline-flex rounded-md px-2 py-0.5 text-[11px] font-semibold ring-1 ring-inset ${
+                      selectedSkus.length > 0
+                        ? 'bg-emerald-500/10 text-emerald-300 ring-emerald-500/20'
+                        : 'bg-zinc-500/10 text-zinc-400 ring-zinc-500/20'
+                    }`}
+                  >
+                    {selectedSkus.length > 0 ? `수동 확정 후보 ${selectedSkus.length}` : '미선택'}
+                  </span>
+                </td>
+                <td className="px-4 py-3">
+                  <SkuSearchCell
+                    row={row}
+                    selectedSkus={selectedSkus}
+                    onAdd={(candidate) => onAddSku(rowKey, candidate)}
+                    onRemove={(skuId) => onRemoveSku(rowKey, skuId)}
+                    onQuantityChange={(skuId, quantity) => onQuantityChange(rowKey, skuId, quantity)}
+                  />
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>
@@ -320,15 +536,15 @@ function WarningRowsTable({ rows }: { rows: SkuKeywordWarningRow[] }) {
 function ErrorRowsTable({ rows }: { rows: SkuKeywordErrorRow[] }) {
   if (rows.length === 0) {
     return (
-      <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-4 py-8 text-center text-sm text-emerald-300">
+      <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 px-4 py-8 text-center text-sm text-emerald-300">
         오류 행이 없습니다.
       </div>
     );
   }
 
   return (
-    <div className="overflow-x-auto rounded-xl border border-red-500/20">
-      <table className="w-full text-left text-sm">
+    <div className="overflow-x-auto rounded-lg border border-red-500/20">
+      <table className="w-full min-w-[900px] text-left text-sm">
         <thead className="bg-red-500/5">
           <tr>
             <th className="px-4 py-3 text-xs font-medium text-red-300">구분</th>
@@ -342,18 +558,16 @@ function ErrorRowsTable({ rows }: { rows: SkuKeywordErrorRow[] }) {
         <tbody className="divide-y divide-red-500/10">
           {rows.map((row, index) => (
             <tr key={`${row.itemId}-${row.errorType}-${index}`} className="hover:bg-red-500/5">
-              <td className="whitespace-nowrap px-4 py-3 text-zinc-300">{row.mappingType || '-'}</td>
+              <td className="whitespace-nowrap px-4 py-3 text-zinc-300">{formatMaybe(row.mappingType)}</td>
               <td className="whitespace-nowrap px-4 py-3 font-mono text-xs text-zinc-400">
-                {row.channelProductNo || '-'}
+                {formatMaybe(row.channelProductNo)}
               </td>
               <td className="whitespace-nowrap px-4 py-3 font-mono text-xs text-zinc-400">
-                {row.itemId || '-'}
+                {formatMaybe(row.itemId)}
               </td>
-              <td className="min-w-48 px-4 py-3 text-zinc-300">{row.sourceText}</td>
-              <td className="whitespace-nowrap px-4 py-3 text-xs text-red-300">
-                {row.errorType}
-              </td>
-              <td className="min-w-64 px-4 py-3 text-red-200">{row.errorMessage}</td>
+              <td className="max-w-72 px-4 py-3 text-zinc-300">{formatMaybe(row.sourceText)}</td>
+              <td className="whitespace-nowrap px-4 py-3 text-xs text-red-300">{formatMaybe(row.errorType)}</td>
+              <td className="max-w-96 px-4 py-3 text-red-200">{formatMaybe(row.errorMessage)}</td>
             </tr>
           ))}
         </tbody>
@@ -365,27 +579,35 @@ function ErrorRowsTable({ rows }: { rows: SkuKeywordErrorRow[] }) {
 function ResultTabs({
   activeTab,
   preview,
+  selections,
   onTabChange,
+  onAddSku,
+  onRemoveSku,
+  onQuantityChange,
 }: {
   activeTab: ResultTab;
   preview: SkuKeywordPreviewResponse;
+  selections: ManualSelections;
   onTabChange: (tab: ResultTab) => void;
+  onAddSku: (rowKey: string, candidate: SkuKeywordManualSkuCandidate) => void;
+  onRemoveSku: (rowKey: string, skuId: string) => void;
+  onQuantityChange: (rowKey: string, skuId: string, quantity: number) => void;
 }) {
   const tabs: { key: ResultTab; label: string; count: number }[] = [
-    { key: 'matched', label: '매칭 결과', count: preview.matchedRows.length },
-    { key: 'warning', label: '경고', count: preview.warningRows.length },
+    { key: 'matched', label: '자동 매칭', count: preview.matchedRows.length },
+    { key: 'warning', label: '수동 검토', count: preview.warningRows.length },
     { key: 'error', label: '오류', count: preview.errorRows.length },
   ];
 
   return (
-    <div className="rounded-2xl border border-[#262629] bg-[#121214] p-6">
+    <div className="rounded-lg border border-[#262629] bg-[#121214] p-6">
       <div className="mb-4 flex flex-wrap gap-2">
         {tabs.map((tab) => (
           <button
             key={tab.key}
             type="button"
             onClick={() => onTabChange(tab.key)}
-            className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition ${
+            className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition ${
               activeTab === tab.key
                 ? 'bg-zinc-100 text-zinc-950'
                 : 'border border-[#333] bg-[#1a1a1e] text-zinc-300 hover:border-indigo-500/60 hover:text-white'
@@ -398,15 +620,19 @@ function ResultTabs({
       </div>
 
       {activeTab === 'matched' && <MatchedRowsTable rows={preview.matchedRows} />}
-      {activeTab === 'warning' && <WarningRowsTable rows={preview.warningRows} />}
+      {activeTab === 'warning' && (
+        <WarningRowsTable
+          rows={preview.warningRows}
+          selections={selections}
+          onAddSku={onAddSku}
+          onRemoveSku={onRemoveSku}
+          onQuantityChange={onQuantityChange}
+        />
+      )}
       {activeTab === 'error' && <ErrorRowsTable rows={preview.errorRows} />}
     </div>
   );
 }
-
-// ---------------------------------------------------------------------------
-// 메인 페이지
-// ---------------------------------------------------------------------------
 
 export default function SkuKeywordMatchingPage() {
   const [erpFile, setErpFile] = useState<File | null>(null);
@@ -414,24 +640,65 @@ export default function SkuKeywordMatchingPage() {
   const [stockFile, setStockFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<SkuKeywordPreviewResponse | null>(null);
   const [message, setMessage] = useState<Message | null>(null);
-  const [activeTab, setActiveTab] = useState<ResultTab>('matched');
+  const [activeTab, setActiveTab] = useState<ResultTab>('warning');
+  const [manualSelections, setManualSelections] = useState<ManualSelections>({});
   const [previewing, setPreviewing] = useState(false);
   const [exporting, setExporting] = useState(false);
-  const [applying, setApplying] = useState(false);
+  const [manualApplying, setManualApplying] = useState(false);
+
+  const manualStats = getManualSelectionStats(manualSelections);
 
   const resetPreview = () => {
     setPreview(null);
     setMessage(null);
-    setActiveTab('matched');
+    setActiveTab('warning');
+    setManualSelections({});
   };
 
   const validateFiles = (): { erpFile: File; csvFile: File; stockFile: File } | null => {
     if (!erpFile || !csvFile || !stockFile) {
-      setMessage({ type: 'error', text: '3개 파일을 모두 업로드하세요.' });
+      setMessage({ type: 'error', text: '3개 파일을 모두 업로드해 주세요.' });
       return null;
     }
 
     return { erpFile, csvFile, stockFile };
+  };
+
+  const addManualSku = (rowKey: string, candidate: SkuKeywordManualSkuCandidate) => {
+    setManualSelections((current) => {
+      const selectedSkus = current[rowKey] ?? [];
+      if (selectedSkus.some((sku) => sku.id === candidate.id)) return current;
+      return {
+        ...current,
+        [rowKey]: [...selectedSkus, { ...candidate, quantity: 1 }],
+      };
+    });
+  };
+
+  const removeManualSku = (rowKey: string, skuId: string) => {
+    setManualSelections((current) => {
+      const next = { ...current };
+      const selectedSkus = (next[rowKey] ?? []).filter((sku) => sku.id !== skuId);
+      if (selectedSkus.length > 0) {
+        next[rowKey] = selectedSkus;
+      } else {
+        delete next[rowKey];
+      }
+      return next;
+    });
+  };
+
+  const changeManualSkuQuantity = (rowKey: string, skuId: string, quantity: number) => {
+    setManualSelections((current) => {
+      const selectedSkus = current[rowKey] ?? [];
+      const safeQuantity = Number.isFinite(quantity) && quantity >= 1 ? Math.floor(quantity) : 1;
+      return {
+        ...current,
+        [rowKey]: selectedSkus.map((sku) =>
+          sku.id === skuId ? { ...sku, quantity: safeQuantity } : sku,
+        ),
+      };
+    });
   };
 
   const handlePreview = async () => {
@@ -440,6 +707,7 @@ export default function SkuKeywordMatchingPage() {
 
     setPreviewing(true);
     setMessage(null);
+    setManualSelections({});
 
     try {
       const response = await fetch('/api/sku-matching/keyword-preview', {
@@ -452,8 +720,9 @@ export default function SkuKeywordMatchingPage() {
         throw new Error(getErrorMessage(data, '키워드 매칭 검증에 실패했습니다.'));
       }
 
-      setPreview(data as SkuKeywordPreviewResponse);
-      setActiveTab('matched');
+      const previewResult = data as SkuKeywordPreviewResponse;
+      setPreview(previewResult);
+      setActiveTab(previewResult.warningRows.length > 0 ? 'warning' : 'matched');
       setMessage({ type: 'success', text: '키워드 매칭 검증이 완료되었습니다.' });
     } catch (error) {
       const text = error instanceof Error ? error.message : '키워드 매칭 검증에 실패했습니다.';
@@ -504,47 +773,71 @@ export default function SkuKeywordMatchingPage() {
     }
   };
 
-  const handleApply = async () => {
-    if (!preview || preview.summary.applyEligibleCount === 0) {
-      setMessage({ type: 'error', text: '안전 적용 대상 행이 없습니다.' });
+  const buildManualApplyPayload = (): SkuKeywordManualApplyRequest | null => {
+    if (!preview) return null;
+
+    const rows = preview.warningRows.flatMap((row, index) => {
+      if (!isManualMappingType(row.mappingType)) return [];
+
+      const rowKey = getWarningRowKey(row, index);
+      const selectedSkus = manualSelections[rowKey] ?? [];
+      if (selectedSkus.length === 0) return [];
+
+      return [
+        {
+          mappingType: row.mappingType,
+          channelProductNo: row.channelProductNo,
+          itemId: row.itemId,
+          sourceText: row.sourceText,
+          matchedKeyword: row.matchedKeyword,
+          warningType: row.warningType,
+          warningMessage: row.warningMessage,
+          memo: row.memo,
+          skus: selectedSkus.map((sku) => ({ skuId: sku.id, quantity: sku.quantity })),
+        },
+      ];
+    });
+
+    return rows.length > 0 ? { rows } : null;
+  };
+
+  const handleManualApply = async () => {
+    const payload = buildManualApplyPayload();
+
+    if (!payload) {
+      setMessage({ type: 'error', text: '수동 확정할 warning row를 선택해 주세요.' });
       return;
     }
 
-    setApplying(true);
+    setManualApplying(true);
     setMessage(null);
 
     try {
-      const response = await fetch('/api/sku-matching/keyword-apply', {
+      const response = await fetch('/api/sku-matching/manual-apply', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          rows: preview.matchedRows,
-          forceApplyWarningRows: false,
-          forceApplyIneligibleRows: false,
-        }),
+        body: JSON.stringify(payload),
       });
-      const data = await readJson<SkuKeywordApplyResponse | { error: string }>(response);
+      const data = await readJson<SkuKeywordManualApplyResponse | { error: string }>(response);
 
       if (!response.ok) {
-        throw new Error(getErrorMessage(data, '키워드 매칭 적용에 실패했습니다.'));
+        throw new Error(getErrorMessage(data, '수동 확정 저장에 실패했습니다.'));
       }
 
-      const result = data as SkuKeywordApplyResponse;
+      const result = data as SkuKeywordManualApplyResponse;
+      setManualSelections({});
       setMessage({
         type: 'success',
         text:
-          `총 ${result.appliedCount.toLocaleString()}건 적용 완료. ` +
-          `적용 대상 ${result.applyTargetCount.toLocaleString()}건, ` +
-          `제외 ${result.excludedCount.toLocaleString()}건. ` +
-          `단일상품 ${result.productCount}건, 옵션 ${result.optionCount}건, ` +
-          `추가상품 ${result.additionalCount}건, 별칭 ${result.aliasCount}건 등록. ` +
-          `제외 사유: ${formatExcludedReasons(result.excludedReasonCounts)}`,
+          `수동 확정 저장 완료: 생성 ${result.createdCount.toLocaleString()}건, ` +
+          `업데이트 ${result.updatedCount.toLocaleString()}건, ` +
+          `건너뜀 ${result.skippedCount.toLocaleString()}건.`,
       });
     } catch (error) {
-      const text = error instanceof Error ? error.message : '키워드 매칭 적용에 실패했습니다.';
+      const text = error instanceof Error ? error.message : '수동 확정 저장에 실패했습니다.';
       setMessage({ type: 'error', text });
     } finally {
-      setApplying(false);
+      setManualApplying(false);
     }
   };
 
@@ -552,19 +845,17 @@ export default function SkuKeywordMatchingPage() {
     <div className="min-h-screen p-8">
       <div className="mx-auto max-w-7xl">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold tracking-tight text-white">
-            키워드 기반 SKU 자동매칭
-          </h1>
+          <h1 className="text-3xl font-bold tracking-tight text-white">키워드 SKU 수동 검토</h1>
           <p className="mt-2 text-sm text-zinc-400">
-            ERP 미매핑 엑셀, 상품관리 CSV, 재고현황 XLS를 업로드하여 매칭키워드 기반으로 SKU를 연결합니다.
+            ERP 미매핑 목록, 상품관리 CSV, 재고현황 XLS를 기준으로 warning row를 검토합니다.
           </p>
         </div>
 
-        <div className="mb-6 rounded-2xl border border-[#262629] bg-[#121214] p-6">
+        <div className="mb-6 rounded-lg border border-[#262629] bg-[#121214] p-6">
           <div className="grid gap-6 lg:grid-cols-3">
             <FileUploadInput
               id="erp-file"
-              label="① ERP 미매핑 엑셀 (.xlsx)"
+              label="ERP 미매핑 파일 (.xlsx)"
               accept=".xlsx,.xls"
               file={erpFile}
               onFileChange={(file) => {
@@ -574,7 +865,7 @@ export default function SkuKeywordMatchingPage() {
             />
             <FileUploadInput
               id="csv-file"
-              label="② 상품관리 CSV (.csv)"
+              label="상품관리 CSV (.csv)"
               accept=".csv"
               file={csvFile}
               onFileChange={(file) => {
@@ -584,7 +875,7 @@ export default function SkuKeywordMatchingPage() {
             />
             <FileUploadInput
               id="stock-file"
-              label="③ 재고현황 XLS (.xls)"
+              label="재고현황 XLS (.xls)"
               accept=".xls,.xlsx"
               file={stockFile}
               onFileChange={(file) => {
@@ -596,34 +887,28 @@ export default function SkuKeywordMatchingPage() {
 
           <div className="mt-6 flex flex-wrap justify-end gap-3">
             <button
+              type="button"
               onClick={handlePreview}
               disabled={previewing || !erpFile || !csvFile || !stockFile}
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-zinc-100 px-5 py-2.5 text-sm font-semibold text-zinc-950 transition hover:bg-white disabled:opacity-60"
+              className="inline-flex items-center justify-center gap-2 rounded-lg bg-zinc-100 px-5 py-2.5 text-sm font-semibold text-zinc-950 transition hover:bg-white disabled:opacity-60"
             >
-              {previewing ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Search className="h-4 w-4" />
-              )}
-              매칭 검증
+              {previewing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+              Preview 실행
             </button>
             <button
+              type="button"
               onClick={handleExport}
               disabled={exporting || !erpFile || !csvFile || !stockFile}
-              className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#333] bg-[#1a1a1e] px-5 py-2.5 text-sm font-semibold text-zinc-200 transition hover:border-indigo-500/60 hover:text-white disabled:opacity-60"
+              className="inline-flex items-center justify-center gap-2 rounded-lg border border-[#333] bg-[#1a1a1e] px-5 py-2.5 text-sm font-semibold text-zinc-200 transition hover:border-indigo-500/60 hover:text-white disabled:opacity-60"
             >
-              {exporting ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Download className="h-4 w-4" />
-              )}
-              Preview 결과 Excel 다운로드
+              {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+              Preview Excel
             </button>
           </div>
 
           {message && (
             <div
-              className={`mt-4 flex items-center gap-2 rounded-xl border px-4 py-3 text-sm ${
+              className={`mt-4 flex items-center gap-2 rounded-lg border px-4 py-3 text-sm ${
                 message.type === 'success'
                   ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-300'
                   : 'border-red-500/20 bg-red-500/10 text-red-300'
@@ -643,34 +928,35 @@ export default function SkuKeywordMatchingPage() {
           <div className="space-y-6">
             <SummaryCards summary={preview.summary} />
 
-            <div className="rounded-2xl border border-[#262629] bg-[#121214] p-6">
+            <div className="rounded-lg border border-[#262629] bg-[#121214] p-6">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <h2 className="flex items-center gap-2 text-lg font-semibold text-white">
-                    <CheckCircle2 className="h-5 w-5 text-emerald-400" />
-                    안전 적용 대상 {preview.summary.applyEligibleCount.toLocaleString()}건
-                  </h2>
+                  <h2 className="text-lg font-semibold text-white">수동 확정 후보</h2>
                   <p className="mt-1 text-sm text-zinc-400">
-                    검토 제외 대상 {preview.summary.applyIneligibleCount.toLocaleString()}건,
-                    중복 의심 {preview.summary.duplicateCount.toLocaleString()}건
+                    row {manualStats.rowCount.toLocaleString()}개 · SKU {manualStats.skuCount.toLocaleString()}개
                   </p>
                 </div>
                 <button
-                  onClick={handleApply}
-                  disabled={applying || preview.summary.applyEligibleCount === 0}
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:opacity-60"
+                  type="button"
+                  onClick={handleManualApply}
+                  disabled={manualApplying || manualStats.skuCount === 0}
+                  className="inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:opacity-60"
                 >
-                  {applying ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Upload className="h-4 w-4" />
-                  )}
-                  안전 적용 대상만 적용
+                  {manualApplying ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                  수동 확정 저장
                 </button>
               </div>
             </div>
 
-            <ResultTabs activeTab={activeTab} preview={preview} onTabChange={setActiveTab} />
+            <ResultTabs
+              activeTab={activeTab}
+              preview={preview}
+              selections={manualSelections}
+              onTabChange={setActiveTab}
+              onAddSku={addManualSku}
+              onRemoveSku={removeManualSku}
+              onQuantityChange={changeManualSkuQuantity}
+            />
           </div>
         )}
       </div>

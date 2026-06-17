@@ -162,3 +162,59 @@ export type SkuKeywordApplyResponse = {
   additionalCount: number;
   aliasCount: number;
 };
+
+export type SkuKeywordManualSkuCandidate = {
+  id: string;
+  skuCode: string;
+  skuName: string;
+  sellerProductCode: string;
+  barcode: string;
+  stockQuantity: number;
+  aliases: { aliasType: string; value: string; source: string; memo: string }[];
+  barcodes: { barcode: string; unitName: string; quantity: number }[];
+  productNames: string[];
+  purchaseNames: string[];
+};
+
+export type SkuKeywordManualApplySku = {
+  skuId: string;
+  quantity: number;
+};
+
+export type SkuKeywordManualApplyRow = {
+  mappingType: SkuMappingType;
+  channelProductNo: string;
+  itemId: string;
+  sourceText: string;
+  matchedKeyword: string;
+  warningType: string;
+  warningMessage: string;
+  memo: string;
+  skus: SkuKeywordManualApplySku[];
+};
+
+export type SkuKeywordManualApplyRequest = {
+  rows: SkuKeywordManualApplyRow[];
+};
+
+export type SkuKeywordManualApplyRowResult = {
+  mappingType: SkuMappingType;
+  itemId: string;
+  skuId: string;
+  skuCode: string;
+  quantity: number;
+  action: 'CREATED' | 'UPDATED' | 'SKIPPED';
+  message: string;
+};
+
+export type SkuKeywordManualApplyResponse = {
+  appliedCount: number;
+  createdCount: number;
+  updatedCount: number;
+  skippedCount: number;
+  productCount: number;
+  optionCount: number;
+  additionalCount: number;
+  aliasCount: number;
+  results: SkuKeywordManualApplyRowResult[];
+};
