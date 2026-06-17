@@ -11,6 +11,7 @@ import {
   FileSpreadsheet,
   Loader2,
   Plus,
+  Save,
   Search,
   X,
 } from 'lucide-react';
@@ -861,7 +862,7 @@ function ProductVariantKeywordPanel({ product }: { product: ProductDetail }) {
           </div>
 
           {/* ProductVariantKeyword 액션바 - 스크롤 박스 바깥 */}
-          <div className="mb-3 flex items-center justify-between rounded-lg border border-[#262629] bg-[#121214] px-4 py-3">
+          <div className="sticky top-4 z-30 mb-3 flex items-center justify-between rounded-lg border border-blue-500/30 bg-[#121214] px-4 py-3 shadow-lg shadow-black/30">
             <div className="text-sm text-zinc-300">
               전체 후보 {preview.candidateCount}개 · 선택 {checkedRows.length}개 · 매핑완료 {mappedRowCount}개
             </div>
@@ -870,8 +871,9 @@ function ProductVariantKeywordPanel({ product }: { product: ProductDetail }) {
               type="button"
               disabled={checkedRows.length === 0 || saving}
               onClick={handleSave}
-              className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:bg-zinc-700 disabled:text-zinc-400"
+              className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:bg-zinc-700 disabled:text-zinc-400"
             >
+              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
               선택 후보 수동확정
             </button>
           </div>
