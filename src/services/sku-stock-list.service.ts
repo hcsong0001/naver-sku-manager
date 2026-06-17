@@ -1,5 +1,5 @@
-import * as XLSX from 'xlsx';
 import prisma from '@/lib/prisma';
+import { XLSX, readLegacyKoreanWorkbook } from '@/src/lib/xlsx-legacy';
 
 export type StockListImportRow = {
   rowNumber: number;
@@ -29,8 +29,52 @@ export type StockListApplyResponse = {
   aliasCreatedCount: number;
 };
 
+function normalizeCell(value: unknown): string {
+  if (value === null || value === undefined) return '';
+  return String(value).trim();
+}
+
+function normalizeText(text: string): string {
+  return text.trim().replace(/\s+/g, ' ').toLowerCase();
+}
+
+function findHeaderByCandidates(
+  headers: string[],
+  candidates: string[],
+  fallbackHeader = '',
+): string {
+  const normalizedCandidates = candidates.map((candidate) => normalizeText(candidate));
+  const exactHeader = headers.find((header) => {
+    const normalizedHeader = normalizeText(header);
+    return normalizedCandidates.some((candidate) => normalizedHeader === candidate);
+  });
+  if (exactHeader) return exactHeader;
+
+  return (
+    headers.find((header) => {
+      const normalizedHeader = normalizeText(header);
+      return normalizedCandidates.some((candidate) => normalizedHeader.includes(candidate));
+    }) ?? fallbackHeader
+  );
+}
+
+function normalizeBarcode(value: unknown): string {
+  let barcode = normalizeCell(value);
+  if (barcode.includes('E+') || barcode.includes('e+')) {
+    const numVal = Number(barcode);
+    if (Number.isFinite(numVal)) {
+      barcode = numVal.toFixed(0);
+    }
+  }
+  return barcode;
+}
+
+function isSummaryRow(row: Record<string, unknown>): boolean {
+  return Object.values(row).some((value) => normalizeCell(value) === '합계');
+}
+
 export async function parseStockListWorkbook(buffer: Buffer): Promise<StockListImportRow[]> {
-  const workbook = XLSX.read(buffer, { type: 'buffer', codepage: 949 });
+  const workbook = readLegacyKoreanWorkbook(buffer);
   const sheetName = workbook.SheetNames[0];
 
   if (!sheetName) {
@@ -49,35 +93,42 @@ export async function parseStockListWorkbook(buffer: Buffer): Promise<StockListI
   }
 
   const headers = Object.keys(rows[0]);
-  const barcodeHeader = headers[7]; // 바코드번호(서식)
-  const optionCodeHeader = headers[15]; // 옵션정보일련번호
-  const internalCodeHeader = headers[104]; // 자체상품코드
-  const purchaseNameHeader = headers[14]; // 사입상품명
-  const productNameHeader = headers[9]; // 상품명
-  const modelNameHeader = headers[67]; // 모델명
-  const supplierCodeHeader = headers[54]; // 공급처코드
+  const barcodeHeader = findHeaderByCandidates(
+    headers,
+    ['바코드번호(관리)', '바코드번호(서식)', '바코드번호 관리', '바코드번호 서식'],
+    headers[7],
+  );
+  const optionCodeHeader = findHeaderByCandidates(
+    headers,
+    ['옵션정보일련번호', '옵션코드'],
+    headers[15],
+  );
+  const internalCodeHeader = findHeaderByCandidates(
+    headers,
+    ['자체상품코드', '상품코드'],
+    headers[104],
+  );
+  const purchaseNameHeader = findHeaderByCandidates(headers, ['사입상품명'], headers[14]);
+  const productNameHeader = findHeaderByCandidates(headers, ['상품명'], headers[9]);
+  const modelNameHeader = findHeaderByCandidates(headers, ['모델명'], headers[67]);
+  const supplierCodeHeader = findHeaderByCandidates(headers, ['공급처코드'], headers[54]);
 
-  const sellingPriceHeader = headers[11]; // 대표판매가
-  const costPriceHeader = headers[12]; // 대표공급가
-  const stockQtyHeader = headers[20]; // 재고수량
+  const sellingPriceHeader = findHeaderByCandidates(headers, ['대표판매가'], headers[11]);
+  const costPriceHeader = findHeaderByCandidates(headers, ['대표공급가'], headers[12]);
+  const stockQtyHeader = findHeaderByCandidates(headers, ['재고수량', '현재재고'], headers[20]);
 
   return rows
-    .map((row, index) => {
-      let barcode = String(row[barcodeHeader] ?? '').trim();
-      // 과학적 표기법 복원
-      if (barcode.includes('E+') || barcode.includes('e+')) {
-        const numVal = Number(barcode);
-        if (Number.isFinite(numVal)) {
-          barcode = numVal.toFixed(0);
-        }
-      }
+    .map((row, index) => ({ row, rowNumber: index + 2 }))
+    .filter(({ row }) => !isSummaryRow(row))
+    .map(({ row, rowNumber }) => {
+      const barcode = normalizeBarcode(row[barcodeHeader]);
 
-      const optionCode = String(row[optionCodeHeader] ?? '').trim();
-      const internalProductCode = String(row[internalCodeHeader] ?? '').trim();
-      const purchaseProductName = String(row[purchaseNameHeader] ?? '').trim();
-      const productName = String(row[productNameHeader] ?? '').trim();
-      const modelName = String(row[modelNameHeader] ?? '').trim();
-      const supplierItemCode = String(row[supplierCodeHeader] ?? '').trim();
+      const optionCode = normalizeCell(row[optionCodeHeader]);
+      const internalProductCode = normalizeCell(row[internalCodeHeader]);
+      const purchaseProductName = normalizeCell(row[purchaseNameHeader]);
+      const productName = normalizeCell(row[productNameHeader]);
+      const modelName = normalizeCell(row[modelNameHeader]);
+      const supplierItemCode = normalizeCell(row[supplierCodeHeader]);
 
       const sellingPrice = Number(row[sellingPriceHeader]);
       const costPrice = Number(row[costPriceHeader]);
@@ -90,7 +141,7 @@ export async function parseStockListWorkbook(buffer: Buffer): Promise<StockListI
       else if (barcode) skuCodeCandidate = `BARCODE-${barcode}`;
 
       return {
-        rowNumber: index + 2,
+        rowNumber,
         barcode,
         productName,
         purchaseProductName,

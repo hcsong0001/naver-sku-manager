@@ -31,12 +31,17 @@ export type ProductManagementRow = {
 export type StockListRow = {
   rowNumber: number;
   productName: string;
+  managedProductName: string;
   purchaseProductName: string;
   optionName: string;
+  purchaseOptionName: string;
+  accessoryProductName: string;
+  optionSerialNo: string;
   optionCode: string;
   productCode: string;
   barcode: string;
   barcodeRaw: string;
+  barcode2: string;
 };
 
 /** 매칭 성공 행 */
