@@ -1,10 +1,12 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import {
   AlertTriangle,
   ArrowLeft,
+  ChevronDown,
+  ChevronRight,
   CheckCircle2,
   FileSpreadsheet,
   Loader2,
@@ -68,6 +70,24 @@ type SkuMappingDisplay = {
 };
 
 type Message = { type: 'success' | 'error'; text: string };
+type VariantCandidateFilter =
+  | 'ALL'
+  | 'SET'
+  | 'SINGLE'
+  | 'OPTION'
+  | 'ADDITIONAL'
+  | 'RESOLVED'
+  | 'UNRESOLVED';
+
+const variantCandidateFilters: { key: VariantCandidateFilter; label: string }[] = [
+  { key: 'ALL', label: '전체' },
+  { key: 'SET', label: '세트상품만' },
+  { key: 'SINGLE', label: '단품만' },
+  { key: 'OPTION', label: '옵션만' },
+  { key: 'ADDITIONAL', label: '추가상품만' },
+  { key: 'RESOLVED', label: 'SKU 매칭 성공' },
+  { key: 'UNRESOLVED', label: 'SKU 미확정' },
+];
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
@@ -97,6 +117,31 @@ function formatMaybe(value: string | number | null | undefined): string {
 
 function getVariantRowKey(row: ProductVariantKeywordPreviewRow): string {
   return `${row.mappingType}:${row.itemId}:${row.serialNo}`;
+}
+
+function isVariantRowResolved(row: ProductVariantKeywordPreviewRow): boolean {
+  return row.skus.length > 0 && row.skus.every((sku) => sku.skuId);
+}
+
+function getResolvedSkuCount(row: ProductVariantKeywordPreviewRow): number {
+  return row.skus.filter((sku) => sku.skuId).length;
+}
+
+function getRowsSkuCount(rows: ProductVariantKeywordPreviewRow[]): number {
+  return rows.reduce((total, row) => total + getResolvedSkuCount(row), 0);
+}
+
+function filterVariantRows(
+  rows: ProductVariantKeywordPreviewRow[],
+  filter: VariantCandidateFilter,
+): ProductVariantKeywordPreviewRow[] {
+  if (filter === 'SET') return rows.filter((row) => row.isSetProduct);
+  if (filter === 'SINGLE') return rows.filter((row) => !row.isSetProduct);
+  if (filter === 'OPTION') return rows.filter((row) => row.mappingType === 'OPTION');
+  if (filter === 'ADDITIONAL') return rows.filter((row) => row.mappingType === 'ADDITIONAL');
+  if (filter === 'RESOLVED') return rows.filter(isVariantRowResolved);
+  if (filter === 'UNRESOLVED') return rows.filter((row) => !isVariantRowResolved(row));
+  return rows;
 }
 
 function toManualApplyRequest(rows: ProductVariantKeywordPreviewRow[]): SkuKeywordManualApplyRequest {
@@ -169,23 +214,151 @@ function MappingPill({ text, mapped }: { text: string; mapped: boolean }) {
   );
 }
 
+function SetTypeBadge({ isSetProduct }: { isSetProduct: boolean }) {
+  return (
+    <span
+      className={`inline-flex rounded-md px-2.5 py-1 text-xs font-semibold ring-1 ring-inset ${
+        isSetProduct
+          ? 'bg-violet-500/10 text-violet-200 ring-violet-500/30'
+          : 'bg-zinc-500/10 text-zinc-300 ring-zinc-500/20'
+      }`}
+    >
+      {isSetProduct ? '[세트상품]' : '[단품]'}
+    </span>
+  );
+}
+
+function VariantStatusBadge({ resolved }: { resolved: boolean }) {
+  return (
+    <span
+      className={`inline-flex rounded-md px-2.5 py-1 text-xs font-semibold ring-1 ring-inset ${
+        resolved
+          ? 'bg-emerald-500/10 text-emerald-300 ring-emerald-500/20'
+          : 'bg-amber-500/10 text-amber-300 ring-amber-500/20'
+      }`}
+    >
+      {resolved ? 'SKU 매칭 성공' : 'SKU 미확정'}
+    </span>
+  );
+}
+
+function SkuChip({
+  skuCode,
+  modelCode,
+  muted = false,
+}: {
+  skuCode: string;
+  modelCode: string;
+  muted?: boolean;
+}) {
+  return (
+    <span
+      className={`inline-flex rounded-md px-2 py-1 font-mono text-[11px] font-semibold ring-1 ring-inset ${
+        muted
+          ? 'bg-amber-500/10 text-amber-200 ring-amber-500/20'
+          : 'bg-emerald-500/10 text-emerald-200 ring-emerald-500/20'
+      }`}
+    >
+      {skuCode || '미확정'} / {modelCode || '-'}
+    </span>
+  );
+}
+
+function VariantSkuChips({ row }: { row: ProductVariantKeywordPreviewRow }) {
+  if (row.skus.length === 0) {
+    return <span className="text-xs text-zinc-500">SKU 없음</span>;
+  }
+
+  return (
+    <div className="flex max-w-xl flex-wrap gap-1.5">
+      {row.skus.map((sku, index) => (
+        <SkuChip
+          key={`${sku.inventoryMatchProductName}-${sku.modelCode}-${index}`}
+          skuCode={sku.skuCode}
+          modelCode={sku.modelCode}
+          muted={!sku.skuId}
+        />
+      ))}
+    </div>
+  );
+}
+
+function VariantCandidateDetail({ row }: { row: ProductVariantKeywordPreviewRow }) {
+  return (
+    <div className="rounded-lg border border-[#262629] bg-[#0c0c0e] p-4">
+      <div className="mb-3 text-xs text-zinc-500">
+        ProductVariantKeyword 상품옵션: <span className="text-zinc-300">{formatMaybe(row.productOptionText)}</span>
+      </div>
+      <div className="mb-3">
+        <div className="mb-2 text-xs font-medium text-zinc-500">SKU 후보</div>
+        <VariantSkuChips row={row} />
+      </div>
+      <div className="overflow-x-auto rounded-lg border border-[#1e1e22]">
+        <table className="w-full min-w-[900px] text-left text-xs">
+          <thead className="bg-[#121214]">
+            <tr>
+              <th className="px-3 py-2 font-medium text-zinc-500">재고매칭 상품명</th>
+              <th className="px-3 py-2 font-medium text-zinc-500">모델코드</th>
+              <th className="px-3 py-2 font-medium text-zinc-500">skuCode</th>
+              <th className="px-3 py-2 font-medium text-zinc-500">barcode</th>
+              <th className="px-3 py-2 font-medium text-zinc-500">quantity</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-[#1e1e22]">
+            {row.skus.map((sku, index) => (
+              <tr key={`${sku.inventoryMatchProductName}-${index}`} className="align-top">
+                <td className="px-3 py-2 text-zinc-300">{sku.inventoryMatchProductName}</td>
+                <td className="whitespace-nowrap px-3 py-2 font-mono text-indigo-300">
+                  {formatMaybe(sku.modelCode)}
+                </td>
+                <td className="whitespace-nowrap px-3 py-2">
+                  <span
+                    className={`inline-flex rounded-md px-2 py-1 font-mono text-[11px] font-semibold ring-1 ring-inset ${
+                      sku.skuId
+                        ? 'bg-emerald-500/10 text-emerald-200 ring-emerald-500/20'
+                        : 'bg-amber-500/10 text-amber-200 ring-amber-500/20'
+                    }`}
+                  >
+                    {formatMaybe(sku.skuCode)}
+                  </span>
+                </td>
+                <td className="whitespace-nowrap px-3 py-2 font-mono text-zinc-400">
+                  {formatMaybe(sku.barcode)}
+                </td>
+                <td className="whitespace-nowrap px-3 py-2 text-zinc-300">{sku.quantity}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
 function ProductVariantKeywordPanel({ product }: { product: ProductDetail }) {
   const fileRef = useRef<HTMLInputElement | null>(null);
   const [variantFile, setVariantFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<ProductVariantKeywordPreviewResponse | null>(null);
   const [selectedRows, setSelectedRows] = useState<Record<string, boolean>>({});
+  const [expandedRows, setExpandedRows] = useState<Record<string, boolean>>({});
+  const [activeFilter, setActiveFilter] = useState<VariantCandidateFilter>('ALL');
   const [message, setMessage] = useState<Message | null>(null);
   const [previewing, setPreviewing] = useState(false);
   const [saving, setSaving] = useState(false);
 
+  const filteredRows = useMemo(
+    () => filterVariantRows(preview?.rows ?? [], activeFilter),
+    [activeFilter, preview],
+  );
   const selectableRows = useMemo(
-    () => preview?.rows.filter((row) => row.skus.length > 0 && row.skus.every((sku) => sku.skuId)) ?? [],
+    () => preview?.rows.filter(isVariantRowResolved) ?? [],
     [preview],
   );
   const checkedRows = useMemo(
     () => selectableRows.filter((row) => selectedRows[getVariantRowKey(row)]),
     [selectableRows, selectedRows],
   );
+  const checkedSkuCount = getRowsSkuCount(checkedRows);
 
   const handlePreview = async () => {
     if (!variantFile) {
@@ -197,6 +370,8 @@ function ProductVariantKeywordPanel({ product }: { product: ProductDetail }) {
     setMessage(null);
     setPreview(null);
     setSelectedRows({});
+    setExpandedRows({});
+    setActiveFilter('ALL');
 
     try {
       const formData = new FormData();
@@ -319,6 +494,8 @@ function ProductVariantKeywordPanel({ product }: { product: ProductDetail }) {
           setVariantFile(event.target.files?.[0] ?? null);
           setPreview(null);
           setSelectedRows({});
+          setExpandedRows({});
+          setActiveFilter('ALL');
           setMessage(null);
         }}
       />
@@ -332,7 +509,9 @@ function ProductVariantKeywordPanel({ product }: { product: ProductDetail }) {
             <span>후보 {preview.candidateCount.toLocaleString()}건</span>
             <span>세트 {preview.setProductCount.toLocaleString()}건</span>
             <span>미해석 {preview.unresolvedCount.toLocaleString()}건</span>
-            <span>선택 {checkedRows.length.toLocaleString()}건</span>
+            <span className="font-semibold text-emerald-300">
+              선택된 후보 {checkedRows.length.toLocaleString()}개 / 총 SKU {checkedSkuCount.toLocaleString()}개
+            </span>
           </>
         )}
       </div>
@@ -344,8 +523,24 @@ function ProductVariantKeywordPanel({ product }: { product: ProductDetail }) {
       )}
 
       {preview && (
-        <div className="mt-5 space-y-3">
-          <div className="flex justify-end">
+        <div className="mt-5 space-y-4">
+          <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+            <div className="flex flex-wrap gap-2">
+              {variantCandidateFilters.map((filter) => (
+                <button
+                  key={filter.key}
+                  type="button"
+                  onClick={() => setActiveFilter(filter.key)}
+                  className={`rounded-lg px-3 py-2 text-xs font-semibold transition ${
+                    activeFilter === filter.key
+                      ? 'bg-zinc-100 text-zinc-950'
+                      : 'border border-[#333] bg-[#1a1a1e] text-zinc-300 hover:border-indigo-500/60 hover:text-white'
+                  }`}
+                >
+                  {filter.label}
+                </button>
+              ))}
+            </div>
             <button
               type="button"
               onClick={toggleAllSelectable}
@@ -356,85 +551,107 @@ function ProductVariantKeywordPanel({ product }: { product: ProductDetail }) {
             </button>
           </div>
 
+          <div className="mb-2 text-sm text-zinc-400">
+            좌우로 스크롤하여 SKU 상세를 확인할 수 있습니다.
+          </div>
           <div className="overflow-x-auto rounded-lg border border-[#262629]">
-            <table className="w-full min-w-[1500px] text-left text-sm">
+            <table className="w-full min-w-[1400px] text-left text-sm relative">
               <thead className="bg-[#0c0c0e]">
                 <tr>
-                  <th className="px-4 py-3 text-xs font-medium text-zinc-500">선택</th>
-                  <th className="px-4 py-3 text-xs font-medium text-zinc-500">구분</th>
-                  <th className="px-4 py-3 text-xs font-medium text-zinc-500">옵션/추가상품</th>
-                  <th className="px-4 py-3 text-xs font-medium text-zinc-500">일련번호</th>
-                  <th className="px-4 py-3 text-xs font-medium text-zinc-500">재고매칭 상품명</th>
-                  <th className="px-4 py-3 text-xs font-medium text-zinc-500">모델코드</th>
-                  <th className="px-4 py-3 text-xs font-medium text-zinc-500">SKU</th>
-                  <th className="px-4 py-3 text-xs font-medium text-zinc-500">바코드</th>
-                  <th className="px-4 py-3 text-xs font-medium text-zinc-500">수량</th>
-                  <th className="px-4 py-3 text-xs font-medium text-zinc-500">세트</th>
-                  <th className="px-4 py-3 text-xs font-medium text-zinc-500">신뢰도</th>
-                  <th className="px-4 py-3 text-xs font-medium text-zinc-500">메시지</th>
+                  <th className="sticky left-0 top-0 z-30 w-14 px-4 py-3 text-xs font-medium text-zinc-500 bg-[#0c0c0e]">선택</th>
+                  <th className="sticky left-[56px] top-0 z-30 w-24 px-4 py-3 text-xs font-medium text-zinc-500 bg-[#0c0c0e]">구분</th>
+                  <th className="sticky left-[152px] top-0 z-30 px-4 py-3 text-xs font-medium text-zinc-500 bg-[#0c0c0e] shadow-[4px_0_8px_rgba(0,0,0,0.25)] border-r border-[#262629]">옵션/추가상품명</th>
+                  <th className="sticky top-0 z-20 w-24 px-4 py-3 text-xs font-medium text-zinc-500 bg-[#0c0c0e]">일련번호</th>
+                  <th className="sticky top-0 z-20 w-28 px-4 py-3 text-xs font-medium text-zinc-500 bg-[#0c0c0e]">유형</th>
+                  <th className="sticky top-0 z-20 w-32 px-4 py-3 text-xs font-medium text-zinc-500 bg-[#0c0c0e]">SKU 개수</th>
+                  <th className="sticky top-0 z-20 w-32 px-4 py-3 text-xs font-medium text-zinc-500 bg-[#0c0c0e]">매칭 상태</th>
+                  <th className="sticky top-0 z-20 w-20 px-4 py-3 text-xs font-medium text-zinc-500 bg-[#0c0c0e]">펼치기</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#1e1e22]">
-                {preview.rows.map((row) => {
+                {filteredRows.map((row) => {
                   const rowKey = getVariantRowKey(row);
-                  const selectable = row.skus.length > 0 && row.skus.every((sku) => sku.skuId);
+                  const selectable = isVariantRowResolved(row);
+                  const expanded = expandedRows[rowKey] ?? false;
+                  const resolvedSkuCount = getResolvedSkuCount(row);
 
                   return (
-                    <tr key={rowKey} className="align-top hover:bg-[#16161a]">
-                      <td className="px-4 py-3">
-                        <input
-                          type="checkbox"
-                          checked={selectedRows[rowKey] ?? false}
-                          disabled={!selectable}
-                          onChange={(event) =>
-                            setSelectedRows((current) => ({
-                              ...current,
-                              [rowKey]: event.target.checked,
-                            }))
-                          }
-                          className="h-4 w-4 rounded border-[#333] bg-[#0c0c0e]"
-                          aria-label="ProductVariantKeyword 후보 선택"
-                        />
-                      </td>
-                      <td className="whitespace-nowrap px-4 py-3 text-xs text-zinc-300">{row.mappingType}</td>
-                      <td className="max-w-80 px-4 py-3 text-zinc-200">{row.itemName}</td>
-                      <td className="whitespace-nowrap px-4 py-3 font-mono text-xs text-zinc-400">{row.serialNo}</td>
-                      <td className="max-w-96 px-4 py-3 text-zinc-300">
-                        {row.stockMatchedProductNames.map((name) => (
-                          <div key={name}>{name}</div>
-                        ))}
-                      </td>
-                      <td className="whitespace-nowrap px-4 py-3 font-mono text-xs text-indigo-300">
-                        {formatMaybe(row.resolvedModelCodes)}
-                      </td>
-                      <td className="whitespace-nowrap px-4 py-3 font-mono text-xs text-emerald-300">
-                        {formatMaybe(row.resolvedSkuCode)}
-                      </td>
-                      <td className="whitespace-nowrap px-4 py-3 font-mono text-xs text-zinc-400">
-                        {formatMaybe(row.barcode)}
-                      </td>
-                      <td className="whitespace-nowrap px-4 py-3 text-zinc-300">{row.quantity}</td>
-                      <td className="whitespace-nowrap px-4 py-3">
-                        <span
-                          className={`rounded-md px-2 py-0.5 text-xs font-semibold ring-1 ring-inset ${
-                            row.isSetProduct
-                              ? 'bg-violet-500/10 text-violet-300 ring-violet-500/20'
-                              : 'bg-zinc-500/10 text-zinc-400 ring-zinc-500/20'
-                          }`}
-                        >
-                          {row.isSetProduct ? `${row.skus.length}개 SKU` : '단일'}
-                        </span>
-                      </td>
-                      <td className="whitespace-nowrap px-4 py-3 text-zinc-300">
-                        {Math.round(row.confidence * 100)}%
-                      </td>
-                      <td className="max-w-80 px-4 py-3 text-amber-200">{formatMaybe(row.warningMessage)}</td>
-                    </tr>
+                    <Fragment key={rowKey}>
+                      <tr className="align-top group hover:bg-[#16161a]">
+                        <td className="sticky left-0 z-10 px-4 py-3 bg-[#121214] group-hover:bg-[#16161a]">
+                          <input
+                            type="checkbox"
+                            checked={selectedRows[rowKey] ?? false}
+                            disabled={!selectable}
+                            onChange={(event) =>
+                              setSelectedRows((current) => ({
+                                ...current,
+                                [rowKey]: event.target.checked,
+                              }))
+                            }
+                            className="h-4 w-4 rounded border-[#333] bg-[#0c0c0e]"
+                            aria-label="ProductVariantKeyword 후보 선택"
+                          />
+                        </td>
+                        <td className="sticky left-[56px] z-10 whitespace-nowrap px-4 py-3 text-xs text-zinc-300 bg-[#121214] group-hover:bg-[#16161a]">{row.mappingType}</td>
+                        <td className="sticky left-[152px] z-10 px-4 py-3 bg-[#121214] group-hover:bg-[#16161a] shadow-[4px_0_8px_rgba(0,0,0,0.25)] border-r border-[#262629]">
+                          <div className="max-w-xl text-sm font-medium text-zinc-100">{row.itemName}</div>
+                          {row.warningMessage && (
+                            <div className="mt-1 max-w-xl text-xs text-amber-200">{row.warningMessage}</div>
+                          )}
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-3 font-mono text-xs text-zinc-400">
+                          {row.serialNo}
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-3">
+                          <SetTypeBadge isSetProduct={row.isSetProduct} />
+                        </td>
+                        <td className="px-4 py-3">
+                          <div
+                            className={`text-sm font-semibold ${
+                              row.isSetProduct ? 'text-violet-200' : 'text-zinc-300'
+                            }`}
+                          >
+                            {resolvedSkuCount.toLocaleString()}개 SKU
+                          </div>
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-3">
+                          <VariantStatusBadge resolved={selectable} />
+                        </td>
+                        <td className="px-4 py-3">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setExpandedRows((current) => ({
+                                ...current,
+                                [rowKey]: !expanded,
+                              }))
+                            }
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-[#333] bg-[#1a1a1e] text-zinc-200 transition hover:border-indigo-500/60 hover:text-white"
+                            aria-label="ProductVariantKeyword 후보 상세 펼치기"
+                          >
+                            {expanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                          </button>
+                        </td>
+                      </tr>
+                      {expanded && (
+                        <tr key={`${rowKey}:detail`} className="bg-[#0f0f12]">
+                          <td colSpan={8} className="px-4 py-4">
+                            <VariantCandidateDetail row={row} />
+                          </td>
+                        </tr>
+                      )}
+                    </Fragment>
                   );
                 })}
               </tbody>
             </table>
           </div>
+          {filteredRows.length === 0 && (
+            <div className="rounded-lg border border-[#262629] bg-[#0c0c0e] px-4 py-8 text-center text-sm text-zinc-500">
+              필터 조건에 맞는 후보가 없습니다.
+            </div>
+          )}
         </div>
       )}
     </section>
