@@ -131,8 +131,12 @@ type ProductVariantExportRow = {
   candidateSku: string;
   warningMessage: string;
   riskTypes: string;
+  recommendedAction: string;
   qualityStatus: string;
   completionRate: number;
+  missingSku: string;
+  additionalSku: string;
+  quantityDifference: string;
 };
 type VariantCandidateFilter =
   | 'ALL'
@@ -171,7 +175,16 @@ type VariantQualityRow = {
   candidateSkuCount: number;
   completionRate: number;
   issues: VariantQualityIssue[];
+  missingSkuText: string;
+  additionalSkuText: string;
+  quantityDifferenceText: string;
+  recommendedAction: string;
 };
+type VariantQualityFilter =
+  | 'ALL'
+  | 'NORMAL'
+  | 'HAS_WARNING'
+  | VariantQualityRiskType;
 type VariantQualitySummary = {
   totalCount: number;
   mappedCount: number;
@@ -208,6 +221,25 @@ const variantQualitySeverityStyles: Record<VariantQualitySeverity, string> = {
   MEDIUM: 'bg-amber-500/10 text-amber-200 ring-amber-500/20',
   LOW: 'bg-blue-500/10 text-blue-200 ring-blue-500/20',
 };
+const variantQualityRecommendedActions = {
+  REVIEW_REQUIRED: '확인 필요',
+  MANUAL_SKU_SEARCH: 'SKU 수동검색 필요',
+  KEEP_EXISTING: '기존 매핑 유지',
+  REPLACE_CANDIDATE: '후보 SKU로 교체 가능',
+  UNAPPLY_AND_REMAP: '매핑해제 후 재매핑 필요',
+} as const;
+type VariantQualityRecommendedAction =
+  (typeof variantQualityRecommendedActions)[keyof typeof variantQualityRecommendedActions];
+const variantQualityFilterOptions: { key: VariantQualityFilter; label: string }[] = [
+  { key: 'ALL', label: '전체' },
+  { key: 'NORMAL', label: '정상' },
+  { key: 'HAS_WARNING', label: '경고 있음' },
+  { key: 'DIFFERENT_FROM_EXISTING', label: '기존 매핑과 후보 SKU 다름' },
+  { key: 'SET_COMPONENT_MISSING', label: '세트상품 구성 누락' },
+  { key: 'SKU_UNRESOLVED', label: 'SKU 미확정' },
+  { key: 'NO_CANDIDATE_SKU', label: '후보 SKU 없음' },
+  { key: 'MAPPED_BUT_EXISTING_SKU_MISSING', label: '매핑완료지만 기존 SKU 정보 부족' },
+];
 
 const variantQualitySummaryCards: {
   key: keyof VariantQualitySummary;
@@ -744,8 +776,11 @@ function VariantQualitySection({
   totalPages,
   paginationStart,
   paginationEnd,
+  activeFilter,
   onPageSizeChange,
   onPageChange,
+  onFilterChange,
+  onViewCandidate,
 }: {
   summary: VariantQualitySummary;
   rows: VariantQualityRow[];
@@ -755,8 +790,11 @@ function VariantQualitySection({
   totalPages: number;
   paginationStart: number;
   paginationEnd: number;
+  activeFilter: VariantQualityFilter;
   onPageSizeChange: (value: CommonPageSize) => void;
   onPageChange: (page: number) => void;
+  onFilterChange: (filter: VariantQualityFilter) => void;
+  onViewCandidate: (rowKey: string) => void;
 }) {
   return (
     <section className="rounded-lg border border-[#262629] bg-[#0c0c0e] p-4">
@@ -788,6 +826,23 @@ function VariantQualitySection({
         ))}
       </div>
 
+      <div className="mt-4 flex flex-wrap gap-2">
+        {variantQualityFilterOptions.map((filter) => (
+          <button
+            key={filter.key}
+            type="button"
+            onClick={() => onFilterChange(filter.key)}
+            className={`rounded-lg px-3 py-2 text-xs font-semibold transition ${
+              activeFilter === filter.key
+                ? 'bg-zinc-100 text-zinc-950'
+                : 'border border-[#333] bg-[#1a1a1e] text-zinc-300 hover:border-indigo-500/60 hover:text-white'
+            }`}
+          >
+            {filter.label}
+          </button>
+        ))}
+      </div>
+
       <div className="mt-4 rounded-lg border border-[#262629] bg-[#121214] px-4 py-3">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <PageSizeSelect value={pageSize} onChange={onPageSizeChange} />
@@ -804,7 +859,7 @@ function VariantQualitySection({
       </div>
 
       <div className="mt-4 overflow-x-auto rounded-lg border border-[#262629]">
-        <table className="w-full min-w-[1200px] text-left text-xs">
+        <table className="w-full min-w-[1680px] text-left text-xs">
           <thead className="bg-[#121214]">
             <tr>
               <th className="px-3 py-2 font-medium text-zinc-500">No.</th>
@@ -812,10 +867,15 @@ function VariantQualitySection({
               <th className="px-3 py-2 font-medium text-zinc-500">옵션/추가상품명</th>
               <th className="px-3 py-2 font-medium text-zinc-500">원본 일련번호</th>
               <th className="px-3 py-2 font-medium text-zinc-500">매핑완료율</th>
+              <th className="px-3 py-2 font-medium text-zinc-500">권장 조치</th>
               <th className="px-3 py-2 font-medium text-zinc-500">기존 연결 SKU</th>
               <th className="px-3 py-2 font-medium text-zinc-500">후보 SKU</th>
+              <th className="px-3 py-2 font-medium text-zinc-500">누락 SKU</th>
+              <th className="px-3 py-2 font-medium text-zinc-500">추가 후보 SKU</th>
+              <th className="px-3 py-2 font-medium text-zinc-500">수량 차이</th>
               <th className="px-3 py-2 font-medium text-zinc-500">위험유형</th>
               <th className="px-3 py-2 font-medium text-zinc-500">검증 결과</th>
+              <th className="px-3 py-2 font-medium text-zinc-500">이동</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-[#1e1e22]">
@@ -831,8 +891,12 @@ function VariantQualitySection({
                 <td className="whitespace-nowrap px-3 py-3">
                   <span className="font-semibold text-emerald-300">{row.completionRate}%</span>
                 </td>
+                <td className="whitespace-nowrap px-3 py-3 text-amber-200">{row.recommendedAction}</td>
                 <td className="px-3 py-3 font-mono text-zinc-400">{row.existingSkuText || '-'}</td>
                 <td className="px-3 py-3 font-mono text-zinc-300">{row.candidateSkuText || '-'}</td>
+                <td className="px-3 py-3 font-mono text-red-200">{row.missingSkuText}</td>
+                <td className="px-3 py-3 font-mono text-blue-200">{row.additionalSkuText}</td>
+                <td className="px-3 py-3 text-zinc-300">{row.quantityDifferenceText}</td>
                 <td className="px-3 py-3">
                   {row.issues.length === 0 ? (
                     <span className="inline-flex rounded-md px-2 py-1 text-[11px] font-semibold ring-1 ring-inset bg-emerald-500/10 text-emerald-200 ring-emerald-500/20">
@@ -853,7 +917,23 @@ function VariantQualitySection({
                   )}
                 </td>
                 <td className="px-3 py-3 text-zinc-400">
-                  {row.issues.length === 0 ? '정상' : row.issues.map((issue) => issue.message).join(' / ')}
+                  <div className="space-y-1">
+                    <div>{row.issues.length === 0 ? '정상' : row.issues.map((issue) => issue.message).join(' / ')}</div>
+                    {row.issues.some((issue) => issue.riskType === 'DIFFERENT_FROM_EXISTING') && (
+                      <div className="rounded-md border border-amber-500/20 bg-amber-500/5 p-2 text-[11px] text-amber-100">
+                        자동 교체 금지. 기존 매핑을 유지할지 확인한 뒤, 필요하면 매핑해제 후 재매핑하세요.
+                      </div>
+                    )}
+                  </div>
+                </td>
+                <td className="whitespace-nowrap px-3 py-3">
+                  <button
+                    type="button"
+                    onClick={() => onViewCandidate(row.rowKey)}
+                    className="rounded-md border border-indigo-500/30 bg-indigo-500/10 px-2.5 py-1.5 text-[11px] font-semibold text-indigo-200 transition hover:bg-indigo-500/20"
+                  >
+                    후보 보기
+                  </button>
                 </td>
               </tr>
             ))}
@@ -1085,6 +1165,76 @@ function getSkuComparisonKey(sku: { skuId: string; quantity: number }): string {
   return `${sku.skuId}:${sku.quantity}`;
 }
 
+function getSkuBaseKey(sku: { skuId: string; skuCode: string }): string {
+  return sku.skuId || sku.skuCode;
+}
+
+function formatSkuQuantityList(skus: { skuCode: string; quantity: number }[]): string {
+  if (skus.length === 0) return '-';
+  return skus.map((sku) => `${sku.skuCode || '-'} x ${sku.quantity}`).join(', ');
+}
+
+function createVariantSkuDiff(
+  existingSkus: { skuId: string; skuCode: string; quantity: number }[],
+  candidateSkus: { skuId: string; skuCode: string; quantity: number }[],
+): {
+  missingSkuText: string;
+  additionalSkuText: string;
+  quantityDifferenceText: string;
+} {
+  const existingByKey = new Map(existingSkus.map((sku) => [getSkuBaseKey(sku), sku]));
+  const candidateByKey = new Map(candidateSkus.map((sku) => [getSkuBaseKey(sku), sku]));
+
+  const missingSkus = existingSkus.filter((sku) => !candidateByKey.has(getSkuBaseKey(sku)));
+  const additionalSkus = candidateSkus.filter((sku) => !existingByKey.has(getSkuBaseKey(sku)));
+  const quantityDiffs = candidateSkus.flatMap((sku) => {
+    const existing = existingByKey.get(getSkuBaseKey(sku));
+    if (!existing || existing.quantity === sku.quantity) return [];
+    return [`${sku.skuCode || '-'}: 기존 ${existing.quantity} / 후보 ${sku.quantity}`];
+  });
+
+  return {
+    missingSkuText: formatSkuQuantityList(missingSkus),
+    additionalSkuText: formatSkuQuantityList(additionalSkus),
+    quantityDifferenceText: quantityDiffs.length > 0 ? quantityDiffs.join(', ') : '-',
+  };
+}
+
+function getRecommendedAction(row: {
+  isMapped: boolean;
+  issues: VariantQualityIssue[];
+  candidateSkus: { skuId: string; skuCode: string; quantity: number }[];
+}): VariantQualityRecommendedAction {
+  const riskTypes = new Set(row.issues.map((issue) => issue.riskType));
+
+  if (riskTypes.has('DIFFERENT_FROM_EXISTING')) {
+    return variantQualityRecommendedActions.UNAPPLY_AND_REMAP;
+  }
+  if (riskTypes.has('SKU_UNRESOLVED') || riskTypes.has('NO_CANDIDATE_SKU')) {
+    return variantQualityRecommendedActions.MANUAL_SKU_SEARCH;
+  }
+  if (riskTypes.has('SET_COMPONENT_MISSING')) {
+    return variantQualityRecommendedActions.REVIEW_REQUIRED;
+  }
+  if (riskTypes.has('MAPPED_BUT_EXISTING_SKU_MISSING')) {
+    return variantQualityRecommendedActions.KEEP_EXISTING;
+  }
+  if (row.isMapped) {
+    return variantQualityRecommendedActions.KEEP_EXISTING;
+  }
+  if (row.candidateSkus.length > 0) {
+    return variantQualityRecommendedActions.REPLACE_CANDIDATE;
+  }
+  return variantQualityRecommendedActions.REVIEW_REQUIRED;
+}
+
+function filterVariantQualityRows(rows: VariantQualityRow[], filter: VariantQualityFilter): VariantQualityRow[] {
+  if (filter === 'ALL') return rows;
+  if (filter === 'NORMAL') return rows.filter((row) => row.issues.length === 0);
+  if (filter === 'HAS_WARNING') return rows.filter((row) => row.issues.length > 0);
+  return rows.filter((row) => row.issues.some((issue) => issue.riskType === filter));
+}
+
 function getVariantCompletionRate(
   row: ProductVariantKeywordPreviewRow,
   manualSelections: VariantManualSelections,
@@ -1177,6 +1327,14 @@ function createVariantQualityRow(
     }
   }
 
+  const uniqueIssues = Array.from(new Map(issues.map((issue) => [issue.riskType, issue])).values());
+  const skuDiff = createVariantSkuDiff(existingSkus, candidateSkus);
+  const recommendedAction = getRecommendedAction({
+    isMapped,
+    issues: uniqueIssues,
+    candidateSkus,
+  });
+
   return {
     rowKey,
     rowNumber: 0,
@@ -1190,7 +1348,11 @@ function createVariantQualityRow(
     existingSkuCount: existingSkus.length,
     candidateSkuCount: candidateSkus.length,
     completionRate,
-    issues: Array.from(new Map(issues.map((issue) => [issue.riskType, issue])).values()),
+    issues: uniqueIssues,
+    missingSkuText: skuDiff.missingSkuText,
+    additionalSkuText: skuDiff.additionalSkuText,
+    quantityDifferenceText: skuDiff.quantityDifferenceText,
+    recommendedAction,
   };
 }
 
@@ -1275,6 +1437,10 @@ function createVariantExportRows({
     const riskTypes = qualityRow?.issues.map((issue) => issue.label).join(' / ') ?? '';
     const qualityStatus = qualityRow && qualityRow.issues.length > 0 ? '검토 필요' : '정상';
     const completionRate = qualityRow?.completionRate ?? 0;
+    const recommendedAction = qualityRow?.recommendedAction ?? variantQualityRecommendedActions.REVIEW_REQUIRED;
+    const missingSku = qualityRow?.missingSkuText ?? '-';
+    const additionalSku = qualityRow?.additionalSkuText ?? '-';
+    const quantityDifference = qualityRow?.quantityDifferenceText ?? '-';
 
     if (candidateSkus.length === 0) {
       return [
@@ -1292,8 +1458,12 @@ function createVariantExportRows({
           candidateSku: '',
           warningMessage: row.warningMessage,
           riskTypes,
+          recommendedAction,
           qualityStatus,
           completionRate,
+          missingSku,
+          additionalSku,
+          quantityDifference,
         },
       ];
     }
@@ -1312,8 +1482,12 @@ function createVariantExportRows({
       candidateSku,
       warningMessage: row.warningMessage,
       riskTypes,
+      recommendedAction,
       qualityStatus,
       completionRate,
+      missingSku,
+      additionalSku,
+      quantityDifference,
     }));
   });
 }
@@ -1404,16 +1578,20 @@ function ProductVariantKeywordPanel({
   onProductRefresh: () => Promise<void>;
 }) {
   const fileRef = useRef<HTMLInputElement | null>(null);
+  const candidateRowRefs = useRef<Record<string, HTMLTableRowElement | null>>({});
   const [variantFile, setVariantFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<ProductVariantKeywordPreviewResponse | null>(null);
   const [selectedRows, setSelectedRows] = useState<Record<string, boolean>>({});
   const [manualSelections, setManualSelections] = useState<VariantManualSelections>({});
   const [expandedRows, setExpandedRows] = useState<Record<string, boolean>>({});
   const [activeFilter, setActiveFilter] = useState<VariantCandidateFilter>('ALL');
+  const [qualityFilter, setQualityFilter] = useState<VariantQualityFilter>('ALL');
   const [pageSize, setPageSize] = useState<CommonPageSize>(DEFAULT_PAGE_SIZE);
   const [currentPage, setCurrentPage] = useState(1);
   const [qualityPageSize, setQualityPageSize] = useState<CommonPageSize>(DEFAULT_PAGE_SIZE);
   const [qualityCurrentPage, setQualityCurrentPage] = useState(1);
+  const [pendingFocusRowKey, setPendingFocusRowKey] = useState<string | null>(null);
+  const [highlightedRowKey, setHighlightedRowKey] = useState<string | null>(null);
   const [message, setMessage] = useState<Message | null>(null);
   const [previewing, setPreviewing] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -1487,6 +1665,10 @@ function ProductVariantKeywordPanel({
       }),
     [filteredRows, product, newlyMappedRowKeys, unmappedRowKeys, manualSelections],
   );
+  const filteredQualityRows = useMemo(
+    () => filterVariantQualityRows(qualityRows, qualityFilter),
+    [qualityRows, qualityFilter],
+  );
   const qualitySummary = useMemo(() => createVariantQualitySummary(qualityRows), [qualityRows]);
   const qualityRowsByKey = useMemo(
     () => Object.fromEntries(qualityRows.map((row) => [row.rowKey, row])),
@@ -1498,15 +1680,28 @@ function ProductVariantKeywordPanel({
     safeCurrentPage,
   );
   const qualityTotalPages = useMemo(
-    () => getTotalPages(qualityRows.length, qualityPageSize),
-    [qualityRows.length, qualityPageSize],
+    () => getTotalPages(filteredQualityRows.length, qualityPageSize),
+    [filteredQualityRows.length, qualityPageSize],
   );
   const safeQualityCurrentPage = getSafeCurrentPage(qualityCurrentPage, qualityTotalPages);
   const paginatedQualityRows = useMemo(
-    () => getPaginatedRows(qualityRows, qualityPageSize, safeQualityCurrentPage),
-    [qualityRows, qualityPageSize, safeQualityCurrentPage],
+    () => getPaginatedRows(filteredQualityRows, qualityPageSize, safeQualityCurrentPage),
+    [filteredQualityRows, qualityPageSize, safeQualityCurrentPage],
   );
-  const qualityPagination = getPaginationRange(qualityRows.length, qualityPageSize, safeQualityCurrentPage);
+  const qualityPagination = getPaginationRange(filteredQualityRows.length, qualityPageSize, safeQualityCurrentPage);
+
+  useEffect(() => {
+    if (!pendingFocusRowKey) return;
+    const targetRow = candidateRowRefs.current[pendingFocusRowKey];
+    if (!targetRow) return;
+
+    targetRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    setHighlightedRowKey(pendingFocusRowKey);
+    const highlightTimer = window.setTimeout(() => setHighlightedRowKey(null), 2500);
+    setPendingFocusRowKey(null);
+
+    return () => window.clearTimeout(highlightTimer);
+  }, [pendingFocusRowKey, paginatedRows]);
 
   const handlePreview = async () => {
     if (!variantFile) {
@@ -1525,6 +1720,7 @@ function ProductVariantKeywordPanel({
     setUnmappedRowKeys({});
     setLastApplySummary(null);
     setActiveFilter('ALL');
+    setQualityFilter('ALL');
     setPageSize(DEFAULT_PAGE_SIZE);
     setCurrentPage(1);
     setQualityPageSize(DEFAULT_PAGE_SIZE);
@@ -1696,6 +1892,10 @@ function ProductVariantKeywordPanel({
             completionRate: row.completionRate,
             riskTypes: row.issues.map((issue) => issue.label).join(' / '),
             qualityMessage: row.issues.map((issue) => issue.message).join(' / '),
+            recommendedAction: row.recommendedAction,
+            missingSkuText: row.missingSkuText,
+            additionalSkuText: row.additionalSkuText,
+            quantityDifferenceText: row.quantityDifferenceText,
           })),
           qualitySummary,
         }),
@@ -1726,6 +1926,21 @@ function ProductVariantKeywordPanel({
     } finally {
       setExporting(false);
     }
+  };
+
+  const handleViewCandidate = (rowKey: string) => {
+    const targetIndex = filteredRows.findIndex((row) => getVariantRowKey(row) === rowKey);
+    if (targetIndex < 0) return;
+
+    const targetPage =
+      pageSize === 'ALL' ? 1 : Math.floor(targetIndex / pageSize) + 1;
+
+    setExpandedRows((current) => ({
+      ...current,
+      [rowKey]: true,
+    }));
+    setCurrentPage(targetPage);
+    setPendingFocusRowKey(rowKey);
   };
 
   const applySelectionPreset = (preset: VariantSelectionPreset) => {
@@ -1886,6 +2101,7 @@ function ProductVariantKeywordPanel({
           setUnapplyingRowKeys({});
           setUnmappedRowKeys({});
           setActiveFilter('ALL');
+          setQualityFilter('ALL');
           setPageSize(DEFAULT_PAGE_SIZE);
           setCurrentPage(1);
           setQualityPageSize(DEFAULT_PAGE_SIZE);
@@ -1942,17 +2158,23 @@ function ProductVariantKeywordPanel({
           <VariantQualitySection
             summary={qualitySummary}
             rows={paginatedQualityRows}
-            totalCount={qualityRows.length}
+            totalCount={filteredQualityRows.length}
             pageSize={qualityPageSize}
             currentPage={safeQualityCurrentPage}
             totalPages={qualityTotalPages}
             paginationStart={qualityPagination.start}
             paginationEnd={qualityPagination.end}
+            activeFilter={qualityFilter}
             onPageSizeChange={(value) => {
               setQualityPageSize(value);
               setQualityCurrentPage(1);
             }}
             onPageChange={setQualityCurrentPage}
+            onFilterChange={(filter) => {
+              setQualityFilter(filter);
+              setQualityCurrentPage(1);
+            }}
+            onViewCandidate={handleViewCandidate}
           />
 
           <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
@@ -2115,7 +2337,14 @@ function ProductVariantKeywordPanel({
 
                   return (
                     <Fragment key={rowKey}>
-                      <tr className="align-top group hover:bg-[#16161a]">
+                      <tr
+                        ref={(element) => {
+                          candidateRowRefs.current[rowKey] = element;
+                        }}
+                        className={`align-top group hover:bg-[#16161a] ${
+                          highlightedRowKey === rowKey ? 'bg-indigo-500/10 ring-1 ring-inset ring-indigo-400/40' : ''
+                        }`}
+                      >
                         <td className="sticky left-0 z-20 px-4 py-3 font-mono text-xs text-zinc-400 bg-[#121214] group-hover:bg-[#16161a]">
                           {rowNumber}
                         </td>

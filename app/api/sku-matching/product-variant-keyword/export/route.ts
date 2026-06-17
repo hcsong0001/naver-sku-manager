@@ -27,8 +27,12 @@ type ExportRow = {
   candidateSku: string;
   warningMessage: string;
   riskTypes: string;
+  recommendedAction: string;
   qualityStatus: string;
   completionRate: number;
+  missingSku: string;
+  additionalSku: string;
+  quantityDifference: string;
 };
 
 type ExportQualityRow = {
@@ -45,6 +49,10 @@ type ExportQualityRow = {
   completionRate: number;
   riskTypes: string;
   qualityMessage: string;
+  recommendedAction: string;
+  missingSkuText: string;
+  additionalSkuText: string;
+  quantityDifferenceText: string;
 };
 
 type ExportQualitySummary = {
@@ -120,8 +128,12 @@ function parseRows(value: unknown): ExportRow[] {
     candidateSku: toStringCell(row.candidateSku),
     warningMessage: toStringCell(row.warningMessage),
     riskTypes: toStringCell(row.riskTypes),
+    recommendedAction: toStringCell(row.recommendedAction),
     qualityStatus: toStringCell(row.qualityStatus),
     completionRate: toNumberCell(row.completionRate),
+    missingSku: toStringCell(row.missingSku),
+    additionalSku: toStringCell(row.additionalSku),
+    quantityDifference: toStringCell(row.quantityDifference),
   }));
 }
 
@@ -142,6 +154,10 @@ function parseQualityRows(value: unknown): ExportQualityRow[] {
     completionRate: toNumberCell(row.completionRate),
     riskTypes: toStringCell(row.riskTypes),
     qualityMessage: toStringCell(row.qualityMessage),
+    recommendedAction: toStringCell(row.recommendedAction),
+    missingSkuText: toStringCell(row.missingSkuText),
+    additionalSkuText: toStringCell(row.additionalSkuText),
+    quantityDifferenceText: toStringCell(row.quantityDifferenceText),
   }));
 }
 
@@ -222,6 +238,10 @@ function createWorkbookBuffer({
     '경고/비고': row.warningMessage,
     '품질 검증 상태': row.qualityStatus,
     위험유형: row.riskTypes,
+    '권장 조치': row.recommendedAction,
+    '누락 SKU': row.missingSku,
+    '추가 SKU': row.additionalSku,
+    '수량 차이': row.quantityDifference,
     '후보 완성도(%)': row.completionRate,
   }));
   const detailSheet = XLSX.utils.json_to_sheet(detailRows);
@@ -240,6 +260,10 @@ function createWorkbookBuffer({
     { wch: 60 },
     { wch: 18 },
     { wch: 36 },
+    { wch: 20 },
+    { wch: 36 },
+    { wch: 36 },
+    { wch: 32 },
     { wch: 14 },
   ];
 
@@ -269,8 +293,12 @@ function createWorkbookBuffer({
       '기존 연결 SKU 수': row.existingSkuCount,
       '후보 SKU 수': row.candidateSkuCount,
       '후보 완성도(%)': row.completionRate,
+      '권장 조치': row.recommendedAction,
       '기존 연결 SKU': row.existingSkuText,
       '후보 SKU': row.candidateSkuText,
+      '누락 SKU': row.missingSkuText,
+      '추가 SKU': row.additionalSkuText,
+      '수량 차이': row.quantityDifferenceText,
       위험유형: row.riskTypes || '정상',
       '검증 결과': row.qualityMessage || '정상',
     })),
@@ -285,8 +313,12 @@ function createWorkbookBuffer({
     { wch: 14 },
     { wch: 14 },
     { wch: 14 },
+    { wch: 20 },
     { wch: 44 },
     { wch: 44 },
+    { wch: 36 },
+    { wch: 36 },
+    { wch: 32 },
     { wch: 36 },
     { wch: 64 },
   ];
