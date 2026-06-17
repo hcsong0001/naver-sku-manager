@@ -23,6 +23,7 @@ model Smartstore {
   products               NaverProduct[]
   productCollectionJobs  ProductCollectionJob[]
   productCollectionItems ProductCollectionJobItem[]
+  importJobs             ImportJob[]
   orders                 Order[]
   priceRules             StorePriceRule[]
 
@@ -41,6 +42,21 @@ enum ProductCollectionJobItemStatus {
   PENDING
   SUCCESS
   FAILED
+}
+
+enum ImportJobStatus {
+  PENDING
+  PREVIEWED
+  APPLIED
+  FAILED
+  CANCELLED
+}
+
+enum ImportFileType {
+  ERP_STOCK
+  SMARTSTORE_PRODUCT
+  SKU_MAPPING
+  PRODUCT_VARIANT_KEYWORD
 }
 
 model Sku {
@@ -139,6 +155,239 @@ model ProductCollectionJobItem {
   @@index([jobId])
   @@index([storeId, channelProductNo])
   @@index([status])
+}
+
+model ImportJob {
+  id                            String                       @id @default(uuid())
+  fileType                      ImportFileType
+  storeId                       String?
+  channelId                     String?
+  fileName                      String
+  status                        ImportJobStatus              @default(PENDING)
+  totalRows                     Int                          @default(0)
+  successRows                   Int                          @default(0)
+  errorRows                     Int                          @default(0)
+  previewSummary                Json?
+  errorSummary                  Json?
+  appliedAt                     DateTime?
+  createdAt                     DateTime                     @default(now())
+  updatedAt                     DateTime                     @updatedAt
+  store                         Smartstore?                  @relation(fields: [storeId], references: [id], onDelete: SetNull)
+  files                         ImportFile[]
+  stagingStockItems             StagingStockItem[]
+  stagingNaverProducts          StagingNaverProduct[]
+  stagingNaverProductOptions    StagingNaverProductOption[]
+  stagingNaverProductAdditionals StagingNaverProductAdditional[]
+  stagingSkuMappings            StagingSkuMapping[]
+  stagingProductVariantKeywords StagingProductVariantKeyword[]
+
+  @@index([fileType])
+  @@index([storeId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model ImportFile {
+  id                            String                       @id @default(uuid())
+  jobId                         String
+  fileType                      ImportFileType
+  fileName                      String
+  mimeType                      String?
+  sizeBytes                     Int?
+  status                        ImportJobStatus              @default(PENDING)
+  totalRows                     Int                          @default(0)
+  successRows                   Int                          @default(0)
+  errorRows                     Int                          @default(0)
+  createdAt                     DateTime                     @default(now())
+  updatedAt                     DateTime                     @updatedAt
+  job                           ImportJob                    @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  stagingStockItems             StagingStockItem[]
+  stagingNaverProducts          StagingNaverProduct[]
+  stagingNaverProductOptions    StagingNaverProductOption[]
+  stagingNaverProductAdditionals StagingNaverProductAdditional[]
+  stagingSkuMappings            StagingSkuMapping[]
+  stagingProductVariantKeywords StagingProductVariantKeyword[]
+
+  @@index([jobId])
+  @@index([fileType])
+}
+
+model StagingStockItem {
+  id                  String      @id @default(uuid())
+  jobId               String
+  importFileId        String?
+  rowNumber           Int
+  barcode             String
+  productName         String
+  purchaseProductName String
+  internalProductCode String
+  modelName           String
+  supplierItemCode    String
+  optionCode          String
+  sellingPrice        Decimal?    @db.Decimal(12, 2)
+  costPrice           Decimal?    @db.Decimal(12, 2)
+  stockQuantity       Int?
+  skuCodeCandidate    String
+  sourceRow           Json?
+  errorMessage        String?
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+  job                 ImportJob   @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  importFile          ImportFile? @relation(fields: [importFileId], references: [id], onDelete: SetNull)
+
+  @@index([jobId, rowNumber])
+  @@index([importFileId])
+  @@index([barcode])
+  @@index([skuCodeCandidate])
+}
+
+model StagingNaverProduct {
+  id                 String                         @id @default(uuid())
+  jobId              String
+  importFileId       String?
+  storeId            String?
+  rowNumber          Int
+  externalProductId  String?
+  channelProductNo   String?
+  originProductNo    String?
+  productName        String
+  statusType         String?
+  sellerManagementCode String?
+  sourceRow          Json?
+  errorMessage       String?
+  createdAt          DateTime                       @default(now())
+  updatedAt          DateTime                       @updatedAt
+  job                ImportJob                      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  importFile         ImportFile?                    @relation(fields: [importFileId], references: [id], onDelete: SetNull)
+  options            StagingNaverProductOption[]
+  additionals        StagingNaverProductAdditional[]
+
+  @@index([jobId, rowNumber])
+  @@index([importFileId])
+  @@index([storeId])
+  @@index([channelProductNo])
+  @@index([originProductNo])
+}
+
+model StagingNaverProductOption {
+  id               String               @id @default(uuid())
+  jobId            String
+  importFileId     String?
+  stagingProductId String?
+  rowNumber        Int
+  channelProductNo String?
+  optionId         String?
+  optionName       String
+  optionValue      String
+  optionCode       String?
+  sourceRow        Json?
+  errorMessage     String?
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+  job              ImportJob            @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  importFile       ImportFile?          @relation(fields: [importFileId], references: [id], onDelete: SetNull)
+  product          StagingNaverProduct? @relation(fields: [stagingProductId], references: [id], onDelete: SetNull)
+
+  @@index([jobId, rowNumber])
+  @@index([importFileId])
+  @@index([stagingProductId])
+  @@index([channelProductNo])
+  @@index([optionCode])
+}
+
+model StagingNaverProductAdditional {
+  id                   String               @id @default(uuid())
+  jobId                String
+  importFileId         String?
+  stagingProductId     String?
+  rowNumber            Int
+  channelProductNo     String?
+  additionalId         String?
+  additionalName       String
+  additionalValue      String
+  sellerManagementCode String?
+  price                Int?
+  stockQuantity        Int?
+  usable               Boolean?
+  sortType             String?
+  sourceRow            Json?
+  errorMessage         String?
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
+  job                  ImportJob            @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  importFile           ImportFile?          @relation(fields: [importFileId], references: [id], onDelete: SetNull)
+  product              StagingNaverProduct? @relation(fields: [stagingProductId], references: [id], onDelete: SetNull)
+
+  @@index([jobId, rowNumber])
+  @@index([importFileId])
+  @@index([stagingProductId])
+  @@index([channelProductNo])
+  @@index([sellerManagementCode])
+}
+
+model StagingSkuMapping {
+  id               String      @id @default(uuid())
+  jobId            String
+  importFileId     String?
+  rowNumber        Int
+  mappingType      String
+  smartstoreName   String
+  channelProductNo String
+  productName      String
+  itemId           String
+  itemName         String
+  managementCode   String
+  currentSkuCode   String
+  skuCode          String
+  quantity         Int
+  sourceRow        Json?
+  errorMessage     String?
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+  job              ImportJob   @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  importFile       ImportFile? @relation(fields: [importFileId], references: [id], onDelete: SetNull)
+
+  @@index([jobId, rowNumber])
+  @@index([importFileId])
+  @@index([mappingType, itemId])
+  @@index([skuCode])
+}
+
+model StagingProductVariantKeyword {
+  id                      String      @id @default(uuid())
+  jobId                   String
+  importFileId            String?
+  rowNumber               Int
+  channelProductNo        String?
+  mappingType             String?
+  itemId                  String?
+  itemName                String?
+  serialNo                String
+  productMatchName        String
+  productOptionText       String
+  stockMatchedProductName String
+  stockMatchedOptionText  String
+  quantityText            String
+  resolvedSkuCode         String?
+  resolvedModelCodes      String?
+  barcode                 String?
+  quantity                Int?
+  isSetProduct            Boolean     @default(false)
+  confidence              Decimal?    @db.Decimal(8, 4)
+  warningMessage          String?
+  resolvedSkus            Json?
+  sourceRow               Json?
+  errorMessage            String?
+  createdAt               DateTime    @default(now())
+  updatedAt               DateTime    @updatedAt
+  job                     ImportJob   @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  importFile              ImportFile? @relation(fields: [importFileId], references: [id], onDelete: SetNull)
+
+  @@index([jobId, rowNumber])
+  @@index([importFileId])
+  @@index([channelProductNo])
+  @@index([mappingType, itemId])
+  @@index([serialNo])
 }
 
 model NaverProductOption {

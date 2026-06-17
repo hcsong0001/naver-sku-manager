@@ -110,7 +110,7 @@ function parseQuantity(quantityText: string): number {
   return 1;
 }
 
-function parseProductVariantKeywordWorkbook(buffer: Buffer): ProductVariantKeywordParsedRow[] {
+export function parseProductVariantKeywordWorkbook(buffer: Buffer): ProductVariantKeywordParsedRow[] {
   const workbook = XLSX.read(buffer, { type: 'buffer', raw: false });
   const sheetName = workbook.SheetNames[0];
 
