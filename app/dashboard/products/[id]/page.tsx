@@ -90,6 +90,13 @@ type SkuKeywordManualUnapplyResponse = {
   aliasDeletedCount: number;
   removedSkus: { skuId: string; skuCode: string; quantity: number }[];
 };
+type BulkApplyResultSummary = {
+  successCandidateCount: number;
+  failedCandidateCount: number;
+  successSkuCount: number;
+  failedReasons: string[];
+  rowStatusByKey: Record<string, 'success' | 'failed'>;
+};
 type ProductVariantReportSummary = {
   totalCount: number;
   mappedCount: number;
@@ -123,6 +130,7 @@ type VariantCandidateFilter =
   | 'RESOLVED'
   | 'UNRESOLVED';
 type VariantMatchStatus = 'MAPPED' | 'RESOLVED' | 'PARTIAL' | 'UNRESOLVED';
+type VariantSelectionPreset = 'ALL' | 'RESOLVED' | 'SINGLE' | 'SET' | 'CLEAR';
 
 const variantCandidateFilters: { key: VariantCandidateFilter; label: string }[] = [
   { key: 'ALL', label: '전체' },
@@ -816,6 +824,25 @@ function createVariantReportSummary({
   };
 }
 
+function createSelectionSummary(
+  rows: ProductVariantKeywordPreviewRow[],
+  manualSelections: VariantManualSelections,
+): {
+  candidateCount: number;
+  totalSkuCount: number;
+  setCount: number;
+  singleCount: number;
+  unresolvedCount: number;
+} {
+  return {
+    candidateCount: rows.length,
+    totalSkuCount: getRowsSkuCount(rows, manualSelections),
+    setCount: rows.filter((row) => row.isSetProduct).length,
+    singleCount: rows.filter((row) => !row.isSetProduct).length,
+    unresolvedCount: rows.filter((row) => getRowApplySkuCount(row, manualSelections) === 0).length,
+  };
+}
+
 function formatExportSkuList(skus: { skuCode: string; quantity: number }[]): string {
   if (skus.length === 0) return '';
   return skus.map((sku) => `${sku.skuCode || '-'} x ${sku.quantity}`).join(', ');
@@ -898,6 +925,75 @@ function canSelectVariantRow(
   return !isRowMapped(row, product, newlyMappedRowKeys, unmappedRowKeys);
 }
 
+function buildBulkApplyResultSummary({
+  checkedRows,
+  requestBody,
+  result,
+}: {
+  checkedRows: ProductVariantKeywordPreviewRow[];
+  requestBody: SkuKeywordManualApplyRequest;
+  result: SkuKeywordManualApplyResponse;
+}): BulkApplyResultSummary {
+  const successMessages = new Set([
+    '수동 매핑을 저장했습니다.',
+    '기존 수동 매핑 수량을 업데이트했습니다.',
+    '이미 같은 SKU와 수량으로 매핑되어 있습니다.',
+  ]);
+  const rowStatusByKey: Record<string, 'success' | 'failed'> = {};
+  const failedReasons = new Set<string>();
+
+  for (const row of checkedRows) {
+    const rowKey = getVariantRowKey(row);
+    const requestRow = requestBody.rows.find(
+      (item) => item.mappingType === row.mappingType && item.itemId === row.itemId,
+    );
+
+    if (!requestRow || requestRow.skus.length === 0) {
+      rowStatusByKey[rowKey] = 'failed';
+      failedReasons.add('저장할 SKU가 없습니다.');
+      continue;
+    }
+
+    const rowResults = result.results.filter(
+      (item) => item.mappingType === row.mappingType && item.itemId === row.itemId,
+    );
+
+    if (rowResults.length === 0) {
+      rowStatusByKey[rowKey] = 'failed';
+      failedReasons.add('저장 결과를 확인할 수 없습니다.');
+      continue;
+    }
+
+    const success = requestRow.skus.every((sku) =>
+      rowResults.some(
+        (item) =>
+          item.skuId === sku.skuId &&
+          item.quantity === sku.quantity &&
+          successMessages.has(item.message),
+      ),
+    );
+
+    rowStatusByKey[rowKey] = success ? 'success' : 'failed';
+    if (!success) {
+      rowResults
+        .filter((item) => !successMessages.has(item.message))
+        .forEach((item) => failedReasons.add(item.message));
+    }
+  }
+
+  const successCandidateCount = Object.values(rowStatusByKey).filter((status) => status === 'success').length;
+  const failedCandidateCount = Object.values(rowStatusByKey).filter((status) => status === 'failed').length;
+  const successSkuCount = result.results.filter((item) => successMessages.has(item.message)).length;
+
+  return {
+    successCandidateCount,
+    failedCandidateCount,
+    successSkuCount,
+    failedReasons: Array.from(failedReasons),
+    rowStatusByKey,
+  };
+}
+
 function ProductVariantKeywordPanel({
   product,
   onProductRefresh,
@@ -919,6 +1015,7 @@ function ProductVariantKeywordPanel({
   const [unapplyingRowKeys, setUnapplyingRowKeys] = useState<Record<string, boolean>>({});
   const [newlyMappedRowKeys, setNewlyMappedRowKeys] = useState<Record<string, boolean>>({});
   const [unmappedRowKeys, setUnmappedRowKeys] = useState<Record<string, boolean>>({});
+  const [lastApplySummary, setLastApplySummary] = useState<BulkApplyResultSummary | null>(null);
 
   const filteredRows = useMemo(
     () => filterVariantRows(preview?.rows ?? [], activeFilter, product, newlyMappedRowKeys, unmappedRowKeys),
@@ -964,6 +1061,7 @@ function ProductVariantKeywordPanel({
     setUnapplyingRowKeys({});
     setNewlyMappedRowKeys({});
     setUnmappedRowKeys({});
+    setLastApplySummary(null);
     setActiveFilter('ALL');
 
     try {
@@ -1006,15 +1104,27 @@ function ProductVariantKeywordPanel({
 
     try {
       const requestBody = toManualApplyRequest(checkedRows, manualSelections);
-      const rowsWithoutSku = requestBody.rows.filter((row) => row.skus.length === 0);
+      const selectionSummary = createSelectionSummary(checkedRows, manualSelections);
 
-      if (rowsWithoutSku.length > 0) {
+      if (selectionSummary.unresolvedCount > 0) {
         setMessage({
           type: 'error',
-          text: `선택 후보 ${rowsWithoutSku.length.toLocaleString()}건에 저장할 SKU가 없습니다. 상세를 펼쳐 수동 SKU를 추가해 주세요.`,
+          text: `선택 후보 중 SKU 미확정 ${selectionSummary.unresolvedCount.toLocaleString()}건이 포함되어 있습니다. 저장 전에 SKU를 확정해 주세요.`,
         });
         return;
       }
+
+      const confirmed = window.confirm(
+        [
+          '선택한 후보를 수동확정하시겠습니까?',
+          `선택 후보 수: ${selectionSummary.candidateCount.toLocaleString()}건`,
+          `총 SKU 수: ${selectionSummary.totalSkuCount.toLocaleString()}개`,
+          `세트상품 후보 수: ${selectionSummary.setCount.toLocaleString()}건`,
+          `단품 후보 수: ${selectionSummary.singleCount.toLocaleString()}건`,
+          `SKU 미확정 후보 수: ${selectionSummary.unresolvedCount.toLocaleString()}건`,
+        ].join('\n'),
+      );
+      if (!confirmed) return;
 
       const response = await fetch('/api/sku-matching/manual-apply', {
         method: 'POST',
@@ -1028,33 +1138,49 @@ function ProductVariantKeywordPanel({
       }
 
       const result = data as SkuKeywordManualApplyResponse;
+      const applySummary = buildBulkApplyResultSummary({
+        checkedRows,
+        requestBody,
+        result,
+      });
+      setLastApplySummary(applySummary);
       setNewlyMappedRowKeys((prev) => {
         const next = { ...prev };
         checkedRows.forEach((row) => {
-          next[getVariantRowKey(row)] = true;
+          const rowKey = getVariantRowKey(row);
+          if (applySummary.rowStatusByKey[rowKey] === 'success') next[rowKey] = true;
         });
         return next;
       });
       setUnmappedRowKeys((prev) => {
         const next = { ...prev };
         checkedRows.forEach((row) => {
-          delete next[getVariantRowKey(row)];
+          const rowKey = getVariantRowKey(row);
+          if (applySummary.rowStatusByKey[rowKey] === 'success') delete next[rowKey];
         });
         return next;
       });
-      setSelectedRows({});
+      setSelectedRows((current) => {
+        const next = { ...current };
+        checkedRows.forEach((row) => {
+          const rowKey = getVariantRowKey(row);
+          next[rowKey] = applySummary.rowStatusByKey[rowKey] === 'failed';
+        });
+        return next;
+      });
       setManualSelections((current) => {
         const next = { ...current };
         checkedRows.forEach((row) => {
-          delete next[getVariantRowKey(row)];
+          const rowKey = getVariantRowKey(row);
+          if (applySummary.rowStatusByKey[rowKey] === 'success') delete next[rowKey];
         });
         return next;
       });
       setMessage({
-        type: 'success',
+        type: applySummary.failedCandidateCount > 0 ? 'error' : 'success',
         text:
-          `수동 확정 저장 완료: 생성 ${result.createdCount.toLocaleString()}건, ` +
-          `업데이트 ${result.updatedCount.toLocaleString()}건, 건너뜀 ${result.skippedCount.toLocaleString()}건.`,
+          `수동 확정 저장 완료: 성공 후보 ${applySummary.successCandidateCount.toLocaleString()}건, ` +
+          `실패 후보 ${applySummary.failedCandidateCount.toLocaleString()}건, 성공 SKU ${applySummary.successSkuCount.toLocaleString()}개.`,
       });
     } catch (error) {
       const text = error instanceof Error ? error.message : '수동 확정 저장에 실패했습니다.';
@@ -1119,11 +1245,30 @@ function ProductVariantKeywordPanel({
     }
   };
 
-  const toggleAllSelectable = () => {
-    const allSelected = selectableRows.length > 0 && checkedRows.length === selectableRows.length;
-    setSelectedRows(
-      Object.fromEntries(selectableRows.map((row) => [getVariantRowKey(row), !allSelected])),
+  const applySelectionPreset = (preset: VariantSelectionPreset) => {
+    if (!preview) return;
+
+    if (preset === 'CLEAR') {
+      setSelectedRows({});
+      return;
+    }
+
+    const baseRows = preview.rows.filter((row) =>
+      canSelectVariantRow(row, product, newlyMappedRowKeys, unmappedRowKeys),
     );
+    const targetRows =
+      preset === 'ALL'
+        ? baseRows
+        : preset === 'RESOLVED'
+          ? baseRows.filter((row) => getRowApplySkuCount(row, manualSelections) > 0)
+          : preset === 'SINGLE'
+            ? baseRows.filter((row) => !row.isSetProduct)
+            : baseRows.filter((row) => row.isSetProduct);
+
+    setSelectedRows((current) => ({
+      ...current,
+      ...Object.fromEntries(targetRows.map((row) => [getVariantRowKey(row), true])),
+    }));
   };
 
   const handleUnapply = async (row: ProductVariantKeywordPreviewRow) => {
@@ -1284,6 +1429,26 @@ function ProductVariantKeywordPanel({
         </div>
       )}
 
+      {lastApplySummary && (
+        <div className="mt-4 rounded-lg border border-[#262629] bg-[#0c0c0e] p-4">
+          <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <p className="text-sm font-semibold text-white">수동확정 결과 요약</p>
+              <p className="mt-1 text-xs text-zinc-500">
+                성공 후보 {lastApplySummary.successCandidateCount.toLocaleString()}건 / 실패 후보{' '}
+                {lastApplySummary.failedCandidateCount.toLocaleString()}건 / 성공 SKU{' '}
+                {lastApplySummary.successSkuCount.toLocaleString()}개
+              </p>
+            </div>
+            {lastApplySummary.failedReasons.length > 0 && (
+              <div className="max-w-2xl text-xs text-red-300">
+                실패 사유: {lastApplySummary.failedReasons.join(' | ')}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {preview && (
         <div className="mt-5 space-y-4">
           <VariantReportCards summary={reportSummary} />
@@ -1305,14 +1470,48 @@ function ProductVariantKeywordPanel({
                 </button>
               ))}
             </div>
-            <button
-              type="button"
-              onClick={toggleAllSelectable}
-              disabled={selectableRows.length === 0}
-              className="rounded-lg border border-[#333] bg-[#1a1a1e] px-3 py-2 text-xs font-semibold text-zinc-200 transition hover:border-indigo-500/60 hover:text-white disabled:opacity-60"
-            >
-              {checkedRows.length === selectableRows.length && selectableRows.length > 0 ? '전체 해제' : '저장 가능 후보 전체 선택'}
-            </button>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => applySelectionPreset('ALL')}
+                disabled={selectableRows.length === 0}
+                className="rounded-lg border border-[#333] bg-[#1a1a1e] px-3 py-2 text-xs font-semibold text-zinc-200 transition hover:border-indigo-500/60 hover:text-white disabled:opacity-60"
+              >
+                선택 가능 후보 전체 선택
+              </button>
+              <button
+                type="button"
+                onClick={() => applySelectionPreset('RESOLVED')}
+                disabled={selectableRows.length === 0}
+                className="rounded-lg border border-[#333] bg-[#1a1a1e] px-3 py-2 text-xs font-semibold text-zinc-200 transition hover:border-indigo-500/60 hover:text-white disabled:opacity-60"
+              >
+                SKU 확정 후보만 선택
+              </button>
+              <button
+                type="button"
+                onClick={() => applySelectionPreset('SINGLE')}
+                disabled={selectableRows.length === 0}
+                className="rounded-lg border border-[#333] bg-[#1a1a1e] px-3 py-2 text-xs font-semibold text-zinc-200 transition hover:border-indigo-500/60 hover:text-white disabled:opacity-60"
+              >
+                단품 후보만 선택
+              </button>
+              <button
+                type="button"
+                onClick={() => applySelectionPreset('SET')}
+                disabled={selectableRows.length === 0}
+                className="rounded-lg border border-[#333] bg-[#1a1a1e] px-3 py-2 text-xs font-semibold text-zinc-200 transition hover:border-indigo-500/60 hover:text-white disabled:opacity-60"
+              >
+                세트상품 후보만 선택
+              </button>
+              <button
+                type="button"
+                onClick={() => applySelectionPreset('CLEAR')}
+                disabled={checkedRows.length === 0}
+                className="rounded-lg border border-[#333] bg-[#1a1a1e] px-3 py-2 text-xs font-semibold text-zinc-200 transition hover:border-indigo-500/60 hover:text-white disabled:opacity-60"
+              >
+                선택 해제
+              </button>
+            </div>
           </div>
 
           {/* ProductVariantKeyword 액션바 - 스크롤 박스 바깥 */}
@@ -1373,6 +1572,7 @@ function ProductVariantKeywordPanel({
                   const mappedSkus = getExistingVariantSkus(row, product, unmappedRowKeys);
                   const unapplying = unapplyingRowKeys[rowKey] ?? false;
                   const matchStatus = getVariantMatchStatus(row, isMapped);
+                  const lastApplyStatus = lastApplySummary?.rowStatusByKey[rowKey];
 
                   return (
                     <Fragment key={rowKey}>
@@ -1402,6 +1602,11 @@ function ProductVariantKeywordPanel({
                             {isMapped && (
                               <span className="inline-flex rounded-md bg-emerald-500/10 px-1 py-0.5 text-[9px] font-semibold text-emerald-400 ring-1 ring-inset ring-emerald-500/20 leading-none">
                                 매핑완료
+                              </span>
+                            )}
+                            {lastApplyStatus === 'failed' && (
+                              <span className="inline-flex rounded-md bg-red-500/10 px-1 py-0.5 text-[9px] font-semibold text-red-300 ring-1 ring-inset ring-red-500/20 leading-none">
+                                저장실패
                               </span>
                             )}
                           </div>
