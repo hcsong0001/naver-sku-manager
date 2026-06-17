@@ -25,6 +25,37 @@ type ExportRow = {
   existingSku: string;
   candidateSku: string;
   warningMessage: string;
+  riskTypes: string;
+  qualityStatus: string;
+  completionRate: number;
+};
+
+type ExportQualityRow = {
+  mappingType: string;
+  itemName: string;
+  serialNo: string;
+  isSetProduct: boolean;
+  isMapped: boolean;
+  existingSkuText: string;
+  candidateSkuText: string;
+  existingSkuCount: number;
+  candidateSkuCount: number;
+  completionRate: number;
+  riskTypes: string;
+  qualityMessage: string;
+};
+
+type ExportQualitySummary = {
+  totalCount: number;
+  mappedCount: number;
+  resolvedCount: number;
+  completionRate: number;
+  riskCount: number;
+  differentFromExistingCount: number;
+  setComponentMissingCount: number;
+  unresolvedCount: number;
+  noCandidateSkuCount: number;
+  missingExistingSkuInfoCount: number;
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -85,7 +116,59 @@ function parseRows(value: unknown): ExportRow[] {
     existingSku: toStringCell(row.existingSku),
     candidateSku: toStringCell(row.candidateSku),
     warningMessage: toStringCell(row.warningMessage),
+    riskTypes: toStringCell(row.riskTypes),
+    qualityStatus: toStringCell(row.qualityStatus),
+    completionRate: toNumberCell(row.completionRate),
   }));
+}
+
+function parseQualityRows(value: unknown): ExportQualityRow[] {
+  if (!Array.isArray(value)) return [];
+
+  return value.filter(isRecord).map((row) => ({
+    mappingType: toStringCell(row.mappingType),
+    itemName: toStringCell(row.itemName),
+    serialNo: toStringCell(row.serialNo),
+    isSetProduct: toBooleanCell(row.isSetProduct),
+    isMapped: toBooleanCell(row.isMapped),
+    existingSkuText: toStringCell(row.existingSkuText),
+    candidateSkuText: toStringCell(row.candidateSkuText),
+    existingSkuCount: toNumberCell(row.existingSkuCount),
+    candidateSkuCount: toNumberCell(row.candidateSkuCount),
+    completionRate: toNumberCell(row.completionRate),
+    riskTypes: toStringCell(row.riskTypes),
+    qualityMessage: toStringCell(row.qualityMessage),
+  }));
+}
+
+function parseQualitySummary(value: unknown): ExportQualitySummary {
+  if (!isRecord(value)) {
+    return {
+      totalCount: 0,
+      mappedCount: 0,
+      resolvedCount: 0,
+      completionRate: 0,
+      riskCount: 0,
+      differentFromExistingCount: 0,
+      setComponentMissingCount: 0,
+      unresolvedCount: 0,
+      noCandidateSkuCount: 0,
+      missingExistingSkuInfoCount: 0,
+    };
+  }
+
+  return {
+    totalCount: toNumberCell(value.totalCount),
+    mappedCount: toNumberCell(value.mappedCount),
+    resolvedCount: toNumberCell(value.resolvedCount),
+    completionRate: toNumberCell(value.completionRate),
+    riskCount: toNumberCell(value.riskCount),
+    differentFromExistingCount: toNumberCell(value.differentFromExistingCount),
+    setComponentMissingCount: toNumberCell(value.setComponentMissingCount),
+    unresolvedCount: toNumberCell(value.unresolvedCount),
+    noCandidateSkuCount: toNumberCell(value.noCandidateSkuCount),
+    missingExistingSkuInfoCount: toNumberCell(value.missingExistingSkuInfoCount),
+  };
 }
 
 function createWorkbookBuffer({
@@ -93,11 +176,15 @@ function createWorkbookBuffer({
   productName,
   summary,
   rows,
+  qualityRows,
+  qualitySummary,
 }: {
   channelProductNo: string;
   productName: string;
   summary: ExportSummary;
   rows: ExportRow[];
+  qualityRows: ExportQualityRow[];
+  qualitySummary: ExportQualitySummary;
 }): Buffer {
   const workbook = XLSX.utils.book_new();
   const summarySheet = XLSX.utils.aoa_to_sheet([
@@ -111,6 +198,8 @@ function createWorkbookBuffer({
     ['세트상품 후보 수', summary.setProductCount],
     ['단품 후보 수', summary.singleProductCount],
     ['선택 가능 후보 수', summary.selectableCount],
+    ['품질 검증 위험 후보 수', qualitySummary.riskCount],
+    ['품질 검증 매핑완료율', `${qualitySummary.completionRate}%`],
   ]);
   summarySheet['!cols'] = [{ wch: 24 }, { wch: 80 }];
 
@@ -126,6 +215,9 @@ function createWorkbookBuffer({
     '기존 연결 SKU': row.existingSku,
     '후보 SKU': row.candidateSku,
     '경고/비고': row.warningMessage,
+    '품질 검증 상태': row.qualityStatus,
+    '위험유형': row.riskTypes,
+    '후보 완성도(%)': row.completionRate,
   }));
   const detailSheet = XLSX.utils.json_to_sheet(detailRows);
   detailSheet['!cols'] = [
@@ -140,10 +232,61 @@ function createWorkbookBuffer({
     { wch: 44 },
     { wch: 56 },
     { wch: 60 },
+    { wch: 18 },
+    { wch: 36 },
+    { wch: 14 },
+  ];
+
+  const qualitySummarySheet = XLSX.utils.aoa_to_sheet([
+    ['항목', '값'],
+    ['품질 검증 대상 수', qualitySummary.totalCount],
+    ['매핑완료 후보 수', qualitySummary.mappedCount],
+    ['완전 해석 후보 수', qualitySummary.resolvedCount],
+    ['매핑완료율', `${qualitySummary.completionRate}%`],
+    ['위험 후보 수', qualitySummary.riskCount],
+    ['기존 매핑과 후보 SKU 다름', qualitySummary.differentFromExistingCount],
+    ['세트상품 구성 누락', qualitySummary.setComponentMissingCount],
+    ['SKU 미확정', qualitySummary.unresolvedCount],
+    ['후보 SKU 없음', qualitySummary.noCandidateSkuCount],
+    ['매핑완료지만 기존 SKU 정보 부족', qualitySummary.missingExistingSkuInfoCount],
+  ]);
+  qualitySummarySheet['!cols'] = [{ wch: 32 }, { wch: 20 }];
+
+  const qualityDetailSheet = XLSX.utils.json_to_sheet(
+    qualityRows.map((row) => ({
+      mappingType: row.mappingType,
+      'option/additional/product 이름': row.itemName,
+      일련번호: row.serialNo,
+      '세트상품 여부': row.isSetProduct ? '세트상품' : '단품',
+      매핑완료: row.isMapped ? '예' : '아니오',
+      '기존 연결 SKU 수': row.existingSkuCount,
+      '후보 SKU 수': row.candidateSkuCount,
+      '후보 완성도(%)': row.completionRate,
+      '기존 연결 SKU': row.existingSkuText,
+      '후보 SKU': row.candidateSkuText,
+      위험유형: row.riskTypes || '정상',
+      '검증 결과': row.qualityMessage || '정상',
+    })),
+  );
+  qualityDetailSheet['!cols'] = [
+    { wch: 14 },
+    { wch: 48 },
+    { wch: 14 },
+    { wch: 14 },
+    { wch: 10 },
+    { wch: 14 },
+    { wch: 14 },
+    { wch: 14 },
+    { wch: 44 },
+    { wch: 44 },
+    { wch: 36 },
+    { wch: 64 },
   ];
 
   XLSX.utils.book_append_sheet(workbook, summarySheet, '요약');
   XLSX.utils.book_append_sheet(workbook, detailSheet, '후보상세');
+  XLSX.utils.book_append_sheet(workbook, qualitySummarySheet, '품질검증요약');
+  XLSX.utils.book_append_sheet(workbook, qualityDetailSheet, '품질검증상세');
   return XLSX.write(workbook, { bookType: 'xlsx', type: 'buffer' }) as Buffer;
 }
 
@@ -159,12 +302,21 @@ export async function POST(request: Request) {
     const productName = toStringCell(payload.productName);
     const summary = parseSummary(payload.summary);
     const rows = parseRows(payload.rows);
+    const qualityRows = parseQualityRows(payload.qualityRows);
+    const qualitySummary = parseQualitySummary(payload.qualitySummary);
 
     if (rows.length === 0) {
       return NextResponse.json({ error: '엑셀로 내보낼 후보 행이 없습니다.' }, { status: 400 });
     }
 
-    const workbookBuffer = createWorkbookBuffer({ channelProductNo, productName, summary, rows });
+    const workbookBuffer = createWorkbookBuffer({
+      channelProductNo,
+      productName,
+      summary,
+      rows,
+      qualityRows,
+      qualitySummary,
+    });
     const fileName = encodeURIComponent(`product-variant-keyword-${channelProductNo || 'report'}.xlsx`);
 
     return new NextResponse(new Uint8Array(workbookBuffer), {

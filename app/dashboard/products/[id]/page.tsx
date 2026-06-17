@@ -118,30 +118,104 @@ type ProductVariantExportRow = {
   existingSku: string;
   candidateSku: string;
   warningMessage: string;
+  riskTypes: string;
+  qualityStatus: string;
+  completionRate: number;
 };
 type VariantCandidateFilter =
   | 'ALL'
   | 'SET'
   | 'SINGLE'
-  | 'OPTION'
-  | 'ADDITIONAL'
   | 'MAPPED'
   | 'UNMAPPED'
-  | 'RESOLVED'
-  | 'UNRESOLVED';
+  | 'UNRESOLVED'
+  | 'SELECTABLE';
 type VariantMatchStatus = 'MAPPED' | 'RESOLVED' | 'PARTIAL' | 'UNRESOLVED';
-type VariantSelectionPreset = 'ALL' | 'RESOLVED' | 'SINGLE' | 'SET' | 'CLEAR';
+type VariantSelectionPreset = 'FILTER_ALL' | 'PAGE' | 'RESOLVED' | 'SINGLE' | 'SET' | 'CLEAR';
+type VariantPageSize = 20 | 50 | 100 | 'ALL';
+type VariantQualityRiskType =
+  | 'DIFFERENT_FROM_EXISTING'
+  | 'SET_COMPONENT_MISSING'
+  | 'SKU_UNRESOLVED'
+  | 'NO_CANDIDATE_SKU'
+  | 'MAPPED_BUT_EXISTING_SKU_MISSING';
+type VariantQualitySeverity = 'HIGH' | 'MEDIUM' | 'LOW';
+type VariantQualityIssue = {
+  riskType: VariantQualityRiskType;
+  label: string;
+  message: string;
+  severity: VariantQualitySeverity;
+};
+type VariantQualityRow = {
+  rowKey: string;
+  mappingType: string;
+  itemName: string;
+  serialNo: string;
+  isSetProduct: boolean;
+  isMapped: boolean;
+  existingSkuText: string;
+  candidateSkuText: string;
+  existingSkuCount: number;
+  candidateSkuCount: number;
+  completionRate: number;
+  issues: VariantQualityIssue[];
+};
+type VariantQualitySummary = {
+  totalCount: number;
+  mappedCount: number;
+  resolvedCount: number;
+  completionRate: number;
+  riskCount: number;
+  differentFromExistingCount: number;
+  setComponentMissingCount: number;
+  unresolvedCount: number;
+  noCandidateSkuCount: number;
+  missingExistingSkuInfoCount: number;
+};
 
 const variantCandidateFilters: { key: VariantCandidateFilter; label: string }[] = [
   { key: 'ALL', label: '전체' },
-  { key: 'SET', label: '세트상품만' },
-  { key: 'SINGLE', label: '단품만' },
-  { key: 'OPTION', label: '옵션만' },
-  { key: 'ADDITIONAL', label: '추가상품만' },
   { key: 'MAPPED', label: '매핑완료' },
   { key: 'UNMAPPED', label: '미매핑' },
-  { key: 'RESOLVED', label: 'SKU 매칭 성공' },
   { key: 'UNRESOLVED', label: 'SKU 미확정' },
+  { key: 'SET', label: '세트상품' },
+  { key: 'SINGLE', label: '단품' },
+  { key: 'SELECTABLE', label: '선택 가능 후보' },
+];
+
+const variantPageSizeOptions: { value: VariantPageSize; label: string }[] = [
+  { value: 20, label: '20개' },
+  { value: 50, label: '50개' },
+  { value: 100, label: '100개' },
+  { value: 'ALL', label: '전체 보기' },
+];
+
+const variantQualityRiskLabels: Record<VariantQualityRiskType, string> = {
+  DIFFERENT_FROM_EXISTING: '기존 매핑과 후보 SKU 다름',
+  SET_COMPONENT_MISSING: '세트상품 구성 누락',
+  SKU_UNRESOLVED: 'SKU 미확정',
+  NO_CANDIDATE_SKU: '후보 SKU 없음',
+  MAPPED_BUT_EXISTING_SKU_MISSING: '매핑완료지만 기존 SKU 정보 부족',
+};
+
+const variantQualitySeverityStyles: Record<VariantQualitySeverity, string> = {
+  HIGH: 'bg-red-500/10 text-red-200 ring-red-500/20',
+  MEDIUM: 'bg-amber-500/10 text-amber-200 ring-amber-500/20',
+  LOW: 'bg-blue-500/10 text-blue-200 ring-blue-500/20',
+};
+
+const variantQualitySummaryCards: {
+  key: keyof VariantQualitySummary;
+  label: string;
+  color: string;
+}[] = [
+  { key: 'completionRate', label: '전체 매핑완료율', color: 'text-emerald-300' },
+  { key: 'riskCount', label: '위험 후보 수', color: 'text-amber-300' },
+  { key: 'differentFromExistingCount', label: '기존 매핑과 다름', color: 'text-red-300' },
+  { key: 'setComponentMissingCount', label: '세트 구성 누락', color: 'text-violet-200' },
+  { key: 'unresolvedCount', label: 'SKU 미확정', color: 'text-red-300' },
+  { key: 'noCandidateSkuCount', label: '후보 SKU 없음', color: 'text-zinc-200' },
+  { key: 'missingExistingSkuInfoCount', label: '기존 SKU 정보 부족', color: 'text-blue-300' },
 ];
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -231,16 +305,16 @@ function filterVariantRows(
 ): ProductVariantKeywordPreviewRow[] {
   if (filter === 'SET') return rows.filter((row) => row.isSetProduct);
   if (filter === 'SINGLE') return rows.filter((row) => !row.isSetProduct);
-  if (filter === 'OPTION') return rows.filter((row) => row.mappingType === 'OPTION');
-  if (filter === 'ADDITIONAL') return rows.filter((row) => row.mappingType === 'ADDITIONAL');
   if (filter === 'MAPPED') {
     return rows.filter((row) => isRowMapped(row, product, newlyMappedRowKeys, unmappedRowKeys));
   }
   if (filter === 'UNMAPPED') {
     return rows.filter((row) => !isRowMapped(row, product, newlyMappedRowKeys, unmappedRowKeys));
   }
-  if (filter === 'RESOLVED') return rows.filter(isVariantRowResolved);
   if (filter === 'UNRESOLVED') return rows.filter((row) => !isVariantRowResolved(row));
+  if (filter === 'SELECTABLE') {
+    return rows.filter((row) => canSelectVariantRow(row, product, newlyMappedRowKeys, unmappedRowKeys));
+  }
   return rows;
 }
 
@@ -656,6 +730,102 @@ function VariantReportCards({ summary }: { summary: ProductVariantReportSummary 
   );
 }
 
+function VariantQualitySection({
+  summary,
+  rows,
+}: {
+  summary: VariantQualitySummary;
+  rows: VariantQualityRow[];
+}) {
+  return (
+    <section className="rounded-lg border border-[#262629] bg-[#0c0c0e] p-4">
+      <div className="mb-4 flex flex-col gap-2 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+          <h3 className="text-base font-semibold text-white">품질 검증</h3>
+          <p className="mt-1 text-xs text-zinc-500">
+            기존 연결 SKU와 preview 후보를 비교해 위험 후보를 분류합니다.
+          </p>
+        </div>
+        <div className="text-sm text-zinc-400">
+          매핑완료율 <span className="font-semibold text-emerald-300">{summary.completionRate}%</span>
+          <span className="ml-2 text-xs text-zinc-500">
+            ({summary.mappedCount.toLocaleString()} / {summary.totalCount.toLocaleString()})
+          </span>
+        </div>
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-7">
+        {variantQualitySummaryCards.map((card) => (
+          <div key={card.key} className="rounded-lg border border-[#262629] bg-[#121214] px-3 py-3">
+            <p className="text-[11px] font-medium text-zinc-500">{card.label}</p>
+            <p className={`mt-1 text-lg font-semibold ${card.color}`}>
+              {card.key === 'completionRate'
+                ? `${summary[card.key].toLocaleString()}%`
+                : `${summary[card.key].toLocaleString()}건`}
+            </p>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-4 overflow-x-auto rounded-lg border border-[#262629]">
+        <table className="w-full min-w-[1200px] text-left text-xs">
+          <thead className="bg-[#121214]">
+            <tr>
+              <th className="px-3 py-2 font-medium text-zinc-500">구분</th>
+              <th className="px-3 py-2 font-medium text-zinc-500">옵션/추가상품명</th>
+              <th className="px-3 py-2 font-medium text-zinc-500">일련번호</th>
+              <th className="px-3 py-2 font-medium text-zinc-500">매핑완료율</th>
+              <th className="px-3 py-2 font-medium text-zinc-500">기존 연결 SKU</th>
+              <th className="px-3 py-2 font-medium text-zinc-500">후보 SKU</th>
+              <th className="px-3 py-2 font-medium text-zinc-500">위험유형</th>
+              <th className="px-3 py-2 font-medium text-zinc-500">검증 결과</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-[#1e1e22]">
+            {rows.map((row) => (
+              <tr key={row.rowKey} className="align-top">
+                <td className="whitespace-nowrap px-3 py-3 text-zinc-300">{row.mappingType}</td>
+                <td className="px-3 py-3 text-zinc-200">
+                  <div className="font-medium">{row.itemName}</div>
+                  <div className="mt-1 text-[11px] text-zinc-500">{row.isSetProduct ? '세트상품' : '단품'}</div>
+                </td>
+                <td className="whitespace-nowrap px-3 py-3 font-mono text-zinc-400">{row.serialNo}</td>
+                <td className="whitespace-nowrap px-3 py-3">
+                  <span className="font-semibold text-emerald-300">{row.completionRate}%</span>
+                </td>
+                <td className="px-3 py-3 font-mono text-zinc-400">{row.existingSkuText || '-'}</td>
+                <td className="px-3 py-3 font-mono text-zinc-300">{row.candidateSkuText || '-'}</td>
+                <td className="px-3 py-3">
+                  {row.issues.length === 0 ? (
+                    <span className="inline-flex rounded-md px-2 py-1 text-[11px] font-semibold ring-1 ring-inset bg-emerald-500/10 text-emerald-200 ring-emerald-500/20">
+                      정상
+                    </span>
+                  ) : (
+                    <div className="flex flex-wrap gap-1.5">
+                      {row.issues.map((issue) => (
+                        <span
+                          key={issue.riskType}
+                          className={`inline-flex rounded-md px-2 py-1 text-[11px] font-semibold ring-1 ring-inset ${variantQualitySeverityStyles[issue.severity]}`}
+                          title={issue.message}
+                        >
+                          {issue.label}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </td>
+                <td className="px-3 py-3 text-zinc-400">
+                  {row.issues.length === 0 ? '정상' : row.issues.map((issue) => issue.message).join(' / ')}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  );
+}
+
 function VariantCandidateDetail({
   row,
   isMapped,
@@ -848,18 +1018,197 @@ function formatExportSkuList(skus: { skuCode: string; quantity: number }[]): str
   return skus.map((sku) => `${sku.skuCode || '-'} x ${sku.quantity}`).join(', ');
 }
 
+function getCandidateVariantSkus(
+  row: ProductVariantKeywordPreviewRow,
+  manualSelections: VariantManualSelections,
+): { skuId: string; skuCode: string; quantity: number }[] {
+  const rowKey = getVariantRowKey(row);
+  const candidateSkus = [
+    ...row.skus
+      .filter((sku) => sku.skuId)
+      .map((sku) => ({
+        skuId: sku.skuId,
+        skuCode: sku.skuCode,
+        quantity: sku.quantity,
+      })),
+    ...(manualSelections[rowKey] ?? []).map((sku) => ({
+      skuId: sku.id,
+      skuCode: sku.skuCode,
+      quantity: sku.quantity,
+    })),
+  ];
+
+  return Array.from(
+    new Map(candidateSkus.map((sku) => [`${sku.skuId}:${sku.quantity}`, sku])).values(),
+  );
+}
+
+function getSkuComparisonKey(sku: { skuId: string; quantity: number }): string {
+  return `${sku.skuId}:${sku.quantity}`;
+}
+
+function getVariantCompletionRate(
+  row: ProductVariantKeywordPreviewRow,
+  manualSelections: VariantManualSelections,
+): number {
+  if (row.skus.length === 0) {
+    return (manualSelections[getVariantRowKey(row)] ?? []).length > 0 ? 100 : 0;
+  }
+
+  const resolvedCount = row.skus.filter((sku) => sku.skuId).length;
+  return Math.round((resolvedCount / row.skus.length) * 100);
+}
+
+function createVariantQualityRow(
+  row: ProductVariantKeywordPreviewRow,
+  product: ProductDetail,
+  newlyMappedRowKeys: Record<string, boolean>,
+  unmappedRowKeys: Record<string, boolean>,
+  manualSelections: VariantManualSelections,
+): VariantQualityRow {
+  const rowKey = getVariantRowKey(row);
+  const isMapped = isRowMapped(row, product, newlyMappedRowKeys, unmappedRowKeys);
+  const existingSkus = getExistingVariantSkus(row, product, unmappedRowKeys);
+  const candidateSkus = getCandidateVariantSkus(row, manualSelections);
+  const existingSkuText = formatExportSkuList(existingSkus);
+  const candidateSkuText = formatExportSkuList(candidateSkus);
+  const completionRate = getVariantCompletionRate(row, manualSelections);
+  const issues: VariantQualityIssue[] = [];
+
+  if (row.isSetProduct) {
+    const unresolvedSetCount = row.skus.filter((sku) => !sku.skuId).length;
+    if (unresolvedSetCount > 0) {
+      issues.push({
+        riskType: 'SET_COMPONENT_MISSING',
+        label: variantQualityRiskLabels.SET_COMPONENT_MISSING,
+        message: `세트 후보 구성 중 ${unresolvedSetCount}개 SKU가 확정되지 않았습니다.`,
+        severity: 'HIGH',
+      });
+    }
+
+    if (existingSkus.length > 0 && candidateSkus.length > 0 && existingSkus.length !== candidateSkus.length) {
+      issues.push({
+        riskType: 'SET_COMPONENT_MISSING',
+        label: variantQualityRiskLabels.SET_COMPONENT_MISSING,
+        message: `기존 연결 SKU ${existingSkus.length}개와 후보 SKU ${candidateSkus.length}개의 구성 수가 다릅니다.`,
+        severity: 'HIGH',
+      });
+    }
+  }
+
+  if (candidateSkus.length === 0) {
+    issues.push({
+      riskType: 'NO_CANDIDATE_SKU',
+      label: variantQualityRiskLabels.NO_CANDIDATE_SKU,
+      message: '후보 SKU가 없어서 수동확정 대상을 만들 수 없습니다.',
+      severity: 'HIGH',
+    });
+  }
+
+  if (row.skus.some((sku) => !sku.skuId)) {
+    issues.push({
+      riskType: 'SKU_UNRESOLVED',
+      label: variantQualityRiskLabels.SKU_UNRESOLVED,
+      message: '미확정 SKU가 포함되어 있습니다.',
+      severity: 'HIGH',
+    });
+  }
+
+  if (isMapped && existingSkus.length === 0) {
+    issues.push({
+      riskType: 'MAPPED_BUT_EXISTING_SKU_MISSING',
+      label: variantQualityRiskLabels.MAPPED_BUT_EXISTING_SKU_MISSING,
+      message: '매핑완료 상태지만 현재 연결된 SKU 정보를 화면에서 확인할 수 없습니다.',
+      severity: 'MEDIUM',
+    });
+  }
+
+  if (isMapped && existingSkus.length > 0 && candidateSkus.length > 0) {
+    const existingKeys = new Set(existingSkus.map(getSkuComparisonKey));
+    const candidateKeys = new Set(candidateSkus.map(getSkuComparisonKey));
+    const sameSize = existingKeys.size === candidateKeys.size;
+    const allSame = sameSize && Array.from(existingKeys).every((key) => candidateKeys.has(key));
+
+    if (!allSame) {
+      issues.push({
+        riskType: 'DIFFERENT_FROM_EXISTING',
+        label: variantQualityRiskLabels.DIFFERENT_FROM_EXISTING,
+        message: '현재 연결 SKU와 preview 후보 SKU 구성이 다릅니다.',
+        severity: 'MEDIUM',
+      });
+    }
+  }
+
+  return {
+    rowKey,
+    mappingType: row.mappingType,
+    itemName: row.itemName,
+    serialNo: row.serialNo,
+    isSetProduct: row.isSetProduct,
+    isMapped,
+    existingSkuText,
+    candidateSkuText,
+    existingSkuCount: existingSkus.length,
+    candidateSkuCount: candidateSkus.length,
+    completionRate,
+    issues: Array.from(new Map(issues.map((issue) => [issue.riskType, issue])).values()),
+  };
+}
+
+function createVariantQualityRows(args: {
+  rows: ProductVariantKeywordPreviewRow[];
+  product: ProductDetail;
+  newlyMappedRowKeys: Record<string, boolean>;
+  unmappedRowKeys: Record<string, boolean>;
+  manualSelections: VariantManualSelections;
+}): VariantQualityRow[] {
+  return args.rows.map((row) =>
+    createVariantQualityRow(
+      row,
+      args.product,
+      args.newlyMappedRowKeys,
+      args.unmappedRowKeys,
+      args.manualSelections,
+    ),
+  );
+}
+
+function createVariantQualitySummary(rows: VariantQualityRow[]): VariantQualitySummary {
+  const riskRows = rows.filter((row) => row.issues.length > 0);
+  const countRiskType = (riskType: VariantQualityRiskType): number =>
+    rows.filter((row) => row.issues.some((issue) => issue.riskType === riskType)).length;
+  const mappedCount = rows.filter((row) => row.isMapped).length;
+  const resolvedCount = rows.filter((row) => row.completionRate === 100).length;
+  const completionRate = rows.length > 0 ? Math.round((mappedCount / rows.length) * 100) : 0;
+
+  return {
+    totalCount: rows.length,
+    mappedCount,
+    resolvedCount,
+    completionRate,
+    riskCount: riskRows.length,
+    differentFromExistingCount: countRiskType('DIFFERENT_FROM_EXISTING'),
+    setComponentMissingCount: countRiskType('SET_COMPONENT_MISSING'),
+    unresolvedCount: countRiskType('SKU_UNRESOLVED'),
+    noCandidateSkuCount: countRiskType('NO_CANDIDATE_SKU'),
+    missingExistingSkuInfoCount: countRiskType('MAPPED_BUT_EXISTING_SKU_MISSING'),
+  };
+}
+
 function createVariantExportRows({
   rows,
   product,
   newlyMappedRowKeys,
   unmappedRowKeys,
   manualSelections,
+  qualityRowsByKey,
 }: {
   rows: ProductVariantKeywordPreviewRow[];
   product: ProductDetail;
   newlyMappedRowKeys: Record<string, boolean>;
   unmappedRowKeys: Record<string, boolean>;
   manualSelections: VariantManualSelections;
+  qualityRowsByKey: Record<string, VariantQualityRow>;
 }): ProductVariantExportRow[] {
   return rows.flatMap((row) => {
     const rowKey = getVariantRowKey(row);
@@ -881,6 +1230,10 @@ function createVariantExportRows({
     }));
     const candidateSkus = [...previewSkus, ...manualSkus];
     const candidateSku = candidateSkus.map((sku) => sku.candidateText).filter(Boolean).join(', ');
+    const qualityRow = qualityRowsByKey[rowKey];
+    const riskTypes = qualityRow?.issues.map((issue) => issue.label).join(' / ') ?? '';
+    const qualityStatus = qualityRow && qualityRow.issues.length > 0 ? '검토 필요' : '정상';
+    const completionRate = qualityRow?.completionRate ?? 0;
 
     if (candidateSkus.length === 0) {
       return [
@@ -896,6 +1249,9 @@ function createVariantExportRows({
           existingSku,
           candidateSku: '',
           warningMessage: row.warningMessage,
+          riskTypes,
+          qualityStatus,
+          completionRate,
         },
       ];
     }
@@ -912,6 +1268,9 @@ function createVariantExportRows({
       existingSku,
       candidateSku,
       warningMessage: row.warningMessage,
+      riskTypes,
+      qualityStatus,
+      completionRate,
     }));
   });
 }
@@ -1008,6 +1367,8 @@ function ProductVariantKeywordPanel({
   const [manualSelections, setManualSelections] = useState<VariantManualSelections>({});
   const [expandedRows, setExpandedRows] = useState<Record<string, boolean>>({});
   const [activeFilter, setActiveFilter] = useState<VariantCandidateFilter>('ALL');
+  const [pageSize, setPageSize] = useState<VariantPageSize>(20);
+  const [currentPage, setCurrentPage] = useState(1);
   const [message, setMessage] = useState<Message | null>(null);
   const [previewing, setPreviewing] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -1021,9 +1382,28 @@ function ProductVariantKeywordPanel({
     () => filterVariantRows(preview?.rows ?? [], activeFilter, product, newlyMappedRowKeys, unmappedRowKeys),
     [activeFilter, preview, product, newlyMappedRowKeys, unmappedRowKeys],
   );
+  const filteredSelectableRows = useMemo(
+    () => filteredRows.filter((row) => canSelectVariantRow(row, product, newlyMappedRowKeys, unmappedRowKeys)),
+    [filteredRows, product, newlyMappedRowKeys, unmappedRowKeys],
+  );
   const selectableRows = useMemo(
     () => preview?.rows.filter((row) => canSelectVariantRow(row, product, newlyMappedRowKeys, unmappedRowKeys)) ?? [],
     [preview, product, newlyMappedRowKeys, unmappedRowKeys],
+  );
+  const totalPages = useMemo(() => {
+    if (filteredRows.length === 0) return 1;
+    if (pageSize === 'ALL') return 1;
+    return Math.max(1, Math.ceil(filteredRows.length / pageSize));
+  }, [filteredRows.length, pageSize]);
+  const safeCurrentPage = Math.min(currentPage, totalPages);
+  const paginatedRows = useMemo(() => {
+    if (pageSize === 'ALL') return filteredRows;
+    const startIndex = (safeCurrentPage - 1) * pageSize;
+    return filteredRows.slice(startIndex, startIndex + pageSize);
+  }, [filteredRows, pageSize, safeCurrentPage]);
+  const currentPageSelectableRows = useMemo(
+    () => paginatedRows.filter((row) => canSelectVariantRow(row, product, newlyMappedRowKeys, unmappedRowKeys)),
+    [paginatedRows, product, newlyMappedRowKeys, unmappedRowKeys],
   );
   const mappedRowCount = useMemo(
     () => preview?.rows.filter((row) => isRowMapped(row, product, newlyMappedRowKeys, unmappedRowKeys)).length ?? 0,
@@ -1045,6 +1425,41 @@ function ProductVariantKeywordPanel({
       }),
     [preview, product, newlyMappedRowKeys, unmappedRowKeys, selectableRows],
   );
+  const filteredReportSummary = useMemo(
+    () =>
+      createVariantReportSummary({
+        rows: filteredRows,
+        product,
+        newlyMappedRowKeys,
+        unmappedRowKeys,
+        selectableRows: filteredSelectableRows,
+      }),
+    [filteredRows, product, newlyMappedRowKeys, unmappedRowKeys, filteredSelectableRows],
+  );
+  const qualityRows = useMemo(
+    () =>
+      createVariantQualityRows({
+        rows: filteredRows,
+        product,
+        newlyMappedRowKeys,
+        unmappedRowKeys,
+        manualSelections,
+      }),
+    [filteredRows, product, newlyMappedRowKeys, unmappedRowKeys, manualSelections],
+  );
+  const qualitySummary = useMemo(() => createVariantQualitySummary(qualityRows), [qualityRows]);
+  const qualityRowsByKey = useMemo(
+    () => Object.fromEntries(qualityRows.map((row) => [row.rowKey, row])),
+    [qualityRows],
+  );
+  const paginationStart =
+    filteredRows.length === 0 ? 0 : pageSize === 'ALL' ? 1 : (safeCurrentPage - 1) * pageSize + 1;
+  const paginationEnd =
+    filteredRows.length === 0
+      ? 0
+      : pageSize === 'ALL'
+        ? filteredRows.length
+        : Math.min(filteredRows.length, safeCurrentPage * pageSize);
 
   const handlePreview = async () => {
     if (!variantFile) {
@@ -1063,6 +1478,8 @@ function ProductVariantKeywordPanel({
     setUnmappedRowKeys({});
     setLastApplySummary(null);
     setActiveFilter('ALL');
+    setPageSize(20);
+    setCurrentPage(1);
 
     try {
       const formData = new FormData();
@@ -1206,6 +1623,7 @@ function ProductVariantKeywordPanel({
         newlyMappedRowKeys,
         unmappedRowKeys,
         manualSelections,
+        qualityRowsByKey,
       });
       const response = await fetch('/api/sku-matching/product-variant-keyword/export', {
         method: 'POST',
@@ -1213,8 +1631,23 @@ function ProductVariantKeywordPanel({
         body: JSON.stringify({
           channelProductNo: product.channelProductNo ?? product.id,
           productName: product.name,
-          summary: reportSummary,
+          summary: filteredReportSummary,
           rows,
+          qualityRows: qualityRows.map((row) => ({
+            mappingType: row.mappingType,
+            itemName: row.itemName,
+            serialNo: row.serialNo,
+            isSetProduct: row.isSetProduct,
+            isMapped: row.isMapped,
+            existingSkuText: row.existingSkuText,
+            candidateSkuText: row.candidateSkuText,
+            existingSkuCount: row.existingSkuCount,
+            candidateSkuCount: row.candidateSkuCount,
+            completionRate: row.completionRate,
+            riskTypes: row.issues.map((issue) => issue.label).join(' / '),
+            qualityMessage: row.issues.map((issue) => issue.message).join(' / '),
+          })),
+          qualitySummary,
         }),
       });
 
@@ -1253,12 +1686,12 @@ function ProductVariantKeywordPanel({
       return;
     }
 
-    const baseRows = preview.rows.filter((row) =>
-      canSelectVariantRow(row, product, newlyMappedRowKeys, unmappedRowKeys),
-    );
+    const baseRows = filteredSelectableRows;
     const targetRows =
-      preset === 'ALL'
+      preset === 'FILTER_ALL'
         ? baseRows
+        : preset === 'PAGE'
+          ? currentPageSelectableRows
         : preset === 'RESOLVED'
           ? baseRows.filter((row) => getRowApplySkuCount(row, manualSelections) > 0)
           : preset === 'SINGLE'
@@ -1403,6 +1836,8 @@ function ProductVariantKeywordPanel({
           setUnapplyingRowKeys({});
           setUnmappedRowKeys({});
           setActiveFilter('ALL');
+          setPageSize(20);
+          setCurrentPage(1);
           setMessage(null);
         }}
       />
@@ -1452,6 +1887,7 @@ function ProductVariantKeywordPanel({
       {preview && (
         <div className="mt-5 space-y-4">
           <VariantReportCards summary={reportSummary} />
+          <VariantQualitySection summary={qualitySummary} rows={qualityRows} />
 
           <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
             <div className="flex flex-wrap gap-2">
@@ -1459,7 +1895,10 @@ function ProductVariantKeywordPanel({
                 <button
                   key={filter.key}
                   type="button"
-                  onClick={() => setActiveFilter(filter.key)}
+                  onClick={() => {
+                    setActiveFilter(filter.key);
+                    setCurrentPage(1);
+                  }}
                   className={`rounded-lg px-3 py-2 text-xs font-semibold transition ${
                     activeFilter === filter.key
                       ? 'bg-zinc-100 text-zinc-950'
@@ -1473,16 +1912,24 @@ function ProductVariantKeywordPanel({
             <div className="flex flex-wrap gap-2">
               <button
                 type="button"
-                onClick={() => applySelectionPreset('ALL')}
-                disabled={selectableRows.length === 0}
+                onClick={() => applySelectionPreset('FILTER_ALL')}
+                disabled={filteredSelectableRows.length === 0}
                 className="rounded-lg border border-[#333] bg-[#1a1a1e] px-3 py-2 text-xs font-semibold text-zinc-200 transition hover:border-indigo-500/60 hover:text-white disabled:opacity-60"
               >
-                선택 가능 후보 전체 선택
+                현재 필터 전체 선택
+              </button>
+              <button
+                type="button"
+                onClick={() => applySelectionPreset('PAGE')}
+                disabled={currentPageSelectableRows.length === 0}
+                className="rounded-lg border border-[#333] bg-[#1a1a1e] px-3 py-2 text-xs font-semibold text-zinc-200 transition hover:border-indigo-500/60 hover:text-white disabled:opacity-60"
+              >
+                현재 페이지 선택
               </button>
               <button
                 type="button"
                 onClick={() => applySelectionPreset('RESOLVED')}
-                disabled={selectableRows.length === 0}
+                disabled={filteredSelectableRows.length === 0}
                 className="rounded-lg border border-[#333] bg-[#1a1a1e] px-3 py-2 text-xs font-semibold text-zinc-200 transition hover:border-indigo-500/60 hover:text-white disabled:opacity-60"
               >
                 SKU 확정 후보만 선택
@@ -1490,7 +1937,7 @@ function ProductVariantKeywordPanel({
               <button
                 type="button"
                 onClick={() => applySelectionPreset('SINGLE')}
-                disabled={selectableRows.length === 0}
+                disabled={filteredSelectableRows.length === 0}
                 className="rounded-lg border border-[#333] bg-[#1a1a1e] px-3 py-2 text-xs font-semibold text-zinc-200 transition hover:border-indigo-500/60 hover:text-white disabled:opacity-60"
               >
                 단품 후보만 선택
@@ -1498,7 +1945,7 @@ function ProductVariantKeywordPanel({
               <button
                 type="button"
                 onClick={() => applySelectionPreset('SET')}
-                disabled={selectableRows.length === 0}
+                disabled={filteredSelectableRows.length === 0}
                 className="rounded-lg border border-[#333] bg-[#1a1a1e] px-3 py-2 text-xs font-semibold text-zinc-200 transition hover:border-indigo-500/60 hover:text-white disabled:opacity-60"
               >
                 세트상품 후보만 선택
@@ -1514,10 +1961,72 @@ function ProductVariantKeywordPanel({
             </div>
           </div>
 
+          <div className="flex flex-col gap-3 rounded-lg border border-[#262629] bg-[#0c0c0e] px-4 py-3 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex flex-wrap items-center gap-3 text-sm text-zinc-400">
+              <label className="flex items-center gap-2">
+                페이지당 표시
+                <select
+                  value={String(pageSize)}
+                  onChange={(event) => {
+                    setPageSize(event.target.value === 'ALL' ? 'ALL' : (Number(event.target.value) as VariantPageSize));
+                    setCurrentPage(1);
+                  }}
+                  className="h-9 rounded-lg border border-[#333] bg-[#121214] px-3 text-sm text-white outline-none transition focus:border-indigo-400"
+                >
+                  {variantPageSizeOptions.map((option) => (
+                    <option key={option.label} value={String(option.value)}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <span>{paginationStart}-{paginationEnd} / 총 {filteredRows.length.toLocaleString()}개</span>
+              <span>{safeCurrentPage} / {totalPages} 페이지</span>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setCurrentPage(1)}
+                disabled={safeCurrentPage <= 1 || pageSize === 'ALL'}
+                className="rounded-lg border border-[#333] bg-[#121214] px-3 py-2 text-xs font-semibold text-zinc-200 transition hover:border-indigo-500/60 hover:text-white disabled:opacity-60"
+              >
+                처음
+              </button>
+              <button
+                type="button"
+                onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+                disabled={safeCurrentPage <= 1 || pageSize === 'ALL'}
+                className="rounded-lg border border-[#333] bg-[#121214] px-3 py-2 text-xs font-semibold text-zinc-200 transition hover:border-indigo-500/60 hover:text-white disabled:opacity-60"
+              >
+                이전
+              </button>
+              <button
+                type="button"
+                onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
+                disabled={safeCurrentPage >= totalPages || pageSize === 'ALL'}
+                className="rounded-lg border border-[#333] bg-[#121214] px-3 py-2 text-xs font-semibold text-zinc-200 transition hover:border-indigo-500/60 hover:text-white disabled:opacity-60"
+              >
+                다음
+              </button>
+              <button
+                type="button"
+                onClick={() => setCurrentPage(totalPages)}
+                disabled={safeCurrentPage >= totalPages || pageSize === 'ALL'}
+                className="rounded-lg border border-[#333] bg-[#121214] px-3 py-2 text-xs font-semibold text-zinc-200 transition hover:border-indigo-500/60 hover:text-white disabled:opacity-60"
+              >
+                마지막
+              </button>
+            </div>
+          </div>
+
+          <div className="text-xs text-zinc-500">
+            선택 상태는 페이지 이동 후 유지됩니다. 필터를 바꿔 화면에서 보이지 않는 후보도 선택 상태는 남아 있으며, “선택 해제”를 누르면 전체 선택 상태를 모두 해제합니다.
+          </div>
+
           {/* ProductVariantKeyword 액션바 - 스크롤 박스 바깥 */}
           <div className="sticky top-4 z-30 mb-3 flex items-center justify-between rounded-lg border border-blue-500/30 bg-[#121214] px-4 py-3 shadow-lg shadow-black/30">
             <div className="text-sm text-zinc-300">
-              전체 후보 {preview.candidateCount}개 · 선택 {checkedRows.length}개 · 매핑완료 {mappedRowCount}개
+              현재 필터 후보 {filteredRows.length}개 · 선택 {checkedRows.length}개 · 매핑완료 {mappedRowCount}개
             </div>
 
             <div className="flex flex-wrap justify-end gap-2">
@@ -1562,7 +2071,7 @@ function ProductVariantKeywordPanel({
                   </tr>
               </thead>
               <tbody className="divide-y divide-[#1e1e22]">
-                {filteredRows.map((row) => {
+                {paginatedRows.map((row) => {
                   const rowKey = getVariantRowKey(row);
                   const isMapped = isRowMapped(row, product, newlyMappedRowKeys, unmappedRowKeys);
                   const selectable = canSelectVariantRow(row, product, newlyMappedRowKeys, unmappedRowKeys);
