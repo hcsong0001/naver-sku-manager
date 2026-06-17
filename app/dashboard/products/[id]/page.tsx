@@ -552,21 +552,22 @@ function ProductVariantKeywordPanel({ product }: { product: ProductDetail }) {
           </div>
 
           <div className="mb-2 text-sm text-zinc-400">
-            좌우로 스크롤하여 SKU 상세를 확인할 수 있습니다.
+            이 영역 안에서 좌우로 스크롤하여 SKU 상세를 확인할 수 있습니다.
           </div>
-          <div className="overflow-x-auto rounded-lg border border-[#262629]">
-            <table className="w-full min-w-[1400px] text-left text-sm relative">
-              <thead className="bg-[#0c0c0e]">
-                <tr>
-                  <th className="sticky left-0 top-0 z-30 w-14 px-4 py-3 text-xs font-medium text-zinc-500 bg-[#0c0c0e]">선택</th>
-                  <th className="sticky left-[56px] top-0 z-30 w-24 px-4 py-3 text-xs font-medium text-zinc-500 bg-[#0c0c0e]">구분</th>
-                  <th className="sticky left-[152px] top-0 z-30 px-4 py-3 text-xs font-medium text-zinc-500 bg-[#0c0c0e] shadow-[4px_0_8px_rgba(0,0,0,0.25)] border-r border-[#262629]">옵션/추가상품명</th>
-                  <th className="sticky top-0 z-20 w-24 px-4 py-3 text-xs font-medium text-zinc-500 bg-[#0c0c0e]">일련번호</th>
-                  <th className="sticky top-0 z-20 w-28 px-4 py-3 text-xs font-medium text-zinc-500 bg-[#0c0c0e]">유형</th>
-                  <th className="sticky top-0 z-20 w-32 px-4 py-3 text-xs font-medium text-zinc-500 bg-[#0c0c0e]">SKU 개수</th>
-                  <th className="sticky top-0 z-20 w-32 px-4 py-3 text-xs font-medium text-zinc-500 bg-[#0c0c0e]">매칭 상태</th>
-                  <th className="sticky top-0 z-20 w-20 px-4 py-3 text-xs font-medium text-zinc-500 bg-[#0c0c0e]">펼치기</th>
-                </tr>
+          <div className="rounded-lg border border-[#262629] bg-[#121214]">
+            <div className="max-h-[70vh] overflow-auto pb-3 [&::-webkit-scrollbar]:h-3 [&::-webkit-scrollbar]:w-3 [&::-webkit-scrollbar-track]:bg-[#0c0c0e] [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-zinc-600" style={{ scrollbarWidth: 'auto' }}>
+              <table className="min-w-[2400px] table-fixed text-left text-sm relative w-full">
+                <thead className="bg-[#0c0c0e]">
+                  <tr>
+                    <th className="sticky left-0 top-0 z-30 w-14 px-4 py-3 text-xs font-medium text-zinc-500 bg-[#0c0c0e] whitespace-nowrap">선택</th>
+                    <th className="sticky left-[56px] top-0 z-30 w-24 px-4 py-3 text-xs font-medium text-zinc-500 bg-[#0c0c0e] whitespace-nowrap">구분</th>
+                    <th className="sticky left-[152px] top-0 z-30 px-4 py-3 text-xs font-medium text-zinc-500 bg-[#0c0c0e] shadow-[6px_0_12px_rgba(0,0,0,0.35)] border-r border-[#262629] whitespace-nowrap">옵션/추가상품명</th>
+                    <th className="sticky top-0 z-20 w-24 px-4 py-3 text-xs font-medium text-zinc-500 bg-[#0c0c0e] whitespace-nowrap">일련번호</th>
+                    <th className="sticky top-0 z-20 w-28 px-4 py-3 text-xs font-medium text-zinc-500 bg-[#0c0c0e] whitespace-nowrap">유형</th>
+                    <th className="sticky top-0 z-20 w-32 px-4 py-3 text-xs font-medium text-zinc-500 bg-[#0c0c0e] whitespace-nowrap">SKU 개수</th>
+                    <th className="sticky top-0 z-20 w-32 px-4 py-3 text-xs font-medium text-zinc-500 bg-[#0c0c0e] whitespace-nowrap">매칭 상태</th>
+                    <th className="sticky top-0 z-20 w-20 px-4 py-3 text-xs font-medium text-zinc-500 bg-[#0c0c0e] whitespace-nowrap">펼치기</th>
+                  </tr>
               </thead>
               <tbody className="divide-y divide-[#1e1e22]">
                 {filteredRows.map((row) => {
@@ -578,7 +579,7 @@ function ProductVariantKeywordPanel({ product }: { product: ProductDetail }) {
                   return (
                     <Fragment key={rowKey}>
                       <tr className="align-top group hover:bg-[#16161a]">
-                        <td className="sticky left-0 z-10 px-4 py-3 bg-[#121214] group-hover:bg-[#16161a]">
+                        <td className="sticky left-0 z-10 px-4 py-3 bg-[#121214] group-hover:bg-[#16161a] whitespace-nowrap">
                           <input
                             type="checkbox"
                             checked={selectedRows[rowKey] ?? false}
@@ -594,10 +595,10 @@ function ProductVariantKeywordPanel({ product }: { product: ProductDetail }) {
                           />
                         </td>
                         <td className="sticky left-[56px] z-10 whitespace-nowrap px-4 py-3 text-xs text-zinc-300 bg-[#121214] group-hover:bg-[#16161a]">{row.mappingType}</td>
-                        <td className="sticky left-[152px] z-10 px-4 py-3 bg-[#121214] group-hover:bg-[#16161a] shadow-[4px_0_8px_rgba(0,0,0,0.25)] border-r border-[#262629]">
-                          <div className="max-w-xl text-sm font-medium text-zinc-100">{row.itemName}</div>
+                        <td className="sticky left-[152px] z-10 px-4 py-3 bg-[#121214] group-hover:bg-[#16161a] shadow-[6px_0_12px_rgba(0,0,0,0.35)] border-r border-[#262629] whitespace-nowrap">
+                          <div className="text-sm font-medium text-zinc-100">{row.itemName}</div>
                           {row.warningMessage && (
-                            <div className="mt-1 max-w-xl text-xs text-amber-200">{row.warningMessage}</div>
+                            <div className="mt-1 text-xs text-amber-200">{row.warningMessage}</div>
                           )}
                         </td>
                         <td className="whitespace-nowrap px-4 py-3 font-mono text-xs text-zinc-400">
@@ -606,7 +607,7 @@ function ProductVariantKeywordPanel({ product }: { product: ProductDetail }) {
                         <td className="whitespace-nowrap px-4 py-3">
                           <SetTypeBadge isSetProduct={row.isSetProduct} />
                         </td>
-                        <td className="px-4 py-3">
+                        <td className="whitespace-nowrap px-4 py-3">
                           <div
                             className={`text-sm font-semibold ${
                               row.isSetProduct ? 'text-violet-200' : 'text-zinc-300'
@@ -618,7 +619,7 @@ function ProductVariantKeywordPanel({ product }: { product: ProductDetail }) {
                         <td className="whitespace-nowrap px-4 py-3">
                           <VariantStatusBadge resolved={selectable} />
                         </td>
-                        <td className="px-4 py-3">
+                        <td className="whitespace-nowrap px-4 py-3">
                           <button
                             type="button"
                             onClick={() =>
@@ -646,6 +647,7 @@ function ProductVariantKeywordPanel({ product }: { product: ProductDetail }) {
                 })}
               </tbody>
             </table>
+          </div>
           </div>
           {filteredRows.length === 0 && (
             <div className="rounded-lg border border-[#262629] bg-[#0c0c0e] px-4 py-8 text-center text-sm text-zinc-500">
