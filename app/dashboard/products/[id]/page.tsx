@@ -8,6 +8,7 @@ import {
   ChevronDown,
   ChevronRight,
   CheckCircle2,
+  Download,
   FileSpreadsheet,
   Loader2,
   Plus,
@@ -89,12 +90,36 @@ type SkuKeywordManualUnapplyResponse = {
   aliasDeletedCount: number;
   removedSkus: { skuId: string; skuCode: string; quantity: number }[];
 };
+type ProductVariantReportSummary = {
+  totalCount: number;
+  mappedCount: number;
+  unmappedCount: number;
+  unresolvedSkuCount: number;
+  setProductCount: number;
+  singleProductCount: number;
+  selectableCount: number;
+};
+type ProductVariantExportRow = {
+  mappingType: string;
+  itemName: string;
+  serialNo: string;
+  mappingStatus: string;
+  isSetProduct: boolean;
+  skuCode: string;
+  skuName: string;
+  quantity: number;
+  existingSku: string;
+  candidateSku: string;
+  warningMessage: string;
+};
 type VariantCandidateFilter =
   | 'ALL'
   | 'SET'
   | 'SINGLE'
   | 'OPTION'
   | 'ADDITIONAL'
+  | 'MAPPED'
+  | 'UNMAPPED'
   | 'RESOLVED'
   | 'UNRESOLVED';
 type VariantMatchStatus = 'MAPPED' | 'RESOLVED' | 'PARTIAL' | 'UNRESOLVED';
@@ -105,6 +130,8 @@ const variantCandidateFilters: { key: VariantCandidateFilter; label: string }[] 
   { key: 'SINGLE', label: '단품만' },
   { key: 'OPTION', label: '옵션만' },
   { key: 'ADDITIONAL', label: '추가상품만' },
+  { key: 'MAPPED', label: '매핑완료' },
+  { key: 'UNMAPPED', label: '미매핑' },
   { key: 'RESOLVED', label: 'SKU 매칭 성공' },
   { key: 'UNRESOLVED', label: 'SKU 미확정' },
 ];
@@ -190,11 +217,20 @@ function getRowsSkuCount(rows: ProductVariantKeywordPreviewRow[], manualSelectio
 function filterVariantRows(
   rows: ProductVariantKeywordPreviewRow[],
   filter: VariantCandidateFilter,
+  product: ProductDetail,
+  newlyMappedRowKeys: Record<string, boolean>,
+  unmappedRowKeys: Record<string, boolean>,
 ): ProductVariantKeywordPreviewRow[] {
   if (filter === 'SET') return rows.filter((row) => row.isSetProduct);
   if (filter === 'SINGLE') return rows.filter((row) => !row.isSetProduct);
   if (filter === 'OPTION') return rows.filter((row) => row.mappingType === 'OPTION');
   if (filter === 'ADDITIONAL') return rows.filter((row) => row.mappingType === 'ADDITIONAL');
+  if (filter === 'MAPPED') {
+    return rows.filter((row) => isRowMapped(row, product, newlyMappedRowKeys, unmappedRowKeys));
+  }
+  if (filter === 'UNMAPPED') {
+    return rows.filter((row) => !isRowMapped(row, product, newlyMappedRowKeys, unmappedRowKeys));
+  }
   if (filter === 'RESOLVED') return rows.filter(isVariantRowResolved);
   if (filter === 'UNRESOLVED') return rows.filter((row) => !isVariantRowResolved(row));
   return rows;
@@ -304,10 +340,10 @@ function VariantStatusBadge({ status }: { status: VariantMatchStatus }) {
     UNRESOLVED: 'bg-amber-500/10 text-amber-300 ring-amber-500/20',
   };
   const labelByStatus: Record<VariantMatchStatus, string> = {
-    MAPPED: '매핑완료',
-    RESOLVED: 'SKU 매칭 성공',
-    PARTIAL: '부분 매칭',
-    UNRESOLVED: 'SKU 미확정',
+    MAPPED: getVariantMatchStatusLabel('MAPPED'),
+    RESOLVED: getVariantMatchStatusLabel('RESOLVED'),
+    PARTIAL: getVariantMatchStatusLabel('PARTIAL'),
+    UNRESOLVED: getVariantMatchStatusLabel('UNRESOLVED'),
   };
 
   return (
@@ -589,6 +625,29 @@ function CurrentMappedSkuList({
   );
 }
 
+function VariantReportCards({ summary }: { summary: ProductVariantReportSummary }) {
+  const cards = [
+    { label: '전체 후보 수', value: summary.totalCount, color: 'text-zinc-100' },
+    { label: '매핑완료 후보 수', value: summary.mappedCount, color: 'text-emerald-300' },
+    { label: '미매핑 후보 수', value: summary.unmappedCount, color: 'text-amber-300' },
+    { label: 'SKU 미확정 후보 수', value: summary.unresolvedSkuCount, color: 'text-red-300' },
+    { label: '세트상품 후보 수', value: summary.setProductCount, color: 'text-violet-200' },
+    { label: '단품 후보 수', value: summary.singleProductCount, color: 'text-zinc-300' },
+    { label: '선택 가능 후보 수', value: summary.selectableCount, color: 'text-blue-300' },
+  ];
+
+  return (
+    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
+      {cards.map((card) => (
+        <div key={card.label} className="rounded-lg border border-[#262629] bg-[#0c0c0e] px-3 py-3">
+          <p className="text-[11px] font-medium text-zinc-500">{card.label}</p>
+          <p className={`mt-1 text-lg font-semibold ${card.color}`}>{card.value.toLocaleString()}개</p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function VariantCandidateDetail({
   row,
   isMapped,
@@ -723,6 +782,113 @@ function getVariantMatchStatus(row: ProductVariantKeywordPreviewRow, mapped: boo
   return 'UNRESOLVED';
 }
 
+function getVariantMatchStatusLabel(status: VariantMatchStatus): string {
+  if (status === 'MAPPED') return '매핑완료';
+  if (status === 'RESOLVED') return 'SKU 매칭 성공';
+  if (status === 'PARTIAL') return '부분 매칭';
+  return 'SKU 미확정';
+}
+
+function createVariantReportSummary({
+  rows,
+  product,
+  newlyMappedRowKeys,
+  unmappedRowKeys,
+  selectableRows,
+}: {
+  rows: ProductVariantKeywordPreviewRow[];
+  product: ProductDetail;
+  newlyMappedRowKeys: Record<string, boolean>;
+  unmappedRowKeys: Record<string, boolean>;
+  selectableRows: ProductVariantKeywordPreviewRow[];
+}): ProductVariantReportSummary {
+  const mappedCount = rows.filter((row) => isRowMapped(row, product, newlyMappedRowKeys, unmappedRowKeys)).length;
+  const setProductCount = rows.filter((row) => row.isSetProduct).length;
+
+  return {
+    totalCount: rows.length,
+    mappedCount,
+    unmappedCount: rows.length - mappedCount,
+    unresolvedSkuCount: rows.filter((row) => !isVariantRowResolved(row)).length,
+    setProductCount,
+    singleProductCount: rows.length - setProductCount,
+    selectableCount: selectableRows.length,
+  };
+}
+
+function formatExportSkuList(skus: { skuCode: string; quantity: number }[]): string {
+  if (skus.length === 0) return '';
+  return skus.map((sku) => `${sku.skuCode || '-'} x ${sku.quantity}`).join(', ');
+}
+
+function createVariantExportRows({
+  rows,
+  product,
+  newlyMappedRowKeys,
+  unmappedRowKeys,
+  manualSelections,
+}: {
+  rows: ProductVariantKeywordPreviewRow[];
+  product: ProductDetail;
+  newlyMappedRowKeys: Record<string, boolean>;
+  unmappedRowKeys: Record<string, boolean>;
+  manualSelections: VariantManualSelections;
+}): ProductVariantExportRow[] {
+  return rows.flatMap((row) => {
+    const rowKey = getVariantRowKey(row);
+    const isMapped = isRowMapped(row, product, newlyMappedRowKeys, unmappedRowKeys);
+    const statusLabel = getVariantMatchStatusLabel(getVariantMatchStatus(row, isMapped));
+    const mappedSkus = getExistingVariantSkus(row, product, unmappedRowKeys);
+    const existingSku = formatExportSkuList(mappedSkus);
+    const previewSkus = row.skus.map((sku) => ({
+      skuCode: sku.skuCode,
+      skuName: sku.skuName,
+      quantity: sku.quantity,
+      candidateText: `${sku.skuCode || '미확정'} / ${sku.modelCode || '-'}`,
+    }));
+    const manualSkus = (manualSelections[rowKey] ?? []).map((sku) => ({
+      skuCode: sku.skuCode,
+      skuName: sku.skuName,
+      quantity: sku.quantity,
+      candidateText: `${sku.skuCode} / 수동선택`,
+    }));
+    const candidateSkus = [...previewSkus, ...manualSkus];
+    const candidateSku = candidateSkus.map((sku) => sku.candidateText).filter(Boolean).join(', ');
+
+    if (candidateSkus.length === 0) {
+      return [
+        {
+          mappingType: row.mappingType,
+          itemName: row.itemName,
+          serialNo: row.serialNo,
+          mappingStatus: statusLabel,
+          isSetProduct: row.isSetProduct,
+          skuCode: '',
+          skuName: '',
+          quantity: row.quantity,
+          existingSku,
+          candidateSku: '',
+          warningMessage: row.warningMessage,
+        },
+      ];
+    }
+
+    return candidateSkus.map((sku) => ({
+      mappingType: row.mappingType,
+      itemName: row.itemName,
+      serialNo: row.serialNo,
+      mappingStatus: statusLabel,
+      isSetProduct: row.isSetProduct,
+      skuCode: sku.skuCode,
+      skuName: sku.skuName,
+      quantity: sku.quantity,
+      existingSku,
+      candidateSku,
+      warningMessage: row.warningMessage,
+    }));
+  });
+}
+
 function canSelectVariantRow(
   row: ProductVariantKeywordPreviewRow,
   product: ProductDetail,
@@ -749,13 +915,14 @@ function ProductVariantKeywordPanel({
   const [message, setMessage] = useState<Message | null>(null);
   const [previewing, setPreviewing] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [unapplyingRowKeys, setUnapplyingRowKeys] = useState<Record<string, boolean>>({});
   const [newlyMappedRowKeys, setNewlyMappedRowKeys] = useState<Record<string, boolean>>({});
   const [unmappedRowKeys, setUnmappedRowKeys] = useState<Record<string, boolean>>({});
 
   const filteredRows = useMemo(
-    () => filterVariantRows(preview?.rows ?? [], activeFilter),
-    [activeFilter, preview],
+    () => filterVariantRows(preview?.rows ?? [], activeFilter, product, newlyMappedRowKeys, unmappedRowKeys),
+    [activeFilter, preview, product, newlyMappedRowKeys, unmappedRowKeys],
   );
   const selectableRows = useMemo(
     () => preview?.rows.filter((row) => canSelectVariantRow(row, product, newlyMappedRowKeys, unmappedRowKeys)) ?? [],
@@ -770,6 +937,17 @@ function ProductVariantKeywordPanel({
     [selectableRows, selectedRows],
   );
   const checkedSkuCount = getRowsSkuCount(checkedRows, manualSelections);
+  const reportSummary = useMemo(
+    () =>
+      createVariantReportSummary({
+        rows: preview?.rows ?? [],
+        product,
+        newlyMappedRowKeys,
+        unmappedRowKeys,
+        selectableRows,
+      }),
+    [preview, product, newlyMappedRowKeys, unmappedRowKeys, selectableRows],
+  );
 
   const handlePreview = async () => {
     if (!variantFile) {
@@ -883,6 +1061,61 @@ function ProductVariantKeywordPanel({
       setMessage({ type: 'error', text });
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleExport = async () => {
+    if (!preview) {
+      setMessage({ type: 'error', text: '다운로드할 ProductVariantKeyword preview 결과가 없습니다.' });
+      return;
+    }
+
+    setExporting(true);
+    setMessage(null);
+
+    try {
+      const rows = createVariantExportRows({
+        rows: preview.rows,
+        product,
+        newlyMappedRowKeys,
+        unmappedRowKeys,
+        manualSelections,
+      });
+      const response = await fetch('/api/sku-matching/product-variant-keyword/export', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          channelProductNo: product.channelProductNo ?? product.id,
+          productName: product.name,
+          summary: reportSummary,
+          rows,
+        }),
+      });
+
+      if (!response.ok) {
+        const contentType = response.headers.get('content-type') ?? '';
+        if (contentType.includes('application/json')) {
+          const data = await readJson<{ error: string }>(response);
+          throw new Error(getErrorMessage(data, '매핑 현황 Excel 다운로드에 실패했습니다.'));
+        }
+        throw new Error('매핑 현황 Excel 다운로드에 실패했습니다.');
+      }
+
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `product-variant-keyword-${product.channelProductNo ?? product.id}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      setMessage({ type: 'success', text: '매핑 현황 Excel 다운로드를 시작했습니다.' });
+    } catch (error) {
+      const text = error instanceof Error ? error.message : '매핑 현황 Excel 다운로드에 실패했습니다.';
+      setMessage({ type: 'error', text });
+    } finally {
+      setExporting(false);
     }
   };
 
@@ -1053,6 +1286,8 @@ function ProductVariantKeywordPanel({
 
       {preview && (
         <div className="mt-5 space-y-4">
+          <VariantReportCards summary={reportSummary} />
+
           <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
             <div className="flex flex-wrap gap-2">
               {variantCandidateFilters.map((filter) => (
@@ -1086,15 +1321,26 @@ function ProductVariantKeywordPanel({
               전체 후보 {preview.candidateCount}개 · 선택 {checkedRows.length}개 · 매핑완료 {mappedRowCount}개
             </div>
 
-            <button
-              type="button"
-              disabled={checkedRows.length === 0 || saving}
-              onClick={handleSave}
-              className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:bg-zinc-700 disabled:text-zinc-400"
-            >
-              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-              선택 후보 수동확정
-            </button>
+            <div className="flex flex-wrap justify-end gap-2">
+              <button
+                type="button"
+                disabled={exporting}
+                onClick={handleExport}
+                className="inline-flex items-center gap-2 rounded-md border border-emerald-500/30 bg-emerald-500/10 px-4 py-2 text-sm font-medium text-emerald-200 transition hover:bg-emerald-500/20 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                매핑 현황 엑셀 다운로드
+              </button>
+              <button
+                type="button"
+                disabled={checkedRows.length === 0 || saving}
+                onClick={handleSave}
+                className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:bg-zinc-700 disabled:text-zinc-400"
+              >
+                {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                선택 후보 수동확정
+              </button>
+            </div>
           </div>
 
           <div className="mb-2 text-sm text-zinc-400">
