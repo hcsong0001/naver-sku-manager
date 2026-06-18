@@ -839,6 +839,7 @@ export default function SkuKeywordMatchingPage() {
   });
   const [manualSelections, setManualSelections] = useState<ManualSelections>({});
   const [previewing, setPreviewing] = useState(false);
+  const [previewRefreshing, setPreviewRefreshing] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [manualApplying, setManualApplying] = useState(false);
 
@@ -899,6 +900,48 @@ export default function SkuKeywordMatchingPage() {
     });
   };
 
+  const runPreviewRequest = async (files: { erpFile: File; csvFile: File; stockFile: File }) => {
+    const response = await fetch('/api/sku-matching/keyword-preview', {
+      method: 'POST',
+      body: makeUploadFormData(files.erpFile, files.csvFile, files.stockFile),
+    });
+    const data = await readJson<SkuKeywordPreviewResponse | { error: string }>(response);
+
+    if (!response.ok) {
+      throw new Error(getErrorMessage(data, '키워드 매칭 검증에 실패했습니다.'));
+    }
+
+    return data as SkuKeywordPreviewResponse;
+  };
+
+  const applyPreviewResult = (previewResult: SkuKeywordPreviewResponse, successText: string) => {
+    setPreview(previewResult);
+    setActiveTab(previewResult.warningRows.length > 0 ? 'warning' : 'matched');
+    setPageByTab({ matched: 1, warning: 1, error: 1 });
+    setMessage({ type: 'success', text: successText });
+  };
+
+  const refreshPreview = async (options?: { successText?: string; clearSelections?: boolean }) => {
+    const files = validateFiles();
+    if (!files) return;
+
+    setPreviewRefreshing(true);
+
+    try {
+      const previewResult = await runPreviewRequest(files);
+      if (options?.clearSelections) {
+        setManualSelections({});
+      }
+      applyPreviewResult(previewResult, options?.successText ?? '키워드 매칭 검증이 완료되었습니다.');
+    } catch (error) {
+      const text = error instanceof Error ? error.message : '키워드 매칭 검증에 실패했습니다.';
+      setPreview(null);
+      setMessage({ type: 'error', text });
+    } finally {
+      setPreviewRefreshing(false);
+    }
+  };
+
   const handlePreview = async () => {
     const files = validateFiles();
     if (!files) return;
@@ -908,21 +951,8 @@ export default function SkuKeywordMatchingPage() {
     setManualSelections({});
 
     try {
-      const response = await fetch('/api/sku-matching/keyword-preview', {
-        method: 'POST',
-        body: makeUploadFormData(files.erpFile, files.csvFile, files.stockFile),
-      });
-      const data = await readJson<SkuKeywordPreviewResponse | { error: string }>(response);
-
-      if (!response.ok) {
-        throw new Error(getErrorMessage(data, '키워드 매칭 검증에 실패했습니다.'));
-      }
-
-      const previewResult = data as SkuKeywordPreviewResponse;
-      setPreview(previewResult);
-      setActiveTab(previewResult.warningRows.length > 0 ? 'warning' : 'matched');
-      setPageByTab({ matched: 1, warning: 1, error: 1 });
-      setMessage({ type: 'success', text: '키워드 매칭 검증이 완료되었습니다.' });
+      const previewResult = await runPreviewRequest(files);
+      applyPreviewResult(previewResult, '키워드 매칭 검증이 완료되었습니다.');
     } catch (error) {
       const text = error instanceof Error ? error.message : '키워드 매칭 검증에 실패했습니다.';
       setPreview(null);
@@ -1002,8 +1032,9 @@ export default function SkuKeywordMatchingPage() {
 
   const handleManualApply = async () => {
     const payload = buildManualApplyPayload();
+    const files = validateFiles();
 
-    if (!payload) {
+    if (!payload || !files) {
       setMessage({ type: 'error', text: '수동 확정할 warning row를 선택해 주세요.' });
       return;
     }
@@ -1024,13 +1055,19 @@ export default function SkuKeywordMatchingPage() {
       }
 
       const result = data as SkuKeywordManualApplyResponse;
-      setManualSelections({});
       setMessage({
         type: 'success',
         text:
           `수동 확정 저장 완료: 생성 ${result.createdCount.toLocaleString()}건, ` +
           `업데이트 ${result.updatedCount.toLocaleString()}건, ` +
-          `건너뜀 ${result.skippedCount.toLocaleString()}건.`,
+          `건너뜀 ${result.skippedCount.toLocaleString()}건. 최신 preview를 다시 불러오는 중입니다.`,
+      });
+      await refreshPreview({
+        clearSelections: true,
+        successText:
+          `수동 확정 저장 완료: 생성 ${result.createdCount.toLocaleString()}건, ` +
+          `업데이트 ${result.updatedCount.toLocaleString()}건, ` +
+          `건너뜀 ${result.skippedCount.toLocaleString()}건. 최신 preview가 반영되었습니다.`,
       });
     } catch (error) {
       const text = error instanceof Error ? error.message : '수동 확정 저장에 실패했습니다.';
@@ -1088,16 +1125,20 @@ export default function SkuKeywordMatchingPage() {
             <button
               type="button"
               onClick={handlePreview}
-              disabled={previewing || !erpFile || !csvFile || !stockFile}
+              disabled={previewing || previewRefreshing || !erpFile || !csvFile || !stockFile}
               className="tms-button tms-button-primary inline-flex items-center justify-center gap-2 rounded-lg border px-5 py-2.5 text-sm font-semibold transition"
             >
-              {previewing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+              {previewing || previewRefreshing ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Search className="h-4 w-4" />
+              )}
               Preview 실행
             </button>
             <button
               type="button"
               onClick={handleExport}
-              disabled={exporting || !erpFile || !csvFile || !stockFile}
+              disabled={exporting || previewRefreshing || !erpFile || !csvFile || !stockFile}
               className="tms-button tms-button-secondary inline-flex items-center justify-center gap-2 rounded-lg border px-5 py-2.5 text-sm font-semibold transition"
             >
               {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
@@ -1138,12 +1179,19 @@ export default function SkuKeywordMatchingPage() {
                 <button
                   type="button"
                   onClick={handleManualApply}
-                  disabled={manualApplying || manualStats.skuCount === 0}
+                  disabled={manualApplying || previewRefreshing || manualStats.skuCount === 0}
                   className="tms-button tms-button-primary inline-flex items-center justify-center gap-2 rounded-lg border px-4 py-2 text-sm font-semibold transition"
                 >
-                  {manualApplying ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                  {manualApplying || previewRefreshing ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Save className="h-4 w-4" />
+                  )}
                   수동 확정 저장
                 </button>
+                <p className="text-xs text-zinc-400">
+                  수동 확정 저장은 실제 DB에 반영됩니다. 저장 후 preview를 자동으로 다시 불러옵니다.
+                </p>
               </div>
             </div>
 
