@@ -96,7 +96,7 @@ const draftHydrateIssueHints: Record<SkuKeywordHydrateIssueCode, string> = {
   TARGET_NOT_FOUND: '스마트스토어 상품, 옵션, 추가상품이 현재 DB에 수집되어 있는지 확인해 주세요.',
   TARGET_CHANNEL_PRODUCT_MISMATCH: 'channelProductNo와 itemId가 같은 상품 문맥을 가리키는지 다시 확인해 주세요.',
   STORE_CONTEXT_UNAVAILABLE: '스마트스토어 연결 정보와 상품-스토어 관계를 먼저 확인해 주세요.',
-  CHANNEL_ID_UNAVAILABLE: 'Smartstore.naverChannelId 설정 필요',
+  CHANNEL_ID_UNAVAILABLE: 'Smartstore.naverChannelId 설정 필요. 스마트스토어 설정 화면에서 채널 ID를 입력하세요.',
   CURRENT_PRICE_UNAVAILABLE: 'NaverProduct/NaverProductOption currentSalePrice 또는 Additional price 필요',
   CURRENT_STOCK_UNAVAILABLE: 'NaverProduct/NaverProductOption currentStockQuantity 또는 Additional stockQuantity 필요',
 };
@@ -617,6 +617,16 @@ function DraftPreviewPanel({
                     <p className="tms-text-muted mt-2 text-xs">
                       해결 힌트: {draftHydrateIssueHints[entry.code]}
                     </p>
+                    {entry.code === 'CHANNEL_ID_UNAVAILABLE' && (
+                      <div className="mt-3">
+                        <a
+                          href="/dashboard/smartstores"
+                          className="tms-button tms-button-secondary inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-semibold transition hover:bg-[#1a1a1e]"
+                        >
+                          스마트스토어 설정으로 이동
+                        </a>
+                      </div>
+                    )}
                   </div>
                   <span className="tms-badge-subtle rounded-md border px-2.5 py-1 text-xs font-semibold">
                     {entry.count.toLocaleString()}건
