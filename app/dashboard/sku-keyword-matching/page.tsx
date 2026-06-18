@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import {
   AlertTriangle,
   CheckCircle2,
@@ -53,11 +53,31 @@ type TabPageSizeState = {
   warning: CommonPageSize;
   error: CommonPageSize;
 };
+type DraftCandidateFilter =
+  | 'ALL'
+  | 'DRAFT_CREATABLE'
+  | 'NEEDS_CONTEXT'
+  | 'READY_FOR_REVIEW'
+  | 'SET_PRODUCT'
+  | 'PRICE_CHANGE'
+  | 'STOCK_CHANGE'
+  | 'HAS_RISK';
 
 const mappingTypeLabels: Record<string, string> = {
   PRODUCT: '단일상품',
   OPTION: '옵션',
   ADDITIONAL: '추가상품',
+};
+
+const draftCandidateFilterLabels: Record<DraftCandidateFilter, string> = {
+  ALL: '전체',
+  DRAFT_CREATABLE: 'draftCreatable',
+  NEEDS_CONTEXT: 'needsContext',
+  READY_FOR_REVIEW: 'readyForReview',
+  SET_PRODUCT: 'setProduct',
+  PRICE_CHANGE: 'priceChange',
+  STOCK_CHANGE: 'stockChange',
+  HAS_RISK: 'risk 있음',
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -232,11 +252,58 @@ function CountList({
   );
 }
 
+function filterDraftCandidates(
+  candidates: SkuKeywordDraftPreviewResponse['candidates'],
+  filter: DraftCandidateFilter,
+): SkuKeywordDraftPreviewResponse['candidates'] {
+  if (filter === 'DRAFT_CREATABLE') {
+    return candidates.filter((candidate) => candidate.draftCreatable);
+  }
+  if (filter === 'NEEDS_CONTEXT') {
+    return candidates.filter((candidate) => candidate.status === 'NEEDS_CONTEXT');
+  }
+  if (filter === 'READY_FOR_REVIEW') {
+    return candidates.filter((candidate) => candidate.status === 'READY_FOR_REVIEW');
+  }
+  if (filter === 'SET_PRODUCT') {
+    return candidates.filter((candidate) => candidate.isSetProduct);
+  }
+  if (filter === 'PRICE_CHANGE') {
+    return candidates.filter((candidate) => candidate.hasPriceChange);
+  }
+  if (filter === 'STOCK_CHANGE') {
+    return candidates.filter((candidate) => candidate.hasStockChange);
+  }
+  if (filter === 'HAS_RISK') {
+    return candidates.filter((candidate) => candidate.riskMessages.length > 0);
+  }
+  return candidates;
+}
+
 function DraftPreviewPanel({
   result,
 }: {
   result: SkuKeywordDraftPreviewResponse;
 }) {
+  const [activeFilter, setActiveFilter] = useState<DraftCandidateFilter>('ALL');
+  const filteredCandidates = useMemo(
+    () => filterDraftCandidates(result.candidates, activeFilter),
+    [activeFilter, result.candidates],
+  );
+  const filterCounts = useMemo<Record<DraftCandidateFilter, number>>(
+    () => ({
+      ALL: result.candidates.length,
+      DRAFT_CREATABLE: result.candidates.filter((candidate) => candidate.draftCreatable).length,
+      NEEDS_CONTEXT: result.candidates.filter((candidate) => candidate.status === 'NEEDS_CONTEXT').length,
+      READY_FOR_REVIEW: result.candidates.filter((candidate) => candidate.status === 'READY_FOR_REVIEW').length,
+      SET_PRODUCT: result.candidates.filter((candidate) => candidate.isSetProduct).length,
+      PRICE_CHANGE: result.candidates.filter((candidate) => candidate.hasPriceChange).length,
+      STOCK_CHANGE: result.candidates.filter((candidate) => candidate.hasStockChange).length,
+      HAS_RISK: result.candidates.filter((candidate) => candidate.riskMessages.length > 0).length,
+    }),
+    [result.candidates],
+  );
+
   return (
     <div className="space-y-4 rounded-lg border border-[#262629] bg-[#121214] p-6">
       <div>
@@ -273,15 +340,54 @@ function DraftPreviewPanel({
         />
       </div>
 
+      <div className="rounded-lg border border-[#262629] bg-[#0c0c0e] p-4">
+        <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm font-semibold text-white">후보 필터</p>
+              <p className="mt-1 text-xs text-zinc-500">
+                전체 summary와 issueSummary는 전체 기준으로 유지되고, 아래 목록만 필터링됩니다.
+              </p>
+            </div>
+            <div className="rounded-md border border-[#262629] bg-[#121214] px-3 py-2 text-xs text-zinc-300">
+              현재 필터: {draftCandidateFilterLabels[activeFilter]} ·{' '}
+              {filteredCandidates.length.toLocaleString()}건
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {(Object.keys(draftCandidateFilterLabels) as DraftCandidateFilter[]).map((filter) => {
+              const active = filter === activeFilter;
+              return (
+                <button
+                  key={filter}
+                  type="button"
+                  onClick={() => setActiveFilter(filter)}
+                  className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-xs font-semibold transition ${
+                    active
+                      ? 'border-indigo-500/40 bg-indigo-500/15 text-indigo-200'
+                      : 'tms-button tms-button-muted'
+                  }`}
+                >
+                  <span>{draftCandidateFilterLabels[filter]}</span>
+                  <span className="rounded-md bg-black/20 px-1.5 py-0.5 font-mono text-[11px]">
+                    {filterCounts[filter].toLocaleString()}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
       <details className="rounded-lg border border-[#262629] bg-[#0c0c0e]">
         <summary className="cursor-pointer list-none px-4 py-3 text-sm font-semibold text-white">
-          후보 목록 보기 ({result.candidates.length.toLocaleString()}건)
+          후보 목록 보기 ({filteredCandidates.length.toLocaleString()}건)
         </summary>
         <div className="space-y-3 border-t border-[#262629] p-4">
-          {result.candidates.length === 0 ? (
+          {filteredCandidates.length === 0 ? (
             <p className="text-sm text-zinc-500">생성된 후보가 없습니다.</p>
           ) : (
-            result.candidates.map((candidate) => (
+            filteredCandidates.map((candidate) => (
               <div key={candidate.id} className="rounded-lg border border-[#262629] bg-[#121214] p-4">
                 <div className="flex flex-col gap-2 lg:flex-row lg:items-start lg:justify-between">
                   <div className="min-w-0">
