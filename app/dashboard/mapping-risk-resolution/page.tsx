@@ -21,39 +21,25 @@ import type {
   StagingMappingRiskType,
   StagingMappingSummaryResponse,
 } from '@/src/types/staging-mapping-preview.types';
+import type {
+  MappingResolutionDraftEntry,
+  MappingResolutionDraftSelectedSku,
+} from '@/src/types/mapping-resolution-draft.types';
 import {
   DEFAULT_PAGE_SIZE,
   getPaginationRange,
   getRowNumber,
   type CommonPageSize,
 } from '@/src/utils/pagination';
-
-const SCHEMA_VERSION = '1.0.0';
-
-type ResolutionItem = {
-  status: 'RESOLVED' | 'UNRESOLVED';
-  resolvedSkuCode?: string;
-  setComponents?: {
-    skuCode: string;
-    quantity: number | null;
-    sourceName: string;
-    resolved: boolean;
-    costPrice: number | null;
-    stockQuantity: number | null;
-  }[];
-  adoptedCandidateId?: string;
-  memo?: string;
-};
-
-type ResolutionDraft = {
-  schemaVersion: string;
-  createdAt: string;
-  snapshotMetadata: {
-    latestAppliedAt: string | null;
-    jobIds: Record<string, string | undefined>;
-  };
-  resolutions: Record<string, ResolutionItem>;
-};
+import {
+  buildMappingResolutionSnapshotMetadata,
+  createMappingResolutionDraft,
+  createResolutionEntryFromCandidate,
+  parseMappingResolutionDraft,
+  readMappingResolutionDraftFromStorage,
+  serializeMappingResolutionDraft,
+  writeMappingResolutionDraftToStorage,
+} from '@/src/utils/mapping-resolution-draft';
 
 const FILTERS: { value: string; label: string }[] = [
   { value: 'ALL', label: '전체 위험' },
@@ -97,7 +83,7 @@ export default function MappingRiskResolutionPage() {
   const [refreshKey, setRefreshKey] = useState(0);
 
   // 해결 Draft State
-  const [resolutions, setResolutions] = useState<Record<string, ResolutionItem>>({});
+  const [resolutions, setResolutions] = useState<Record<string, MappingResolutionDraftEntry>>({});
   const [expandedRowId, setExpandedRowId] = useState<string | null>(null);
 
   // ERP SKU 검색 State (상세 패널용)
@@ -107,30 +93,20 @@ export default function MappingRiskResolutionPage() {
 
   // 모달 에디터 임시 상태
   const [editingResolvedSku, setEditingResolvedSku] = useState('');
-  const [editingComponents, setEditingComponents] = useState<ResolutionItem['setComponents']>([]);
+  const [editingResolvedSkuDetails, setEditingResolvedSkuDetails] = useState<MappingResolutionDraftSelectedSku | null>(null);
+  const [editingComponents, setEditingComponents] = useState<MappingResolutionDraftEntry['selectedComponents']>([]);
   const [editingAdoptedId, setEditingAdoptedId] = useState('');
   const [editingMemo, setEditingMemo] = useState('');
 
   // 1. API 스냅샷 기준 정보 추출
   const currentSnapshotMetadata = useMemo(() => {
     if (!summary) return null;
-    const jobIds: Record<string, string | undefined> = {};
-    Object.entries(summary.snapshot.latestAppliedJobs).forEach(([k, v]) => {
-      jobIds[k] = v?.jobId;
-    });
-    return {
-      latestAppliedAt: summary.snapshot.latestAppliedAt,
-      jobIds,
-    };
+    return buildMappingResolutionSnapshotMetadata(summary.snapshot);
   }, [summary]);
-
-  // 2. localStorage Key 생성 (snapshot 기준 정보와 바인딩)
-  const localStorageKey = useMemo(() => {
-    if (!currentSnapshotMetadata) return 'staging_mapping_resolutions';
-    // snapshotId가 명확히 없으므로 최신 적용 시간 및 jobIds 해시로 결합해 유니크한 키 생성
-    const hash = Object.values(currentSnapshotMetadata.jobIds).filter(Boolean).join('_');
-    return `staging_mapping_resolutions_${currentSnapshotMetadata.latestAppliedAt || 'default'}_${hash}`;
-  }, [currentSnapshotMetadata]);
+  const candidateMap = useMemo(
+    () => new Map(allCandidates.map((row) => [row.id, row])),
+    [allCandidates],
+  );
 
   // 3. API 및 localStorage 데이터 로드
   useEffect(() => {
@@ -154,20 +130,16 @@ export default function MappingRiskResolutionPage() {
         if (cancelled) return;
         setAllCandidates(candData.rows || []);
 
-        // 3-3. localStorage 로드 (해당 snapshot 바인딩 키)
-        const hash = Object.values(sumData.snapshot.latestAppliedJobs).map(j => j?.jobId).filter(Boolean).join('_');
-        const bindingKey = `staging_mapping_resolutions_${sumData.snapshot.latestAppliedAt || 'default'}_${hash}`;
-        const stored = localStorage.getItem(bindingKey);
-        if (stored) {
-          try {
-            const parsed = JSON.parse(stored) as ResolutionDraft;
-            setResolutions(parsed.resolutions || {});
-          } catch (e) {
-            console.error('Failed to parse stored resolutions', e);
-          }
-        } else {
-          setResolutions({});
-        }
+        // 3-3. localStorage 로드 (현재 snapshot 우선, 없으면 최근 draft fallback)
+        const rowsById = new Map<string, StagingMappingCandidate>(
+          (candData.rows || []).map((row: StagingMappingCandidate) => [row.id, row] as [string, StagingMappingCandidate]),
+        );
+        const loadResult = readMappingResolutionDraftFromStorage({
+          storage: window.localStorage,
+          currentSnapshot: buildMappingResolutionSnapshotMetadata(sumData.snapshot),
+          rowsById,
+        });
+        setResolutions(loadResult.draft?.resolutions || {});
 
       } catch (err) {
         if (!cancelled) setError(err instanceof Error ? err.message : '데이터 로드 실패');
@@ -184,27 +156,26 @@ export default function MappingRiskResolutionPage() {
   }, [refreshKey]);
 
   // 4. Draft 변경 시 localStorage 자동 임시 저장
-  const saveToLocalStorage = (newResolutions: Record<string, ResolutionItem>) => {
+  const saveToLocalStorage = (newResolutions: Record<string, MappingResolutionDraftEntry>) => {
     if (!currentSnapshotMetadata) return;
-    const draft: ResolutionDraft = {
-      schemaVersion: SCHEMA_VERSION,
-      createdAt: new Date().toISOString(),
+    const draft = createMappingResolutionDraft({
       snapshotMetadata: currentSnapshotMetadata,
       resolutions: newResolutions,
-    };
-    localStorage.setItem(localStorageKey, JSON.stringify(draft));
+    });
+    writeMappingResolutionDraftToStorage({
+      storage: window.localStorage,
+      draft,
+    });
   };
 
   // 5. JSON 내보내기 (Export)
   const handleExport = () => {
     if (!currentSnapshotMetadata) return;
-    const draft: ResolutionDraft = {
-      schemaVersion: SCHEMA_VERSION,
-      createdAt: new Date().toISOString(),
+    const draft = createMappingResolutionDraft({
       snapshotMetadata: currentSnapshotMetadata,
       resolutions,
-    };
-    const blob = new Blob([JSON.stringify(draft, null, 2)], { type: 'application/json' });
+    });
+    const blob = new Blob([serializeMappingResolutionDraft(draft)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -223,23 +194,14 @@ export default function MappingRiskResolutionPage() {
     const reader = new FileReader();
     reader.onload = (event) => {
       try {
-        const parsed = JSON.parse(event.target?.result as string) as ResolutionDraft;
+        const parsed = parseMappingResolutionDraft(String(event.target?.result ?? ''), candidateMap);
+        if (!parsed) {
+          throw new Error('해결 draft 형식을 해석할 수 없습니다.');
+        }
         
         // snapshot 검증
-        let isSnapshotMatch = true;
-        if (parsed.snapshotMetadata && currentSnapshotMetadata) {
-          if (parsed.snapshotMetadata.latestAppliedAt !== currentSnapshotMetadata.latestAppliedAt) {
-            isSnapshotMatch = false;
-          }
-          // Job ID 비교
-          Object.keys(currentSnapshotMetadata.jobIds).forEach((k) => {
-            if (parsed.snapshotMetadata.jobIds[k] !== currentSnapshotMetadata.jobIds[k]) {
-              isSnapshotMatch = false;
-            }
-          });
-        } else {
-          isSnapshotMatch = false;
-        }
+        const isSnapshotMatch = Boolean(currentSnapshotMetadata)
+          && parsed.snapshotMetadata.snapshotKey === currentSnapshotMetadata?.snapshotKey;
 
         if (!isSnapshotMatch) {
           const proceed = window.confirm(
@@ -288,17 +250,25 @@ export default function MappingRiskResolutionPage() {
 
       // 기존 해결 내역 불러오기
       const res = resolutions[row.id];
-      setEditingResolvedSku(res?.resolvedSkuCode || row.candidateSkus[0]?.skuCode || '');
+      setEditingResolvedSku(res?.selectedSkuCode || res?.selectedSku?.skuCode || row.candidateSkus[0]?.skuCode || '');
+      setEditingResolvedSkuDetails(res?.selectedSku || null);
       
       // 세트 구성품 매핑 복사
       if (row.isSetProduct) {
-        const comps = res?.setComponents || row.setComponents.map((c) => ({
+        const comps = res?.selectedComponents || row.setComponents.map((c) => ({
           skuCode: c.skuCode,
           quantity: c.quantity,
           sourceName: c.sourceName,
           resolved: c.resolved,
+          internalSkuCode: c.internalSkuCode,
+          legacyStockCode: c.legacyStockCode,
+          barcode: c.barcode,
+          productName: c.productName,
+          purchaseProductName: '',
+          sellingPrice: c.sellingPrice,
           costPrice: c.costPrice,
           stockQuantity: c.stockQuantity,
+          matchSource: '해결 draft',
         }));
         setEditingComponents(comps);
       } else {
@@ -311,7 +281,9 @@ export default function MappingRiskResolutionPage() {
   };
 
   // 9. 해결 임시 저장 수행
-  const handleSaveResolution = (rowId: string, isSet: boolean) => {
+  const handleSaveResolution = (row: StagingMappingCandidate) => {
+    const rowId = row.id;
+    const isSet = row.isSetProduct;
     // 세트 수량 비정상 수량 검증
     if (isSet && editingComponents) {
       const hasInvalidQty = editingComponents.some(c => c.quantity === null || c.quantity <= 0);
@@ -321,13 +293,51 @@ export default function MappingRiskResolutionPage() {
       }
     }
 
-    const item: ResolutionItem = {
-      status: 'RESOLVED',
-      resolvedSkuCode: !isSet ? editingResolvedSku : undefined,
-      setComponents: isSet ? editingComponents : undefined,
-      adoptedCandidateId: editingAdoptedId || undefined,
+    const matchedDraftSku = !isSet && editingResolvedSku
+      ? row.candidateSkus.find((sku) => sku.skuCode === editingResolvedSku)
+        ?? row.existingSkus.find((sku) => sku.skuCode === editingResolvedSku)
+      : null;
+    const resolvedSku = !isSet
+      ? editingResolvedSkuDetails
+        ?? (matchedDraftSku
+          ? {
+            skuCode: matchedDraftSku.skuCode,
+            internalSkuCode: matchedDraftSku.internalSkuCode,
+            legacyStockCode: matchedDraftSku.legacyStockCode,
+            barcode: matchedDraftSku.barcode,
+            productName: matchedDraftSku.productName,
+            purchaseProductName: matchedDraftSku.purchaseProductName,
+            quantity: matchedDraftSku.quantity,
+            sellingPrice: matchedDraftSku.sellingPrice,
+            costPrice: matchedDraftSku.costPrice,
+            stockQuantity: matchedDraftSku.stockQuantity,
+            matchSource: matchedDraftSku.matchSource || '해결 draft',
+          }
+          : editingResolvedSku
+            ? {
+              skuCode: editingResolvedSku,
+              internalSkuCode: null,
+              legacyStockCode: '',
+              barcode: '',
+              productName: '',
+              purchaseProductName: '',
+              quantity: 1,
+              sellingPrice: null,
+              costPrice: null,
+              stockQuantity: null,
+              matchSource: '해결 draft',
+            }
+            : null)
+      : null;
+    const item = createResolutionEntryFromCandidate({
+      row,
+      selectedSkuCode: !isSet ? editingResolvedSku || undefined : undefined,
+      selectedSku: !isSet ? resolvedSku : null,
+      selectedComponents: isSet ? editingComponents : undefined,
+      quantity: !isSet ? (resolvedSku?.quantity ?? 1) : undefined,
       memo: editingMemo || undefined,
-    };
+      adoptedCandidateId: editingAdoptedId || undefined,
+    });
 
     const newResolutions = {
       ...resolutions,
@@ -337,6 +347,7 @@ export default function MappingRiskResolutionPage() {
     setResolutions(newResolutions);
     saveToLocalStorage(newResolutions);
     setExpandedRowId(null); // 패널 닫기
+    setEditingResolvedSkuDetails(null);
   };
 
   // 10. 해결 초기화
@@ -346,6 +357,7 @@ export default function MappingRiskResolutionPage() {
     setResolutions(newResolutions);
     saveToLocalStorage(newResolutions);
     setExpandedRowId(null);
+    setEditingResolvedSkuDetails(null);
   };
 
   // 11. 세트 실시간 재계산 도우미
@@ -694,7 +706,7 @@ export default function MappingRiskResolutionPage() {
                           </td>
                           <td className="whitespace-nowrap px-3 py-3 font-mono text-xs font-semibold text-zinc-100">
                             {isResolved
-                              ? (res.resolvedSkuCode || '세트 구성 해결됨')
+                              ? (res.selectedSkuCode || res.selectedSku?.skuCode || '세트 구성 해결됨')
                               : (row.candidateSkus[0]?.skuCode || '미확정')}
                           </td>
                           <td className="px-3 py-3">
@@ -776,7 +788,22 @@ export default function MappingRiskResolutionPage() {
                                             <button
                                               key={s.skuCode}
                                               type="button"
-                                              onClick={() => setEditingResolvedSku(s.skuCode)}
+                                              onClick={() => {
+                                                setEditingResolvedSku(s.skuCode);
+                                                setEditingResolvedSkuDetails({
+                                                  skuCode: s.skuCode,
+                                                  internalSkuCode: s.internalSkuCode,
+                                                  legacyStockCode: s.legacyStockCode,
+                                                  barcode: s.barcode,
+                                                  productName: s.productName,
+                                                  purchaseProductName: s.purchaseProductName,
+                                                  quantity: s.quantity,
+                                                  sellingPrice: s.sellingPrice,
+                                                  costPrice: s.costPrice,
+                                                  stockQuantity: s.stockQuantity,
+                                                  matchSource: s.matchSource || '해결 draft',
+                                                });
+                                              }}
                                               className={`rounded-lg border px-3 py-2 text-xs font-mono transition ${
                                                 editingResolvedSku === s.skuCode
                                                   ? 'border-indigo-500 bg-indigo-500/20 text-indigo-300'
@@ -793,7 +820,10 @@ export default function MappingRiskResolutionPage() {
                                         <input
                                           type="text"
                                           value={editingResolvedSku}
-                                          onChange={(e) => setEditingResolvedSku(e.target.value)}
+                                          onChange={(e) => {
+                                            setEditingResolvedSku(e.target.value);
+                                            setEditingResolvedSkuDetails(null);
+                                          }}
                                           placeholder="SKU 코드 직접 입력"
                                           className="mt-1.5 w-full max-w-sm rounded-lg border border-[#333] bg-[#1a1a1f] px-3 py-2 text-xs font-mono text-zinc-200 placeholder-zinc-600 outline-none focus:border-indigo-500"
                                         />
@@ -833,7 +863,22 @@ export default function MappingRiskResolutionPage() {
                                             <button
                                               key={sku.skuCode}
                                               type="button"
-                                              onClick={() => setEditingResolvedSku(sku.skuCode)}
+                                              onClick={() => {
+                                                setEditingResolvedSku(sku.skuCode);
+                                                setEditingResolvedSkuDetails({
+                                                  skuCode: sku.skuCode,
+                                                  internalSkuCode: null,
+                                                  legacyStockCode: '',
+                                                  barcode: sku.barcode,
+                                                  productName: sku.productName,
+                                                  purchaseProductName: '',
+                                                  quantity: 1,
+                                                  sellingPrice: sku.salePrice,
+                                                  costPrice: sku.cost,
+                                                  stockQuantity: sku.stockQty,
+                                                  matchSource: 'ERP 재고 검색',
+                                                });
+                                              }}
                                               className="w-full text-left rounded p-1.5 hover:bg-[#1a1a1f] flex items-center justify-between text-xs transition"
                                             >
                                               <span className="font-mono font-semibold text-zinc-300">{sku.skuCode}</span>
@@ -1012,7 +1057,7 @@ export default function MappingRiskResolutionPage() {
                                 <div className="flex items-center gap-3 pt-2">
                                   <button
                                     type="button"
-                                    onClick={() => handleSaveResolution(row.id, row.isSetProduct)}
+                                    onClick={() => handleSaveResolution(row)}
                                     className="rounded-lg bg-indigo-600 hover:bg-indigo-500 px-4 py-2 text-xs font-semibold text-white transition"
                                   >
                                     해결 완료 Draft 저장

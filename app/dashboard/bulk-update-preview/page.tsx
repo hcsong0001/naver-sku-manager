@@ -20,6 +20,20 @@ import type {
   BulkUpdatePreviewFilter,
   BulkUpdatePreviewSummaryResponse,
 } from '@/src/types/bulk-update-preview.types';
+import type {
+  DraftAppliedBulkUpdateCandidate,
+  DraftAppliedStagingMappingCandidate,
+  MappingResolutionDraftLoadResult,
+} from '@/src/types/mapping-resolution-draft.types';
+import type { StagingMappingCandidatesResponse } from '@/src/types/staging-mapping-preview.types';
+import {
+  applyDraftToBulkUpdateCandidates,
+  applyDraftToStagingMappingCandidates,
+  buildDraftAppliedBulkUpdateSummary,
+  buildDraftPreviewSummary,
+  buildMappingResolutionSnapshotMetadata,
+  readMappingResolutionDraftFromStorage,
+} from '@/src/utils/mapping-resolution-draft';
 import {
   DEFAULT_PAGE_SIZE,
   getPaginationRange,
@@ -69,24 +83,34 @@ async function requestSummary(): Promise<BulkUpdatePreviewSummaryResponse> {
   return data as BulkUpdatePreviewSummaryResponse;
 }
 
-async function requestCandidates(input: {
-  filter: BulkUpdatePreviewFilter;
-  page: number;
-  pageSize: CommonPageSize;
-  signal: AbortSignal;
-}): Promise<BulkUpdatePreviewCandidatesResponse> {
+async function requestAllBulkCandidates(signal: AbortSignal): Promise<BulkUpdatePreviewCandidatesResponse> {
   const params = new URLSearchParams({
-    filter: input.filter,
-    page: String(input.page),
-    pageSize: String(input.pageSize),
+    filter: 'ALL',
+    page: '1',
+    pageSize: 'ALL',
   });
   const response = await fetch(`/api/bulk-update-preview/candidates?${params}`, {
     cache: 'no-store',
-    signal: input.signal,
+    signal,
   });
   const data = await readJson<BulkUpdatePreviewCandidatesResponse | { error: string }>(response);
   if (!response.ok) throw new Error(getErrorMessage(data, '가격/재고 수정 Preview 후보 조회에 실패했습니다.'));
   return data as BulkUpdatePreviewCandidatesResponse;
+}
+
+async function requestAllMappingCandidates(signal: AbortSignal): Promise<StagingMappingCandidatesResponse> {
+  const params = new URLSearchParams({
+    filter: 'ALL',
+    page: '1',
+    pageSize: 'ALL',
+  });
+  const response = await fetch(`/api/staging-mapping-preview/candidates?${params}`, {
+    cache: 'no-store',
+    signal,
+  });
+  const data = await readJson<StagingMappingCandidatesResponse | { error: string }>(response);
+  if (!response.ok) throw new Error(getErrorMessage(data, '전체 매핑 후보 조회에 실패했습니다.'));
+  return data as StagingMappingCandidatesResponse;
 }
 
 async function requestDraftBatch(candidateIds: string[]): Promise<BulkUpdateDraftBatchResponse> {
@@ -179,11 +203,13 @@ function SkuChips({ rows }: { rows: BulkUpdatePreviewCandidate['linkedSkus'] }) 
 
 export default function BulkUpdatePreviewPage() {
   const [summary, setSummary] = useState<BulkUpdatePreviewSummaryResponse | null>(null);
-  const [candidates, setCandidates] = useState<BulkUpdatePreviewCandidatesResponse | null>(null);
+  const [allCandidates, setAllCandidates] = useState<BulkUpdatePreviewCandidate[]>([]);
+  const [allMappingCandidates, setAllMappingCandidates] = useState<DraftAppliedStagingMappingCandidate[]>([]);
   const [filter, setFilter] = useState<BulkUpdatePreviewFilter>('ALL');
   const [pageSize, setPageSize] = useState<CommonPageSize>(DEFAULT_PAGE_SIZE);
   const [currentPage, setCurrentPage] = useState(1);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [draftPreviewEnabled, setDraftPreviewEnabled] = useState(false);
   const [summaryLoading, setSummaryLoading] = useState(true);
   const [candidatesLoading, setCandidatesLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -218,10 +244,18 @@ export default function BulkUpdatePreviewPage() {
   useEffect(() => {
     const controller = new AbortController();
     let cancelled = false;
-    void requestCandidates({ filter, page: currentPage, pageSize, signal: controller.signal })
-      .then((data) => {
+    void Promise.all([
+      requestAllBulkCandidates(controller.signal),
+      requestAllMappingCandidates(controller.signal),
+    ])
+      .then(([bulkData, mappingData]) => {
         if (!cancelled) {
-          setCandidates(data);
+          setAllCandidates(bulkData.rows);
+          setAllMappingCandidates(mappingData.rows.map((row) => ({
+            ...row,
+            draftApplied: false,
+            draftStatus: 'NONE',
+          })));
           setCandidatesError(null);
         }
       })
@@ -237,9 +271,70 @@ export default function BulkUpdatePreviewPage() {
       cancelled = true;
       controller.abort();
     };
-  }, [currentPage, filter, pageSize, refreshKey]);
+  }, [refreshKey]);
 
-  const rows = candidates?.rows ?? [];
+  const currentSnapshotMetadata = useMemo(
+    () => (summary ? buildMappingResolutionSnapshotMetadata(summary.snapshot) : null),
+    [summary],
+  );
+  const mappingRowsById = useMemo(
+    () => new Map(allMappingCandidates.map((row) => [row.id, row])),
+    [allMappingCandidates],
+  );
+
+  const draftLoadResult = useMemo<MappingResolutionDraftLoadResult | null>(() => {
+    if (!currentSnapshotMetadata) return null;
+    return readMappingResolutionDraftFromStorage({
+      storage: window.localStorage,
+      currentSnapshot: currentSnapshotMetadata,
+      rowsById: mappingRowsById,
+    });
+  }, [currentSnapshotMetadata, mappingRowsById]);
+
+  const draftAppliedMappingRows = useMemo(() => {
+    if (!draftPreviewEnabled) return allMappingCandidates;
+    return applyDraftToStagingMappingCandidates({
+      rows: allMappingCandidates,
+      draft: draftLoadResult?.draft ?? null,
+      snapshotMatches: draftLoadResult?.exactMatch ?? false,
+    });
+  }, [allMappingCandidates, draftLoadResult, draftPreviewEnabled]);
+
+  const previewRows = useMemo<DraftAppliedBulkUpdateCandidate[]>(() => {
+    if (!draftPreviewEnabled) {
+      return allCandidates.map((row) => ({
+        ...row,
+        draftApplied: false,
+        draftStatus: 'NONE',
+      }));
+    }
+    return applyDraftToBulkUpdateCandidates({
+      rows: allCandidates,
+      mappingRows: draftAppliedMappingRows,
+      draft: draftLoadResult?.draft ?? null,
+      snapshotMatches: draftLoadResult?.exactMatch ?? false,
+    });
+  }, [allCandidates, draftAppliedMappingRows, draftLoadResult, draftPreviewEnabled]);
+
+  const effectiveSummary = useMemo(() => {
+    if (!summary) return null;
+    if (!draftPreviewEnabled) return summary.summary;
+    return buildDraftAppliedBulkUpdateSummary(previewRows);
+  }, [draftPreviewEnabled, previewRows, summary]);
+
+  const rows = useMemo(() => {
+    if (filter === 'ALL') return previewRows;
+    if (filter === 'SAFE') return previewRows.filter((row) => row.status === 'SAFE');
+    if (filter === 'RISK') return previewRows.filter((row) => row.status === 'RISK');
+    if (filter === 'EXCLUDED') return previewRows.filter((row) => row.status === 'EXCLUDED');
+    if (filter === 'PRICE') return previewRows.filter((row) => row.hasPriceChange && !row.hasStockChange);
+    if (filter === 'STOCK') return previewRows.filter((row) => !row.hasPriceChange && row.hasStockChange);
+    if (filter === 'PRICE_AND_STOCK') return previewRows.filter((row) => row.hasPriceChange && row.hasStockChange);
+    if (filter === 'SET') return previewRows.filter((row) => row.isSetProduct);
+    if (filter === 'SINGLE') return previewRows.filter((row) => !row.isSetProduct);
+    return previewRows.filter((row) => row.candidateType === filter);
+  }, [filter, previewRows]);
+
   const executableRows = rows.filter((row) => row.draftCreatable);
   const selectedRows = rows.filter((row) => selectedIds.includes(row.id));
   const selectedApiCallCount = selectedRows.reduce(
@@ -248,14 +343,33 @@ export default function BulkUpdatePreviewPage() {
   );
   const draftActionsDisabled = submitting
     || !summary
+    || draftPreviewEnabled
     || !summary.snapshot.hasRequiredBulkData
     || !summary.snapshot.hasCandidateRows
     || summary.summary.draftBatchCreatableCount === 0;
+  const safeCurrentPage = useMemo(() => {
+    if (pageSize === 'ALL') return 1;
+    const totalPages = Math.max(1, Math.ceil(rows.length / pageSize));
+    return Math.min(currentPage, totalPages);
+  }, [currentPage, pageSize, rows.length]);
+  const paginatedRows = useMemo(() => {
+    if (pageSize === 'ALL') return rows;
+    const startIndex = (safeCurrentPage - 1) * pageSize;
+    return rows.slice(startIndex, startIndex + pageSize);
+  }, [pageSize, rows, safeCurrentPage]);
   const pagination = useMemo(() => getPaginationRange(
-    candidates?.totalCount ?? 0,
-    candidates?.pageSize ?? pageSize,
-    candidates?.currentPage ?? currentPage,
-  ), [candidates, currentPage, pageSize]);
+    rows.length,
+    pageSize,
+    safeCurrentPage,
+  ), [pageSize, rows.length, safeCurrentPage]);
+  const draftSummary = useMemo(() => {
+    if (!summary || !draftPreviewEnabled || !effectiveSummary) return null;
+    return buildDraftPreviewSummary({
+      baseRiskCount: summary.summary.riskCandidateCount,
+      draftRiskCount: effectiveSummary.riskCandidateCount,
+      rows: previewRows,
+    });
+  }, [draftPreviewEnabled, effectiveSummary, previewRows, summary]);
 
   const refresh = () => {
     setSummaryLoading(true);
@@ -360,13 +474,54 @@ export default function BulkUpdatePreviewPage() {
                 💡 <strong>집계 기준 설명:</strong> 원본 후보에서 동일 상품/옵션 중복을 제거한 뒤 ProductVariantKeyword 후보를 우선 사용합니다.
               </div>
 
+              <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-[#262629] bg-[#121214] px-4 py-3">
+                <div>
+                  <p className="text-sm font-semibold text-white">해결 draft 반영 Preview</p>
+                  <p className="mt-1 text-xs text-zinc-500">
+                    ON 상태에서는 localStorage 해결 draft를 반영해 위험 감소와 실행 가능 후보 수를 미리 계산합니다.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDraftPreviewEnabled((value) => !value);
+                    setCurrentPage(1);
+                    setSelectedIds([]);
+                  }}
+                  className={`inline-flex items-center gap-2 rounded-full border px-3 py-2 text-xs font-semibold transition ${
+                    draftPreviewEnabled
+                      ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300'
+                      : 'border-[#333] bg-[#0c0c0e] text-zinc-400 hover:text-zinc-200'
+                  }`}
+                >
+                  <span>{draftPreviewEnabled ? 'ON' : 'OFF'}</span>
+                  <span>{draftPreviewEnabled ? 'Draft 반영 중' : '기존 staging 기준'}</span>
+                </button>
+              </div>
+
+              {draftPreviewEnabled && draftLoadResult?.snapshotMismatch && (
+                <div className="rounded-lg border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-sm text-amber-300">
+                  현재 staging snapshot과 해결 draft 기준이 다릅니다. draft를 적용하면 결과가 정확하지 않을 수 있습니다.
+                </div>
+              )}
+
+              {draftPreviewEnabled && draftSummary && (
+                <div className="grid gap-3 md:grid-cols-5">
+                  <SummaryCard label="draft 적용 전 위험 후보 수" value={draftSummary.baseRiskCount} accent="rose" />
+                  <SummaryCard label="draft 적용 후 위험 후보 수" value={draftSummary.draftRiskCount} accent="emerald" />
+                  <SummaryCard label="감소한 위험 후보 수" value={draftSummary.reducedRiskCount} accent="indigo" />
+                  <SummaryCard label="draft 적용 후보 수" value={draftSummary.draftAppliedCount} accent="cyan" />
+                  <SummaryCard label="draft 적용 후 실행 가능 후보 수" value={draftSummary.draftExecutableCount} accent="violet" />
+                </div>
+              )}
+
               {/* 실행 가능 후보 0건 안내 배너 */}
-              {summary.summary.draftBatchCreatableCount === 0 && (
+              {(effectiveSummary?.draftBatchCreatableCount ?? summary.summary.draftBatchCreatableCount) === 0 && (
                 <div className="flex items-start gap-2.5 rounded-lg border border-rose-500/20 bg-rose-500/10 px-4 py-3.5 text-sm text-rose-300">
                   <ShieldAlert className="h-5 w-5 shrink-0 text-rose-400 mt-0.5" />
                   <div>
                     <p className="font-semibold">Draft Batch 생성 불가 안내</p>
-                    {summary.summary.mappingSafeCandidateCount === 0 ? (
+                    {(effectiveSummary?.mappingSafeCandidateCount ?? summary.summary.mappingSafeCandidateCount) === 0 ? (
                       <p className="mt-1 text-xs text-rose-400/90">현재 모든 후보가 위험 상태이므로 Draft Batch를 생성할 수 없습니다. 먼저 SKU 미확정, 세트 구성 오류, 중복 후보를 정리해야 합니다.</p>
                     ) : (
                       <p className="mt-1 text-xs text-rose-400/90">위험이 없는 후보는 있으나, 현재 가격 또는 재고 변경이 필요한 후보가 없어 Draft Batch를 생성할 수 없습니다.</p>
@@ -449,18 +604,18 @@ export default function BulkUpdatePreviewPage() {
               </div>
 
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 2xl:grid-cols-5">
-                <SummaryCard label="전체 후보 수 (중복 제거)" value={summary.summary.totalCandidateCount} accent="cyan" />
-                <SummaryCard label="매핑 기준 안전 후보 수" value={summary.summary.mappingSafeCandidateCount} accent="emerald" />
-                <SummaryCard label="가격/재고 수정 대상 후보 수" value={summary.summary.updateTargetCandidateCount} accent="indigo" />
-                <SummaryCard label="Draft Batch 생성 가능 후보 수" value={summary.summary.draftBatchCreatableCount} accent="emerald" />
-                <SummaryCard label="실행 제외 후보 수" value={summary.summary.excludedCandidateCount} accent="amber" />
-                <SummaryCard label="가격 수정 대상 후보 수" value={summary.summary.priceUpdateCandidateCount} accent="indigo" />
-                <SummaryCard label="재고 수정 대상 후보 수" value={summary.summary.stockUpdateCandidateCount} accent="emerald" />
-                <SummaryCard label="가격+재고 수정 대상 후보 수" value={summary.summary.priceAndStockUpdateCandidateCount} accent="violet" />
-                <SummaryCard label="단품 후보 수" value={summary.summary.singleCandidateCount} accent="cyan" />
-                <SummaryCard label="세트상품 후보 수" value={summary.summary.setCandidateCount} accent="violet" />
-                <SummaryCard label="위험 후보 수" value={summary.summary.riskCandidateCount} accent="rose" />
-                <SummaryCard label="예상 API 호출 건수" value={summary.summary.expectedApiCallCount} accent="indigo" />
+                <SummaryCard label="전체 후보 수 (중복 제거)" value={effectiveSummary?.totalCandidateCount ?? summary.summary.totalCandidateCount} accent="cyan" />
+                <SummaryCard label="매핑 기준 안전 후보 수" value={effectiveSummary?.mappingSafeCandidateCount ?? summary.summary.mappingSafeCandidateCount} accent="emerald" />
+                <SummaryCard label="가격/재고 수정 대상 후보 수" value={effectiveSummary?.updateTargetCandidateCount ?? summary.summary.updateTargetCandidateCount} accent="indigo" />
+                <SummaryCard label="Draft Batch 생성 가능 후보 수" value={effectiveSummary?.draftBatchCreatableCount ?? summary.summary.draftBatchCreatableCount} accent="emerald" />
+                <SummaryCard label="실행 제외 후보 수" value={effectiveSummary?.excludedCandidateCount ?? summary.summary.excludedCandidateCount} accent="amber" />
+                <SummaryCard label="가격 수정 대상 후보 수" value={effectiveSummary?.priceUpdateCandidateCount ?? summary.summary.priceUpdateCandidateCount} accent="indigo" />
+                <SummaryCard label="재고 수정 대상 후보 수" value={effectiveSummary?.stockUpdateCandidateCount ?? summary.summary.stockUpdateCandidateCount} accent="emerald" />
+                <SummaryCard label="가격+재고 수정 대상 후보 수" value={effectiveSummary?.priceAndStockUpdateCandidateCount ?? summary.summary.priceAndStockUpdateCandidateCount} accent="violet" />
+                <SummaryCard label="단품 후보 수" value={effectiveSummary?.singleCandidateCount ?? summary.summary.singleCandidateCount} accent="cyan" />
+                <SummaryCard label="세트상품 후보 수" value={effectiveSummary?.setCandidateCount ?? summary.summary.setCandidateCount} accent="violet" />
+                <SummaryCard label="위험 후보 수" value={effectiveSummary?.riskCandidateCount ?? summary.summary.riskCandidateCount} accent="rose" />
+                <SummaryCard label="예상 API 호출 건수" value={effectiveSummary?.expectedApiCallCount ?? summary.summary.expectedApiCallCount} accent="indigo" />
               </div>
             </>
           )}
@@ -476,7 +631,6 @@ export default function BulkUpdatePreviewPage() {
             <PageSizeSelect
               value={pageSize}
               onChange={(value) => {
-                setCandidatesLoading(true);
                 setPageSize(value);
                 setCurrentPage(1);
                 setSelectedIds([]);
@@ -492,7 +646,6 @@ export default function BulkUpdatePreviewPage() {
                     key={item.value}
                     type="button"
                     onClick={() => {
-                      setCandidatesLoading(true);
                       setFilter(item.value);
                       setCurrentPage(1);
                       setSelectedIds([]);
@@ -532,7 +685,9 @@ export default function BulkUpdatePreviewPage() {
                   onClick={() => void submitDraftBatch()}
                   disabled={selectedIds.length === 0 || draftActionsDisabled}
                   className="inline-flex items-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/15 px-3 py-2 text-xs font-semibold text-emerald-200 transition hover:border-emerald-400 disabled:opacity-50"
-                  title={summary && !summary.snapshot.hasRequiredBulkData
+                  title={draftPreviewEnabled
+                    ? '해결 draft 반영 Preview에서는 Draft Batch를 생성하지 않습니다.'
+                    : summary && !summary.snapshot.hasRequiredBulkData
                     ? `부족한 staging 데이터: ${summary.snapshot.missingBulkRequirements.map((fileType) => FILE_TYPE_LABELS[fileType] ?? fileType).join(', ')}`
                     : summary && !summary.snapshot.hasCandidateRows
                       ? '매핑 후보가 없어 draft batch를 생성할 수 없습니다.'
@@ -547,14 +702,13 @@ export default function BulkUpdatePreviewPage() {
 
           <div className="rounded-lg border border-[#262629] bg-[#0c0c0e] px-4 py-3">
             <PaginationControls
-              currentPage={candidates?.currentPage ?? currentPage}
-              totalPages={candidates?.totalPages ?? 1}
-              pageSize={candidates?.pageSize ?? pageSize}
+              currentPage={safeCurrentPage}
+              totalPages={pageSize === 'ALL' ? 1 : Math.max(1, Math.ceil(rows.length / pageSize))}
+              pageSize={pageSize}
               start={pagination.start}
               end={pagination.end}
-              totalCount={candidates?.totalCount ?? 0}
+              totalCount={rows.length}
               onChangePage={(page) => {
-                setCandidatesLoading(true);
                 setCurrentPage(page);
                 setSelectedIds([]);
               }}
@@ -592,7 +746,7 @@ export default function BulkUpdatePreviewPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#1e1e22]">
-                {rows.map((row, index) => (
+                {paginatedRows.map((row, index) => (
                   <tr key={row.id} className="align-top hover:bg-[#121216]">
                     <td className="px-3 py-3">
                       <input
@@ -604,7 +758,7 @@ export default function BulkUpdatePreviewPage() {
                       />
                     </td>
                     <td className="whitespace-nowrap px-3 py-3 font-mono text-xs text-zinc-500">
-                      {getRowNumber(index, candidates?.currentPage ?? currentPage, candidates?.pageSize ?? pageSize)}
+                      {getRowNumber(index, safeCurrentPage, pageSize)}
                     </td>
                     <td className="min-w-40 px-3 py-3">
                       <p className="text-xs font-medium text-zinc-200">{row.storeName || '-'}</p>
@@ -613,10 +767,23 @@ export default function BulkUpdatePreviewPage() {
                     <td className="whitespace-nowrap px-3 py-3 font-mono text-xs text-zinc-300">{row.channelProductNo || '-'}</td>
                     <td className="space-y-2 whitespace-nowrap px-3 py-3">
                       <TypeBadge type={row.candidateType} />
-                      <CandidateStatusBadge status={row.status} />
+                      <div className="space-y-1">
+                        <CandidateStatusBadge status={row.status} />
+                        {row.draftApplied && (
+                          <span className={`inline-flex rounded-md border px-2 py-0.5 text-[10px] ${
+                            row.draftStatus === 'EXACT'
+                              ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-300'
+                              : 'border-amber-500/20 bg-amber-500/10 text-amber-300'
+                          }`}>
+                            [Draft 적용]
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="min-w-80 max-w-[420px] px-3 py-3">
-                      <p className="text-xs font-medium leading-5 text-zinc-200">{row.itemName || '-'}</p>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="text-xs font-medium leading-5 text-zinc-200">{row.itemName || '-'}</p>
+                      </div>
                       {row.productName && row.productName !== row.itemName && (
                         <p className="mt-1 line-clamp-2 text-[11px] leading-4 text-zinc-500">{row.productName}</p>
                       )}
@@ -631,7 +798,15 @@ export default function BulkUpdatePreviewPage() {
                         {row.isSetProduct ? `[세트 ${row.bundleSkus.length}개]` : '[단품]'}
                       </span>
                     </td>
-                    <td className="px-3 py-3"><SkuChips rows={row.linkedSkus} /></td>
+                    <td className="px-3 py-3">
+                      {row.draftApplied && row.draftChange?.linkedSkus && (
+                        <div className="mb-2 rounded-md border border-[#262629] bg-[#111114] p-2">
+                          <p className="mb-1 text-[10px] text-zinc-500">변경 전 SKU</p>
+                          <SkuChips rows={row.draftChange.linkedSkus.before} />
+                        </div>
+                      )}
+                      <SkuChips rows={row.linkedSkus} />
+                    </td>
                     <td className="whitespace-nowrap px-3 py-3 text-zinc-300">{formatMoney(row.currentSmartstorePrice)}</td>
                     <td className="whitespace-nowrap px-3 py-3 text-zinc-100">{formatMoney(row.calculatedTargetPrice)}</td>
                     <td className="whitespace-nowrap px-3 py-3 text-zinc-300">{formatNumber(row.currentSmartstoreStock)}</td>
@@ -680,7 +855,7 @@ export default function BulkUpdatePreviewPage() {
                     </td>
                   </tr>
                 ))}
-                {!candidatesLoading && rows.length === 0 && (
+                {!candidatesLoading && paginatedRows.length === 0 && (
                   <tr>
                     <td colSpan={20} className="px-4 py-16 text-center text-sm text-zinc-500">조건에 맞는 수정 후보가 없습니다.</td>
                   </tr>
@@ -691,14 +866,13 @@ export default function BulkUpdatePreviewPage() {
 
           <div className="rounded-lg border border-[#262629] bg-[#0c0c0e] px-4 py-3">
             <PaginationControls
-              currentPage={candidates?.currentPage ?? currentPage}
-              totalPages={candidates?.totalPages ?? 1}
-              pageSize={candidates?.pageSize ?? pageSize}
+              currentPage={safeCurrentPage}
+              totalPages={pageSize === 'ALL' ? 1 : Math.max(1, Math.ceil(rows.length / pageSize))}
+              pageSize={pageSize}
               start={pagination.start}
               end={pagination.end}
-              totalCount={candidates?.totalCount ?? 0}
+              totalCount={rows.length}
               onChangePage={(page) => {
-                setCandidatesLoading(true);
                 setCurrentPage(page);
                 setSelectedIds([]);
               }}

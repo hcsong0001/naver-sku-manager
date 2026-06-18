@@ -18,6 +18,17 @@ import type {
   StagingMappingSku,
   StagingMappingSummaryResponse,
 } from '@/src/types/staging-mapping-preview.types';
+import type {
+  DraftAppliedStagingMappingCandidate,
+  MappingResolutionDraftLoadResult,
+} from '@/src/types/mapping-resolution-draft.types';
+import {
+  applyDraftToStagingMappingCandidates,
+  buildDraftAppliedStagingMappingSummary,
+  buildDraftPreviewSummary,
+  buildMappingResolutionSnapshotMetadata,
+  readMappingResolutionDraftFromStorage,
+} from '@/src/utils/mapping-resolution-draft';
 import {
   DEFAULT_PAGE_SIZE,
   getPaginationRange,
@@ -71,20 +82,15 @@ async function requestSummary(): Promise<StagingMappingSummaryResponse> {
   return data as StagingMappingSummaryResponse;
 }
 
-async function requestCandidates(input: {
-  filter: StagingMappingFilter;
-  page: number;
-  pageSize: CommonPageSize;
-  signal: AbortSignal;
-}): Promise<StagingMappingCandidatesResponse> {
+async function requestAllCandidates(signal: AbortSignal): Promise<StagingMappingCandidatesResponse> {
   const params = new URLSearchParams({
-    filter: input.filter,
-    page: String(input.page),
-    pageSize: String(input.pageSize),
+    filter: 'ALL',
+    page: '1',
+    pageSize: 'ALL',
   });
   const response = await fetch(`/api/staging-mapping-preview/candidates?${params}`, {
     cache: 'no-store',
-    signal: input.signal,
+    signal,
   });
   const data = await readJson<StagingMappingCandidatesResponse | { error: string }>(response);
   if (!response.ok) throw new Error(getErrorMessage(data, '전체 매핑 후보 조회에 실패했습니다.'));
@@ -212,11 +218,12 @@ function CalculationState({
 
 export default function StagingMappingPreviewPage() {
   const [summary, setSummary] = useState<StagingMappingSummaryResponse | null>(null);
-  const [candidates, setCandidates] = useState<StagingMappingCandidatesResponse | null>(null);
+  const [allCandidates, setAllCandidates] = useState<StagingMappingCandidate[]>([]);
   const [filter, setFilter] = useState<StagingMappingFilter>('ALL');
   const [pageSize, setPageSize] = useState<CommonPageSize>(DEFAULT_PAGE_SIZE);
   const [currentPage, setCurrentPage] = useState(1);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [draftPreviewEnabled, setDraftPreviewEnabled] = useState(false);
   const [summaryLoading, setSummaryLoading] = useState(true);
   const [candidatesLoading, setCandidatesLoading] = useState(true);
   const [summaryError, setSummaryError] = useState<string | null>(null);
@@ -245,10 +252,10 @@ export default function StagingMappingPreviewPage() {
   useEffect(() => {
     const controller = new AbortController();
     let cancelled = false;
-    void requestCandidates({ filter, page: currentPage, pageSize, signal: controller.signal })
+    void requestAllCandidates(controller.signal)
       .then((data) => {
         if (!cancelled) {
-          setCandidates(data);
+          setAllCandidates(data.rows);
           setCandidatesError(null);
         }
       })
@@ -264,13 +271,111 @@ export default function StagingMappingPreviewPage() {
       cancelled = true;
       controller.abort();
     };
-  }, [currentPage, filter, pageSize, refreshKey]);
+  }, [refreshKey]);
+
+  const currentSnapshotMetadata = useMemo(
+    () => (summary ? buildMappingResolutionSnapshotMetadata(summary.snapshot) : null),
+    [summary],
+  );
+
+  const rowsById = useMemo(
+    () => new Map(allCandidates.map((row) => [row.id, row])),
+    [allCandidates],
+  );
+
+  const draftLoadResult = useMemo<MappingResolutionDraftLoadResult | null>(() => {
+    if (!currentSnapshotMetadata) return null;
+    return readMappingResolutionDraftFromStorage({
+      storage: window.localStorage,
+      currentSnapshot: currentSnapshotMetadata,
+      rowsById,
+    });
+  }, [currentSnapshotMetadata, rowsById]);
+
+  const previewRows = useMemo<DraftAppliedStagingMappingCandidate[]>(() => {
+    if (!draftPreviewEnabled) {
+      return allCandidates.map((row) => ({
+        ...row,
+        draftApplied: false,
+        draftStatus: 'NONE',
+      }));
+    }
+
+    return applyDraftToStagingMappingCandidates({
+      rows: allCandidates,
+      draft: draftLoadResult?.draft ?? null,
+      snapshotMatches: draftLoadResult?.exactMatch ?? false,
+    });
+  }, [allCandidates, draftLoadResult, draftPreviewEnabled]);
+
+  const effectiveSummary = useMemo(() => {
+    if (!summary) return null;
+    if (!draftPreviewEnabled) return summary.summary;
+    return buildDraftAppliedStagingMappingSummary(previewRows, summary.summary);
+  }, [draftPreviewEnabled, previewRows, summary]);
+
+  const draftSummary = useMemo(() => {
+    if (!summary || !draftPreviewEnabled || !effectiveSummary) return null;
+    return buildDraftPreviewSummary({
+      baseRiskCount: summary.summary.riskUniqueCandidateCount,
+      draftRiskCount: effectiveSummary.riskUniqueCandidateCount,
+      rows: previewRows
+        .filter((row) => !row.isDuplicate)
+        .map((row) => ({
+          draftApplied: row.draftApplied,
+          executable: row.mappingStatus === 'MAPPED' && row.riskTypes.length === 0,
+        })),
+    });
+  }, [draftPreviewEnabled, effectiveSummary, previewRows, summary]);
+
+  const filteredRows = useMemo(() => {
+    if (filter === 'DUPLICATE_CANDIDATE') {
+      return previewRows.filter((row) => row.isDuplicate || row.riskTypes.includes('DUPLICATE_CANDIDATE'));
+    }
+
+    const uniqueRows = previewRows.filter((row) => !row.isDuplicate);
+
+    if (filter === 'ALL') return uniqueRows;
+    if (filter === 'MAPPED') return uniqueRows.filter((row) => row.mappingStatus === 'MAPPED');
+    if (filter === 'UNMAPPED') return uniqueRows.filter((row) => row.mappingStatus === 'UNMAPPED');
+    if (filter === 'RISK') return uniqueRows.filter((row) => row.mappingStatus === 'RISK');
+    if (filter === 'SKU_UNRESOLVED') {
+      return uniqueRows.filter((row) => row.riskTypes.some((risk) =>
+        ['SKU_UNRESOLVED', 'NO_CANDIDATE_SKU', 'SET_COMPONENT_SKU_UNRESOLVED'].includes(risk),
+      ));
+    }
+    if (filter === 'SET') return uniqueRows.filter((row) => row.isSetProduct);
+    if (filter === 'SINGLE') return uniqueRows.filter((row) => !row.isSetProduct);
+    if ([
+      'SET_COMPONENT_QUANTITY_INVALID',
+      'SET_COMPONENT_SKU_UNRESOLVED',
+      'NO_CANDIDATE_SKU',
+      'STOCK_SKU_MISSING',
+      'DIFFERENT_FROM_EXISTING',
+      'PRICE_BASELINE_MISSING',
+    ].includes(filter)) {
+      return uniqueRows.filter((row) => row.riskTypes.includes(filter as typeof row.riskTypes[number]));
+    }
+    return uniqueRows.filter((row) => row.candidateType === filter);
+  }, [filter, previewRows]);
+
+  const safeCurrentPage = useMemo(() => {
+    if (pageSize === 'ALL') return 1;
+    const totalPages = Math.max(1, Math.ceil(filteredRows.length / pageSize));
+    return Math.min(currentPage, totalPages);
+  }, [currentPage, filteredRows.length, pageSize]);
+
+  const paginatedRows = useMemo(() => {
+    if (pageSize === 'ALL') return filteredRows;
+    const startIndex = (safeCurrentPage - 1) * pageSize;
+    return filteredRows.slice(startIndex, startIndex + pageSize);
+  }, [filteredRows, pageSize, safeCurrentPage]);
 
   const pagination = useMemo(() => getPaginationRange(
-    candidates?.totalCount ?? 0,
-    candidates?.pageSize ?? pageSize,
-    candidates?.currentPage ?? currentPage,
-  ), [candidates, currentPage, pageSize]);
+    filteredRows.length,
+    pageSize,
+    safeCurrentPage,
+  ), [filteredRows.length, pageSize, safeCurrentPage]);
 
   const refresh = () => {
     setSummaryLoading(true);
@@ -318,6 +423,46 @@ export default function StagingMappingPreviewPage() {
               <div className="rounded-lg border border-indigo-500/20 bg-indigo-500/10 px-4 py-3 text-sm text-indigo-300">
                 💡 <strong>집계 기준 설명:</strong> 원본 후보에서 동일 상품/옵션 중복을 제거한 뒤 ProductVariantKeyword 후보를 우선 사용합니다.
               </div>
+
+              <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-[#262629] bg-[#121214] px-4 py-3">
+                <div>
+                  <p className="text-sm font-semibold text-white">해결 draft 반영 Preview</p>
+                  <p className="mt-1 text-xs text-zinc-500">
+                    OFF는 기존 staging 후보, ON은 localStorage 해결 draft를 반영한 preview입니다.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDraftPreviewEnabled((value) => !value);
+                    setCurrentPage(1);
+                  }}
+                  className={`inline-flex items-center gap-2 rounded-full border px-3 py-2 text-xs font-semibold transition ${
+                    draftPreviewEnabled
+                      ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300'
+                      : 'border-[#333] bg-[#0c0c0e] text-zinc-400 hover:text-zinc-200'
+                  }`}
+                >
+                  <span>{draftPreviewEnabled ? 'ON' : 'OFF'}</span>
+                  <span>{draftPreviewEnabled ? 'Draft 반영 중' : '기존 staging 기준'}</span>
+                </button>
+              </div>
+
+              {draftPreviewEnabled && draftLoadResult?.snapshotMismatch && (
+                <div className="rounded-lg border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-sm text-amber-300">
+                  현재 staging snapshot과 해결 draft 기준이 다릅니다. draft를 적용하면 결과가 정확하지 않을 수 있습니다.
+                </div>
+              )}
+
+              {draftPreviewEnabled && draftSummary && (
+                <div className="grid gap-3 md:grid-cols-5">
+                  <SummaryCard label="draft 적용 전 위험 후보 수" value={draftSummary.baseRiskCount} accent="rose" />
+                  <SummaryCard label="draft 적용 후 위험 후보 수" value={draftSummary.draftRiskCount} accent="emerald" />
+                  <SummaryCard label="감소한 위험 후보 수" value={draftSummary.reducedRiskCount} accent="indigo" />
+                  <SummaryCard label="draft 적용 후보 수" value={draftSummary.draftAppliedCount} accent="cyan" />
+                  <SummaryCard label="draft 적용 후 실행 가능 후보 수" value={draftSummary.draftExecutableCount} accent="violet" />
+                </div>
+              )}
 
               <div className="rounded-lg border border-[#262629] bg-[#0c0c0e] p-4">
                 <div className="flex flex-col gap-3 xl:flex-row xl:items-start xl:justify-between">
@@ -389,16 +534,16 @@ export default function StagingMappingPreviewPage() {
 
               {/* 핵심 후보군 통계 */}
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 2xl:grid-cols-5">
-                <SummaryCard label="원본 후보 수" value={summary.summary.originalCandidateCount} accent="indigo" />
-                <SummaryCard label="중복 제거 후보 수 (실제 후보)" value={summary.summary.uniqueCandidateCount} accent="cyan" />
-                <SummaryCard label="중복 제거로 제외된 후보 수" value={summary.summary.duplicateCandidateCount} accent="violet" />
-                <SummaryCard label="단품 후보 수" value={summary.summary.singleProductCandidateCount} accent="cyan" />
-                <SummaryCard label="BUNDLE/세트상품 후보 수" value={summary.summary.setProductCandidateCount} accent="violet" />
-                <SummaryCard label="매핑완료 후보 수" value={summary.summary.mappedCandidateCount} accent="emerald" />
-                <SummaryCard label="미매핑 후보 수" value={summary.summary.unmappedCandidateCount} accent="amber" />
-                <SummaryCard label="위험 후보 수 (고유 후보 기준)" value={summary.summary.riskUniqueCandidateCount} accent="rose" />
-                <SummaryCard label="위험 유형 총 발생 건수" value={summary.summary.totalRiskCount} accent="rose" />
-                <SummaryCard label="Staging 재고 SKU 수" value={summary.summary.stagingStockSkuCount} accent="emerald" />
+                <SummaryCard label="원본 후보 수" value={effectiveSummary?.originalCandidateCount ?? summary.summary.originalCandidateCount} accent="indigo" />
+                <SummaryCard label="중복 제거 후보 수 (실제 후보)" value={effectiveSummary?.uniqueCandidateCount ?? summary.summary.uniqueCandidateCount} accent="cyan" />
+                <SummaryCard label="중복 제거로 제외된 후보 수" value={effectiveSummary?.duplicateCandidateCount ?? summary.summary.duplicateCandidateCount} accent="violet" />
+                <SummaryCard label="단품 후보 수" value={effectiveSummary?.singleProductCandidateCount ?? summary.summary.singleProductCandidateCount} accent="cyan" />
+                <SummaryCard label="BUNDLE/세트상품 후보 수" value={effectiveSummary?.setProductCandidateCount ?? summary.summary.setProductCandidateCount} accent="violet" />
+                <SummaryCard label="매핑완료 후보 수" value={effectiveSummary?.mappedCandidateCount ?? summary.summary.mappedCandidateCount} accent="emerald" />
+                <SummaryCard label="미매핑 후보 수" value={effectiveSummary?.unmappedCandidateCount ?? summary.summary.unmappedCandidateCount} accent="amber" />
+                <SummaryCard label="위험 후보 수 (고유 후보 기준)" value={effectiveSummary?.riskUniqueCandidateCount ?? summary.summary.riskUniqueCandidateCount} accent="rose" />
+                <SummaryCard label="위험 유형 총 발생 건수" value={effectiveSummary?.totalRiskCount ?? summary.summary.totalRiskCount} accent="rose" />
+                <SummaryCard label="Staging 재고 SKU 수" value={effectiveSummary?.stagingStockSkuCount ?? summary.summary.stagingStockSkuCount} accent="emerald" />
               </div>
 
               {/* 세부 위험 유형별 발생 건수 */}
@@ -407,35 +552,35 @@ export default function StagingMappingPreviewPage() {
                 <div className="grid gap-3 grid-cols-2 sm:grid-cols-4 lg:grid-cols-8">
                   <div className="rounded border border-[#222] bg-[#111114] p-3 text-center">
                     <p className="text-[11px] text-zinc-500 font-medium">세트 구성 수량 이상</p>
-                    <p className="mt-1.5 text-lg font-bold text-rose-300">{summary.summary.riskSetComponentQuantityInvalidCount}</p>
+                    <p className="mt-1.5 text-lg font-bold text-rose-300">{effectiveSummary?.riskSetComponentQuantityInvalidCount ?? summary.summary.riskSetComponentQuantityInvalidCount}</p>
                   </div>
                   <div className="rounded border border-[#222] bg-[#111114] p-3 text-center">
                     <p className="text-[11px] text-zinc-500 font-medium">SKU 미확정</p>
-                    <p className="mt-1.5 text-lg font-bold text-rose-300">{summary.summary.riskSkuUnresolvedCount}</p>
+                    <p className="mt-1.5 text-lg font-bold text-rose-300">{effectiveSummary?.riskSkuUnresolvedCount ?? summary.summary.riskSkuUnresolvedCount}</p>
                   </div>
                   <div className="rounded border border-[#222] bg-[#111114] p-3 text-center">
                     <p className="text-[11px] text-zinc-500 font-medium">세트 SKU 미확정</p>
-                    <p className="mt-1.5 text-lg font-bold text-rose-300">{summary.summary.riskSetComponentSkuUnresolvedCount}</p>
+                    <p className="mt-1.5 text-lg font-bold text-rose-300">{effectiveSummary?.riskSetComponentSkuUnresolvedCount ?? summary.summary.riskSetComponentSkuUnresolvedCount}</p>
                   </div>
                   <div className="rounded border border-[#222] bg-[#111114] p-3 text-center">
                     <p className="text-[11px] text-zinc-500 font-medium">재고/SKU 후보 중복 위험 건수</p>
-                    <p className="mt-1.5 text-lg font-bold text-rose-300">{summary.summary.riskDuplicateCandidateCount}</p>
+                    <p className="mt-1.5 text-lg font-bold text-rose-300">{effectiveSummary?.riskDuplicateCandidateCount ?? summary.summary.riskDuplicateCandidateCount}</p>
                   </div>
                   <div className="rounded border border-[#222] bg-[#111114] p-3 text-center">
                     <p className="text-[11px] text-zinc-500 font-medium">후보 SKU 없음</p>
-                    <p className="mt-1.5 text-lg font-bold text-rose-300">{summary.summary.riskNoCandidateSkuCount}</p>
+                    <p className="mt-1.5 text-lg font-bold text-rose-300">{effectiveSummary?.riskNoCandidateSkuCount ?? summary.summary.riskNoCandidateSkuCount}</p>
                   </div>
                   <div className="rounded border border-[#222] bg-[#111114] p-3 text-center">
                     <p className="text-[11px] text-zinc-500 font-medium">재고 SKU 없음</p>
-                    <p className="mt-1.5 text-lg font-bold text-rose-300">{summary.summary.riskStockSkuMissingCount}</p>
+                    <p className="mt-1.5 text-lg font-bold text-rose-300">{effectiveSummary?.riskStockSkuMissingCount ?? summary.summary.riskStockSkuMissingCount}</p>
                   </div>
                   <div className="rounded border border-[#222] bg-[#111114] p-3 text-center">
                     <p className="text-[11px] text-zinc-500 font-medium">기존 매핑과 다름</p>
-                    <p className="mt-1.5 text-lg font-bold text-rose-300">{summary.summary.riskDifferentFromExistingCount}</p>
+                    <p className="mt-1.5 text-lg font-bold text-rose-300">{effectiveSummary?.riskDifferentFromExistingCount ?? summary.summary.riskDifferentFromExistingCount}</p>
                   </div>
                   <div className="rounded border border-[#222] bg-[#111114] p-3 text-center">
                     <p className="text-[11px] text-zinc-500 font-medium">가격 기준 없음</p>
-                    <p className="mt-1.5 text-lg font-bold text-rose-300">{summary.summary.riskPriceBaselineMissingCount}</p>
+                    <p className="mt-1.5 text-lg font-bold text-rose-300">{effectiveSummary?.riskPriceBaselineMissingCount ?? summary.summary.riskPriceBaselineMissingCount}</p>
                   </div>
                 </div>
               </div>
@@ -466,7 +611,6 @@ export default function StagingMappingPreviewPage() {
             <PageSizeSelect
               value={pageSize}
               onChange={(value) => {
-                setCandidatesLoading(true);
                 setPageSize(value);
                 setCurrentPage(1);
               }}
@@ -479,7 +623,6 @@ export default function StagingMappingPreviewPage() {
                 key={item.value}
                 type="button"
                 onClick={() => {
-                  setCandidatesLoading(true);
                   setFilter(item.value);
                   setCurrentPage(1);
                 }}
@@ -496,14 +639,13 @@ export default function StagingMappingPreviewPage() {
 
           <div className="rounded-lg border border-[#262629] bg-[#0c0c0e] px-4 py-3">
             <PaginationControls
-              currentPage={candidates?.currentPage ?? currentPage}
-              totalPages={candidates?.totalPages ?? 1}
-              pageSize={candidates?.pageSize ?? pageSize}
+              currentPage={safeCurrentPage}
+              totalPages={pageSize === 'ALL' ? 1 : Math.max(1, Math.ceil(filteredRows.length / pageSize))}
+              pageSize={pageSize}
               start={pagination.start}
               end={pagination.end}
-              totalCount={candidates?.totalCount ?? 0}
+              totalCount={filteredRows.length}
               onChangePage={(page) => {
-                setCandidatesLoading(true);
                 setCurrentPage(page);
               }}
             />
@@ -535,10 +677,10 @@ export default function StagingMappingPreviewPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#1e1e22]">
-                {(candidates?.rows ?? []).map((row, index) => (
+                {paginatedRows.map((row, index) => (
                   <tr key={row.id} className="align-top hover:bg-[#121216]">
                     <td className="whitespace-nowrap px-3 py-3 font-mono text-xs text-zinc-500">
-                      {getRowNumber(index, candidates?.currentPage ?? currentPage, candidates?.pageSize ?? pageSize)}
+                      {getRowNumber(index, safeCurrentPage, pageSize)}
                       {row.isDuplicate && (
                         <span className="ml-1.5 rounded bg-zinc-700/60 px-1 py-0.5 text-[9px] text-zinc-400">중복</span>
                       )}
@@ -550,13 +692,31 @@ export default function StagingMappingPreviewPage() {
                     <td className="whitespace-nowrap px-3 py-3 font-mono text-xs text-zinc-300">{row.channelProductNo || '-'}</td>
                     <td className="whitespace-nowrap px-3 py-3"><TypeBadge type={row.candidateType} /></td>
                     <td className="min-w-80 max-w-96 px-3 py-3">
-                      <p className="text-xs font-medium leading-5 text-zinc-200">{row.itemName || '-'}</p>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="text-xs font-medium leading-5 text-zinc-200">{row.itemName || '-'}</p>
+                        {row.draftApplied && (
+                          <span className={`rounded-md border px-2 py-0.5 text-[10px] ${
+                            row.draftStatus === 'EXACT'
+                              ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-300'
+                              : 'border-amber-500/20 bg-amber-500/10 text-amber-300'
+                          }`}>
+                            [Draft 적용]
+                          </span>
+                        )}
+                      </div>
                       {row.productName && row.productName !== row.itemName && (
                         <p className="mt-1 line-clamp-2 text-[11px] leading-4 text-zinc-500">{row.productName}</p>
                       )}
                       {row.serialNo && <p className="mt-1 font-mono text-[10px] text-violet-300">일련번호 {row.serialNo}</p>}
                     </td>
-                    <td className="whitespace-nowrap px-3 py-3"><StatusBadge status={row.mappingStatus} /></td>
+                    <td className="whitespace-nowrap px-3 py-3">
+                      <div className="space-y-1">
+                        <StatusBadge status={row.mappingStatus} />
+                        {row.draftApplied && row.draftStatus === 'MISMATCH' && (
+                          <p className="text-[10px] text-amber-300">snapshot 불일치</p>
+                        )}
+                      </div>
+                    </td>
                     <td className="whitespace-nowrap px-3 py-3">
                       <span className={`inline-flex rounded-full px-2 py-1 text-[11px] font-semibold ring-1 ring-inset ${
                         row.isSetProduct
@@ -566,9 +726,25 @@ export default function StagingMappingPreviewPage() {
                         {row.isSetProduct ? `[세트 ${row.setComponents.length}개]` : '[단품]'}
                       </span>
                     </td>
-                    <td className="px-3 py-3"><SkuList rows={row.candidateSkus} emptyText="후보 없음" /></td>
+                    <td className="px-3 py-3">
+                      {row.draftApplied && row.draftChange?.sku && (
+                        <div className="mb-2 rounded-md border border-[#262629] bg-[#111114] p-2">
+                          <p className="text-[10px] text-zinc-500">변경 전 SKU</p>
+                          <SkuList rows={row.draftChange.sku.before} emptyText="후보 없음" />
+                        </div>
+                      )}
+                      <SkuList rows={row.candidateSkus} emptyText="후보 없음" />
+                    </td>
                     <td className="px-3 py-3"><SkuList rows={row.existingSkus} emptyText="연결 없음" /></td>
-                    <td className="px-3 py-3"><SetComponents row={row} /></td>
+                    <td className="px-3 py-3">
+                      {row.draftApplied && row.draftChange?.setComponents && row.draftChange.setComponents.before.length > 0 && (
+                        <div className="mb-2 rounded-md border border-[#262629] bg-[#111114] p-2">
+                          <p className="mb-1 text-[10px] text-zinc-500">변경 전 세트 구성</p>
+                          <SetComponents row={{ ...row, setComponents: row.draftChange.setComponents.before }} />
+                        </div>
+                      )}
+                      <SetComponents row={row} />
+                    </td>
                     <td className="min-w-48 px-3 py-3">
                       {row.isSetProduct && row.setComponents.length > 0 ? (
                         <div className="space-y-1 text-xs text-zinc-300">
@@ -604,7 +780,7 @@ export default function StagingMappingPreviewPage() {
                     <td className="min-w-64 px-3 py-3 text-xs leading-5 text-zinc-300">{row.recommendedAction}</td>
                   </tr>
                 ))}
-                {!candidatesLoading && (candidates?.rows.length ?? 0) === 0 && (
+                {!candidatesLoading && paginatedRows.length === 0 && (
                   <tr>
                     <td colSpan={15} className="px-4 py-16 text-center text-sm text-zinc-500">조건에 맞는 후보가 없습니다.</td>
                   </tr>
@@ -615,14 +791,13 @@ export default function StagingMappingPreviewPage() {
 
           <div className="rounded-lg border border-[#262629] bg-[#0c0c0e] px-4 py-3">
             <PaginationControls
-              currentPage={candidates?.currentPage ?? currentPage}
-              totalPages={candidates?.totalPages ?? 1}
-              pageSize={candidates?.pageSize ?? pageSize}
+              currentPage={safeCurrentPage}
+              totalPages={pageSize === 'ALL' ? 1 : Math.max(1, Math.ceil(filteredRows.length / pageSize))}
+              pageSize={pageSize}
               start={pagination.start}
               end={pagination.end}
-              totalCount={candidates?.totalCount ?? 0}
+              totalCount={filteredRows.length}
               onChangePage={(page) => {
-                setCandidatesLoading(true);
                 setCurrentPage(page);
               }}
             />
