@@ -23,14 +23,13 @@ import {
   type StagingImportSummaryResponse,
 } from '@/src/types/staging-import.types';
 import {
-  DEFAULT_PAGE_SIZE,
   getPaginatedRows,
   getPaginationRange,
   getRowNumber,
   getSafeCurrentPage,
   getTotalPages,
-  type CommonPageSize,
 } from '@/src/utils/pagination';
+import { useConfiguredPageSize } from '@/src/hooks/useConfiguredPageSize';
 
 type Message = { type: 'success' | 'error'; text: string };
 
@@ -140,7 +139,7 @@ function PreviewRowsTable({
   emptyText: string;
   tone?: 'default' | 'error';
 }) {
-  const [pageSize, setPageSize] = useState<CommonPageSize>(DEFAULT_PAGE_SIZE);
+  const { pageSize, setPageSize } = useConfiguredPageSize();
   const [currentPage, setCurrentPage] = useState(1);
   const columns = Array.from(new Set(rows.flatMap((row) => Object.keys(row))));
   const totalPages = getTotalPages(rows.length, pageSize);
@@ -169,7 +168,7 @@ function PreviewRowsTable({
       ) : (
         <>
           <div className={`max-h-[52vh] overflow-auto rounded-lg border ${tone === 'error' ? 'border-red-500/20' : 'border-[#262629]'}`}>
-            <table className="min-w-[980px] w-full text-left text-sm">
+            <table className="tms-table min-w-[980px] w-full text-left text-sm">
               <thead className={`sticky top-0 z-10 ${tone === 'error' ? 'bg-[#1a1012]' : 'bg-[#0c0c0e]'}`}>
                 <tr>
                   <th className="whitespace-nowrap px-4 py-3 text-xs font-medium text-zinc-500">No.</th>
@@ -388,21 +387,21 @@ export default function StagingImportPage() {
             type="button"
             onClick={() => void loadSummary()}
             disabled={summaryLoading}
-            className="inline-flex items-center justify-center gap-2 rounded-lg border border-[#333] bg-[#121214] px-4 py-2.5 text-sm font-semibold text-zinc-200 transition hover:border-indigo-500/60 disabled:opacity-60"
+            className="tms-control inline-flex items-center justify-center gap-2 rounded-lg border border-[#333] bg-[#121214] text-sm font-semibold text-zinc-200 transition hover:border-indigo-500/60 disabled:opacity-60"
           >
             <RefreshCw className={`h-4 w-4 ${summaryLoading ? 'animate-spin' : ''}`} />
             현황 새로고침
           </button>
         </header>
 
-        <section className="rounded-lg border border-[#262629] bg-[#121214] p-5 lg:p-6">
-          <div className="grid gap-4 lg:grid-cols-[minmax(260px,0.8fr)_minmax(0,2fr)_auto] lg:items-end">
+        <section className="tms-panel rounded-lg border border-[#262629] bg-[#121214]">
+          <div className="tms-toolbar grid gap-4 lg:grid-cols-[minmax(260px,0.8fr)_minmax(0,2fr)_auto] lg:items-end">
             <label className="space-y-2 text-sm font-medium text-zinc-300">
               <span>파일 타입</span>
               <select
                 value={fileType}
                 onChange={(event) => resetSelection(event.target.value as StagingImportFileType)}
-                className="h-11 w-full rounded-lg border border-[#333] bg-[#0c0c0e] px-3 text-sm text-white outline-none transition focus:border-indigo-400"
+                className="tms-control w-full rounded-lg border border-[#333] bg-[#0c0c0e] text-sm text-white outline-none transition focus:border-indigo-400"
               >
                 {STAGING_IMPORT_FILE_TYPES.map((type) => (
                   <option key={type} value={type}>{FILE_TYPE_LABELS[type]}</option>
@@ -412,7 +411,7 @@ export default function StagingImportPage() {
 
             <div className="space-y-2">
               <span className="block text-sm font-medium text-zinc-300">업로드 파일</span>
-              <div className="flex min-h-11 items-center gap-3 rounded-lg border border-[#333] bg-[#0c0c0e] px-4">
+              <div className="tms-control flex items-center gap-3 rounded-lg border border-[#333] bg-[#0c0c0e] px-4">
                 <FileSpreadsheet className="h-4 w-4 shrink-0 text-zinc-500" />
                 <span className="truncate text-sm text-zinc-300">{file?.name ?? '선택된 파일 없음'}</span>
               </div>
@@ -422,7 +421,7 @@ export default function StagingImportPage() {
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-[#333] bg-[#1a1a1e] px-4 text-sm font-semibold text-zinc-200 transition hover:border-zinc-500"
+                className="tms-control inline-flex items-center justify-center gap-2 rounded-lg border border-[#333] bg-[#1a1a1e] text-sm font-semibold text-zinc-200 transition hover:border-zinc-500"
               >
                 <Upload className="h-4 w-4" />
                 파일 선택
@@ -431,7 +430,7 @@ export default function StagingImportPage() {
                 type="button"
                 onClick={() => void runPreview()}
                 disabled={!file || previewing || applying}
-                className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-indigo-600 px-5 text-sm font-semibold text-white transition hover:bg-indigo-500 disabled:opacity-50"
+                className="tms-control inline-flex items-center justify-center gap-2 rounded-lg bg-indigo-600 px-5 text-sm font-semibold text-white transition hover:bg-indigo-500 disabled:opacity-50"
               >
                 {previewing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Database className="h-4 w-4" />}
                 미리보기 실행
@@ -464,7 +463,7 @@ export default function StagingImportPage() {
         </section>
 
         {preview && (
-          <section className="space-y-5 rounded-lg border border-[#262629] bg-[#121214] p-5 lg:p-6">
+          <section className="tms-panel space-y-5 rounded-lg border border-[#262629] bg-[#121214]">
             <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
               <div>
                 <h2 className="text-lg font-semibold text-white">미리보기 결과</h2>
@@ -476,7 +475,7 @@ export default function StagingImportPage() {
                 type="button"
                 onClick={() => void applyToStaging()}
                 disabled={!previewReady || applying || previewing}
-                className="inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-40"
+                className="tms-control inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-600 px-5 text-sm font-semibold text-white transition hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-40"
                 title={previewReady ? 'staging 테이블에 저장' : '오류가 없고 정상 행이 있어야 저장할 수 있습니다.'}
               >
                 {applying ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
@@ -515,7 +514,7 @@ export default function StagingImportPage() {
           </section>
         )}
 
-        <section className="space-y-5 rounded-lg border border-[#262629] bg-[#121214] p-5 lg:p-6">
+        <section className="tms-panel space-y-5 rounded-lg border border-[#262629] bg-[#121214]">
           <div className="flex items-center justify-between gap-3">
             <div>
               <h2 className="text-lg font-semibold text-white">Staging 저장 현황</h2>

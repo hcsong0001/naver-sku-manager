@@ -30,6 +30,31 @@ body {
   color: var(--tms-text);
 }
 
+.tms-theme-shell .tms-panel {
+  padding: var(--tms-card-padding) !important;
+}
+
+.tms-theme-shell .tms-toolbar {
+  gap: var(--tms-filter-gap) !important;
+}
+
+.tms-theme-shell .tms-table {
+  font-size: var(--tms-table-font-size);
+  line-height: var(--tms-table-line-height);
+}
+
+.tms-theme-shell .tms-table th,
+.tms-theme-shell .tms-table td {
+  padding-top: var(--tms-row-padding-y) !important;
+  padding-bottom: var(--tms-row-padding-y) !important;
+}
+
+.tms-theme-shell .tms-control {
+  min-height: var(--tms-control-height);
+  padding-left: var(--tms-control-padding-x) !important;
+  padding-right: var(--tms-control-padding-x) !important;
+}
+
 .tms-theme-shell main,
 .tms-theme-shell .min-h-screen {
   background-color: var(--tms-bg);
@@ -109,6 +134,7 @@ body {
   background-color: var(--tms-input-bg) !important;
   border-color: var(--tms-border) !important;
   color: var(--tms-text) !important;
+  min-height: var(--tms-control-height);
 }
 
 .tms-theme-shell input::placeholder,

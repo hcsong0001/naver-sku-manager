@@ -26,11 +26,10 @@ import type {
   MappingResolutionDraftSelectedSku,
 } from '@/src/types/mapping-resolution-draft.types';
 import {
-  DEFAULT_PAGE_SIZE,
   getPaginationRange,
   getRowNumber,
-  type CommonPageSize,
 } from '@/src/utils/pagination';
+import { useConfiguredPageSize } from '@/src/hooks/useConfiguredPageSize';
 import {
   buildMappingResolutionSnapshotMetadata,
   createMappingResolutionDraft,
@@ -78,7 +77,7 @@ export default function MappingRiskResolutionPage() {
   // 검색 & 필터 & 페이지네이션 State
   const [filter, setFilter] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [pageSize, setPageSize] = useState<CommonPageSize>(DEFAULT_PAGE_SIZE);
+  const { pageSize, setPageSize } = useConfiguredPageSize();
   const [currentPage, setCurrentPage] = useState(1);
   const [refreshKey, setRefreshKey] = useState(0);
 
@@ -481,7 +480,7 @@ export default function MappingRiskResolutionPage() {
             <button
               type="button"
               onClick={() => setRefreshKey(key => key + 1)}
-              className="inline-flex items-center justify-center gap-2 rounded-lg border border-[#333] bg-[#121214] px-4 py-2.5 text-sm font-semibold text-zinc-200 transition hover:border-indigo-500/60"
+              className="tms-control inline-flex items-center justify-center gap-2 rounded-lg border border-[#333] bg-[#121214] text-sm font-semibold text-zinc-200 transition hover:border-indigo-500/60"
             >
               <RefreshCw className="h-4 w-4" />
               목록 새로고침
@@ -489,12 +488,12 @@ export default function MappingRiskResolutionPage() {
             <button
               type="button"
               onClick={handleExport}
-              className="inline-flex items-center justify-center gap-2 rounded-lg border border-indigo-500/30 bg-indigo-500/10 px-4 py-2.5 text-sm font-semibold text-indigo-300 transition hover:border-indigo-400"
+              className="tms-control inline-flex items-center justify-center gap-2 rounded-lg border border-indigo-500/30 bg-indigo-500/10 text-sm font-semibold text-indigo-300 transition hover:border-indigo-400"
             >
               <FileDown className="h-4 w-4" />
               해결 Draft 내보내기 (JSON)
             </button>
-            <label className="inline-flex items-center justify-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-2.5 text-sm font-semibold text-emerald-300 transition hover:border-emerald-400 cursor-pointer">
+            <label className="tms-control inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-sm font-semibold text-emerald-300 transition hover:border-emerald-400">
               <FileUp className="h-4 w-4" />
               해결 Draft 불러오기 (JSON)
               <input type="file" accept=".json" onChange={handleImport} className="hidden" />
@@ -579,8 +578,8 @@ export default function MappingRiskResolutionPage() {
 
         {/* 필터 및 검색 */}
         <section className="space-y-4">
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-            <div className="flex flex-wrap gap-2">
+          <div className="tms-toolbar flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <div className="tms-toolbar flex flex-wrap gap-2">
               {FILTERS.map((item) => (
                 <button
                   key={item.value}
@@ -589,7 +588,7 @@ export default function MappingRiskResolutionPage() {
                     setFilter(item.value);
                     setCurrentPage(1);
                   }}
-                  className={`rounded-lg border px-3 py-1.5 text-xs font-semibold transition ${
+                  className={`tms-control rounded-lg border text-xs font-semibold transition ${
                     filter === item.value
                       ? 'border-indigo-500/40 bg-indigo-500/15 text-indigo-200'
                       : 'border-[#333] bg-[#121214] text-zinc-400 hover:border-zinc-500 hover:text-zinc-200'
@@ -609,12 +608,12 @@ export default function MappingRiskResolutionPage() {
                   setSearchQuery(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="w-full rounded-lg border border-[#333] bg-[#121214] py-2 pl-9 pr-4 text-xs font-medium text-zinc-200 placeholder-zinc-500 outline-none transition focus:border-indigo-500"
+                className="tms-control w-full rounded-lg border border-[#333] bg-[#121214] py-2 pl-9 pr-4 text-xs font-medium text-zinc-200 placeholder-zinc-500 outline-none transition focus:border-indigo-500"
               />
             </div>
           </div>
 
-          <div className="rounded-lg border border-[#262629] bg-[#0c0c0e] px-4 py-3 flex items-center justify-between">
+          <div className="tms-toolbar rounded-lg border border-[#262629] bg-[#0c0c0e] px-4 py-3 flex items-center justify-between">
             <PaginationControls
               currentPage={currentPage}
               totalPages={pageSize === 'ALL' ? 1 : Math.ceil(filteredCandidates.length / pageSize) || 1}
@@ -641,7 +640,7 @@ export default function MappingRiskResolutionPage() {
                 <span className="text-sm text-zinc-500">위험 후보 데이터를 분석하는 중입니다...</span>
               </div>
             ) : (
-              <table className="min-w-[2800px] w-full text-left text-sm">
+              <table className="tms-table min-w-[2800px] w-full text-left text-sm">
                 <thead className="sticky top-0 z-20 bg-[#0c0c0e] shadow-[0_1px_0_#262629]">
                   <tr>
                     {[

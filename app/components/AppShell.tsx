@@ -3,11 +3,17 @@
 import React from 'react';
 import Sidebar from '@/app/components/Sidebar';
 import { UserSettingsProvider, useUserSettings } from '@/app/components/UserSettingsProvider';
-import { getBackgroundThemeOption } from '@/src/utils/tms-user-settings';
+import {
+  getBackgroundThemeOption,
+  getScreenDensityTokens,
+  getTableTextSizeTokens,
+} from '@/src/utils/tms-user-settings';
 
 function ShellContent({ children }: { children: React.ReactNode }) {
   const { settings } = useUserSettings();
   const theme = getBackgroundThemeOption(settings.backgroundTheme);
+  const tableTextSize = getTableTextSizeTokens(settings.tableTextSize);
+  const screenDensity = getScreenDensityTokens(settings.screenDensity);
   const shellStyle = {
     '--tms-bg': theme.colors.appBackground,
     '--tms-sidebar-bg': theme.colors.sidebarBackground,
@@ -20,6 +26,13 @@ function ShellContent({ children }: { children: React.ReactNode }) {
     '--tms-input-bg': theme.colors.inputBackground,
     '--tms-selected-bg': theme.colors.selectedBackground,
     '--tms-selected-text': theme.colors.selectedText,
+    '--tms-table-font-size': tableTextSize.tableFontSize,
+    '--tms-table-line-height': tableTextSize.tableLineHeight,
+    '--tms-row-padding-y': screenDensity.rowPaddingY,
+    '--tms-card-padding': screenDensity.cardPadding,
+    '--tms-filter-gap': screenDensity.filterGap,
+    '--tms-control-height': screenDensity.controlHeight,
+    '--tms-control-padding-x': screenDensity.controlPaddingX,
   } as React.CSSProperties;
 
   return (

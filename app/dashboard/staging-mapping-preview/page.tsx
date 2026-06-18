@@ -30,11 +30,10 @@ import {
   readMappingResolutionDraftFromStorage,
 } from '@/src/utils/mapping-resolution-draft';
 import {
-  DEFAULT_PAGE_SIZE,
   getPaginationRange,
   getRowNumber,
-  type CommonPageSize,
 } from '@/src/utils/pagination';
+import { useConfiguredPageSize } from '@/src/hooks/useConfiguredPageSize';
 
 const FILTERS: { value: StagingMappingFilter; label: string }[] = [
   { value: 'ALL', label: '전체' },
@@ -220,7 +219,7 @@ export default function StagingMappingPreviewPage() {
   const [summary, setSummary] = useState<StagingMappingSummaryResponse | null>(null);
   const [allCandidates, setAllCandidates] = useState<StagingMappingCandidate[]>([]);
   const [filter, setFilter] = useState<StagingMappingFilter>('ALL');
-  const [pageSize, setPageSize] = useState<CommonPageSize>(DEFAULT_PAGE_SIZE);
+  const { pageSize, setPageSize } = useConfiguredPageSize();
   const [currentPage, setCurrentPage] = useState(1);
   const [refreshKey, setRefreshKey] = useState(0);
   const [draftPreviewEnabled, setDraftPreviewEnabled] = useState(false);
@@ -397,7 +396,7 @@ export default function StagingMappingPreviewPage() {
             type="button"
             onClick={refresh}
             disabled={summaryLoading || candidatesLoading}
-            className="inline-flex items-center justify-center gap-2 rounded-lg border border-[#333] bg-[#121214] px-4 py-2.5 text-sm font-semibold text-zinc-200 transition hover:border-indigo-500/60 disabled:opacity-60"
+            className="tms-control inline-flex items-center justify-center gap-2 rounded-lg border border-[#333] bg-[#121214] text-sm font-semibold text-zinc-200 transition hover:border-indigo-500/60 disabled:opacity-60"
           >
             <RefreshCw className={`h-4 w-4 ${summaryLoading || candidatesLoading ? 'animate-spin' : ''}`} />
             Preview 새로고침
@@ -424,7 +423,7 @@ export default function StagingMappingPreviewPage() {
                 💡 <strong>집계 기준 설명:</strong> 원본 후보에서 동일 상품/옵션 중복을 제거한 뒤 ProductVariantKeyword 후보를 우선 사용합니다.
               </div>
 
-              <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-[#262629] bg-[#121214] px-4 py-3">
+              <div className="tms-toolbar flex flex-wrap items-center justify-between gap-3 rounded-lg border border-[#262629] bg-[#121214] px-4 py-3">
                 <div>
                   <p className="text-sm font-semibold text-white">해결 draft 반영 Preview</p>
                   <p className="mt-1 text-xs text-zinc-500">
@@ -437,7 +436,7 @@ export default function StagingMappingPreviewPage() {
                     setDraftPreviewEnabled((value) => !value);
                     setCurrentPage(1);
                   }}
-                  className={`inline-flex items-center gap-2 rounded-full border px-3 py-2 text-xs font-semibold transition ${
+                  className={`tms-control inline-flex items-center gap-2 rounded-full border text-xs font-semibold transition ${
                     draftPreviewEnabled
                       ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300'
                       : 'border-[#333] bg-[#0c0c0e] text-zinc-400 hover:text-zinc-200'
@@ -464,7 +463,7 @@ export default function StagingMappingPreviewPage() {
                 </div>
               )}
 
-              <div className="rounded-lg border border-[#262629] bg-[#0c0c0e] p-4">
+              <div className="tms-panel rounded-lg border border-[#262629] bg-[#0c0c0e]">
                 <div className="flex flex-col gap-3 xl:flex-row xl:items-start xl:justify-between">
                   <div>
                     <p className="text-sm font-semibold text-white">현재 사용 중인 staging snapshot</p>
@@ -547,7 +546,7 @@ export default function StagingMappingPreviewPage() {
               </div>
 
               {/* 세부 위험 유형별 발생 건수 */}
-              <div className="rounded-lg border border-[#262629] bg-[#0c0c0e] p-4 space-y-3">
+              <div className="tms-panel rounded-lg border border-[#262629] bg-[#0c0c0e] space-y-3">
                 <p className="text-sm font-semibold text-white">⚠️ 주요 위험 유형별 발생 건수 (고유 후보 기준)</p>
                 <div className="grid gap-3 grid-cols-2 sm:grid-cols-4 lg:grid-cols-8">
                   <div className="rounded border border-[#222] bg-[#111114] p-3 text-center">
@@ -585,7 +584,7 @@ export default function StagingMappingPreviewPage() {
                 </div>
               </div>
 
-              <div className="flex flex-wrap gap-2 rounded-lg border border-[#262629] bg-[#0c0c0e] px-4 py-3">
+              <div className="tms-toolbar flex flex-wrap gap-2 rounded-lg border border-[#262629] bg-[#0c0c0e] px-4 py-3">
                 <span className="mr-1 text-xs font-semibold text-zinc-400">기준 Import</span>
                 {summary.sourceJobs.length === 0 ? (
                   <span className="text-xs text-zinc-600">APPLIED ImportJob 없음</span>
@@ -626,7 +625,7 @@ export default function StagingMappingPreviewPage() {
                   setFilter(item.value);
                   setCurrentPage(1);
                 }}
-                className={`rounded-lg border px-3 py-2 text-xs font-semibold transition ${
+                className={`tms-control rounded-lg border text-xs font-semibold transition ${
                   filter === item.value
                     ? 'border-indigo-500/40 bg-indigo-500/15 text-indigo-200'
                     : 'border-[#333] bg-[#121214] text-zinc-400 hover:border-zinc-500 hover:text-zinc-200'
@@ -652,7 +651,7 @@ export default function StagingMappingPreviewPage() {
           </div>
 
           <div className="max-h-[68vh] overflow-auto rounded-lg border border-[#262629] bg-[#09090b]">
-            <table className="min-w-[2800px] w-full text-left text-sm">
+            <table className="tms-table min-w-[2800px] w-full text-left text-sm">
               <thead className="sticky top-0 z-20 bg-[#0c0c0e] shadow-[0_1px_0_#262629]">
                 <tr>
                   {[

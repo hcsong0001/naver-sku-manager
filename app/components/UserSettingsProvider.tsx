@@ -4,6 +4,9 @@ import React from 'react';
 import {
   TMS_USER_SETTINGS_STORAGE_KEY,
   type TmsBackgroundTheme,
+  type TmsDefaultPageSize,
+  type TmsScreenDensity,
+  type TmsTableTextSize,
   type TmsUserSettings,
 } from '@/src/types/tms-user-settings.types';
 import {
@@ -16,6 +19,9 @@ import {
 type UserSettingsContextValue = {
   settings: TmsUserSettings;
   setBackgroundTheme: (theme: TmsBackgroundTheme) => void;
+  setTableTextSize: (size: TmsTableTextSize) => void;
+  setScreenDensity: (density: TmsScreenDensity) => void;
+  setDefaultPageSize: (size: TmsDefaultPageSize) => void;
 };
 
 const UserSettingsContext = React.createContext<UserSettingsContextValue | null>(null);
@@ -51,6 +57,10 @@ function writeSettingsSnapshot(nextSettings: TmsUserSettings): void {
   lastSettingsSnapshot = parseTmsUserSettings(serialized);
 }
 
+function dispatchSettingsChange(): void {
+  window.dispatchEvent(new Event(SETTINGS_EVENT_NAME));
+}
+
 export function UserSettingsProvider({ children }: { children: React.ReactNode }) {
   const subscribe = React.useCallback((callback: () => void) => {
     if (typeof window === 'undefined') {
@@ -78,18 +88,42 @@ export function UserSettingsProvider({ children }: { children: React.ReactNode }
     document.documentElement.style.setProperty('--tms-app-background', theme.colors.appBackground);
   }, [settings]);
 
+  const updateSettings = React.useCallback((updater: (current: TmsUserSettings) => TmsUserSettings) => {
+    const nextSettings = {
+      ...updater(settings),
+      schemaVersion: DEFAULT_TMS_USER_SETTINGS.schemaVersion,
+    };
+    writeSettingsSnapshot(nextSettings);
+    dispatchSettingsChange();
+  }, [settings]);
+
   const value = React.useMemo<UserSettingsContextValue>(() => ({
     settings,
     setBackgroundTheme: (theme) => {
-      const nextSettings = {
-        ...settings,
-        schemaVersion: DEFAULT_TMS_USER_SETTINGS.schemaVersion,
+      updateSettings((current) => ({
+        ...current,
         backgroundTheme: theme,
-      };
-      writeSettingsSnapshot(nextSettings);
-      window.dispatchEvent(new Event(SETTINGS_EVENT_NAME));
+      }));
     },
-  }), [settings]);
+    setTableTextSize: (size) => {
+      updateSettings((current) => ({
+        ...current,
+        tableTextSize: size,
+      }));
+    },
+    setScreenDensity: (density) => {
+      updateSettings((current) => ({
+        ...current,
+        screenDensity: density,
+      }));
+    },
+    setDefaultPageSize: (size) => {
+      updateSettings((current) => ({
+        ...current,
+        defaultPageSize: size,
+      }));
+    },
+  }), [settings, updateSettings]);
 
   return (
     <UserSettingsContext.Provider value={value}>

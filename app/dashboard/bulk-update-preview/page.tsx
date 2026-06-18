@@ -35,11 +35,10 @@ import {
   readMappingResolutionDraftFromStorage,
 } from '@/src/utils/mapping-resolution-draft';
 import {
-  DEFAULT_PAGE_SIZE,
   getPaginationRange,
   getRowNumber,
-  type CommonPageSize,
 } from '@/src/utils/pagination';
+import { useConfiguredPageSize } from '@/src/hooks/useConfiguredPageSize';
 
 const FILTERS: { value: BulkUpdatePreviewFilter; label: string }[] = [
   { value: 'ALL', label: '전체' },
@@ -206,7 +205,7 @@ export default function BulkUpdatePreviewPage() {
   const [allCandidates, setAllCandidates] = useState<BulkUpdatePreviewCandidate[]>([]);
   const [allMappingCandidates, setAllMappingCandidates] = useState<DraftAppliedStagingMappingCandidate[]>([]);
   const [filter, setFilter] = useState<BulkUpdatePreviewFilter>('ALL');
-  const [pageSize, setPageSize] = useState<CommonPageSize>(DEFAULT_PAGE_SIZE);
+  const { pageSize, setPageSize } = useConfiguredPageSize();
   const [currentPage, setCurrentPage] = useState(1);
   const [refreshKey, setRefreshKey] = useState(0);
   const [draftPreviewEnabled, setDraftPreviewEnabled] = useState(false);
@@ -426,7 +425,7 @@ export default function BulkUpdatePreviewPage() {
             type="button"
             onClick={refresh}
             disabled={summaryLoading || candidatesLoading || submitting}
-            className="inline-flex items-center justify-center gap-2 rounded-lg border border-[#333] bg-[#121214] px-4 py-2.5 text-sm font-semibold text-zinc-200 transition hover:border-indigo-500/60 disabled:opacity-60"
+            className="tms-control inline-flex items-center justify-center gap-2 rounded-lg border border-[#333] bg-[#121214] text-sm font-semibold text-zinc-200 transition hover:border-indigo-500/60 disabled:opacity-60"
           >
             <RefreshCw className={`h-4 w-4 ${summaryLoading || candidatesLoading ? 'animate-spin' : ''}`} />
             Preview 새로고침
@@ -474,7 +473,7 @@ export default function BulkUpdatePreviewPage() {
                 💡 <strong>집계 기준 설명:</strong> 원본 후보에서 동일 상품/옵션 중복을 제거한 뒤 ProductVariantKeyword 후보를 우선 사용합니다.
               </div>
 
-              <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-[#262629] bg-[#121214] px-4 py-3">
+              <div className="tms-toolbar flex flex-wrap items-center justify-between gap-3 rounded-lg border border-[#262629] bg-[#121214] px-4 py-3">
                 <div>
                   <p className="text-sm font-semibold text-white">해결 draft 반영 Preview</p>
                   <p className="mt-1 text-xs text-zinc-500">
@@ -488,7 +487,7 @@ export default function BulkUpdatePreviewPage() {
                     setCurrentPage(1);
                     setSelectedIds([]);
                   }}
-                  className={`inline-flex items-center gap-2 rounded-full border px-3 py-2 text-xs font-semibold transition ${
+                  className={`tms-control inline-flex items-center gap-2 rounded-full border text-xs font-semibold transition ${
                     draftPreviewEnabled
                       ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300'
                       : 'border-[#333] bg-[#0c0c0e] text-zinc-400 hover:text-zinc-200'
@@ -530,7 +529,7 @@ export default function BulkUpdatePreviewPage() {
                 </div>
               )}
 
-              <div className="rounded-lg border border-[#262629] bg-[#0c0c0e] p-4">
+              <div className="tms-panel rounded-lg border border-[#262629] bg-[#0c0c0e]">
                 <div className="flex flex-col gap-3 xl:flex-row xl:items-start xl:justify-between">
                   <div>
                     <p className="text-sm font-semibold text-white">현재 사용 중인 staging snapshot</p>
@@ -638,9 +637,9 @@ export default function BulkUpdatePreviewPage() {
             />
           </div>
 
-          <div className="rounded-lg border border-[#262629] bg-[#0c0c0e] p-4">
-            <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
-              <div className="flex flex-wrap gap-2" role="group" aria-label="가격 재고 수정 Preview 후보 필터">
+          <div className="tms-panel rounded-lg border border-[#262629] bg-[#0c0c0e]">
+            <div className="tms-toolbar flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+              <div className="tms-toolbar flex flex-wrap gap-2" role="group" aria-label="가격 재고 수정 Preview 후보 필터">
                 {FILTERS.map((item) => (
                   <button
                     key={item.value}
@@ -650,7 +649,7 @@ export default function BulkUpdatePreviewPage() {
                       setCurrentPage(1);
                       setSelectedIds([]);
                     }}
-                    className={`rounded-lg border px-3 py-2 text-xs font-semibold transition ${
+                    className={`tms-control rounded-lg border text-xs font-semibold transition ${
                       filter === item.value
                         ? 'border-indigo-500/40 bg-indigo-500/15 text-indigo-200'
                         : 'border-[#333] bg-[#121214] text-zinc-400 hover:border-zinc-500 hover:text-zinc-200'
@@ -661,7 +660,7 @@ export default function BulkUpdatePreviewPage() {
                 ))}
               </div>
 
-              <div className="flex flex-wrap items-center gap-2">
+              <div className="tms-toolbar flex flex-wrap items-center gap-2">
                 <span className="text-xs text-zinc-500">
                   선택 {selectedIds.length}건 / 예상 API 호출 {selectedApiCallCount}건
                 </span>
@@ -669,14 +668,14 @@ export default function BulkUpdatePreviewPage() {
                   type="button"
                   onClick={selectExecutableRows}
                   disabled={executableRows.length === 0 || draftActionsDisabled}
-                  className="rounded-lg border border-[#333] bg-[#121214] px-3 py-2 text-xs font-semibold text-zinc-300 transition hover:border-emerald-500/50 disabled:opacity-50"
+                  className="tms-control rounded-lg border border-[#333] bg-[#121214] text-xs font-semibold text-zinc-300 transition hover:border-emerald-500/50 disabled:opacity-50"
                 >
                   현재 페이지 실행 가능 후보 선택
                 </button>
                 <button
                   type="button"
                   onClick={() => setSelectedIds([])}
-                  className="rounded-lg border border-[#333] bg-[#121214] px-3 py-2 text-xs font-semibold text-zinc-300 transition hover:border-zinc-500"
+                  className="tms-control rounded-lg border border-[#333] bg-[#121214] text-xs font-semibold text-zinc-300 transition hover:border-zinc-500"
                 >
                   선택 해제
                 </button>
@@ -684,7 +683,7 @@ export default function BulkUpdatePreviewPage() {
                   type="button"
                   onClick={() => void submitDraftBatch()}
                   disabled={selectedIds.length === 0 || draftActionsDisabled}
-                  className="inline-flex items-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/15 px-3 py-2 text-xs font-semibold text-emerald-200 transition hover:border-emerald-400 disabled:opacity-50"
+                  className="tms-control inline-flex items-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/15 text-xs font-semibold text-emerald-200 transition hover:border-emerald-400 disabled:opacity-50"
                   title={draftPreviewEnabled
                     ? '해결 draft 반영 Preview에서는 Draft Batch를 생성하지 않습니다.'
                     : summary && !summary.snapshot.hasRequiredBulkData
@@ -716,7 +715,7 @@ export default function BulkUpdatePreviewPage() {
           </div>
 
           <div className="max-h-[70vh] overflow-auto rounded-lg border border-[#262629] bg-[#09090b]">
-            <table className="min-w-[3200px] w-full text-left text-sm">
+            <table className="tms-table min-w-[3200px] w-full text-left text-sm">
               <thead className="sticky top-0 z-20 bg-[#0c0c0e] shadow-[0_1px_0_#262629]">
                 <tr>
                   {[
