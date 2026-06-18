@@ -1,4 +1,5 @@
 import * as XLSX from 'xlsx';
+import { Prisma } from '@/app/generated/prisma';
 import prisma from '@/lib/prisma';
 import { parseProductVariantKeywordWorkbook } from '@/src/services/product-variant-keyword.service';
 import {
@@ -73,6 +74,9 @@ type PreviewDataset<T> = {
 };
 
 const PREVIEW_SAMPLE_LIMIT = 20;
+const APPLY_CHUNK_SIZE = 1000;
+const APPLY_TRANSACTION_TIMEOUT_MS = 60000;
+const APPLY_TRANSACTION_MAX_WAIT_MS = 10000;
 
 function normalizeCell(value: unknown): string {
   if (value === null || value === undefined) return '';
@@ -465,6 +469,365 @@ async function loadPreviewDataset(input: PreviewInput): Promise<PreviewDataset<u
   return previewProductVariantKeywordImport(input.buffer);
 }
 
+function chunkArray<T>(rows: T[], chunkSize: number): T[][] {
+  const chunks: T[][] = [];
+  for (let index = 0; index < rows.length; index += chunkSize) {
+    chunks.push(rows.slice(index, index + chunkSize));
+  }
+  return chunks;
+}
+
+async function createChunks<T>(
+  rows: T[],
+  createChunk: (chunk: T[]) => Promise<unknown>,
+): Promise<void> {
+  for (const chunk of chunkArray(rows, APPLY_CHUNK_SIZE)) {
+    await createChunk(chunk);
+  }
+}
+
+function toErrorSummary(errors: RowError[]) {
+  return errors.slice(0, PREVIEW_SAMPLE_LIMIT).map((error) => ({
+    rowNumber: error.rowNumber,
+    errorMessage: error.errorMessage,
+  }));
+}
+
+function toFriendlyApplyError(error: unknown): Error {
+  const message = error instanceof Error ? error.message : 'staging import 적용에 실패했습니다.';
+  if (
+    message.includes('expired transaction')
+    || message.includes('timeout')
+    || message.includes('Transaction API error')
+  ) {
+    return new Error(
+      `대량 staging 저장 중 시간이 초과되었습니다. 저장 로직을 chunk 단위로 재시도해 주세요. 원인: ${message}`,
+    );
+  }
+  return new Error(`staging 저장 중 오류가 발생했습니다. ${message}`);
+}
+
+async function cleanupFailedImportJob(jobId: string): Promise<void> {
+  await prisma.$transaction(async (tx) => {
+    await tx.stagingNaverProductOption.deleteMany({ where: { jobId } });
+    await tx.stagingNaverProductAdditional.deleteMany({ where: { jobId } });
+    await tx.stagingProductVariantKeyword.deleteMany({ where: { jobId } });
+    await tx.stagingSkuMapping.deleteMany({ where: { jobId } });
+    await tx.stagingStockItem.deleteMany({ where: { jobId } });
+    await tx.stagingNaverProduct.deleteMany({ where: { jobId } });
+  }, {
+    timeout: APPLY_TRANSACTION_TIMEOUT_MS,
+    maxWait: APPLY_TRANSACTION_MAX_WAIT_MS,
+  });
+}
+
+async function updateImportJobStatus(input: {
+  jobId: string;
+  fileId: string;
+  status: 'APPLIED' | 'FAILED';
+  totalRows: number;
+  successRows: number;
+  errorRows: number;
+  summary: StagingImportPreviewSummary;
+  errors: RowError[];
+}): Promise<void> {
+  await prisma.$transaction(async (tx) => {
+    await tx.importJob.update({
+      where: { id: input.jobId },
+      data: {
+        status: input.status,
+        totalRows: input.totalRows,
+        successRows: input.successRows,
+        errorRows: input.errorRows,
+        previewSummary: input.summary,
+        errorSummary: toErrorSummary(input.errors),
+        appliedAt: input.status === 'APPLIED' ? new Date() : null,
+      },
+    });
+    await tx.importFile.update({
+      where: { id: input.fileId },
+      data: {
+        status: input.status,
+        totalRows: input.totalRows,
+        successRows: input.successRows,
+        errorRows: input.errorRows,
+      },
+    });
+  }, {
+    timeout: APPLY_TRANSACTION_TIMEOUT_MS,
+    maxWait: APPLY_TRANSACTION_MAX_WAIT_MS,
+  });
+}
+
+async function insertErpStockRows(input: {
+  jobId: string;
+  fileId: string;
+  rows: StockListImportRow[];
+  errors: RowError[];
+}): Promise<void> {
+  const records = [
+    ...input.rows.map((row) => ({
+      jobId: input.jobId,
+      importFileId: input.fileId,
+      rowNumber: row.rowNumber,
+      barcode: row.barcode,
+      productName: row.productName,
+      purchaseProductName: row.purchaseProductName,
+      internalProductCode: row.internalProductCode,
+      modelName: row.modelName,
+      supplierItemCode: row.supplierItemCode,
+      optionCode: row.optionCode,
+      sellingPrice: row.sellingPrice,
+      costPrice: row.costPrice,
+      stockQuantity: row.stockQuantity,
+      skuCodeCandidate: row.skuCodeCandidate,
+      sourceRow: row,
+      errorMessage: null,
+    })),
+    ...input.errors.map((error) => ({
+      jobId: input.jobId,
+      importFileId: input.fileId,
+      rowNumber: error.rowNumber,
+      barcode: '',
+      productName: '',
+      purchaseProductName: '',
+      internalProductCode: '',
+      modelName: '',
+      supplierItemCode: '',
+      optionCode: '',
+      sellingPrice: null,
+      costPrice: null,
+      stockQuantity: null,
+      skuCodeCandidate: '',
+      sourceRow: { rowNumber: error.rowNumber },
+      errorMessage: error.errorMessage,
+    })),
+  ];
+
+  await createChunks(records, async (chunk) => {
+    await prisma.stagingStockItem.createMany({ data: chunk });
+  });
+}
+
+async function insertSmartstoreRows(input: {
+  jobId: string;
+  fileId: string;
+  storeId?: string;
+  rows: SmartstoreProductParsedRow[];
+  errors: RowError[];
+}): Promise<void> {
+  const productRecords: Prisma.StagingNaverProductCreateManyInput[] = [];
+  const optionRecords: Prisma.StagingNaverProductOptionCreateManyInput[] = [];
+  const additionalRecords: Prisma.StagingNaverProductAdditionalCreateManyInput[] = [];
+
+  for (const row of input.rows) {
+    const productId = crypto.randomUUID();
+    productRecords.push({
+      id: productId,
+      jobId: input.jobId,
+      importFileId: input.fileId,
+      storeId: input.storeId || null,
+      rowNumber: row.rowNumber,
+      externalProductId: toNullableString(row.externalProductId),
+      channelProductNo: toNullableString(row.channelProductNo),
+      originProductNo: toNullableString(row.originProductNo),
+      productName: row.productName || '(상품명 없음)',
+      statusType: toNullableString(row.statusType),
+      sellerManagementCode: toNullableString(row.sellerManagementCode),
+      sourceRow: row,
+      errorMessage: null,
+    });
+
+    if (row.optionName || row.optionValue || row.optionCode) {
+      optionRecords.push({
+        id: crypto.randomUUID(),
+        jobId: input.jobId,
+        importFileId: input.fileId,
+        stagingProductId: productId,
+        rowNumber: row.rowNumber,
+        channelProductNo: toNullableString(row.channelProductNo),
+        optionId: toNullableString(row.optionId),
+        optionName: row.optionName,
+        optionValue: row.optionValue,
+        optionCode: toNullableString(row.optionCode),
+        sourceRow: row,
+        errorMessage: null,
+      });
+    }
+
+    if (
+      row.additionalName
+      || row.additionalValue
+      || row.additionalSellerManagementCode
+      || row.additionalPrice !== null
+    ) {
+      additionalRecords.push({
+        id: crypto.randomUUID(),
+        jobId: input.jobId,
+        importFileId: input.fileId,
+        stagingProductId: productId,
+        rowNumber: row.rowNumber,
+        channelProductNo: toNullableString(row.channelProductNo),
+        additionalId: toNullableString(row.additionalId),
+        additionalName: row.additionalName,
+        additionalValue: row.additionalValue,
+        sellerManagementCode: toNullableString(row.additionalSellerManagementCode),
+        price: row.additionalPrice,
+        stockQuantity: row.additionalStockQuantity,
+        usable: row.additionalUsable,
+        sortType: toNullableString(row.additionalSortType),
+        sourceRow: row,
+        errorMessage: null,
+      });
+    }
+  }
+
+  const errorProducts: Prisma.StagingNaverProductCreateManyInput[] = input.errors.map((error) => ({
+    id: crypto.randomUUID(),
+    jobId: input.jobId,
+    importFileId: input.fileId,
+    storeId: input.storeId || null,
+    rowNumber: error.rowNumber,
+    externalProductId: null,
+    channelProductNo: null,
+    originProductNo: null,
+    productName: '(파싱 오류)',
+    statusType: null,
+    sellerManagementCode: null,
+    sourceRow: { rowNumber: error.rowNumber },
+    errorMessage: error.errorMessage,
+  }));
+
+  await createChunks(productRecords, async (chunk) => {
+    await prisma.stagingNaverProduct.createMany({ data: chunk });
+  });
+  await createChunks(optionRecords, async (chunk) => {
+    await prisma.stagingNaverProductOption.createMany({ data: chunk });
+  });
+  await createChunks(additionalRecords, async (chunk) => {
+    await prisma.stagingNaverProductAdditional.createMany({ data: chunk });
+  });
+  await createChunks(errorProducts, async (chunk) => {
+    await prisma.stagingNaverProduct.createMany({ data: chunk });
+  });
+}
+
+async function insertSkuMappingRows(input: {
+  jobId: string;
+  fileId: string;
+  rows: SkuMappingParsedRow[];
+  errors: RowError[];
+}): Promise<void> {
+  const records = [
+    ...input.rows.map((row) => ({
+      jobId: input.jobId,
+      importFileId: input.fileId,
+      rowNumber: row.rowNumber,
+      mappingType: row.mappingType,
+      smartstoreName: row.smartstoreName,
+      channelProductNo: row.channelProductNo,
+      productName: row.productName,
+      itemId: row.itemId,
+      itemName: row.itemName,
+      managementCode: row.managementCode,
+      currentSkuCode: row.currentSkuCode,
+      skuCode: row.skuCode,
+      quantity: Number(row.quantity || '1'),
+      sourceRow: row,
+      errorMessage: null,
+    })),
+    ...input.errors.map((error) => ({
+      jobId: input.jobId,
+      importFileId: input.fileId,
+      rowNumber: error.rowNumber,
+      mappingType: '',
+      smartstoreName: '',
+      channelProductNo: '',
+      productName: '',
+      itemId: '',
+      itemName: '',
+      managementCode: '',
+      currentSkuCode: '',
+      skuCode: '',
+      quantity: 0,
+      sourceRow: { rowNumber: error.rowNumber },
+      errorMessage: error.errorMessage,
+    })),
+  ];
+
+  await createChunks(records, async (chunk) => {
+    await prisma.stagingSkuMapping.createMany({ data: chunk });
+  });
+}
+
+async function insertProductVariantKeywordRows(input: {
+  jobId: string;
+  fileId: string;
+  channelId?: string;
+  rows: ProductVariantKeywordSourceRow[];
+  errors: RowError[];
+}): Promise<void> {
+  const groupSizes = new Map<string, number>();
+  for (const row of input.rows) {
+    groupSizes.set(row.serialNo, (groupSizes.get(row.serialNo) ?? 0) + 1);
+  }
+
+  const records = [
+    ...input.rows.map((row) => ({
+      jobId: input.jobId,
+      importFileId: input.fileId,
+      rowNumber: row.rowNumber,
+      channelProductNo: input.channelId || null,
+      mappingType: null,
+      itemId: null,
+      itemName: null,
+      serialNo: row.serialNo,
+      productMatchName: row.productMatchName,
+      productOptionText: row.productOptionText,
+      stockMatchedProductName: row.stockMatchedProductName,
+      stockMatchedOptionText: row.stockMatchedOptionText,
+      quantityText: row.quantityText,
+      resolvedSkuCode: null,
+      resolvedModelCodes: null,
+      barcode: null,
+      quantity: null,
+      isSetProduct: (groupSizes.get(row.serialNo) ?? 0) > 1,
+      confidence: null,
+      warningMessage: null,
+      sourceRow: row,
+      errorMessage: null,
+    })),
+    ...input.errors.map((error) => ({
+      jobId: input.jobId,
+      importFileId: input.fileId,
+      rowNumber: error.rowNumber,
+      channelProductNo: input.channelId || null,
+      mappingType: null,
+      itemId: null,
+      itemName: null,
+      serialNo: '',
+      productMatchName: '',
+      productOptionText: '',
+      stockMatchedProductName: '',
+      stockMatchedOptionText: '',
+      quantityText: '',
+      resolvedSkuCode: null,
+      resolvedModelCodes: null,
+      barcode: null,
+      quantity: null,
+      isSetProduct: false,
+      confidence: null,
+      warningMessage: null,
+      sourceRow: { rowNumber: error.rowNumber },
+      errorMessage: error.errorMessage,
+    })),
+  ];
+
+  await createChunks(records, async (chunk) => {
+    await prisma.stagingProductVariantKeyword.createMany({ data: chunk });
+  });
+}
+
 export async function previewStagingImport(input: PreviewInput): Promise<StagingImportPreviewResponse> {
   const dataset = await loadPreviewDataset(input);
 
@@ -483,7 +846,6 @@ export async function previewStagingImport(input: PreviewInput): Promise<Staging
 export async function applyStagingImport(input: ApplyInput): Promise<StagingImportApplyResponse> {
   const dataset = await loadPreviewDataset(input);
   const totalRows = dataset.rows.length + dataset.errors.length;
-
   const result = await prisma.$transaction(async (tx) => {
     const job = await tx.importJob.create({
       data: {
@@ -491,16 +853,13 @@ export async function applyStagingImport(input: ApplyInput): Promise<StagingImpo
         storeId: input.storeId || null,
         channelId: input.channelId || null,
         fileName: input.fileName,
-        status: 'APPLIED',
+        status: 'PENDING',
         totalRows,
-        successRows: dataset.rows.length,
-        errorRows: dataset.errors.length,
+        successRows: 0,
+        errorRows: 0,
         previewSummary: dataset.summary,
-        errorSummary: dataset.errors.slice(0, PREVIEW_SAMPLE_LIMIT).map((error) => ({
-          rowNumber: error.rowNumber,
-          errorMessage: error.errorMessage,
-        })),
-        appliedAt: new Date(),
+        errorSummary: toErrorSummary(dataset.errors),
+        appliedAt: null,
       },
     });
 
@@ -511,243 +870,79 @@ export async function applyStagingImport(input: ApplyInput): Promise<StagingImpo
         fileName: input.fileName,
         mimeType: input.mimeType || null,
         sizeBytes: input.sizeBytes ?? null,
-        status: 'APPLIED',
+        status: 'PENDING',
         totalRows,
-        successRows: dataset.rows.length,
-        errorRows: dataset.errors.length,
+        successRows: 0,
+        errorRows: 0,
       },
     });
 
+    return { jobId: job.id, fileId: file.id };
+  }, {
+    timeout: APPLY_TRANSACTION_TIMEOUT_MS,
+    maxWait: APPLY_TRANSACTION_MAX_WAIT_MS,
+  });
+
+  try {
     if (input.fileType === 'ERP_STOCK') {
-      const rows = dataset.rows as StockListImportRow[];
-      await tx.stagingStockItem.createMany({
-        data: [
-          ...rows.map((row) => ({
-            jobId: job.id,
-            importFileId: file.id,
-            rowNumber: row.rowNumber,
-            barcode: row.barcode,
-            productName: row.productName,
-            purchaseProductName: row.purchaseProductName,
-            internalProductCode: row.internalProductCode,
-            modelName: row.modelName,
-            supplierItemCode: row.supplierItemCode,
-            optionCode: row.optionCode,
-            sellingPrice: row.sellingPrice,
-            costPrice: row.costPrice,
-            stockQuantity: row.stockQuantity,
-            skuCodeCandidate: row.skuCodeCandidate,
-            sourceRow: row,
-            errorMessage: null,
-          })),
-          ...dataset.errors.map((error) => ({
-            jobId: job.id,
-            importFileId: file.id,
-            rowNumber: error.rowNumber,
-            barcode: '',
-            productName: '',
-            purchaseProductName: '',
-            internalProductCode: '',
-            modelName: '',
-            supplierItemCode: '',
-            optionCode: '',
-            sellingPrice: null,
-            costPrice: null,
-            stockQuantity: null,
-            skuCodeCandidate: '',
-            sourceRow: { rowNumber: error.rowNumber },
-            errorMessage: error.errorMessage,
-          })),
-        ],
+      await insertErpStockRows({
+        jobId: result.jobId,
+        fileId: result.fileId,
+        rows: dataset.rows as StockListImportRow[],
+        errors: dataset.errors,
       });
     } else if (input.fileType === 'SMARTSTORE_PRODUCT') {
-      const rows = dataset.rows as SmartstoreProductParsedRow[];
-
-      for (const row of rows) {
-        const product = await tx.stagingNaverProduct.create({
-          data: {
-            jobId: job.id,
-            importFileId: file.id,
-            storeId: input.storeId || null,
-            rowNumber: row.rowNumber,
-            externalProductId: toNullableString(row.externalProductId),
-            channelProductNo: toNullableString(row.channelProductNo),
-            originProductNo: toNullableString(row.originProductNo),
-            productName: row.productName || '(상품명 없음)',
-            statusType: toNullableString(row.statusType),
-            sellerManagementCode: toNullableString(row.sellerManagementCode),
-            sourceRow: row,
-            errorMessage: null,
-          },
-        });
-
-        if (row.optionName || row.optionValue || row.optionCode) {
-          await tx.stagingNaverProductOption.create({
-            data: {
-              jobId: job.id,
-              importFileId: file.id,
-              stagingProductId: product.id,
-              rowNumber: row.rowNumber,
-              channelProductNo: toNullableString(row.channelProductNo),
-              optionId: toNullableString(row.optionId),
-              optionName: row.optionName,
-              optionValue: row.optionValue,
-              optionCode: toNullableString(row.optionCode),
-              sourceRow: row,
-              errorMessage: null,
-            },
-          });
-        }
-
-        if (
-          row.additionalName ||
-          row.additionalValue ||
-          row.additionalSellerManagementCode ||
-          row.additionalPrice !== null
-        ) {
-          await tx.stagingNaverProductAdditional.create({
-            data: {
-              jobId: job.id,
-              importFileId: file.id,
-              stagingProductId: product.id,
-              rowNumber: row.rowNumber,
-              channelProductNo: toNullableString(row.channelProductNo),
-              additionalId: toNullableString(row.additionalId),
-              additionalName: row.additionalName,
-              additionalValue: row.additionalValue,
-              sellerManagementCode: toNullableString(row.additionalSellerManagementCode),
-              price: row.additionalPrice,
-              stockQuantity: row.additionalStockQuantity,
-              usable: row.additionalUsable,
-              sortType: toNullableString(row.additionalSortType),
-              sourceRow: row,
-              errorMessage: null,
-            },
-          });
-        }
-      }
-
-      if (dataset.errors.length > 0) {
-        await tx.stagingNaverProduct.createMany({
-          data: dataset.errors.map((error) => ({
-            jobId: job.id,
-            importFileId: file.id,
-            storeId: input.storeId || null,
-            rowNumber: error.rowNumber,
-            externalProductId: null,
-            channelProductNo: null,
-            originProductNo: null,
-            productName: '(파싱 오류)',
-            statusType: null,
-            sellerManagementCode: null,
-            sourceRow: { rowNumber: error.rowNumber },
-            errorMessage: error.errorMessage,
-          })),
-        });
-      }
+      await insertSmartstoreRows({
+        jobId: result.jobId,
+        fileId: result.fileId,
+        storeId: input.storeId,
+        rows: dataset.rows as SmartstoreProductParsedRow[],
+        errors: dataset.errors,
+      });
     } else if (input.fileType === 'SKU_MAPPING') {
-      const rows = dataset.rows as SkuMappingParsedRow[];
-      await tx.stagingSkuMapping.createMany({
-        data: [
-          ...rows.map((row) => ({
-            jobId: job.id,
-            importFileId: file.id,
-            rowNumber: row.rowNumber,
-            mappingType: row.mappingType,
-            smartstoreName: row.smartstoreName,
-            channelProductNo: row.channelProductNo,
-            productName: row.productName,
-            itemId: row.itemId,
-            itemName: row.itemName,
-            managementCode: row.managementCode,
-            currentSkuCode: row.currentSkuCode,
-            skuCode: row.skuCode,
-            quantity: Number(row.quantity || '1'),
-            sourceRow: row,
-            errorMessage: null,
-          })),
-          ...dataset.errors.map((error) => ({
-            jobId: job.id,
-            importFileId: file.id,
-            rowNumber: error.rowNumber,
-            mappingType: '',
-            smartstoreName: '',
-            channelProductNo: '',
-            productName: '',
-            itemId: '',
-            itemName: '',
-            managementCode: '',
-            currentSkuCode: '',
-            skuCode: '',
-            quantity: 0,
-            sourceRow: { rowNumber: error.rowNumber },
-            errorMessage: error.errorMessage,
-          })),
-        ],
+      await insertSkuMappingRows({
+        jobId: result.jobId,
+        fileId: result.fileId,
+        rows: dataset.rows as SkuMappingParsedRow[],
+        errors: dataset.errors,
       });
     } else {
-      const rows = dataset.rows as ProductVariantKeywordSourceRow[];
-      const groupSizes = new Map<string, number>();
-      for (const row of rows) {
-        groupSizes.set(row.serialNo, (groupSizes.get(row.serialNo) ?? 0) + 1);
-      }
-
-      await tx.stagingProductVariantKeyword.createMany({
-        data: [
-          ...rows.map((row) => ({
-            jobId: job.id,
-            importFileId: file.id,
-            rowNumber: row.rowNumber,
-            channelProductNo: input.channelId || null,
-            mappingType: null,
-            itemId: null,
-            itemName: null,
-            serialNo: row.serialNo,
-            productMatchName: row.productMatchName,
-            productOptionText: row.productOptionText,
-            stockMatchedProductName: row.stockMatchedProductName,
-            stockMatchedOptionText: row.stockMatchedOptionText,
-            quantityText: row.quantityText,
-            resolvedSkuCode: null,
-            resolvedModelCodes: null,
-            barcode: null,
-            quantity: null,
-            isSetProduct: (groupSizes.get(row.serialNo) ?? 0) > 1,
-            confidence: null,
-            warningMessage: null,
-            sourceRow: row,
-            errorMessage: null,
-          })),
-          ...dataset.errors.map((error) => ({
-            jobId: job.id,
-            importFileId: file.id,
-            rowNumber: error.rowNumber,
-            channelProductNo: input.channelId || null,
-            mappingType: null,
-            itemId: null,
-            itemName: null,
-            serialNo: '',
-            productMatchName: '',
-            productOptionText: '',
-            stockMatchedProductName: '',
-            stockMatchedOptionText: '',
-            quantityText: '',
-            resolvedSkuCode: null,
-            resolvedModelCodes: null,
-            barcode: null,
-            quantity: null,
-            isSetProduct: false,
-            confidence: null,
-            warningMessage: null,
-            sourceRow: { rowNumber: error.rowNumber },
-            errorMessage: error.errorMessage,
-          })),
-        ],
+      await insertProductVariantKeywordRows({
+        jobId: result.jobId,
+        fileId: result.fileId,
+        channelId: input.channelId,
+        rows: dataset.rows as ProductVariantKeywordSourceRow[],
+        errors: dataset.errors,
       });
     }
 
-    return { jobId: job.id, fileId: file.id };
-  });
+    await updateImportJobStatus({
+      jobId: result.jobId,
+      fileId: result.fileId,
+      status: 'APPLIED',
+      totalRows,
+      successRows: dataset.rows.length,
+      errorRows: dataset.errors.length,
+      summary: dataset.summary,
+      errors: dataset.errors,
+    });
+  } catch (error) {
+    await cleanupFailedImportJob(result.jobId).catch(() => undefined);
+    await updateImportJobStatus({
+      jobId: result.jobId,
+      fileId: result.fileId,
+      status: 'FAILED',
+      totalRows,
+      successRows: 0,
+      errorRows: dataset.errors.length,
+      summary: dataset.summary,
+      errors: [
+        ...dataset.errors,
+        { rowNumber: 0, errorMessage: toFriendlyApplyError(error).message },
+      ],
+    }).catch(() => undefined);
+    throw toFriendlyApplyError(error);
+  }
 
   return {
     jobId: result.jobId,
