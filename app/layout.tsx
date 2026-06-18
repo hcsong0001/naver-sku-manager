@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Naver SKU Manager",
-  description: "Smartstore Inventory & Price Management Admin Dashboard",
+  title: "TMS | Tooltalk Management System",
+  description: "Tooltalk Management System 운영 대시보드",
 };
 
 export default function RootLayout({

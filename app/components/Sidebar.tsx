@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import {
@@ -10,13 +11,13 @@ import {
   History,
   TrendingUp,
   Settings,
-  Boxes,
   Store,
   User,
   FileSpreadsheet,
   Search,
   Upload,
   PackageCheck,
+  ShieldAlert,
   type LucideIcon,
 } from "lucide-react";
 
@@ -39,6 +40,7 @@ const menuItems: MenuItem[] = [
   { name: "전체 데이터 Import", href: "/dashboard/staging-import", icon: Upload },
   { name: "전체 매핑 Preview", href: "/dashboard/staging-mapping-preview", icon: Search },
   { name: "가격/재고 수정 Preview", href: "/dashboard/bulk-update-preview", icon: PackageCheck },
+  { name: "위험 후보 정리", href: "/dashboard/mapping-risk-resolution", icon: ShieldAlert },
   { name: "재고 이력", href: "/inventory-log", icon: History },
   { name: "가격 이력", href: "/price-log", icon: TrendingUp },
   { name: "설정", href: "/settings", icon: Settings },
@@ -46,21 +48,35 @@ const menuItems: MenuItem[] = [
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const [logoError, setLogoError] = React.useState(false);
 
   return (
     <aside className="w-64 bg-[#121214] border-r border-[#262629] flex flex-col h-full shrink-0">
-        {/* 브랜드 헤더 */}
+      {/* 브랜드 헤더 */}
       <div className="h-16 flex items-center px-6 border-b border-[#262629] gap-3">
-        <div className="bg-indigo-600/20 p-2 rounded-lg border border-indigo-500/30 text-indigo-400">
-          <Boxes className="w-5 h-5" />
+        <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-lg border border-indigo-500/30 bg-indigo-600/10">
+          {logoError ? (
+            <div className="flex h-full w-full items-center justify-center bg-indigo-600/20 text-xs font-bold text-indigo-300">
+              TMS
+            </div>
+          ) : (
+            <Image
+              src="/tooltalk-logo.png"
+              alt="Tooltalk 로고"
+              width={40}
+              height={40}
+              className="h-full w-full object-contain"
+              onError={() => setLogoError(true)}
+            />
+          )}
         </div>
-        <div>
+        <div className="min-w-0">
           <h1 className="text-sm font-semibold text-zinc-100 tracking-wide">
-            NAVER SKU
+            TMS
           </h1>
-          <span className="text-[10px] text-zinc-500 font-medium">
-            관리자
-          </span>
+          <p className="truncate text-[10px] font-medium text-zinc-500">
+            Tooltalk Management System
+          </p>
         </div>
       </div>
 
