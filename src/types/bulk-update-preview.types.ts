@@ -1,3 +1,4 @@
+import type { StagingImportFileType, StagingSnapshotInfo } from '@/src/types/staging-import.types';
 import type { CommonPageSize } from '@/src/utils/pagination';
 
 export const BULK_UPDATE_PREVIEW_FILTERS = [
@@ -99,6 +100,11 @@ export type BulkUpdatePreviewSummary = {
 
 export type BulkUpdatePreviewSummaryResponse = {
   summary: BulkUpdatePreviewSummary;
+  snapshot: StagingSnapshotInfo & {
+    hasRequiredBulkData: boolean;
+    missingBulkRequirements: StagingImportFileType[];
+    hasCandidateRows: boolean;
+  };
   generatedAt: string;
 };
 
@@ -116,5 +122,10 @@ export type BulkUpdateDraftBatchResponse = {
   status: 'DRAFT' | 'PREVIEW';
   candidateCount: number;
   expectedApiCallCount: number;
+  totalItems: number;
+  successItems: number;
+  failedItems: number;
+  skippedItems: number;
+  actualApiCalled: false;
   createdAt: string;
 };

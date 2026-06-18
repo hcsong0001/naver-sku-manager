@@ -1,4 +1,5 @@
 import prisma from '@/lib/prisma';
+import { getStagingImportSummary } from '@/src/services/staging-import.service';
 import {
   createNaverApiDraftBatch,
   type NaverApiBatchPreviewItem,
@@ -450,9 +451,10 @@ function applyFilter(rows: BulkUpdatePreviewCandidate[], filter: BulkUpdatePrevi
 }
 
 async function buildBulkUpdateSnapshot() {
-  const [snapshot, currentValueSources] = await Promise.all([
+  const [snapshot, currentValueSources, importSummary] = await Promise.all([
     getStagingMappingSnapshot(),
     loadCurrentValueSources(),
+    getStagingImportSummary(),
   ]);
 
   const rows = snapshot.rows.map((row) => {
@@ -487,7 +489,22 @@ async function buildBulkUpdateSnapshot() {
     draftBatchCreatableCount: rows.filter((row) => row.draftCreatable).length,
   };
 
-  return { rows, summary };
+  const missingBulkRequirements = [
+    ...(importSummary.snapshot.latestAppliedJobs.ERP_STOCK ? [] : ['ERP_STOCK' as const]),
+    ...(importSummary.snapshot.latestAppliedJobs.SMARTSTORE_PRODUCT ? [] : ['SMARTSTORE_PRODUCT' as const]),
+    ...(importSummary.snapshot.latestAppliedJobs.PRODUCT_VARIANT_KEYWORD ? [] : ['PRODUCT_VARIANT_KEYWORD' as const]),
+  ];
+
+  return {
+    rows,
+    summary,
+    snapshot: {
+      ...importSummary.snapshot,
+      hasRequiredBulkData: missingBulkRequirements.length === 0,
+      missingBulkRequirements,
+      hasCandidateRows: rows.length > 0,
+    },
+  };
 }
 
 function buildBatchItem(candidate: BulkUpdatePreviewCandidate): NaverApiBatchPreviewItem {
@@ -559,6 +576,7 @@ export async function getBulkUpdatePreviewSummary(): Promise<BulkUpdatePreviewSu
   const snapshot = await buildBulkUpdateSnapshot();
   return {
     summary: snapshot.summary,
+    snapshot: snapshot.snapshot,
     generatedAt: new Date().toISOString(),
   };
 }
@@ -601,6 +619,9 @@ export async function createBulkUpdateDraftBatch(input: {
   if (selected.some((row) => !row.draftCreatable)) {
     throw new Error('실행 제외 또는 위험 후보가 포함되어 draft batch를 생성할 수 없습니다.');
   }
+  if (!snapshot.snapshot.hasRequiredBulkData) {
+    throw new Error(`staging 데이터가 부족하여 draft batch를 생성할 수 없습니다: ${snapshot.snapshot.missingBulkRequirements.join(', ')}`);
+  }
 
   const expectedApiCallCount = selected.reduce((sum, row) =>
     sum + (row.hasPriceChange ? 1 : 0) + (row.hasStockChange ? 1 : 0), 0);
@@ -624,6 +645,11 @@ export async function createBulkUpdateDraftBatch(input: {
     status: batch.status === 'PREVIEW' ? 'PREVIEW' : 'DRAFT',
     candidateCount: selected.length,
     expectedApiCallCount,
+    totalItems: batch.totalItems,
+    successItems: batch.successItems,
+    failedItems: batch.failedItems,
+    skippedItems: batch.skippedItems,
+    actualApiCalled: false,
     createdAt: batch.createdAt.toISOString(),
   };
 }

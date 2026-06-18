@@ -1,4 +1,5 @@
 import prisma from '@/lib/prisma';
+import { getStagingImportSummary } from '@/src/services/staging-import.service';
 import type { StagingImportFileType } from '@/src/types/staging-import.types';
 import type {
   StagingMappingCandidate,
@@ -771,10 +772,14 @@ export async function getStagingMappingSnapshot(): Promise<Snapshot> {
 }
 
 export async function getStagingMappingSummary(): Promise<StagingMappingSummaryResponse> {
-  const snapshot = await getStagingMappingSnapshot();
+  const [snapshot, importSummary] = await Promise.all([
+    getStagingMappingSnapshot(),
+    getStagingImportSummary(),
+  ]);
   return {
     summary: snapshot.summary,
     sourceJobs: snapshot.sourceJobs,
+    snapshot: importSummary.snapshot,
     generatedAt: new Date().toISOString(),
   };
 }

@@ -1,4 +1,4 @@
-import type { StagingImportFileType } from '@/src/types/staging-import.types';
+import type { StagingImportFileType, StagingSnapshotInfo } from '@/src/types/staging-import.types';
 import type { CommonPageSize } from '@/src/utils/pagination';
 
 export const STAGING_MAPPING_FILTERS = [
@@ -112,6 +112,7 @@ export type StagingMappingSourceJob = {
 export type StagingMappingSummaryResponse = {
   summary: StagingMappingPreviewSummary;
   sourceJobs: StagingMappingSourceJob[];
+  snapshot: StagingSnapshotInfo;
   generatedAt: string;
 };
 
