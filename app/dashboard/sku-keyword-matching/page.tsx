@@ -24,6 +24,10 @@ import {
   type CommonPageSize,
 } from '@/src/utils/pagination';
 import type {
+  SkuKeywordDraftPreviewRequest,
+  SkuKeywordDraftPreviewResponse,
+} from '@/src/types/sku-keyword-draft-preview.types';
+import type {
   SkuKeywordErrorRow,
   SkuKeywordManualApplyRequest,
   SkuKeywordManualApplyResponse,
@@ -178,6 +182,152 @@ function SummaryCards({ summary }: { summary: SkuKeywordSummary }) {
         value={summary.errorCount}
         accent="border-red-500/20 bg-red-500/5"
       />
+    </div>
+  );
+}
+
+function CountBadge({
+  label,
+  value,
+}: {
+  label: string;
+  value: number;
+}) {
+  return (
+    <div className="rounded-lg border border-[#262629] bg-[#0c0c0e] px-3 py-2">
+      <p className="text-[11px] font-medium text-zinc-500">{label}</p>
+      <p className="mt-1 text-base font-semibold text-white">{value.toLocaleString()}</p>
+    </div>
+  );
+}
+
+function CountList({
+  title,
+  counts,
+}: {
+  title: string;
+  counts: Record<string, number>;
+}) {
+  const entries = Object.entries(counts).filter(([, value]) => value > 0);
+
+  return (
+    <div className="rounded-lg border border-[#262629] bg-[#0c0c0e] p-4">
+      <p className="text-sm font-semibold text-white">{title}</p>
+      {entries.length === 0 ? (
+        <p className="mt-3 text-xs text-zinc-500">집계된 항목이 없습니다.</p>
+      ) : (
+        <div className="mt-3 flex flex-wrap gap-2">
+          {entries.map(([key, value]) => (
+            <span
+              key={key}
+              className="inline-flex items-center gap-2 rounded-md border border-[#262629] bg-[#121214] px-2.5 py-1 text-xs text-zinc-300"
+            >
+              <span className="font-mono text-[11px] text-zinc-400">{key}</span>
+              <span className="font-semibold text-white">{value.toLocaleString()}</span>
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function DraftPreviewPanel({
+  result,
+}: {
+  result: SkuKeywordDraftPreviewResponse;
+}) {
+  return (
+    <div className="space-y-4 rounded-lg border border-[#262629] bg-[#121214] p-6">
+      <div>
+        <h3 className="text-lg font-semibold text-white">Draft 후보 미리보기 결과</h3>
+        <p className="mt-1 text-sm text-zinc-400">
+          아직 Draft Batch는 생성하지 않고, 후보 전환 결과만 검토합니다.
+        </p>
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+        <CountBadge label="전체 후보 수" value={result.summary.bulkLikeCandidateCount} />
+        <CountBadge label="Draft 가능" value={result.summary.draftCreatableCount} />
+        <CountBadge label="검토 준비" value={result.summary.readyForReviewCount} />
+        <CountBadge label="문맥 필요" value={result.summary.needsContextCount} />
+        <CountBadge label="세트 후보" value={result.summary.setProductCount} />
+        <CountBadge
+          label="가격/재고 변경"
+          value={result.summary.priceAndStockChangeCandidateCount}
+        />
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-3">
+        <CountList
+          title="hydrate issue 집계"
+          counts={result.issueSummary.hydrateIssueCounts}
+        />
+        <CountList
+          title="bulk-like risk 집계"
+          counts={result.issueSummary.bulkLikeRiskCounts}
+        />
+        <CountList
+          title="상태 집계"
+          counts={result.issueSummary.statusCounts}
+        />
+      </div>
+
+      <details className="rounded-lg border border-[#262629] bg-[#0c0c0e]">
+        <summary className="cursor-pointer list-none px-4 py-3 text-sm font-semibold text-white">
+          후보 목록 보기 ({result.candidates.length.toLocaleString()}건)
+        </summary>
+        <div className="space-y-3 border-t border-[#262629] p-4">
+          {result.candidates.length === 0 ? (
+            <p className="text-sm text-zinc-500">생성된 후보가 없습니다.</p>
+          ) : (
+            result.candidates.map((candidate) => (
+              <div key={candidate.id} className="rounded-lg border border-[#262629] bg-[#121214] p-4">
+                <div className="flex flex-col gap-2 lg:flex-row lg:items-start lg:justify-between">
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <MappingTypeBadge type={candidate.candidateType} />
+                      <span className="rounded-md bg-[#1a1a1f] px-2 py-0.5 text-[11px] font-medium text-zinc-300">
+                        {candidate.status}
+                      </span>
+                      <span className="rounded-md bg-[#1a1a1f] px-2 py-0.5 text-[11px] font-medium text-zinc-300">
+                        {candidate.draftCreatable ? 'Draft 가능' : 'Draft 불가'}
+                      </span>
+                    </div>
+                    <p className="mt-2 text-sm font-semibold text-white">
+                      {candidate.productName ?? '-'}
+                    </p>
+                    <p className="mt-1 text-sm text-zinc-300">{candidate.itemName ?? '-'}</p>
+                    <p className="mt-1 font-mono text-xs text-zinc-500">
+                      {candidate.channelProductNo} · {candidate.itemId}
+                    </p>
+                  </div>
+                  <div className="grid gap-1 text-xs text-zinc-400 sm:grid-cols-2 lg:min-w-[260px]">
+                    <span>현재가: {formatMaybe(candidate.currentSmartstorePrice)}</span>
+                    <span>목표가: {formatMaybe(candidate.calculatedTargetPrice)}</span>
+                    <span>현재재고: {formatMaybe(candidate.currentSmartstoreStock)}</span>
+                    <span>목표재고: {formatMaybe(candidate.calculatedTargetStock)}</span>
+                  </div>
+                </div>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {candidate.riskMessages.length > 0 ? candidate.riskMessages.map((message, index) => (
+                    <span
+                      key={`${candidate.id}-risk-${index}`}
+                      className="inline-flex rounded-md border border-amber-500/20 bg-amber-500/10 px-2 py-1 text-[11px] text-amber-200"
+                    >
+                      {message}
+                    </span>
+                  )) : (
+                    <span className="inline-flex rounded-md border border-emerald-500/20 bg-emerald-500/10 px-2 py-1 text-[11px] text-emerald-200">
+                      위험 없음
+                    </span>
+                  )}
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </details>
     </div>
   );
 }
@@ -842,12 +992,19 @@ export default function SkuKeywordMatchingPage() {
   const [previewRefreshing, setPreviewRefreshing] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [manualApplying, setManualApplying] = useState(false);
+  const [draftPreviewLoading, setDraftPreviewLoading] = useState(false);
+  const [draftPreviewResult, setDraftPreviewResult] = useState<SkuKeywordDraftPreviewResponse | null>(null);
+  const [draftPreviewError, setDraftPreviewError] = useState<string | null>(null);
 
   const manualStats = getManualSelectionStats(manualSelections);
+  const canPreviewDraftCandidates = !!preview
+    && (preview.matchedRows.length > 0 || manualStats.skuCount > 0);
 
   const resetPreview = () => {
     setPreview(null);
     setMessage(null);
+    setDraftPreviewResult(null);
+    setDraftPreviewError(null);
     setActiveTab('warning');
     setPageByTab({ matched: 1, warning: 1, error: 1 });
     setPageSizeByTab({ matched: DEFAULT_PAGE_SIZE, warning: DEFAULT_PAGE_SIZE, error: DEFAULT_PAGE_SIZE });
@@ -864,6 +1021,8 @@ export default function SkuKeywordMatchingPage() {
   };
 
   const addManualSku = (rowKey: string, candidate: SkuKeywordManualSkuCandidate) => {
+    setDraftPreviewResult(null);
+    setDraftPreviewError(null);
     setManualSelections((current) => {
       const selectedSkus = current[rowKey] ?? [];
       if (selectedSkus.some((sku) => sku.id === candidate.id)) return current;
@@ -875,6 +1034,8 @@ export default function SkuKeywordMatchingPage() {
   };
 
   const removeManualSku = (rowKey: string, skuId: string) => {
+    setDraftPreviewResult(null);
+    setDraftPreviewError(null);
     setManualSelections((current) => {
       const next = { ...current };
       const selectedSkus = (next[rowKey] ?? []).filter((sku) => sku.id !== skuId);
@@ -888,6 +1049,8 @@ export default function SkuKeywordMatchingPage() {
   };
 
   const changeManualSkuQuantity = (rowKey: string, skuId: string, quantity: number) => {
+    setDraftPreviewResult(null);
+    setDraftPreviewError(null);
     setManualSelections((current) => {
       const selectedSkus = current[rowKey] ?? [];
       const safeQuantity = Number.isFinite(quantity) && quantity >= 1 ? Math.floor(quantity) : 1;
@@ -916,6 +1079,8 @@ export default function SkuKeywordMatchingPage() {
 
   const applyPreviewResult = (previewResult: SkuKeywordPreviewResponse, successText: string) => {
     setPreview(previewResult);
+    setDraftPreviewResult(null);
+    setDraftPreviewError(null);
     setActiveTab(previewResult.warningRows.length > 0 ? 'warning' : 'matched');
     setPageByTab({ matched: 1, warning: 1, error: 1 });
     setMessage({ type: 'success', text: successText });
@@ -1028,6 +1193,45 @@ export default function SkuKeywordMatchingPage() {
     });
 
     return rows.length > 0 ? { rows } : null;
+  };
+
+  const handleDraftPreview = async () => {
+    if (!preview) {
+      setDraftPreviewError('먼저 Preview 실행 결과가 필요합니다.');
+      return;
+    }
+
+    setDraftPreviewLoading(true);
+    setDraftPreviewError(null);
+
+    try {
+      const payload: SkuKeywordDraftPreviewRequest = {
+        preview: {
+          matchedRows: preview.matchedRows,
+          warningRows: preview.warningRows,
+        },
+        manualSelections,
+      };
+
+      const response = await fetch('/api/sku-matching/keyword-draft-preview', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await readJson<SkuKeywordDraftPreviewResponse | { error: string }>(response);
+
+      if (!response.ok) {
+        throw new Error(getErrorMessage(data, 'Draft 후보 미리보기에 실패했습니다.'));
+      }
+
+      setDraftPreviewResult(data as SkuKeywordDraftPreviewResponse);
+    } catch (error) {
+      const text = error instanceof Error ? error.message : 'Draft 후보 미리보기에 실패했습니다.';
+      setDraftPreviewResult(null);
+      setDraftPreviewError(text);
+    } finally {
+      setDraftPreviewLoading(false);
+    }
   };
 
   const handleManualApply = async () => {
@@ -1193,6 +1397,43 @@ export default function SkuKeywordMatchingPage() {
                   수동 확정 저장은 실제 DB에 반영됩니다. 저장 후 preview를 자동으로 다시 불러옵니다.
                 </p>
               </div>
+            </div>
+
+            <div className="space-y-4 rounded-lg border border-[#262629] bg-[#121214] p-6">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h2 className="text-lg font-semibold text-white">Draft 후보 미리보기</h2>
+                  <p className="mt-1 text-sm text-zinc-400">
+                    현재 preview 결과와 수동 선택 SKU를 seed/hydrate/bulk-like 후보로 변환해 미리 확인합니다.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleDraftPreview}
+                  disabled={!canPreviewDraftCandidates || draftPreviewLoading || manualApplying || previewRefreshing}
+                  className="tms-button tms-button-secondary inline-flex items-center justify-center gap-2 rounded-lg border px-4 py-2 text-sm font-semibold transition"
+                >
+                  {draftPreviewLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Search className="h-4 w-4" />
+                  )}
+                  Draft 후보 미리보기
+                </button>
+              </div>
+
+              <div className="rounded-lg border border-[#262629] bg-[#0c0c0e] px-4 py-3 text-xs text-zinc-400">
+                자동 매칭 {preview.matchedRows.length.toLocaleString()}건, 수동 선택 row {manualStats.rowCount.toLocaleString()}건, SKU {manualStats.skuCount.toLocaleString()}건이 포함됩니다.
+              </div>
+
+              {draftPreviewError && (
+                <div className="flex items-center gap-2 rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+                  <AlertTriangle className="h-4 w-4 shrink-0" />
+                  {draftPreviewError}
+                </div>
+              )}
+
+              {draftPreviewResult && <DraftPreviewPanel result={draftPreviewResult} />}
             </div>
 
             <ResultTabs
