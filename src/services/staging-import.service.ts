@@ -780,10 +780,28 @@ function parseSummaryJson(value: unknown): StagingImportPreviewSummary {
 }
 
 export async function getStagingImportSummary(storeId?: string): Promise<StagingImportSummaryResponse> {
-  const jobs = await prisma.importJob.findMany({
-    where: storeId ? { storeId } : undefined,
-    orderBy: { createdAt: 'desc' },
-  });
+  const jobWhere = storeId ? { storeId } : undefined;
+  const stagingWhere = storeId ? { job: { storeId } } : undefined;
+  const [
+    jobs,
+    stagingStockCount,
+    stagingProductCount,
+    stagingOptionCount,
+    stagingAdditionalCount,
+    stagingSkuMappingCount,
+    stagingProductVariantKeywordCount,
+  ] = await Promise.all([
+    prisma.importJob.findMany({
+      where: jobWhere,
+      orderBy: { createdAt: 'desc' },
+    }),
+    prisma.stagingStockItem.count({ where: stagingWhere }),
+    prisma.stagingNaverProduct.count({ where: stagingWhere }),
+    prisma.stagingNaverProductOption.count({ where: stagingWhere }),
+    prisma.stagingNaverProductAdditional.count({ where: stagingWhere }),
+    prisma.stagingSkuMapping.count({ where: stagingWhere }),
+    prisma.stagingProductVariantKeyword.count({ where: stagingWhere }),
+  ]);
 
   const latestJobs: Partial<Record<StagingImportFileType, StagingImportLatestJob>> = {};
   for (const job of jobs) {
@@ -816,6 +834,13 @@ export async function getStagingImportSummary(storeId?: string): Promise<Staging
   return {
     latestJobs,
     summary: {
+      importJobCount: jobs.length,
+      stagingStockCount,
+      stagingProductCount,
+      stagingOptionCount,
+      stagingAdditionalCount,
+      stagingSkuMappingCount,
+      stagingProductVariantKeywordCount,
       totalProducts: summary.totalProducts,
       totalOptions: summary.totalOptions,
       totalAdditionals: summary.totalAdditionals,

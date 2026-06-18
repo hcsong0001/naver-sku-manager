@@ -59,6 +59,13 @@ export type StagingImportLatestJob = {
 export type StagingImportSummaryResponse = {
   latestJobs: Partial<Record<StagingImportFileType, StagingImportLatestJob>>;
   summary: {
+    importJobCount: number;
+    stagingStockCount: number;
+    stagingProductCount: number;
+    stagingOptionCount: number;
+    stagingAdditionalCount: number;
+    stagingSkuMappingCount: number;
+    stagingProductVariantKeywordCount: number;
     totalProducts: number;
     totalOptions: number;
     totalAdditionals: number;

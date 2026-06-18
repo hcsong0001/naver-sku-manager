@@ -24,6 +24,8 @@ model Smartstore {
   productCollectionJobs  ProductCollectionJob[]
   productCollectionItems ProductCollectionJobItem[]
   importJobs             ImportJob[]
+  naverApiCallLogs       NaverApiCallLog[]
+  naverApiBatchItems     NaverApiBatchJobItem[]
   orders                 Order[]
   priceRules             StorePriceRule[]
 
@@ -57,6 +59,41 @@ enum ImportFileType {
   SMARTSTORE_PRODUCT
   SKU_MAPPING
   PRODUCT_VARIANT_KEYWORD
+}
+
+enum NaverApiCallStatus {
+  PENDING
+  DRY_RUN
+  SUCCESS
+  PARTIAL_SUCCESS
+  FAILED
+  RETRY_PENDING
+  SKIPPED
+  CANCELLED
+}
+
+enum NaverApiBatchJobStatus {
+  DRAFT
+  PREVIEW
+  APPROVAL_PENDING
+  APPROVED
+  EXECUTING
+  PARTIAL_SUCCESS
+  EXECUTED
+  FAILED
+  CANCELLED
+}
+
+enum NaverApiBatchItemStatus {
+  DRAFT
+  PREVIEWED
+  READY
+  EXECUTING
+  SUCCESS
+  FAILED
+  SKIPPED
+  RETRY_PENDING
+  CANCELLED
 }
 
 model Sku {
@@ -210,6 +247,113 @@ model ImportFile {
 
   @@index([jobId])
   @@index([fileType])
+}
+
+/// 네이버 Commerce API 개별 호출 감사 로그
+model NaverApiCallLog {
+  id               String             @id @default(uuid())
+  smartstoreId     String
+  channelId        String?
+  batchJobItemId   String?
+  module           String
+  operation        String
+  method           String
+  endpoint         String
+  requestPayload   Json?
+  responsePayload  Json?
+  statusCode       Int?
+  status           NaverApiCallStatus @default(PENDING)
+  errorType        String?
+  errorCode        String?
+  errorMessage     String?
+  attempt          Int                @default(1)
+  maxAttempts      Int                @default(1)
+  retryAfterMs     Int?
+  idempotencyKey   String?
+  startedAt        DateTime           @default(now())
+  finishedAt       DateTime?
+  durationMs       Int?
+  createdAt        DateTime           @default(now())
+  smartstore       Smartstore         @relation(fields: [smartstoreId], references: [id], onDelete: Restrict)
+  batchJobItem     NaverApiBatchJobItem? @relation(fields: [batchJobItemId], references: [id], onDelete: SetNull)
+
+  @@index([smartstoreId, startedAt])
+  @@index([channelId])
+  @@index([module, operation])
+  @@index([status])
+  @@index([batchJobItemId])
+  @@index([idempotencyKey])
+}
+
+/// 네이버 API 대량 변경의 preview, 승인, 실행 상태를 관리하는 작업
+model NaverApiBatchJob {
+  id             String                 @id @default(uuid())
+  jobType        String
+  module         String
+  status         NaverApiBatchJobStatus @default(DRAFT)
+  dryRun         Boolean                @default(true)
+  description    String?
+  totalItems     Int                    @default(0)
+  successItems   Int                    @default(0)
+  failedItems    Int                    @default(0)
+  skippedItems   Int                    @default(0)
+  previewSummary Json?
+  metadata       Json?
+  approvedBy     String?
+  createdAt      DateTime               @default(now())
+  updatedAt      DateTime               @updatedAt
+  approvedAt     DateTime?
+  executedAt     DateTime?
+  items          NaverApiBatchJobItem[]
+
+  @@index([jobType])
+  @@index([module])
+  @@index([status])
+  @@index([createdAt])
+}
+
+/// 상품, 옵션, 추가상품 단위의 네이버 API 대량 실행 항목
+model NaverApiBatchJobItem {
+  id                String                  @id @default(uuid())
+  batchJobId        String
+  storeId           String
+  channelId         String?
+  productNo         String?
+  channelProductNo  String?
+  targetType        String
+  targetId          String
+  operation         String
+  internalSkuCode   String?
+  legacyStockCode   String?
+  barcode           String?
+  skuLookupKeys     Json?
+  calculationType   String                  @default("SINGLE")
+  bundleComponents  Json?
+  calculatedCost    Decimal?                @db.Decimal(12, 2)
+  calculatedStock   Int?
+  previewBefore     Json?
+  previewAfter      Json?
+  requestPayload    Json?
+  responsePayload   Json?
+  status            NaverApiBatchItemStatus @default(DRAFT)
+  attemptCount      Int                     @default(0)
+  errorCode         String?
+  errorMessage      String?
+  createdAt         DateTime                @default(now())
+  updatedAt         DateTime                @updatedAt
+  batchJob          NaverApiBatchJob        @relation(fields: [batchJobId], references: [id], onDelete: Cascade)
+  store             Smartstore              @relation(fields: [storeId], references: [id], onDelete: Restrict)
+  callLogs          NaverApiCallLog[]
+
+  @@index([batchJobId])
+  @@index([storeId, channelProductNo])
+  @@index([channelId])
+  @@index([targetType, targetId])
+  @@index([operation])
+  @@index([status])
+  @@index([internalSkuCode])
+  @@index([legacyStockCode])
+  @@index([barcode])
 }
 
 model StagingStockItem {
