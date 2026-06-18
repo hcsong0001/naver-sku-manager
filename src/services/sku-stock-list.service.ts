@@ -129,6 +129,7 @@ export async function parseStockListWorkbook(buffer: Buffer): Promise<StockListI
       const productName = normalizeCell(row[productNameHeader]);
       const modelName = normalizeCell(row[modelNameHeader]);
       const supplierItemCode = normalizeCell(row[supplierCodeHeader]);
+      const serialNo = normalizeCell(row['상품일련번호'] || row['상품번호'] || row['일련번호']);
 
       const sellingPrice = Number(row[sellingPriceHeader]);
       const costPrice = Number(row[costPriceHeader]);
@@ -139,6 +140,7 @@ export async function parseStockListWorkbook(buffer: Buffer): Promise<StockListI
       else if (internalProductCode) skuCodeCandidate = internalProductCode;
       else if (purchaseProductName) skuCodeCandidate = purchaseProductName;
       else if (barcode) skuCodeCandidate = `BARCODE-${barcode}`;
+      else if (serialNo) skuCodeCandidate = `ERP-${serialNo}`;
 
       return {
         rowNumber,
@@ -155,7 +157,7 @@ export async function parseStockListWorkbook(buffer: Buffer): Promise<StockListI
         skuCodeCandidate,
       };
     })
-    .filter((row) => row.barcode); // 바코드(서식)가 있는 행만
+    .filter((row) => row.barcode || row.skuCodeCandidate); // 바코드 또는 SKU 후보가 있는 행 통과
 }
 
 export async function previewStockList(rows: StockListImportRow[]): Promise<StockListPreviewResponse> {
