@@ -41,6 +41,25 @@ body {
 .tms-theme-shell .tms-table {
   font-size: var(--tms-table-font-size);
   line-height: var(--tms-table-line-height);
+  color: var(--tms-table-cell-text) !important;
+  border-color: var(--tms-table-border) !important;
+}
+
+.tms-theme-shell .tms-table thead th {
+  color: var(--tms-table-muted-text) !important;
+  border-color: var(--tms-table-border) !important;
+}
+
+.tms-theme-shell .tms-table tbody,
+.tms-theme-shell .tms-table tbody tr,
+.tms-theme-shell .tms-table tbody td,
+.tms-theme-shell .tms-table tbody th {
+  border-color: var(--tms-table-border) !important;
+}
+
+.tms-theme-shell .tms-table tbody td,
+.tms-theme-shell .tms-table tbody th {
+  color: var(--tms-table-cell-text) !important;
 }
 
 .tms-theme-shell .tms-table th,
@@ -69,6 +88,12 @@ body {
 .tms-theme-shell .tms-button-secondary {
   background-color: var(--tms-button-secondary-bg) !important;
   color: var(--tms-button-secondary-text) !important;
+}
+
+.tms-theme-shell .tms-button-accent {
+  background-color: var(--tms-button-accent-bg) !important;
+  color: var(--tms-button-accent-text) !important;
+  border-color: color-mix(in srgb, var(--tms-button-accent-bg) 70%, var(--tms-border)) !important;
 }
 
 .tms-theme-shell .tms-file-button {
@@ -115,9 +140,136 @@ body {
   color: var(--tms-button-disabled-text) !important;
 }
 
+.tms-theme-shell .tms-button-secondary:hover:not(:disabled),
+.tms-theme-shell .tms-button-muted:hover:not(:disabled),
+.tms-theme-shell .tms-file-button:hover:not(:disabled) {
+  background-color: color-mix(in srgb, var(--tms-button-secondary-bg) 88%, var(--tms-selected-bg)) !important;
+  color: var(--tms-text) !important;
+}
+
+.tms-theme-shell .tms-button-accent:hover:not(:disabled),
+.tms-theme-shell .tms-button-accent:focus-visible:not(:disabled) {
+  background-color: var(--tms-button-accent-hover-bg) !important;
+  color: var(--tms-button-accent-text) !important;
+}
+
 .tms-theme-shell .tms-selected-row {
   background-color: var(--tms-selected-bg) !important;
   color: var(--tms-selected-text) !important;
+}
+
+.tms-theme-shell .tms-table-row {
+  transition: background-color 0.16s ease, color 0.16s ease;
+}
+
+.tms-theme-shell .tms-table-row:hover {
+  background-color: var(--tms-table-row-hover-bg) !important;
+  color: var(--tms-table-row-hover-text) !important;
+}
+
+.tms-theme-shell .tms-table tbody tr:hover {
+  background-color: var(--tms-table-row-hover-bg) !important;
+  color: var(--tms-table-row-hover-text) !important;
+}
+
+.tms-theme-shell .tms-table-row:hover > td,
+.tms-theme-shell .tms-table-row:hover > th,
+.tms-theme-shell .tms-table tbody tr:hover > td,
+.tms-theme-shell .tms-table tbody tr:hover > th {
+  background-color: var(--tms-table-row-hover-bg) !important;
+  color: var(--tms-table-row-hover-text) !important;
+}
+
+.tms-theme-shell .tms-table-row-selected {
+  background-color: var(--tms-table-row-selected-bg) !important;
+  color: var(--tms-table-row-selected-text) !important;
+}
+
+.tms-theme-shell .tms-table-row-selected > td,
+.tms-theme-shell .tms-table-row-selected > th,
+.tms-theme-shell .tms-selected-row > td,
+.tms-theme-shell .tms-selected-row > th {
+  background-color: var(--tms-table-row-selected-bg) !important;
+  color: var(--tms-table-row-selected-text) !important;
+}
+
+.tms-theme-shell .tms-table-row:hover .tms-row-text,
+.tms-theme-shell .tms-table-row:hover .tms-row-text-muted,
+.tms-theme-shell .tms-table-row:hover .tms-row-text-strong {
+  color: var(--tms-table-row-hover-text) !important;
+}
+
+.tms-theme-shell .tms-table tbody tr:hover .tms-row-text,
+.tms-theme-shell .tms-table tbody tr:hover .tms-row-text-muted,
+.tms-theme-shell .tms-table tbody tr:hover .tms-row-text-strong,
+.tms-theme-shell .tms-table tbody tr:hover .tms-link,
+.tms-theme-shell .tms-table tbody tr:hover .tms-badge-text,
+.tms-theme-shell .tms-table tbody tr:hover .tms-warning-text,
+.tms-theme-shell .tms-table tbody tr:hover .tms-danger-text,
+.tms-theme-shell .tms-table tbody tr:hover .tms-success-text,
+.tms-theme-shell .tms-table tbody tr:hover td :is(span, p, a, div, strong, em, code)[class*="text-zinc-"],
+.tms-theme-shell .tms-table tbody tr:hover td :is(span, p, a, div, strong, em, code)[class*="text-white"] {
+  color: var(--tms-table-row-hover-text) !important;
+}
+
+.tms-theme-shell .tms-row-text {
+  color: var(--tms-text) !important;
+}
+
+.tms-theme-shell .tms-row-text-muted {
+  color: var(--tms-muted-text) !important;
+}
+
+.tms-theme-shell .tms-row-text-strong {
+  color: var(--tms-text) !important;
+  font-weight: 600;
+}
+
+.tms-theme-shell .tms-table-row:hover .tms-badge-subtle {
+  background-color: color-mix(in srgb, var(--tms-table-row-hover-bg) 65%, var(--tms-card-muted-bg)) !important;
+  color: var(--tms-table-row-hover-text) !important;
+  border-color: color-mix(in srgb, var(--tms-table-row-hover-text) 18%, var(--tms-border)) !important;
+}
+
+.tms-theme-shell .tms-table tbody tr:hover .tms-badge,
+.tms-theme-shell .tms-table tbody tr:hover .tms-badge-subtle,
+.tms-theme-shell .tms-table tbody tr:hover .tms-status-success,
+.tms-theme-shell .tms-table tbody tr:hover .tms-status-warning,
+.tms-theme-shell .tms-table tbody tr:hover .tms-status-danger,
+.tms-theme-shell .tms-table tbody tr:hover .tms-status-muted {
+  color: var(--tms-table-row-hover-text) !important;
+  border-color: color-mix(in srgb, var(--tms-table-row-hover-text) 18%, var(--tms-border)) !important;
+}
+
+.tms-theme-shell .tms-link {
+  color: var(--tms-link) !important;
+}
+
+.tms-theme-shell .tms-link:hover {
+  color: var(--tms-link-hover) !important;
+}
+
+.tms-theme-shell .tms-badge,
+.tms-theme-shell .tms-badge-subtle {
+  background-color: var(--tms-badge-bg) !important;
+  color: var(--tms-badge-text) !important;
+  border-color: color-mix(in srgb, var(--tms-badge-text) 16%, transparent) !important;
+}
+
+.tms-theme-shell .tms-badge-text {
+  color: var(--tms-badge-text) !important;
+}
+
+.tms-theme-shell .tms-warning-text {
+  color: var(--tms-status-warning-text) !important;
+}
+
+.tms-theme-shell .tms-danger-text {
+  color: var(--tms-status-danger-text) !important;
+}
+
+.tms-theme-shell .tms-success-text {
+  color: var(--tms-status-success-text) !important;
 }
 
 .tms-theme-shell .tms-status-success {

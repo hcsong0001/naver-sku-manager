@@ -151,10 +151,10 @@ function formatMaybe(value: string | number | null | undefined): string {
 function MappingTypeBadge({ type }: { type: string }) {
   const color =
     type === 'PRODUCT'
-      ? 'bg-emerald-500/10 text-emerald-300 ring-emerald-500/20'
+      ? 'bg-emerald-500/10 tms-success-text ring-emerald-500/20'
       : type === 'OPTION'
-        ? 'bg-sky-500/10 text-sky-300 ring-sky-500/20'
-        : 'bg-violet-500/10 text-violet-300 ring-violet-500/20';
+        ? 'bg-sky-500/10 tms-link ring-sky-500/20'
+        : 'bg-violet-500/10 tms-badge-text ring-violet-500/20';
 
   return (
     <span className={`inline-flex rounded-md px-2 py-0.5 text-[11px] font-semibold ring-1 ring-inset ${color}`}>
@@ -167,10 +167,10 @@ function ConfidenceBadge({ confidence }: { confidence: number }) {
   const pct = Math.round(confidence * 100);
   const color =
     pct >= 90
-      ? 'bg-emerald-500/10 text-emerald-300 ring-emerald-500/20'
+      ? 'bg-emerald-500/10 tms-success-text ring-emerald-500/20'
       : pct >= 70
-        ? 'bg-amber-500/10 text-amber-300 ring-amber-500/20'
-        : 'bg-red-500/10 text-red-300 ring-red-500/20';
+        ? 'bg-amber-500/10 tms-warning-text ring-amber-500/20'
+        : 'bg-red-500/10 tms-danger-text ring-red-500/20';
 
   return (
     <span className={`inline-flex rounded-md px-2 py-0.5 text-[11px] font-semibold ring-1 ring-inset ${color}`}>
@@ -184,8 +184,8 @@ function ApplyEligibleBadge({ eligible }: { eligible: boolean }) {
     <span
       className={`inline-flex rounded-md px-2 py-0.5 text-[11px] font-semibold ring-1 ring-inset ${
         eligible
-          ? 'bg-emerald-500/10 text-emerald-300 ring-emerald-500/20'
-          : 'bg-amber-500/10 text-amber-300 ring-amber-500/20'
+          ? 'bg-emerald-500/10 tms-success-text ring-emerald-500/20'
+          : 'bg-amber-500/10 tms-warning-text ring-amber-500/20'
       }`}
     >
       {eligible ? '가능' : '검토'}
@@ -196,8 +196,8 @@ function ApplyEligibleBadge({ eligible }: { eligible: boolean }) {
 function SummaryCard({ label, value, accent }: { label: string; value: number; accent?: string }) {
   return (
     <div className={`rounded-lg border p-4 ${accent ?? 'border-[#262629] bg-[#0c0c0e]'}`}>
-      <p className="text-[11px] font-medium text-zinc-500">{label}</p>
-      <p className="mt-1 text-2xl font-semibold text-white">{value.toLocaleString()}</p>
+      <p className="tms-text-muted text-[11px] font-medium">{label}</p>
+      <p className="tms-text-primary mt-1 text-2xl font-semibold">{value.toLocaleString()}</p>
     </div>
   );
 }
@@ -236,8 +236,8 @@ function CountBadge({
 }) {
   return (
     <div className="rounded-lg border border-[#262629] bg-[#0c0c0e] px-3 py-2">
-      <p className="text-[11px] font-medium text-zinc-500">{label}</p>
-      <p className="mt-1 text-base font-semibold text-white">{value.toLocaleString()}</p>
+      <p className="tms-text-muted text-[11px] font-medium">{label}</p>
+      <p className="tms-text-primary mt-1 text-base font-semibold">{value.toLocaleString()}</p>
     </div>
   );
 }
@@ -253,18 +253,18 @@ function CountList({
 
   return (
     <div className="rounded-lg border border-[#262629] bg-[#0c0c0e] p-4">
-      <p className="text-sm font-semibold text-white">{title}</p>
+      <p className="tms-text-primary text-sm font-semibold">{title}</p>
       {entries.length === 0 ? (
-        <p className="mt-3 text-xs text-zinc-500">집계된 항목이 없습니다.</p>
+        <p className="tms-text-muted mt-3 text-xs">집계된 항목이 없습니다.</p>
       ) : (
         <div className="mt-3 flex flex-wrap gap-2">
           {entries.map(([key, value]) => (
             <span
               key={key}
-              className="inline-flex items-center gap-2 rounded-md border border-[#262629] bg-[#121214] px-2.5 py-1 text-xs text-zinc-300"
+              className="inline-flex items-center gap-2 rounded-md border border-[#262629] bg-[#121214] px-2.5 py-1 text-xs tms-text-primary"
             >
-              <span className="font-mono text-[11px] text-zinc-400">{key}</span>
-              <span className="font-semibold text-white">{value.toLocaleString()}</span>
+              <span className="tms-text-muted font-mono text-[11px]">{key}</span>
+              <span className="tms-text-primary font-semibold">{value.toLocaleString()}</span>
             </span>
           ))}
         </div>
@@ -519,8 +519,8 @@ function DraftPreviewPanel({
   return (
     <div className="space-y-4 rounded-lg border border-[#262629] bg-[#121214] p-6">
       <div>
-        <h3 className="text-lg font-semibold text-white">Draft 후보 미리보기 결과</h3>
-        <p className="mt-1 text-sm text-zinc-400">
+        <h3 className="tms-text-primary text-lg font-semibold">Draft 후보 미리보기 결과</h3>
+        <p className="tms-text-muted mt-1 text-sm">
           아직 Draft Batch는 생성하지 않고, 후보 전환 결과만 검토합니다.
         </p>
       </div>
@@ -555,11 +555,11 @@ function DraftPreviewPanel({
       {result.summary.draftCreatableCount === 0 && (
         <div className="rounded-lg border border-amber-500/20 bg-amber-500/10 p-4">
           <div className="flex items-start gap-3">
-            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-300" />
+            <AlertTriangle className="tms-warning-text mt-0.5 h-4 w-4 shrink-0" />
             <div className="space-y-3">
               <div>
-                <p className="text-sm font-semibold text-amber-200">Draft 가능 후보가 아직 없습니다.</p>
-                <p className="mt-1 text-xs text-amber-100/80">
+                <p className="tms-warning-text text-sm font-semibold">Draft 가능 후보가 아직 없습니다.</p>
+                <p className="tms-warning-text mt-1 text-xs opacity-90">
                   현재 후보는 모두 필수 문맥이 부족하거나 위험 이슈가 남아 있어 Draft 후보로 올리지 않습니다.
                   아래 주요 이슈와 해결 힌트를 먼저 확인해 주세요.
                 </p>
@@ -569,9 +569,9 @@ function DraftPreviewPanel({
                   {topHydrateIssueEntries.map((entry) => (
                     <span
                       key={entry.code}
-                      className="inline-flex items-center gap-2 rounded-md border border-amber-500/20 bg-[#121214] px-2.5 py-1 text-xs text-amber-100"
+                      className="inline-flex items-center gap-2 rounded-md border border-amber-500/20 bg-[#121214] px-2.5 py-1 text-xs tms-warning-text"
                     >
-                      <span className="font-mono text-[11px] text-amber-200">{entry.code}</span>
+                      <span className="font-mono text-[11px]">{entry.code}</span>
                       <span>{entry.count.toLocaleString()}건</span>
                     </span>
                   ))}
@@ -585,18 +585,18 @@ function DraftPreviewPanel({
       <div className="rounded-lg border border-[#262629] bg-[#0c0c0e] p-4">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-sm font-semibold text-white">issue 해결 힌트</p>
-            <p className="mt-1 text-xs text-zinc-500">
+            <p className="tms-text-primary text-sm font-semibold">issue 해결 힌트</p>
+            <p className="tms-text-muted mt-1 text-xs">
               현재 DB와 Prisma 모델 기준으로 자동 보강할 수 없는 문맥은 issue로 유지됩니다.
             </p>
           </div>
-          <div className="rounded-md border border-[#262629] bg-[#121214] px-3 py-2 text-xs text-zinc-300">
+          <div className="rounded-md border border-[#262629] bg-[#121214] px-3 py-2 text-xs tms-text-primary">
             현재 hydrate issue 합계: {totalHydrateIssueCount.toLocaleString()}건
           </div>
         </div>
 
         {hydrateIssueEntries.length === 0 ? (
-          <p className="mt-3 text-xs text-zinc-500">표시할 hydrate issue가 없습니다.</p>
+          <p className="tms-text-muted mt-3 text-xs">표시할 hydrate issue가 없습니다.</p>
         ) : (
           <div className="mt-3 grid gap-3 lg:grid-cols-2">
             {hydrateIssueEntries.map((entry) => (
@@ -607,18 +607,18 @@ function DraftPreviewPanel({
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                   <div>
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="rounded-md border border-[#262629] bg-[#0c0c0e] px-2 py-0.5 font-mono text-[11px] text-zinc-300">
+                      <span className="tms-badge-subtle rounded-md border px-2 py-0.5 font-mono text-[11px]">
                         {entry.code}
                       </span>
-                      <span className="text-sm font-semibold text-white">
+                      <span className="tms-text-primary text-sm font-semibold">
                         {draftHydrateIssueLabels[entry.code]}
                       </span>
                     </div>
-                    <p className="mt-2 text-xs text-zinc-400">
+                    <p className="tms-text-muted mt-2 text-xs">
                       해결 힌트: {draftHydrateIssueHints[entry.code]}
                     </p>
                   </div>
-                  <span className="rounded-md border border-[#262629] bg-[#0c0c0e] px-2.5 py-1 text-xs font-semibold text-white">
+                  <span className="tms-badge-subtle rounded-md border px-2.5 py-1 text-xs font-semibold">
                     {entry.count.toLocaleString()}건
                   </span>
                 </div>
@@ -632,12 +632,12 @@ function DraftPreviewPanel({
         <div className="flex flex-col gap-3">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="text-sm font-semibold text-white">후보 필터</p>
-              <p className="mt-1 text-xs text-zinc-500">
+              <p className="tms-text-primary text-sm font-semibold">후보 필터</p>
+              <p className="tms-text-muted mt-1 text-xs">
                 전체 summary와 issueSummary는 전체 기준으로 유지되고, 아래 목록만 필터링됩니다.
               </p>
             </div>
-            <div className="rounded-md border border-[#262629] bg-[#121214] px-3 py-2 text-xs text-zinc-300">
+            <div className="rounded-md border border-[#262629] bg-[#121214] px-3 py-2 text-xs tms-text-primary">
               현재 필터: {draftCandidateFilterLabels[activeFilter]} ·{' '}
               {filteredCandidates.length.toLocaleString()}건
             </div>
@@ -650,14 +650,14 @@ function DraftPreviewPanel({
                   key={filter}
                   type="button"
                   onClick={() => setActiveFilter(filter)}
-                  className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-xs font-semibold transition ${
+                  className={`tms-button inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-xs font-semibold transition ${
                     active
-                      ? 'border-indigo-500/40 bg-indigo-500/15 text-indigo-200'
-                      : 'tms-button tms-button-muted'
+                      ? 'tms-button-accent'
+                      : 'tms-button-muted'
                   }`}
                 >
                   <span>{draftCandidateFilterLabels[filter]}</span>
-                  <span className="rounded-md bg-black/20 px-1.5 py-0.5 font-mono text-[11px]">
+                  <span className="tms-badge-subtle rounded-md px-1.5 py-0.5 font-mono text-[11px]">
                     {filterCounts[filter].toLocaleString()}
                   </span>
                 </button>
@@ -670,8 +670,8 @@ function DraftPreviewPanel({
       <div className="space-y-4 rounded-lg border border-[#262629] bg-[#0c0c0e] p-4">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
           <div>
-            <p className="text-sm font-semibold text-white">후보 선택</p>
-            <p className="mt-1 text-xs text-zinc-500">
+            <p className="tms-text-primary text-sm font-semibold">후보 선택</p>
+            <p className="tms-text-muted mt-1 text-xs">
               선택 상태는 화면 state로만 유지되며, Draft 생성이나 DB 저장은 아직 하지 않습니다.
             </p>
           </div>
@@ -712,7 +712,7 @@ function DraftPreviewPanel({
           <CountBadge label="현재 필터 선택 불가" value={filteredDisabledCount} />
         </div>
 
-        <div className="rounded-lg border border-[#262629] bg-[#121214] px-4 py-3 text-xs text-zinc-300">
+        <div className="rounded-lg border border-[#262629] bg-[#121214] px-4 py-3 text-xs tms-text-primary">
           현재 필터: {filteredCandidates.length.toLocaleString()}건 · 선택 가능:{' '}
           {filteredSelectableCandidates.length.toLocaleString()}건 · 선택됨:{' '}
           {filteredSelectedCount.toLocaleString()}건
@@ -720,11 +720,11 @@ function DraftPreviewPanel({
 
         <div className="rounded-lg border border-[#262629] bg-[#121214] p-4">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-sm font-semibold text-white">선택된 후보 목록</p>
-            <p className="text-xs text-zinc-500">필터를 바꿔도 선택은 유지됩니다.</p>
+            <p className="tms-text-primary text-sm font-semibold">선택된 후보 목록</p>
+            <p className="tms-text-muted text-xs">필터를 바꿔도 선택은 유지됩니다.</p>
           </div>
           {selectedCandidates.length === 0 ? (
-            <p className="mt-3 text-sm text-zinc-500">선택된 후보가 없습니다.</p>
+            <p className="tms-text-muted mt-3 text-sm">선택된 후보가 없습니다.</p>
           ) : (
             <div className="mt-3 space-y-2">
               {selectedCandidates.map((candidate) => (
@@ -734,11 +734,11 @@ function DraftPreviewPanel({
                 >
                   <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
                     <div className="min-w-0">
-                      <p className="font-mono text-[11px] text-zinc-400">{candidate.id}</p>
-                      <p className="mt-1 font-semibold text-white">
+                      <p className="tms-text-muted font-mono text-[11px]">{candidate.id}</p>
+                      <p className="tms-text-primary mt-1 font-semibold">
                         {candidate.candidateType} · {candidate.channelProductNo}
                       </p>
-                      <p className="mt-1 text-zinc-300">
+                      <p className="tms-row-text mt-1">
                         SKU: {getDraftCandidateSkuText(candidate)} · draftCreatable:{' '}
                         {candidate.draftCreatable ? 'true' : 'false'} · 주요 issue {candidate.issues.length}건
                       </p>
@@ -761,8 +761,8 @@ function DraftPreviewPanel({
       <div className="space-y-4 rounded-lg border border-[#262629] bg-[#0c0c0e] p-4">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-sm font-semibold text-white">선택 후보 검토</p>
-            <p className="mt-1 text-xs text-zinc-500">
+            <p className="tms-text-primary text-sm font-semibold">선택 후보 검토</p>
+            <p className="tms-text-muted mt-1 text-xs">
               실제 Draft Batch 생성 전, 현재 선택 후보를 검토용 payload 형태로만 확인합니다.
             </p>
           </div>
@@ -779,7 +779,7 @@ function DraftPreviewPanel({
               type="button"
               onClick={handleDownloadReviewJson}
               disabled={selectedCandidates.length === 0}
-              className="tms-button tms-button-muted inline-flex items-center justify-center rounded-lg border px-3 py-2 text-xs font-semibold transition disabled:cursor-not-allowed disabled:opacity-60"
+              className="tms-button tms-button-accent inline-flex items-center justify-center rounded-lg border px-3 py-2 text-xs font-semibold transition disabled:cursor-not-allowed disabled:opacity-60"
             >
               JSON 다운로드
             </button>
@@ -804,7 +804,7 @@ function DraftPreviewPanel({
         )}
 
         {selectedCandidates.length === 0 ? (
-          <div className="rounded-lg border border-[#262629] bg-[#121214] px-4 py-6 text-sm text-zinc-400">
+          <div className="rounded-lg border border-[#262629] bg-[#121214] px-4 py-6 text-sm tms-text-muted">
             <p>선택된 Draft 후보가 없습니다.</p>
             <p className="mt-1">draftCreatable 후보를 선택하면 검토용 payload가 표시됩니다.</p>
           </div>
@@ -829,7 +829,7 @@ function DraftPreviewPanel({
             </div>
 
             <div className="rounded-lg border border-[#262629] bg-[#121214] p-4">
-              <p className="text-sm font-semibold text-white">후보별 상세 검토 목록</p>
+              <p className="tms-text-primary text-sm font-semibold">후보별 상세 검토 목록</p>
               <div className="mt-3 space-y-3">
                 {selectedCandidates.map((candidate) => {
                   const issueMessages = getDraftCandidateIssueMessages(candidate);
@@ -840,27 +840,27 @@ function DraftPreviewPanel({
                     >
                       <div className="flex flex-col gap-2 lg:flex-row lg:items-start lg:justify-between">
                         <div className="min-w-0">
-                          <p className="font-mono text-[11px] text-zinc-400">{candidate.id}</p>
-                          <p className="mt-1 text-sm font-semibold text-white">
+                          <p className="tms-text-muted font-mono text-[11px]">{candidate.id}</p>
+                          <p className="tms-text-primary mt-1 text-sm font-semibold">
                             {candidate.candidateType} · {candidate.sourceMappingType}
                           </p>
-                          <p className="mt-1 text-sm text-zinc-300">
+                          <p className="tms-row-text mt-1 text-sm">
                             {candidate.channelProductNo} · {candidate.itemId}
                           </p>
                           {candidate.candidateType === 'OPTION' && (
-                            <p className="mt-1 text-xs text-zinc-400">optionId: {candidate.itemId}</p>
+                            <p className="tms-text-muted mt-1 text-xs">optionId: {candidate.itemId}</p>
                           )}
                           {candidate.candidateType === 'ADDITIONAL' && (
-                            <p className="mt-1 text-xs text-zinc-400">additionalProductId: {candidate.itemId}</p>
+                            <p className="tms-text-muted mt-1 text-xs">additionalProductId: {candidate.itemId}</p>
                           )}
-                          <p className="mt-1 text-xs text-zinc-400">
+                          <p className="tms-text-muted mt-1 text-xs">
                             SKU: {getDraftCandidateSkuText(candidate)}
                           </p>
-                          <p className="mt-1 text-xs text-zinc-400">
+                          <p className="tms-text-muted mt-1 text-xs">
                             상품명: {candidate.productName ?? '-'} / 항목명: {candidate.itemName ?? '-'}
                           </p>
                         </div>
-                        <div className="grid gap-1 text-xs text-zinc-300 sm:grid-cols-2 lg:min-w-[320px]">
+                        <div className="tms-row-text grid gap-1 text-xs sm:grid-cols-2 lg:min-w-[320px]">
                           <span>draftCreatable: {candidate.draftCreatable ? 'true' : 'false'}</span>
                           <span>priceChange: {candidate.hasPriceChange ? 'true' : 'false'}</span>
                           <span>stockChange: {candidate.hasStockChange ? 'true' : 'false'}</span>
@@ -883,7 +883,7 @@ function DraftPreviewPanel({
                           </span>
                         )}
                       </div>
-                      <div className="mt-3 space-y-1 text-xs text-zinc-400">
+                      <div className="tms-text-muted mt-3 space-y-1 text-xs">
                         <p>권장 조치: {candidate.recommendedAction || '-'}</p>
                         <p>검토 메모: {candidate.reviewMessage || '-'}</p>
                       </div>
@@ -894,8 +894,8 @@ function DraftPreviewPanel({
             </div>
 
             <div className="rounded-lg border border-[#262629] bg-[#121214] p-4">
-              <p className="text-sm font-semibold text-white">검토용 JSON 미리보기</p>
-              <pre className="mt-3 overflow-x-auto rounded-lg border border-[#262629] bg-[#0c0c0e] p-4 text-xs text-zinc-300">
+              <p className="tms-text-primary text-sm font-semibold">검토용 JSON 미리보기</p>
+              <pre className="tms-row-text mt-3 overflow-x-auto rounded-lg border border-[#262629] bg-[#0c0c0e] p-4 text-xs">
                 {reviewPayloadText}
               </pre>
             </div>
@@ -904,19 +904,19 @@ function DraftPreviewPanel({
       </div>
 
       <details className="rounded-lg border border-[#262629] bg-[#0c0c0e]">
-        <summary className="cursor-pointer list-none px-4 py-3 text-sm font-semibold text-white">
+        <summary className="tms-text-primary cursor-pointer list-none px-4 py-3 text-sm font-semibold">
           후보 목록 보기 ({filteredCandidates.length.toLocaleString()}건)
         </summary>
         <div className="space-y-3 border-t border-[#262629] p-4">
           {filteredCandidates.length === 0 ? (
-            <p className="text-sm text-zinc-500">생성된 후보가 없습니다.</p>
+            <p className="tms-text-muted text-sm">생성된 후보가 없습니다.</p>
           ) : (
             filteredCandidates.map((candidate) => (
               <div key={candidate.id} className="rounded-lg border border-[#262629] bg-[#121214] p-4">
                 <div className="flex flex-col gap-2 lg:flex-row lg:items-start lg:justify-between">
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
-                      <label className="inline-flex items-center gap-2 rounded-md border border-[#262629] bg-[#0c0c0e] px-2 py-1 text-[11px] text-zinc-300">
+                      <label className="tms-badge-subtle inline-flex items-center gap-2 rounded-md border px-2 py-1 text-[11px]">
                         <input
                           type="checkbox"
                           checked={selectedCandidateIdSet.has(candidate.id)}
@@ -927,27 +927,27 @@ function DraftPreviewPanel({
                         선택
                       </label>
                       <MappingTypeBadge type={candidate.candidateType} />
-                      <span className="rounded-md bg-[#1a1a1f] px-2 py-0.5 text-[11px] font-medium text-zinc-300">
+                      <span className="tms-badge-subtle rounded-md px-2 py-0.5 text-[11px] font-medium">
                         {candidate.status}
                       </span>
-                      <span className="rounded-md bg-[#1a1a1f] px-2 py-0.5 text-[11px] font-medium text-zinc-300">
+                      <span className="tms-badge-subtle rounded-md px-2 py-0.5 text-[11px] font-medium">
                         {candidate.draftCreatable ? 'Draft 가능' : 'Draft 불가'}
                       </span>
                     </div>
-                    <p className="mt-2 text-sm font-semibold text-white">
+                    <p className="tms-text-primary mt-2 text-sm font-semibold">
                       {candidate.productName ?? '-'}
                     </p>
-                    <p className="mt-1 text-sm text-zinc-300">{candidate.itemName ?? '-'}</p>
-                    <p className="mt-1 font-mono text-xs text-zinc-500">
+                    <p className="tms-row-text mt-1 text-sm">{candidate.itemName ?? '-'}</p>
+                    <p className="tms-text-muted mt-1 font-mono text-xs">
                       {candidate.channelProductNo} · {candidate.itemId}
                     </p>
                     {!candidate.draftCreatable && (
-                      <p className="mt-2 text-xs text-amber-300">
+                      <p className="tms-warning-text mt-2 text-xs">
                         선택 불가 사유: {getDraftCandidateSelectionReason(candidate)}
                       </p>
                     )}
                   </div>
-                  <div className="grid gap-1 text-xs text-zinc-400 sm:grid-cols-2 lg:min-w-[260px]">
+                  <div className="tms-text-muted grid gap-1 text-xs sm:grid-cols-2 lg:min-w-[260px]">
                     <span>현재가: {formatMaybe(candidate.currentSmartstorePrice)}</span>
                     <span>목표가: {formatMaybe(candidate.calculatedTargetPrice)}</span>
                     <span>현재재고: {formatMaybe(candidate.currentSmartstoreStock)}</span>
@@ -958,16 +958,16 @@ function DraftPreviewPanel({
                   {candidate.riskMessages.length > 0 ? candidate.riskMessages.map((message, index) => (
                     <span
                       key={`${candidate.id}-risk-${index}`}
-                      className="inline-flex rounded-md border border-amber-500/20 bg-amber-500/10 px-2 py-1 text-[11px] text-amber-200"
+                      className="tms-warning-text inline-flex rounded-md border border-amber-500/20 bg-amber-500/10 px-2 py-1 text-[11px]"
                     >
                       {message}
                     </span>
                   )) : (
-                    <span className="inline-flex rounded-md border border-emerald-500/20 bg-emerald-500/10 px-2 py-1 text-[11px] text-emerald-200">
+                    <span className="tms-success-text inline-flex rounded-md border border-emerald-500/20 bg-emerald-500/10 px-2 py-1 text-[11px]">
                       위험 없음
                     </span>
                   )}
-                  <span className="inline-flex rounded-md border border-[#262629] bg-[#0c0c0e] px-2 py-1 text-[11px] text-zinc-300">
+                  <span className="tms-badge-subtle inline-flex rounded-md border px-2 py-1 text-[11px]">
                     주요 issue {candidate.issues.length}건
                   </span>
                 </div>
@@ -997,7 +997,7 @@ function FileUploadInput({
 
   return (
     <div className="space-y-1.5">
-      <label htmlFor={id} className="text-xs font-medium text-zinc-400">
+      <label htmlFor={id} className="tms-text-muted text-xs font-medium">
         {label}
       </label>
       <div className="flex flex-col gap-3 sm:flex-row">
@@ -1087,33 +1087,33 @@ function MatchedRowsTable({
         </thead>
         <tbody className="divide-y divide-[#1e1e22]">
           {paginatedRows.map((row, index) => (
-            <tr key={`${row.itemId}-${row.barcode}-${index}`} className="hover:bg-[#16161a]">
-              <td className="whitespace-nowrap px-4 py-3 font-mono text-xs text-zinc-400">
+            <tr key={`${row.itemId}-${row.barcode}-${index}`} className="tms-table-row">
+              <td className="tms-row-text-muted whitespace-nowrap px-4 py-3 font-mono text-xs">
                 {getRowNumber(index, safeCurrentPage, pageSize)}
               </td>
               <td className="whitespace-nowrap px-4 py-3">
                 <MappingTypeBadge type={row.mappingType} />
               </td>
-              <td className="whitespace-nowrap px-4 py-3 font-mono text-xs text-zinc-400">
+              <td className="tms-row-text-muted whitespace-nowrap px-4 py-3 font-mono text-xs">
                 {formatMaybe(row.channelProductNo)}
               </td>
-              <td className="whitespace-nowrap px-4 py-3 font-mono text-xs text-zinc-400">{row.itemId}</td>
-              <td className="max-w-72 px-4 py-3 text-zinc-300">{formatMaybe(row.sourceText)}</td>
-              <td className="max-w-48 px-4 py-3 text-indigo-300">{formatMaybe(row.matchedKeyword)}</td>
-              <td className="whitespace-nowrap px-4 py-3 font-mono text-xs text-zinc-300">
+              <td className="tms-row-text-muted whitespace-nowrap px-4 py-3 font-mono text-xs">{row.itemId}</td>
+              <td className="tms-row-text max-w-72 px-4 py-3">{formatMaybe(row.sourceText)}</td>
+              <td className="tms-link max-w-48 px-4 py-3">{formatMaybe(row.matchedKeyword)}</td>
+              <td className="tms-row-text whitespace-nowrap px-4 py-3 font-mono text-xs">
                 {formatMaybe(row.barcode)}
               </td>
-              <td className="whitespace-nowrap px-4 py-3 font-mono text-xs font-semibold text-emerald-300">
+              <td className="tms-success-text whitespace-nowrap px-4 py-3 font-mono text-xs font-semibold">
                 {formatMaybe(row.skuCode)}
               </td>
-              <td className="whitespace-nowrap px-4 py-3 text-xs text-zinc-400">{row.matchMethod}</td>
+              <td className="tms-row-text-muted whitespace-nowrap px-4 py-3 text-xs">{row.matchMethod}</td>
               <td className="whitespace-nowrap px-4 py-3">
                 <ConfidenceBadge confidence={row.confidence} />
               </td>
               <td className="whitespace-nowrap px-4 py-3">
                 <ApplyEligibleBadge eligible={row.applyEligible} />
               </td>
-              <td className="max-w-80 px-4 py-3 text-zinc-300">{formatMaybe(row.reviewReason)}</td>
+              <td className="tms-row-text max-w-80 px-4 py-3">{formatMaybe(row.reviewReason)}</td>
             </tr>
           ))}
         </tbody>
@@ -1144,7 +1144,7 @@ function SelectedSkuList({
   onQuantityChange: (skuId: string, quantity: number) => void;
 }) {
   if (selectedSkus.length === 0) {
-    return <div className="text-xs text-zinc-500">선택된 SKU 없음</div>;
+    return <div className="tms-text-muted text-xs">선택된 SKU 없음</div>;
   }
 
   return (
@@ -1245,7 +1245,7 @@ function SkuSearchCell({
               void handleSearch();
             }
           }}
-          className="h-9 min-w-0 flex-1 rounded-lg border border-[#333] bg-[#0c0c0e] px-3 text-sm text-white outline-none transition placeholder:text-zinc-600 focus:border-indigo-400"
+          className="tms-control h-9 min-w-0 flex-1 rounded-lg border px-3 text-sm outline-none transition focus:border-indigo-400"
           placeholder="SKU, 상품명, 바코드, 별칭"
         />
         <button
@@ -1259,7 +1259,7 @@ function SkuSearchCell({
         </button>
       </div>
 
-      {error && <p className="text-xs text-red-300">{error}</p>}
+      {error && <p className="tms-danger-text text-xs">{error}</p>}
 
       {results.length > 0 && (
         <div className="max-h-64 space-y-2 overflow-y-auto rounded-lg border border-[#262629] bg-[#0c0c0e] p-2">
@@ -1269,9 +1269,9 @@ function SkuSearchCell({
               <div key={candidate.id} className="rounded-md border border-[#262629] bg-[#121214] p-2">
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
-                    <p className="truncate font-mono text-xs font-semibold text-white">{candidate.skuCode}</p>
-                    <p className="mt-0.5 line-clamp-2 text-xs text-zinc-300">{candidate.skuName}</p>
-                    <p className="mt-1 font-mono text-[11px] text-zinc-500">
+                    <p className="tms-text-primary truncate font-mono text-xs font-semibold">{candidate.skuCode}</p>
+                    <p className="tms-row-text mt-0.5 line-clamp-2 text-xs">{candidate.skuName}</p>
+                    <p className="tms-text-muted mt-1 font-mono text-[11px]">
                       {formatMaybe(candidate.barcode)} · 재고 {candidate.stockQuantity.toLocaleString()}
                     </p>
                   </div>
@@ -1286,7 +1286,7 @@ function SkuSearchCell({
                   </button>
                 </div>
                 {(candidate.productNames.length > 0 || candidate.purchaseNames.length > 0) && (
-                  <div className="mt-2 space-y-1 text-[11px] text-zinc-500">
+                  <div className="tms-text-muted mt-2 space-y-1 text-[11px]">
                     {candidate.productNames.length > 0 && (
                       <p className="line-clamp-1">상품명: {candidate.productNames.slice(0, 2).join(', ')}</p>
                     )}
@@ -1364,17 +1364,17 @@ function WarningRowsTable({
       <table className="w-full min-w-[1900px] text-left text-sm">
         <thead className="bg-amber-500/5">
           <tr>
-            <th className="px-4 py-3 text-xs font-medium text-amber-300">No.</th>
-            <th className="px-4 py-3 text-xs font-medium text-amber-300">구분</th>
-            <th className="px-4 py-3 text-xs font-medium text-amber-300">상품번호</th>
-            <th className="px-4 py-3 text-xs font-medium text-amber-300">항목 ID</th>
-            <th className="px-4 py-3 text-xs font-medium text-amber-300">원문</th>
-            <th className="px-4 py-3 text-xs font-medium text-amber-300">매칭 키워드</th>
-            <th className="px-4 py-3 text-xs font-medium text-amber-300">경고 유형</th>
-            <th className="px-4 py-3 text-xs font-medium text-amber-300">경고 메시지</th>
-            <th className="px-4 py-3 text-xs font-medium text-amber-300">메모</th>
-            <th className="px-4 py-3 text-xs font-medium text-amber-300">상태</th>
-            <th className="px-4 py-3 text-xs font-medium text-amber-300">SKU 검색/선택</th>
+            <th className="tms-warning-text px-4 py-3 text-xs font-medium">No.</th>
+            <th className="tms-warning-text px-4 py-3 text-xs font-medium">구분</th>
+            <th className="tms-warning-text px-4 py-3 text-xs font-medium">상품번호</th>
+            <th className="tms-warning-text px-4 py-3 text-xs font-medium">항목 ID</th>
+            <th className="tms-warning-text px-4 py-3 text-xs font-medium">원문</th>
+            <th className="tms-warning-text px-4 py-3 text-xs font-medium">매칭 키워드</th>
+            <th className="tms-warning-text px-4 py-3 text-xs font-medium">경고 유형</th>
+            <th className="tms-warning-text px-4 py-3 text-xs font-medium">경고 메시지</th>
+            <th className="tms-warning-text px-4 py-3 text-xs font-medium">메모</th>
+            <th className="tms-warning-text px-4 py-3 text-xs font-medium">상태</th>
+            <th className="tms-warning-text px-4 py-3 text-xs font-medium">SKU 검색/선택</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-amber-500/10">
@@ -1384,32 +1384,32 @@ function WarningRowsTable({
             const selectedSkus = selections[rowKey] ?? [];
 
             return (
-              <tr key={rowKey} className="align-top hover:bg-amber-500/5">
-                <td className="whitespace-nowrap px-4 py-3 font-mono text-xs text-zinc-400">
+              <tr key={rowKey} className="tms-table-row align-top">
+                <td className="tms-row-text-muted whitespace-nowrap px-4 py-3 font-mono text-xs">
                   {actualIndex + 1}
                 </td>
                 <td className="whitespace-nowrap px-4 py-3">
                   <MappingTypeBadge type={row.mappingType} />
                 </td>
-                <td className="whitespace-nowrap px-4 py-3 font-mono text-xs text-zinc-400">
+                <td className="tms-row-text-muted whitespace-nowrap px-4 py-3 font-mono text-xs">
                   {formatMaybe(row.channelProductNo)}
                 </td>
-                <td className="whitespace-nowrap px-4 py-3 font-mono text-xs text-zinc-400">
+                <td className="tms-row-text-muted whitespace-nowrap px-4 py-3 font-mono text-xs">
                   {formatMaybe(row.itemId)}
                 </td>
-                <td className="max-w-72 px-4 py-3 text-zinc-300">{formatMaybe(row.sourceText)}</td>
-                <td className="max-w-48 px-4 py-3 text-indigo-300">{formatMaybe(row.matchedKeyword)}</td>
-                <td className="whitespace-nowrap px-4 py-3 text-xs text-amber-300">
+                <td className="tms-row-text max-w-72 px-4 py-3">{formatMaybe(row.sourceText)}</td>
+                <td className="tms-link max-w-48 px-4 py-3">{formatMaybe(row.matchedKeyword)}</td>
+                <td className="tms-warning-text whitespace-nowrap px-4 py-3 text-xs">
                   {formatMaybe(row.warningType)}
                 </td>
-                <td className="max-w-80 px-4 py-3 text-amber-100">{formatMaybe(row.warningMessage)}</td>
-                <td className="max-w-80 px-4 py-3 text-zinc-300">{formatMaybe(row.memo)}</td>
+                <td className="tms-warning-text max-w-80 px-4 py-3">{formatMaybe(row.warningMessage)}</td>
+                <td className="tms-row-text max-w-80 px-4 py-3">{formatMaybe(row.memo)}</td>
                 <td className="whitespace-nowrap px-4 py-3">
                   <span
                     className={`inline-flex rounded-md px-2 py-0.5 text-[11px] font-semibold ring-1 ring-inset ${
                       selectedSkus.length > 0
-                        ? 'bg-emerald-500/10 text-emerald-300 ring-emerald-500/20'
-                        : 'bg-zinc-500/10 text-zinc-400 ring-zinc-500/20'
+                        ? 'bg-emerald-500/10 tms-success-text ring-emerald-500/20'
+                        : 'bg-zinc-500/10 tms-text-muted ring-zinc-500/20'
                     }`}
                   >
                     {selectedSkus.length > 0 ? `수동 확정 후보 ${selectedSkus.length}` : '미선택'}
@@ -1491,31 +1491,31 @@ function ErrorRowsTable({
       <table className="w-full min-w-[900px] text-left text-sm">
         <thead className="bg-red-500/5">
           <tr>
-            <th className="px-4 py-3 text-xs font-medium text-red-300">No.</th>
-            <th className="px-4 py-3 text-xs font-medium text-red-300">구분</th>
-            <th className="px-4 py-3 text-xs font-medium text-red-300">상품번호</th>
-            <th className="px-4 py-3 text-xs font-medium text-red-300">항목 ID</th>
-            <th className="px-4 py-3 text-xs font-medium text-red-300">원문</th>
-            <th className="px-4 py-3 text-xs font-medium text-red-300">오류 유형</th>
-            <th className="px-4 py-3 text-xs font-medium text-red-300">메시지</th>
+            <th className="tms-danger-text px-4 py-3 text-xs font-medium">No.</th>
+            <th className="tms-danger-text px-4 py-3 text-xs font-medium">구분</th>
+            <th className="tms-danger-text px-4 py-3 text-xs font-medium">상품번호</th>
+            <th className="tms-danger-text px-4 py-3 text-xs font-medium">항목 ID</th>
+            <th className="tms-danger-text px-4 py-3 text-xs font-medium">원문</th>
+            <th className="tms-danger-text px-4 py-3 text-xs font-medium">오류 유형</th>
+            <th className="tms-danger-text px-4 py-3 text-xs font-medium">메시지</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-red-500/10">
           {paginatedRows.map((row, index) => (
-            <tr key={`${row.itemId}-${row.errorType}-${index}`} className="hover:bg-red-500/5">
-              <td className="whitespace-nowrap px-4 py-3 font-mono text-xs text-zinc-400">
+            <tr key={`${row.itemId}-${row.errorType}-${index}`} className="tms-table-row">
+              <td className="tms-row-text-muted whitespace-nowrap px-4 py-3 font-mono text-xs">
                 {getRowNumber(index, safeCurrentPage, pageSize)}
               </td>
-              <td className="whitespace-nowrap px-4 py-3 text-zinc-300">{formatMaybe(row.mappingType)}</td>
-              <td className="whitespace-nowrap px-4 py-3 font-mono text-xs text-zinc-400">
+              <td className="tms-row-text whitespace-nowrap px-4 py-3">{formatMaybe(row.mappingType)}</td>
+              <td className="tms-row-text-muted whitespace-nowrap px-4 py-3 font-mono text-xs">
                 {formatMaybe(row.channelProductNo)}
               </td>
-              <td className="whitespace-nowrap px-4 py-3 font-mono text-xs text-zinc-400">
+              <td className="tms-row-text-muted whitespace-nowrap px-4 py-3 font-mono text-xs">
                 {formatMaybe(row.itemId)}
               </td>
-              <td className="max-w-72 px-4 py-3 text-zinc-300">{formatMaybe(row.sourceText)}</td>
-              <td className="whitespace-nowrap px-4 py-3 text-xs text-red-300">{formatMaybe(row.errorType)}</td>
-              <td className="max-w-96 px-4 py-3 text-red-200">{formatMaybe(row.errorMessage)}</td>
+              <td className="tms-row-text max-w-72 px-4 py-3">{formatMaybe(row.sourceText)}</td>
+              <td className="tms-danger-text whitespace-nowrap px-4 py-3 text-xs">{formatMaybe(row.errorType)}</td>
+              <td className="tms-danger-text max-w-96 px-4 py-3">{formatMaybe(row.errorMessage)}</td>
             </tr>
           ))}
         </tbody>
@@ -1933,8 +1933,8 @@ export default function SkuKeywordMatchingPage() {
     <div className="min-h-screen p-8">
       <div className="mx-auto max-w-7xl">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold tracking-tight text-white">키워드 SKU 수동 검토</h1>
-          <p className="mt-2 text-sm text-zinc-400">
+          <h1 className="tms-text-primary text-3xl font-bold tracking-tight">키워드 SKU 수동 검토</h1>
+          <p className="tms-text-muted mt-2 text-sm">
             ERP 미매핑 목록, 상품관리 CSV, 재고현황 XLS를 기준으로 warning row를 검토합니다.
           </p>
         </div>
@@ -1991,7 +1991,7 @@ export default function SkuKeywordMatchingPage() {
               type="button"
               onClick={handleExport}
               disabled={exporting || previewRefreshing || !erpFile || !csvFile || !stockFile}
-              className="tms-button tms-button-secondary inline-flex items-center justify-center gap-2 rounded-lg border px-5 py-2.5 text-sm font-semibold transition"
+              className="tms-button tms-button-accent inline-flex items-center justify-center gap-2 rounded-lg border px-5 py-2.5 text-sm font-semibold transition"
             >
               {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
               Preview Excel

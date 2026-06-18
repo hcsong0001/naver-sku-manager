@@ -25,7 +25,7 @@ export default function PaginationControls({
 
   return (
     <div className={className ?? 'tms-toolbar flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between'}>
-      <div className="flex flex-wrap items-center gap-3 text-sm text-zinc-400">
+      <div className="tms-text-muted flex flex-wrap items-center gap-3 text-sm">
         <span>
           {start}-{end} / 총 {totalCount.toLocaleString()}개
         </span>

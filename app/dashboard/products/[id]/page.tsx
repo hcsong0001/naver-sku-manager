@@ -2349,14 +2349,14 @@ function ProductVariantKeywordPanel({
                         ref={(element) => {
                           candidateRowRefs.current[rowKey] = element;
                         }}
-                        className={`align-top group hover:bg-[#16161a] ${
+                        className={`tms-table-row align-top group ${
                           highlightedRowKey === rowKey ? 'bg-indigo-500/10 ring-1 ring-inset ring-indigo-400/40' : ''
                         }`}
                       >
-                        <td className="sticky left-0 z-20 px-4 py-3 font-mono text-xs text-zinc-400 bg-[#121214] group-hover:bg-[#16161a]">
+                        <td className="sticky left-0 z-20 bg-[#121214] px-4 py-3 font-mono text-xs text-zinc-400">
                           {rowNumber}
                         </td>
-                        <td className="sticky left-[72px] z-20 px-4 py-3 bg-[#121214] group-hover:bg-[#16161a]">
+                        <td className="sticky left-[72px] z-20 bg-[#121214] px-4 py-3">
                           <div className="flex flex-col gap-1 items-start">
                             <input
                               type="checkbox"
@@ -2390,8 +2390,8 @@ function ProductVariantKeywordPanel({
                             )}
                           </div>
                         </td>
-                        <td className="sticky left-[128px] z-20 px-4 py-3 text-xs text-zinc-300 bg-[#121214] group-hover:bg-[#16161a]">{row.mappingType}</td>
-                        <td className="sticky left-[224px] z-20 px-4 py-3 bg-[#121214] group-hover:bg-[#16161a] shadow-[6px_0_12px_rgba(0,0,0,0.35)] border-r border-[#262629]">
+                        <td className="sticky left-[128px] z-20 bg-[#121214] px-4 py-3 text-xs text-zinc-300">{row.mappingType}</td>
+                        <td className="sticky left-[224px] z-20 border-r border-[#262629] bg-[#121214] px-4 py-3 shadow-[6px_0_12px_rgba(0,0,0,0.35)]">
                           <div className="text-sm font-medium text-zinc-100">{row.itemName}</div>
                           {row.warningMessage && (
                             <div className="mt-1 text-xs text-amber-200">{row.warningMessage}</div>
@@ -2706,7 +2706,7 @@ export default function ProductDetailPage() {
                   {paginatedOptions.map((option, index) => {
                     const mapped = option.skuMappings.length > 0 || Boolean(option.skuId && option.sku);
                     return (
-                      <tr key={option.id} className="transition hover:bg-[#16161a]">
+                      <tr key={option.id} className="tms-table-row transition">
                         <td className="whitespace-nowrap px-6 py-4 font-mono text-xs text-zinc-400">
                           {getRowNumber(index, safeOptionsCurrentPage, optionsPageSize)}
                         </td>
@@ -2781,7 +2781,7 @@ export default function ProductDetailPage() {
                 </thead>
                 <tbody className="divide-y divide-[#1e1e22]">
                   {paginatedAdditionals.map((additional, index) => (
-                    <tr key={additional.id} className="transition hover:bg-[#16161a]">
+                    <tr key={additional.id} className="tms-table-row transition">
                       <td className="whitespace-nowrap px-6 py-4 font-mono text-xs text-zinc-400">
                         {getRowNumber(index, safeAdditionalsCurrentPage, additionalsPageSize)}
                       </td>

@@ -19,11 +19,25 @@ export type TmsComponentTokens = {
   buttonPrimaryText: string;
   buttonSecondaryBg: string;
   buttonSecondaryText: string;
+  buttonAccentBg: string;
+  buttonAccentText: string;
+  buttonAccentHoverBg: string;
   buttonMutedBg: string;
   buttonMutedText: string;
   buttonDisabledBg: string;
   buttonDisabledText: string;
   buttonDisabledBorder: string;
+  tableRowHoverBg: string;
+  tableRowHoverText: string;
+  tableRowSelectedBg: string;
+  tableRowSelectedText: string;
+  tableCellText: string;
+  tableMutedText: string;
+  tableBorder: string;
+  link: string;
+  linkHover: string;
+  badgeBg: string;
+  badgeText: string;
   statusSuccessBg: string;
   statusSuccessText: string;
   statusWarningBg: string;
@@ -335,11 +349,25 @@ export function getTmsComponentTokens(theme: TmsBackgroundThemeOption): TmsCompo
     buttonPrimaryText: '#ffffff',
     buttonSecondaryBg: theme.colors.cardBackground,
     buttonSecondaryText: theme.colors.text,
+    buttonAccentBg: '#7c3aed',
+    buttonAccentText: '#faf5ff',
+    buttonAccentHoverBg: '#6d28d9',
     buttonMutedBg: theme.colors.cardMutedBackground,
     buttonMutedText: theme.colors.mutedText,
     buttonDisabledBg: isLightTheme ? '#d4d4d8' : '#27272a',
     buttonDisabledText: isLightTheme ? '#71717a' : '#a1a1aa',
     buttonDisabledBorder: isLightTheme ? '#d4d4d8' : '#3f3f46',
+    tableRowHoverBg: isLightTheme ? 'rgba(37, 99, 235, 0.08)' : 'rgba(255, 255, 255, 0.06)',
+    tableRowHoverText: theme.colors.text,
+    tableRowSelectedBg: theme.colors.selectedBackground,
+    tableRowSelectedText: theme.colors.selectedText,
+    tableCellText: theme.colors.text,
+    tableMutedText: theme.colors.mutedText,
+    tableBorder: theme.colors.border,
+    link: isLightTheme ? '#1d4ed8' : '#93c5fd',
+    linkHover: isLightTheme ? '#1e40af' : '#dbeafe',
+    badgeBg: isLightTheme ? 'rgba(99, 102, 241, 0.12)' : 'rgba(99, 102, 241, 0.18)',
+    badgeText: isLightTheme ? '#3730a3' : '#c7d2fe',
     statusSuccessBg: isLightTheme ? 'rgba(16, 185, 129, 0.16)' : 'rgba(16, 185, 129, 0.14)',
     statusSuccessText: isLightTheme ? '#065f46' : '#a7f3d0',
     statusWarningBg: isLightTheme ? 'rgba(245, 158, 11, 0.16)' : 'rgba(245, 158, 11, 0.14)',

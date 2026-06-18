@@ -152,7 +152,7 @@ function PreviewRowsTable({
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <h3 className="text-base font-semibold text-white">{title}</h3>
-          <p className="mt-1 text-xs text-zinc-500">표시된 샘플 {rows.length.toLocaleString()}건</p>
+          <p className="tms-text-muted mt-1 text-xs">표시된 샘플 {rows.length.toLocaleString()}건</p>
         </div>
         {rows.length > 0 && <PageSizeSelect value={pageSize} onChange={(value) => { setPageSize(value); setCurrentPage(1); }} />}
       </div>
@@ -161,7 +161,7 @@ function PreviewRowsTable({
         <div className={`rounded-lg border px-4 py-8 text-center text-sm ${
           tone === 'error'
             ? 'border-emerald-500/20 bg-emerald-500/5 text-emerald-300'
-            : 'border-[#262629] bg-[#0c0c0e] text-zinc-500'
+            : 'border-[#262629] bg-[#0c0c0e] tms-text-muted'
         }`}>
           {emptyText}
         </div>
@@ -171,9 +171,9 @@ function PreviewRowsTable({
             <table className="tms-table min-w-[980px] w-full text-left text-sm">
               <thead className={`sticky top-0 z-10 ${tone === 'error' ? 'bg-[#1a1012]' : 'bg-[#0c0c0e]'}`}>
                 <tr>
-                  <th className="whitespace-nowrap px-4 py-3 text-xs font-medium text-zinc-500">No.</th>
+                  <th className="whitespace-nowrap px-4 py-3 text-xs font-medium tms-text-muted">No.</th>
                   {columns.map((column) => (
-                    <th key={column} className={`whitespace-nowrap px-4 py-3 text-xs font-medium ${tone === 'error' ? 'text-red-300' : 'text-zinc-500'}`}>
+                    <th key={column} className={`whitespace-nowrap px-4 py-3 text-xs font-medium ${tone === 'error' ? 'tms-danger-text' : 'tms-text-muted'}`}>
                       {COLUMN_LABELS[column] ?? column}
                     </th>
                   ))}
@@ -181,12 +181,12 @@ function PreviewRowsTable({
               </thead>
               <tbody className="divide-y divide-[#1e1e22]">
                 {paginatedRows.map((row, index) => (
-                  <tr key={`${safeCurrentPage}-${index}-${String(row.rowNumber ?? '')}`} className={tone === 'error' ? 'hover:bg-red-500/5' : 'hover:bg-[#16161a]'}>
-                    <td className="whitespace-nowrap px-4 py-3 font-mono text-xs text-zinc-500">
+                  <tr key={`${safeCurrentPage}-${index}-${String(row.rowNumber ?? '')}`} className="tms-table-row">
+                    <td className="tms-row-text-muted whitespace-nowrap px-4 py-3 font-mono text-xs">
                       {getRowNumber(index, safeCurrentPage, pageSize)}
                     </td>
                     {columns.map((column) => (
-                      <td key={column} className={`max-w-96 px-4 py-3 align-top text-xs ${column === 'errorMessage' ? 'text-red-300' : 'text-zinc-300'}`}>
+                      <td key={column} className={`max-w-96 px-4 py-3 align-top text-xs ${column === 'errorMessage' ? 'tms-danger-text' : 'tms-row-text'}`}>
                         <span className="block break-words">{formatCell(row[column])}</span>
                       </td>
                     ))}

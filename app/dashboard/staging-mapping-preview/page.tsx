@@ -677,7 +677,7 @@ export default function StagingMappingPreviewPage() {
               </thead>
               <tbody className="divide-y divide-[#1e1e22]">
                 {paginatedRows.map((row, index) => (
-                  <tr key={row.id} className="align-top hover:bg-[#121216]">
+                  <tr key={row.id} className="tms-table-row align-top">
                     <td className="whitespace-nowrap px-3 py-3 font-mono text-xs text-zinc-500">
                       {getRowNumber(index, safeCurrentPage, pageSize)}
                       {row.isDuplicate && (

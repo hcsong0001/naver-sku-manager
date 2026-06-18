@@ -671,7 +671,7 @@ export default function MappingRiskResolutionPage() {
 
                     return (
                       <React.Fragment key={row.id}>
-                        <tr className={`align-top transition-colors ${isExpanded ? 'bg-[#15151a]' : 'hover:bg-[#121216]'}`}>
+                        <tr className={`align-top transition-colors ${isExpanded ? 'tms-table-row-selected' : 'tms-table-row'}`}>
                           <td className="whitespace-nowrap px-3 py-3 font-mono text-xs text-zinc-500">
                             {getRowNumber(index, currentPage, pageSize)}
                             {row.isDuplicate && (

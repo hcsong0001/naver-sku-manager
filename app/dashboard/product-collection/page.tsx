@@ -512,7 +512,7 @@ export default function ProductCollectionPage() {
                     key={job.id}
                     type="button"
                     onClick={() => setSelectedJobId(job.id)}
-                    className={`w-full px-5 py-4 text-left transition hover:bg-[#16161a] ${
+                    className={`tms-table-row w-full px-5 py-4 text-left transition ${
                       selectedJobId === job.id ? 'tms-selected-row' : ''
                     }`}
                   >
@@ -597,7 +597,7 @@ export default function ProductCollectionPage() {
                     </thead>
                     <tbody className="divide-y divide-[#1e1e22]">
                       {selectedJob.items.map((item) => (
-                        <tr key={item.id} className="hover:bg-[#16161a]">
+                        <tr key={item.id} className="tms-table-row">
                           <td className="whitespace-nowrap px-4 py-3 font-mono text-xs text-zinc-300">
                             {item.channelProductNo}
                           </td>

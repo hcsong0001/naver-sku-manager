@@ -746,7 +746,7 @@ export default function BulkUpdatePreviewPage() {
               </thead>
               <tbody className="divide-y divide-[#1e1e22]">
                 {paginatedRows.map((row, index) => (
-                  <tr key={row.id} className="align-top hover:bg-[#121216]">
+                  <tr key={row.id} className="tms-table-row align-top">
                     <td className="px-3 py-3">
                       <input
                         type="checkbox"
