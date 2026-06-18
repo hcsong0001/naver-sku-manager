@@ -280,15 +280,48 @@ function filterDraftCandidates(
   return candidates;
 }
 
+function getDraftCandidateSelectionReason(
+  candidate: SkuKeywordDraftPreviewResponse['candidates'][number],
+): string {
+  if (candidate.draftCreatable) return '';
+  if (candidate.reviewMessage.trim().length > 0) return candidate.reviewMessage;
+  if (candidate.recommendedAction.trim().length > 0) return candidate.recommendedAction;
+  if (candidate.riskMessages.length > 0) return candidate.riskMessages[0];
+  return 'draftCreatable=false 후보는 아직 선택할 수 없습니다.';
+}
+
+function getDraftCandidateSkuText(
+  candidate: SkuKeywordDraftPreviewResponse['candidates'][number],
+): string {
+  const skuCodes = [...candidate.linkedSkus, ...candidate.bundleSkus]
+    .map((sku) => sku.skuCode)
+    .filter((skuCode, index, values) => skuCode.trim().length > 0 && values.indexOf(skuCode) === index);
+
+  return skuCodes.length > 0 ? skuCodes.join(', ') : '-';
+}
+
 function DraftPreviewPanel({
   result,
 }: {
   result: SkuKeywordDraftPreviewResponse;
 }) {
   const [activeFilter, setActiveFilter] = useState<DraftCandidateFilter>('ALL');
+  const [selectedCandidateIds, setSelectedCandidateIds] = useState<string[]>([]);
   const filteredCandidates = useMemo(
     () => filterDraftCandidates(result.candidates, activeFilter),
     [activeFilter, result.candidates],
+  );
+  const validCandidateIdSet = useMemo(
+    () => new Set(result.candidates.map((candidate) => candidate.id)),
+    [result.candidates],
+  );
+  const selectedCandidateIdsInResult = useMemo(
+    () => selectedCandidateIds.filter((candidateId) => validCandidateIdSet.has(candidateId)),
+    [selectedCandidateIds, validCandidateIdSet],
+  );
+  const selectedCandidateIdSet = useMemo(
+    () => new Set(selectedCandidateIdsInResult),
+    [selectedCandidateIdsInResult],
   );
   const filterCounts = useMemo<Record<DraftCandidateFilter, number>>(
     () => ({
@@ -303,6 +336,45 @@ function DraftPreviewPanel({
     }),
     [result.candidates],
   );
+  const filteredSelectableCandidates = useMemo(
+    () => filteredCandidates.filter((candidate) => candidate.draftCreatable),
+    [filteredCandidates],
+  );
+  const filteredSelectedCount = useMemo(
+    () => filteredCandidates.filter((candidate) => selectedCandidateIdSet.has(candidate.id)).length,
+    [filteredCandidates, selectedCandidateIdSet],
+  );
+  const filteredDisabledCount = filteredCandidates.length - filteredSelectableCandidates.length;
+  const selectedCandidates = useMemo(
+    () => result.candidates.filter((candidate) => selectedCandidateIdSet.has(candidate.id)),
+    [result.candidates, selectedCandidateIdSet],
+  );
+
+  const toggleCandidateSelection = (candidateId: string) => {
+    setSelectedCandidateIds((current) =>
+      current.includes(candidateId)
+        ? current.filter((currentId) => currentId !== candidateId)
+        : [...current, candidateId],
+    );
+  };
+
+  const handleSelectFilteredSelectable = () => {
+    const selectableIds = filteredSelectableCandidates.map((candidate) => candidate.id);
+    setSelectedCandidateIds((current) => {
+      const next = new Set(current);
+      selectableIds.forEach((candidateId) => next.add(candidateId));
+      return Array.from(next);
+    });
+  };
+
+  const handleClearFilteredSelection = () => {
+    const filteredIds = new Set(filteredCandidates.map((candidate) => candidate.id));
+    setSelectedCandidateIds((current) => current.filter((candidateId) => !filteredIds.has(candidateId)));
+  };
+
+  const handleClearAllSelection = () => {
+    setSelectedCandidateIds([]);
+  };
 
   return (
     <div className="space-y-4 rounded-lg border border-[#262629] bg-[#121214] p-6">
@@ -379,6 +451,97 @@ function DraftPreviewPanel({
         </div>
       </div>
 
+      <div className="space-y-4 rounded-lg border border-[#262629] bg-[#0c0c0e] p-4">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+          <div>
+            <p className="text-sm font-semibold text-white">후보 선택</p>
+            <p className="mt-1 text-xs text-zinc-500">
+              선택 상태는 화면 state로만 유지되며, Draft 생성이나 DB 저장은 아직 하지 않습니다.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={handleSelectFilteredSelectable}
+              disabled={filteredSelectableCandidates.length === 0}
+              className="tms-button tms-button-secondary inline-flex items-center justify-center rounded-lg border px-3 py-2 text-xs font-semibold transition disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              현재 필터 선택 가능 후보 전체 선택
+            </button>
+            <button
+              type="button"
+              onClick={handleClearFilteredSelection}
+              disabled={filteredSelectedCount === 0}
+              className="tms-button tms-button-muted inline-flex items-center justify-center rounded-lg border px-3 py-2 text-xs font-semibold transition disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              현재 필터 선택 해제
+            </button>
+            <button
+              type="button"
+              onClick={handleClearAllSelection}
+              disabled={selectedCandidateIdsInResult.length === 0}
+              className="tms-button tms-button-muted inline-flex items-center justify-center rounded-lg border px-3 py-2 text-xs font-semibold transition disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              전체 선택 해제
+            </button>
+          </div>
+        </div>
+
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+          <CountBadge label="전체 후보 수" value={result.candidates.length} />
+          <CountBadge label="현재 필터 후보 수" value={filteredCandidates.length} />
+          <CountBadge label="현재 필터 선택 가능" value={filteredSelectableCandidates.length} />
+          <CountBadge label="현재 필터 선택됨" value={filteredSelectedCount} />
+          <CountBadge label="전체 선택됨" value={selectedCandidateIdsInResult.length} />
+          <CountBadge label="현재 필터 선택 불가" value={filteredDisabledCount} />
+        </div>
+
+        <div className="rounded-lg border border-[#262629] bg-[#121214] px-4 py-3 text-xs text-zinc-300">
+          현재 필터: {filteredCandidates.length.toLocaleString()}건 · 선택 가능:{' '}
+          {filteredSelectableCandidates.length.toLocaleString()}건 · 선택됨:{' '}
+          {filteredSelectedCount.toLocaleString()}건
+        </div>
+
+        <div className="rounded-lg border border-[#262629] bg-[#121214] p-4">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm font-semibold text-white">선택된 후보 목록</p>
+            <p className="text-xs text-zinc-500">필터를 바꿔도 선택은 유지됩니다.</p>
+          </div>
+          {selectedCandidates.length === 0 ? (
+            <p className="mt-3 text-sm text-zinc-500">선택된 후보가 없습니다.</p>
+          ) : (
+            <div className="mt-3 space-y-2">
+              {selectedCandidates.map((candidate) => (
+                <div
+                  key={`selected-${candidate.id}`}
+                  className="rounded-lg border border-[#262629] bg-[#0c0c0e] px-3 py-3 text-xs"
+                >
+                  <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
+                    <div className="min-w-0">
+                      <p className="font-mono text-[11px] text-zinc-400">{candidate.id}</p>
+                      <p className="mt-1 font-semibold text-white">
+                        {candidate.candidateType} · {candidate.channelProductNo}
+                      </p>
+                      <p className="mt-1 text-zinc-300">
+                        SKU: {getDraftCandidateSkuText(candidate)} · draftCreatable:{' '}
+                        {candidate.draftCreatable ? 'true' : 'false'} · 주요 issue {candidate.issues.length}건
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => toggleCandidateSelection(candidate.id)}
+                      className="tms-button tms-button-muted inline-flex items-center justify-center rounded-lg border px-3 py-1.5 text-xs font-semibold transition"
+                    >
+                      선택 해제
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
       <details className="rounded-lg border border-[#262629] bg-[#0c0c0e]">
         <summary className="cursor-pointer list-none px-4 py-3 text-sm font-semibold text-white">
           후보 목록 보기 ({filteredCandidates.length.toLocaleString()}건)
@@ -392,6 +555,16 @@ function DraftPreviewPanel({
                 <div className="flex flex-col gap-2 lg:flex-row lg:items-start lg:justify-between">
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
+                      <label className="inline-flex items-center gap-2 rounded-md border border-[#262629] bg-[#0c0c0e] px-2 py-1 text-[11px] text-zinc-300">
+                        <input
+                          type="checkbox"
+                          checked={selectedCandidateIdSet.has(candidate.id)}
+                          disabled={!candidate.draftCreatable}
+                          onChange={() => toggleCandidateSelection(candidate.id)}
+                          className="h-3.5 w-3.5 rounded border-[#444] bg-transparent"
+                        />
+                        선택
+                      </label>
                       <MappingTypeBadge type={candidate.candidateType} />
                       <span className="rounded-md bg-[#1a1a1f] px-2 py-0.5 text-[11px] font-medium text-zinc-300">
                         {candidate.status}
@@ -407,6 +580,11 @@ function DraftPreviewPanel({
                     <p className="mt-1 font-mono text-xs text-zinc-500">
                       {candidate.channelProductNo} · {candidate.itemId}
                     </p>
+                    {!candidate.draftCreatable && (
+                      <p className="mt-2 text-xs text-amber-300">
+                        선택 불가 사유: {getDraftCandidateSelectionReason(candidate)}
+                      </p>
+                    )}
                   </div>
                   <div className="grid gap-1 text-xs text-zinc-400 sm:grid-cols-2 lg:min-w-[260px]">
                     <span>현재가: {formatMaybe(candidate.currentSmartstorePrice)}</span>
@@ -428,6 +606,9 @@ function DraftPreviewPanel({
                       위험 없음
                     </span>
                   )}
+                  <span className="inline-flex rounded-md border border-[#262629] bg-[#0c0c0e] px-2 py-1 text-[11px] text-zinc-300">
+                    주요 issue {candidate.issues.length}건
+                  </span>
                 </div>
               </div>
             ))
