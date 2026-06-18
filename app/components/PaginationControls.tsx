@@ -38,7 +38,7 @@ export default function PaginationControls({
           type="button"
           onClick={() => onChangePage(1)}
           disabled={disabled || currentPage <= 1}
-          className="tms-control rounded-lg border border-[#333] bg-[#121214] text-xs font-semibold text-zinc-200 transition hover:border-indigo-500/60 hover:text-white disabled:opacity-60"
+          className="tms-button tms-button-secondary rounded-lg border border-[#333] text-xs font-semibold transition hover:border-indigo-500/60 disabled:opacity-60"
         >
           처음
         </button>
@@ -46,7 +46,7 @@ export default function PaginationControls({
           type="button"
           onClick={() => onChangePage(Math.max(1, currentPage - 1))}
           disabled={disabled || currentPage <= 1}
-          className="tms-control rounded-lg border border-[#333] bg-[#121214] text-xs font-semibold text-zinc-200 transition hover:border-indigo-500/60 hover:text-white disabled:opacity-60"
+          className="tms-button tms-button-secondary rounded-lg border border-[#333] text-xs font-semibold transition hover:border-indigo-500/60 disabled:opacity-60"
         >
           이전
         </button>
@@ -54,7 +54,7 @@ export default function PaginationControls({
           type="button"
           onClick={() => onChangePage(Math.min(totalPages, currentPage + 1))}
           disabled={disabled || currentPage >= totalPages}
-          className="tms-control rounded-lg border border-[#333] bg-[#121214] text-xs font-semibold text-zinc-200 transition hover:border-indigo-500/60 hover:text-white disabled:opacity-60"
+          className="tms-button tms-button-secondary rounded-lg border border-[#333] text-xs font-semibold transition hover:border-indigo-500/60 disabled:opacity-60"
         >
           다음
         </button>
@@ -62,7 +62,7 @@ export default function PaginationControls({
           type="button"
           onClick={() => onChangePage(totalPages)}
           disabled={disabled || currentPage >= totalPages}
-          className="tms-control rounded-lg border border-[#333] bg-[#121214] text-xs font-semibold text-zinc-200 transition hover:border-indigo-500/60 hover:text-white disabled:opacity-60"
+          className="tms-button tms-button-secondary rounded-lg border border-[#333] text-xs font-semibold transition hover:border-indigo-500/60 disabled:opacity-60"
         >
           마지막
         </button>

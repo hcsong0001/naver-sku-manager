@@ -5,6 +5,7 @@ import Sidebar from '@/app/components/Sidebar';
 import { UserSettingsProvider, useUserSettings } from '@/app/components/UserSettingsProvider';
 import {
   getBackgroundThemeOption,
+  getTmsComponentTokens,
   getScreenDensityTokens,
   getTableTextSizeTokens,
 } from '@/src/utils/tms-user-settings';
@@ -12,6 +13,7 @@ import {
 function ShellContent({ children }: { children: React.ReactNode }) {
   const { settings } = useUserSettings();
   const theme = getBackgroundThemeOption(settings.backgroundTheme);
+  const componentTokens = getTmsComponentTokens(theme);
   const tableTextSize = getTableTextSizeTokens(settings.tableTextSize);
   const screenDensity = getScreenDensityTokens(settings.screenDensity);
   const shellStyle = {
@@ -33,6 +35,23 @@ function ShellContent({ children }: { children: React.ReactNode }) {
     '--tms-filter-gap': screenDensity.filterGap,
     '--tms-control-height': screenDensity.controlHeight,
     '--tms-control-padding-x': screenDensity.controlPaddingX,
+    '--tms-button-primary-bg': componentTokens.buttonPrimaryBg,
+    '--tms-button-primary-text': componentTokens.buttonPrimaryText,
+    '--tms-button-secondary-bg': componentTokens.buttonSecondaryBg,
+    '--tms-button-secondary-text': componentTokens.buttonSecondaryText,
+    '--tms-button-muted-bg': componentTokens.buttonMutedBg,
+    '--tms-button-muted-text': componentTokens.buttonMutedText,
+    '--tms-button-disabled-bg': componentTokens.buttonDisabledBg,
+    '--tms-button-disabled-text': componentTokens.buttonDisabledText,
+    '--tms-button-disabled-border': componentTokens.buttonDisabledBorder,
+    '--tms-status-success-bg': componentTokens.statusSuccessBg,
+    '--tms-status-success-text': componentTokens.statusSuccessText,
+    '--tms-status-warning-bg': componentTokens.statusWarningBg,
+    '--tms-status-warning-text': componentTokens.statusWarningText,
+    '--tms-status-danger-bg': componentTokens.statusDangerBg,
+    '--tms-status-danger-text': componentTokens.statusDangerText,
+    '--tms-status-muted-bg': componentTokens.statusMutedBg,
+    '--tms-status-muted-text': componentTokens.statusMutedText,
   } as React.CSSProperties;
 
   return (

@@ -14,6 +14,26 @@ import {
   type TmsUserSettings,
 } from '@/src/types/tms-user-settings.types';
 
+export type TmsComponentTokens = {
+  buttonPrimaryBg: string;
+  buttonPrimaryText: string;
+  buttonSecondaryBg: string;
+  buttonSecondaryText: string;
+  buttonMutedBg: string;
+  buttonMutedText: string;
+  buttonDisabledBg: string;
+  buttonDisabledText: string;
+  buttonDisabledBorder: string;
+  statusSuccessBg: string;
+  statusSuccessText: string;
+  statusWarningBg: string;
+  statusWarningText: string;
+  statusDangerBg: string;
+  statusDangerText: string;
+  statusMutedBg: string;
+  statusMutedText: string;
+};
+
 export const TMS_BACKGROUND_THEME_OPTIONS: TmsBackgroundThemeOption[] = [
   {
     value: 'default',
@@ -305,4 +325,28 @@ export function getScreenDensityTokens(density: TmsScreenDensity): {
         controlPaddingX: '0.875rem',
       };
   }
+}
+
+export function getTmsComponentTokens(theme: TmsBackgroundThemeOption): TmsComponentTokens {
+  const isLightTheme = ['white', 'light-gray', 'ivory', 'light-blue', 'light-green'].includes(theme.value);
+
+  return {
+    buttonPrimaryBg: '#2563eb',
+    buttonPrimaryText: '#ffffff',
+    buttonSecondaryBg: theme.colors.cardBackground,
+    buttonSecondaryText: theme.colors.text,
+    buttonMutedBg: theme.colors.cardMutedBackground,
+    buttonMutedText: theme.colors.mutedText,
+    buttonDisabledBg: isLightTheme ? '#d4d4d8' : '#27272a',
+    buttonDisabledText: isLightTheme ? '#71717a' : '#a1a1aa',
+    buttonDisabledBorder: isLightTheme ? '#d4d4d8' : '#3f3f46',
+    statusSuccessBg: isLightTheme ? 'rgba(16, 185, 129, 0.16)' : 'rgba(16, 185, 129, 0.14)',
+    statusSuccessText: isLightTheme ? '#065f46' : '#a7f3d0',
+    statusWarningBg: isLightTheme ? 'rgba(245, 158, 11, 0.16)' : 'rgba(245, 158, 11, 0.14)',
+    statusWarningText: isLightTheme ? '#92400e' : '#fde68a',
+    statusDangerBg: isLightTheme ? 'rgba(239, 68, 68, 0.16)' : 'rgba(239, 68, 68, 0.14)',
+    statusDangerText: isLightTheme ? '#991b1b' : '#fecaca',
+    statusMutedBg: isLightTheme ? 'rgba(113, 113, 122, 0.14)' : 'rgba(113, 113, 122, 0.16)',
+    statusMutedText: isLightTheme ? '#3f3f46' : '#d4d4d8',
+  };
 }

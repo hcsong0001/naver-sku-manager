@@ -206,12 +206,12 @@ function FileUploadInput({
         <button
           type="button"
           onClick={() => ref.current?.click()}
-          className="inline-flex items-center justify-center gap-2 rounded-lg border border-[#333] bg-[#1a1a1e] px-4 py-2.5 text-sm font-medium text-zinc-200 transition hover:border-indigo-500/60 hover:text-white"
+          className="tms-button tms-file-button inline-flex items-center justify-center gap-2 rounded-lg border px-4 py-2.5 text-sm font-medium transition"
         >
           <FileSpreadsheet className="h-4 w-4" />
           파일 선택
         </button>
-        <div className="flex min-h-10 flex-1 items-center rounded-lg border border-[#262629] bg-[#0c0c0e] px-4 text-sm text-zinc-400">
+        <div className="tms-control flex min-h-10 flex-1 items-center rounded-lg border px-4 text-sm tms-text-muted">
           {file ? file.name : '선택된 파일 없음'}
         </div>
       </div>
@@ -352,30 +352,30 @@ function SelectedSkuList({
   return (
     <div className="space-y-2">
       {selectedSkus.map((sku) => (
-        <div key={sku.id} className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-2">
+        <div key={sku.id} className="tms-status-success rounded-lg border border-emerald-500/20 p-2">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
-              <p className="truncate font-mono text-xs font-semibold text-emerald-200">{sku.skuCode}</p>
-              <p className="mt-0.5 line-clamp-2 text-xs text-zinc-300">{sku.skuName}</p>
-              <p className="mt-0.5 font-mono text-[11px] text-zinc-500">{formatMaybe(sku.barcode)}</p>
+              <p className="truncate font-mono text-xs font-semibold tms-text-primary">{sku.skuCode}</p>
+              <p className="mt-0.5 line-clamp-2 text-xs tms-text-primary">{sku.skuName}</p>
+              <p className="mt-0.5 font-mono text-[11px] tms-text-muted">{formatMaybe(sku.barcode)}</p>
             </div>
             <button
               type="button"
               onClick={() => onRemove(sku.id)}
-              className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-emerald-500/20 text-emerald-200 transition hover:bg-emerald-500/10"
+              className="tms-button tms-button-muted inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md border text-sm transition"
               aria-label="선택 SKU 제거"
             >
               <X className="h-3.5 w-3.5" />
             </button>
           </div>
-          <label className="mt-2 flex items-center gap-2 text-[11px] text-zinc-400">
+          <label className="mt-2 flex items-center gap-2 text-[11px] tms-text-muted">
             수량
             <input
               type="number"
               min={1}
               value={sku.quantity}
               onChange={(event) => onQuantityChange(sku.id, Number(event.target.value))}
-              className="h-8 w-20 rounded-md border border-[#333] bg-[#121214] px-2 text-sm text-white outline-none focus:border-emerald-400"
+              className="tms-control h-8 w-20 rounded-md border px-2 text-sm outline-none focus:border-emerald-400"
             />
           </label>
         </div>
@@ -454,7 +454,7 @@ function SkuSearchCell({
           type="button"
           onClick={handleSearch}
           disabled={searching}
-          className="inline-flex h-9 w-10 items-center justify-center rounded-lg border border-[#333] bg-[#1a1a1e] text-zinc-200 transition hover:border-indigo-500/60 hover:text-white disabled:opacity-60"
+          className="tms-button tms-button-secondary inline-flex h-9 w-10 items-center justify-center rounded-lg border text-sm transition"
           aria-label="SKU 검색"
         >
           {searching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
@@ -481,7 +481,7 @@ function SkuSearchCell({
                     type="button"
                     onClick={() => onAdd(candidate)}
                     disabled={alreadySelected}
-                    className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-zinc-100 text-zinc-950 transition hover:bg-white disabled:bg-[#333] disabled:text-zinc-500"
+                    className="tms-button tms-button-muted inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border text-sm transition"
                     aria-label="SKU 추가"
                   >
                     <Plus className="h-4 w-4" />
@@ -777,10 +777,10 @@ function ResultTabs({
             key={tab.key}
             type="button"
             onClick={() => onTabChange(tab.key)}
-            className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition ${
+            className={`tms-button inline-flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-semibold transition ${
               activeTab === tab.key
-                ? 'bg-zinc-100 text-zinc-950'
-                : 'border border-[#333] bg-[#1a1a1e] text-zinc-300 hover:border-indigo-500/60 hover:text-white'
+                ? 'tms-selected-bg tms-selected-text border-transparent'
+                : 'tms-button-secondary'
             }`}
           >
             {tab.label}
@@ -1089,7 +1089,7 @@ export default function SkuKeywordMatchingPage() {
               type="button"
               onClick={handlePreview}
               disabled={previewing || !erpFile || !csvFile || !stockFile}
-              className="inline-flex items-center justify-center gap-2 rounded-lg bg-zinc-100 px-5 py-2.5 text-sm font-semibold text-zinc-950 transition hover:bg-white disabled:opacity-60"
+              className="tms-button tms-button-primary inline-flex items-center justify-center gap-2 rounded-lg border px-5 py-2.5 text-sm font-semibold transition"
             >
               {previewing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
               Preview 실행
@@ -1098,7 +1098,7 @@ export default function SkuKeywordMatchingPage() {
               type="button"
               onClick={handleExport}
               disabled={exporting || !erpFile || !csvFile || !stockFile}
-              className="inline-flex items-center justify-center gap-2 rounded-lg border border-[#333] bg-[#1a1a1e] px-5 py-2.5 text-sm font-semibold text-zinc-200 transition hover:border-indigo-500/60 hover:text-white disabled:opacity-60"
+              className="tms-button tms-button-secondary inline-flex items-center justify-center gap-2 rounded-lg border px-5 py-2.5 text-sm font-semibold transition"
             >
               {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
               Preview Excel
@@ -1139,7 +1139,7 @@ export default function SkuKeywordMatchingPage() {
                   type="button"
                   onClick={handleManualApply}
                   disabled={manualApplying || manualStats.skuCount === 0}
-                  className="inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:opacity-60"
+                  className="tms-button tms-button-primary inline-flex items-center justify-center gap-2 rounded-lg border px-4 py-2 text-sm font-semibold transition"
                 >
                   {manualApplying ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                   수동 확정 저장

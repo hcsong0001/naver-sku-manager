@@ -84,10 +84,10 @@ function statusLabel(status: CollectionJobStatus): string {
 }
 
 function statusClass(status: CollectionJobStatus): string {
-  if (status === 'COMPLETED') return 'bg-emerald-500/10 text-emerald-300 ring-emerald-500/20';
-  if (status === 'RUNNING') return 'bg-sky-500/10 text-sky-300 ring-sky-500/20';
-  if (status === 'FAILED') return 'bg-red-500/10 text-red-300 ring-red-500/20';
-  return 'bg-zinc-500/10 text-zinc-300 ring-zinc-500/20';
+  if (status === 'COMPLETED') return 'tms-status-success ring-emerald-500/20';
+  if (status === 'RUNNING') return 'tms-status-warning ring-sky-500/20';
+  if (status === 'FAILED') return 'tms-status-danger ring-red-500/20';
+  return 'tms-status-muted ring-zinc-500/20';
 }
 
 function formatDateTime(value: string | null): string {
@@ -97,7 +97,7 @@ function formatDateTime(value: string | null): string {
 
 function SummaryCard({ label, value }: { label: string; value: number | string }) {
   return (
-    <div className="rounded-xl border border-[#262629] bg-[#0c0c0e] p-4">
+    <div className="tms-panel rounded-xl border border-[#262629] bg-[#0c0c0e]">
       <p className="text-[11px] font-medium text-zinc-500">{label}</p>
       <p className="mt-1 text-2xl font-semibold text-white">
         {typeof value === 'number' ? value.toLocaleString() : value}
@@ -342,7 +342,7 @@ export default function ProductCollectionPage() {
   };
 
   return (
-    <div className="min-h-screen p-8">
+    <div className="min-h-screen p-5 lg:p-8">
       <div className="mx-auto max-w-7xl">
         <div className="mb-8">
           <h1 className="text-3xl font-bold tracking-tight text-white">
@@ -353,14 +353,14 @@ export default function ProductCollectionPage() {
           </p>
         </div>
 
-        <div className="mb-6 rounded-2xl border border-[#262629] bg-[#121214] p-6">
-          <div className="grid gap-4 lg:grid-cols-4">
+        <div className="tms-panel mb-6 rounded-2xl border border-[#262629] bg-[#121214]">
+          <div className="tms-toolbar grid gap-4 lg:grid-cols-4">
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-zinc-400">스마트스토어</label>
               <select
                 value={selectedStoreId}
                 onChange={(event) => setSelectedStoreId(event.target.value)}
-                className="w-full rounded-xl border border-[#333] bg-[#1a1a1e] px-4 py-2.5 text-sm text-white outline-none focus:border-indigo-500"
+                className="tms-control w-full rounded-xl border border-[#333] bg-[#1a1a1e] text-sm outline-none focus:border-indigo-500"
               >
                 {stores.map((store) => (
                   <option key={store.id} value={store.id}>
@@ -375,7 +375,7 @@ export default function ProductCollectionPage() {
               <select
                 value={scope}
                 onChange={(event) => setScope(event.target.value as CollectionScope)}
-                className="w-full rounded-xl border border-[#333] bg-[#1a1a1e] px-4 py-2.5 text-sm text-white outline-none focus:border-indigo-500"
+                className="tms-control w-full rounded-xl border border-[#333] bg-[#1a1a1e] text-sm outline-none focus:border-indigo-500"
               >
                 <option value="ALL">전상품</option>
                 <option value="SALE">판매중</option>
@@ -391,7 +391,7 @@ export default function ProductCollectionPage() {
               <select
                 value={searchKeywordType}
                 onChange={(event) => setSearchKeywordType(event.target.value)}
-                className="w-full rounded-xl border border-[#333] bg-[#1a1a1e] px-4 py-2.5 text-sm text-white outline-none focus:border-indigo-500"
+                className="tms-control w-full rounded-xl border border-[#333] bg-[#1a1a1e] text-sm outline-none focus:border-indigo-500"
               >
                 <option value="CHANNEL_PRODUCT_NAME">상품명</option>
                 <option value="CHANNEL_PRODUCT_NO">채널 상품번호</option>
@@ -405,7 +405,7 @@ export default function ProductCollectionPage() {
               <select
                 value={pageSize}
                 onChange={(event) => setPageSize(Number(event.target.value))}
-                className="w-full rounded-xl border border-[#333] bg-[#1a1a1e] px-4 py-2.5 text-sm text-white outline-none focus:border-indigo-500"
+                className="tms-control w-full rounded-xl border border-[#333] bg-[#1a1a1e] text-sm outline-none focus:border-indigo-500"
               >
                 <option value={10}>10</option>
                 <option value={100}>100</option>
@@ -414,13 +414,13 @@ export default function ProductCollectionPage() {
             </div>
           </div>
 
-          <div className="mt-4 grid gap-4 lg:grid-cols-4">
+          <div className="tms-toolbar mt-4 grid gap-4 lg:grid-cols-4">
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-zinc-400">검색어</label>
               <input
                 value={keyword}
                 onChange={(event) => setKeyword(event.target.value)}
-                className="w-full rounded-xl border border-[#333] bg-[#1a1a1e] px-4 py-2.5 text-sm text-white outline-none focus:border-indigo-500"
+                className="tms-control w-full rounded-xl border border-[#333] bg-[#1a1a1e] text-sm outline-none focus:border-indigo-500"
               />
             </div>
             <div className="space-y-1.5">
@@ -428,7 +428,7 @@ export default function ProductCollectionPage() {
               <input
                 value={sellerManagementCode}
                 onChange={(event) => setSellerManagementCode(event.target.value)}
-                className="w-full rounded-xl border border-[#333] bg-[#1a1a1e] px-4 py-2.5 text-sm text-white outline-none focus:border-indigo-500"
+                className="tms-control w-full rounded-xl border border-[#333] bg-[#1a1a1e] text-sm outline-none focus:border-indigo-500"
               />
             </div>
             <div className="space-y-1.5">
@@ -437,7 +437,7 @@ export default function ProductCollectionPage() {
                 type="date"
                 value={fromDate}
                 onChange={(event) => setFromDate(event.target.value)}
-                className="w-full rounded-xl border border-[#333] bg-[#1a1a1e] px-4 py-2.5 text-sm text-white outline-none focus:border-indigo-500"
+                className="tms-control w-full rounded-xl border border-[#333] bg-[#1a1a1e] text-sm outline-none focus:border-indigo-500"
               />
             </div>
             <div className="space-y-1.5">
@@ -446,16 +446,16 @@ export default function ProductCollectionPage() {
                 type="date"
                 value={toDate}
                 onChange={(event) => setToDate(event.target.value)}
-                className="w-full rounded-xl border border-[#333] bg-[#1a1a1e] px-4 py-2.5 text-sm text-white outline-none focus:border-indigo-500"
+                className="tms-control w-full rounded-xl border border-[#333] bg-[#1a1a1e] text-sm outline-none focus:border-indigo-500"
               />
             </div>
           </div>
 
-          <div className="mt-6 flex flex-wrap justify-end gap-3">
+          <div className="tms-toolbar mt-6 flex flex-wrap justify-end gap-3">
             <button
               onClick={handleCreateJob}
               disabled={creating || loading || !selectedStoreId}
-              className="inline-flex items-center gap-2 rounded-xl border border-[#333] bg-[#1a1a1e] px-4 py-2.5 text-sm font-semibold text-zinc-200 hover:border-indigo-500/60 disabled:opacity-60"
+              className="tms-button tms-button-secondary inline-flex items-center gap-2 rounded-xl border border-[#333] text-sm font-semibold hover:border-indigo-500/60 disabled:opacity-60"
             >
               {creating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
               수집 작업 생성
@@ -463,7 +463,7 @@ export default function ProductCollectionPage() {
             <button
               onClick={handleRunSelectedJob}
               disabled={running || !selectedJobId}
-              className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-60"
+              className="tms-button tms-button-primary inline-flex items-center gap-2 rounded-xl text-sm font-semibold hover:bg-indigo-700 disabled:opacity-60"
             >
               {running ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
               수집 시작
@@ -471,7 +471,7 @@ export default function ProductCollectionPage() {
             <button
               onClick={handleCollectAll}
               disabled={creating || running || !selectedStoreId}
-              className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-60"
+              className="tms-button tms-button-primary inline-flex items-center gap-2 rounded-xl text-sm font-semibold hover:bg-emerald-700 disabled:opacity-60"
             >
               {creating || running ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
               전상품 수집
@@ -497,7 +497,7 @@ export default function ProductCollectionPage() {
         </div>
 
         <div className="grid gap-6 lg:grid-cols-[360px_1fr]">
-          <div className="rounded-2xl border border-[#262629] bg-[#121214]">
+          <div className="tms-panel rounded-2xl border border-[#262629] bg-[#121214]">
             <div className="border-b border-[#262629] px-5 py-4">
               <h2 className="text-lg font-semibold text-white">수집 작업</h2>
             </div>
@@ -513,18 +513,18 @@ export default function ProductCollectionPage() {
                     type="button"
                     onClick={() => setSelectedJobId(job.id)}
                     className={`w-full px-5 py-4 text-left transition hover:bg-[#16161a] ${
-                      selectedJobId === job.id ? 'bg-indigo-500/10' : ''
+                      selectedJobId === job.id ? 'tms-selected-row' : ''
                     }`}
                   >
                     <div className="flex items-center justify-between gap-3">
-                      <span className="truncate text-sm font-semibold text-zinc-200">
+                      <span className={`truncate text-sm font-semibold ${selectedJobId === job.id ? 'tms-selected-text' : 'tms-text-primary'}`}>
                         {job.store?.name || job.storeId}
                       </span>
                       <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ring-1 ring-inset ${statusClass(job.status)}`}>
                         {statusLabel(job.status)}
                       </span>
                     </div>
-                    <div className="mt-2 text-xs text-zinc-500">
+                    <div className={`mt-2 text-xs ${selectedJobId === job.id ? 'tms-selected-text' : 'tms-text-muted'}`}>
                       {formatDateTime(job.createdAt)} · {job._count?.items ?? job.collectedCount}건
                     </div>
                   </button>
@@ -534,8 +534,8 @@ export default function ProductCollectionPage() {
           </div>
 
           <div className="space-y-6">
-            <div className="rounded-2xl border border-[#262629] bg-[#121214] p-6">
-              <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="tms-panel rounded-2xl border border-[#262629] bg-[#121214]">
+              <div className="tms-toolbar mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <h2 className="text-lg font-semibold text-white">진행률</h2>
                   <p className="mt-1 text-sm text-zinc-400">
@@ -545,7 +545,7 @@ export default function ProductCollectionPage() {
                 <button
                   onClick={handleRetryFailed}
                   disabled={retrying || !selectedJobId || !selectedJob || selectedJob.failCount === 0}
-                  className="inline-flex items-center gap-2 rounded-xl border border-[#333] bg-[#1a1a1e] px-4 py-2 text-sm font-semibold text-zinc-200 hover:border-indigo-500/60 disabled:opacity-60"
+                  className="tms-button tms-button-secondary inline-flex items-center gap-2 rounded-xl border border-[#333] text-sm font-semibold hover:border-indigo-500/60 disabled:opacity-60"
                 >
                   {retrying ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
                   실패 상품 재시도
@@ -574,7 +574,7 @@ export default function ProductCollectionPage() {
               )}
             </div>
 
-            <div className="rounded-2xl border border-[#262629] bg-[#121214]">
+            <div className="tms-panel rounded-2xl border border-[#262629] bg-[#121214]">
               <div className="border-b border-[#262629] px-6 py-4">
                 <h2 className="text-lg font-semibold text-white">실패 목록</h2>
               </div>
@@ -585,7 +585,7 @@ export default function ProductCollectionPage() {
                 </div>
               ) : (
                 <div className="overflow-x-auto">
-                  <table className="w-full text-left text-sm">
+                  <table className="tms-table w-full text-left text-sm">
                     <thead className="bg-[#0c0c0e]">
                       <tr>
                         <th className="px-4 py-3 text-xs font-medium text-zinc-500">채널 상품번호</th>

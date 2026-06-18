@@ -20,7 +20,6 @@ import {
 import PageSizeSelect from '@/app/components/PageSizeSelect';
 import PaginationControls from '@/app/components/PaginationControls';
 import {
-  DEFAULT_PAGE_SIZE,
   getPaginatedRows,
   getPaginationRange,
   getRowNumber,
@@ -28,6 +27,7 @@ import {
   getTotalPages,
   type CommonPageSize,
 } from '@/src/utils/pagination';
+import { useConfiguredPageSize } from '@/src/hooks/useConfiguredPageSize';
 import type {
   ProductVariantKeywordPreviewResponse,
   ProductVariantKeywordPreviewRow,
@@ -797,8 +797,8 @@ function VariantQualitySection({
   onViewCandidate: (rowKey: string) => void;
 }) {
   return (
-    <section className="rounded-lg border border-[#262629] bg-[#0c0c0e] p-4">
-      <div className="mb-4 flex flex-col gap-2 lg:flex-row lg:items-end lg:justify-between">
+    <section className="tms-panel rounded-lg border border-[#262629] bg-[#0c0c0e]">
+      <div className="tms-toolbar mb-4 flex flex-col gap-2 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <h3 className="text-base font-semibold text-white">품질 검증</h3>
           <p className="mt-1 text-xs text-zinc-500">
@@ -826,13 +826,13 @@ function VariantQualitySection({
         ))}
       </div>
 
-      <div className="mt-4 flex flex-wrap gap-2">
+      <div className="tms-toolbar mt-4 flex flex-wrap gap-2">
         {variantQualityFilterOptions.map((filter) => (
           <button
             key={filter.key}
             type="button"
             onClick={() => onFilterChange(filter.key)}
-            className={`rounded-lg px-3 py-2 text-xs font-semibold transition ${
+            className={`tms-control rounded-lg text-xs font-semibold transition ${
               activeFilter === filter.key
                 ? 'bg-zinc-100 text-zinc-950'
                 : 'border border-[#333] bg-[#1a1a1e] text-zinc-300 hover:border-indigo-500/60 hover:text-white'
@@ -844,7 +844,7 @@ function VariantQualitySection({
       </div>
 
       <div className="mt-4 rounded-lg border border-[#262629] bg-[#121214] px-4 py-3">
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <div className="tms-toolbar flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <PageSizeSelect value={pageSize} onChange={onPageSizeChange} />
           <PaginationControls
             currentPage={currentPage}
@@ -859,7 +859,7 @@ function VariantQualitySection({
       </div>
 
       <div className="mt-4 overflow-x-auto rounded-lg border border-[#262629]">
-        <table className="w-full min-w-[1680px] text-left text-xs">
+        <table className="tms-table w-full min-w-[1680px] text-left text-xs">
           <thead className="bg-[#121214]">
             <tr>
               <th className="px-3 py-2 font-medium text-zinc-500">No.</th>
@@ -930,7 +930,7 @@ function VariantQualitySection({
                   <button
                     type="button"
                     onClick={() => onViewCandidate(row.rowKey)}
-                    className="rounded-md border border-indigo-500/30 bg-indigo-500/10 px-2.5 py-1.5 text-[11px] font-semibold text-indigo-200 transition hover:bg-indigo-500/20"
+                    className="tms-control rounded-md border border-indigo-500/30 bg-indigo-500/10 text-[11px] font-semibold text-indigo-200 transition hover:bg-indigo-500/20"
                   >
                     후보 보기
                   </button>
@@ -966,7 +966,7 @@ function VariantCandidateDetail({
   onManualSkuQuantityChange: (skuId: string, quantity: number) => void;
 }) {
   return (
-    <div className="rounded-lg border border-[#262629] bg-[#0c0c0e] p-4">
+    <div className="tms-panel rounded-lg border border-[#262629] bg-[#0c0c0e]">
       <div className="mb-3 text-xs text-zinc-500">
         ProductVariantKeyword 상품옵션: <span className="text-zinc-300">{formatMaybe(row.productOptionText)}</span>
       </div>
@@ -976,7 +976,7 @@ function VariantCandidateDetail({
         <VariantSkuChips row={row} />
       </div>
       <div className="overflow-x-auto rounded-lg border border-[#1e1e22]">
-        <table className="w-full min-w-[900px] text-left text-xs">
+        <table className="tms-table w-full min-w-[900px] text-left text-xs">
           <thead className="bg-[#121214]">
             <tr>
               <th className="px-3 py-2 font-medium text-zinc-500">재고매칭 상품명</th>
@@ -1586,9 +1586,17 @@ function ProductVariantKeywordPanel({
   const [expandedRows, setExpandedRows] = useState<Record<string, boolean>>({});
   const [activeFilter, setActiveFilter] = useState<VariantCandidateFilter>('ALL');
   const [qualityFilter, setQualityFilter] = useState<VariantQualityFilter>('ALL');
-  const [pageSize, setPageSize] = useState<CommonPageSize>(DEFAULT_PAGE_SIZE);
+  const {
+    pageSize,
+    setPageSize,
+    resetToConfiguredDefault: resetCandidatePageSize,
+  } = useConfiguredPageSize();
   const [currentPage, setCurrentPage] = useState(1);
-  const [qualityPageSize, setQualityPageSize] = useState<CommonPageSize>(DEFAULT_PAGE_SIZE);
+  const {
+    pageSize: qualityPageSize,
+    setPageSize: setQualityPageSize,
+    resetToConfiguredDefault: resetQualityPageSize,
+  } = useConfiguredPageSize();
   const [qualityCurrentPage, setQualityCurrentPage] = useState(1);
   const [pendingFocusRowKey, setPendingFocusRowKey] = useState<string | null>(null);
   const [highlightedRowKey, setHighlightedRowKey] = useState<string | null>(null);
@@ -1721,9 +1729,9 @@ function ProductVariantKeywordPanel({
     setLastApplySummary(null);
     setActiveFilter('ALL');
     setQualityFilter('ALL');
-    setPageSize(DEFAULT_PAGE_SIZE);
+    resetCandidatePageSize();
     setCurrentPage(1);
-    setQualityPageSize(DEFAULT_PAGE_SIZE);
+    resetQualityPageSize();
     setQualityCurrentPage(1);
 
     try {
@@ -2057,19 +2065,19 @@ function ProductVariantKeywordPanel({
   };
 
   return (
-    <section className="rounded-lg border border-[#262629] bg-[#121214] p-6">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+    <section className="tms-panel rounded-lg border border-[#262629] bg-[#121214]">
+      <div className="tms-toolbar flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <h2 className="text-lg font-semibold text-white">ProductVariantKeyword 매칭 후보</h2>
           <p className="mt-1 text-sm text-zinc-400">
             상품번호 {product.channelProductNo ?? product.id}의 옵션/추가상품 이력을 preview로 확인합니다.
           </p>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="tms-toolbar flex flex-wrap gap-2">
           <button
             type="button"
             onClick={() => fileRef.current?.click()}
-            className="inline-flex items-center gap-2 rounded-lg border border-[#333] bg-[#1a1a1e] px-4 py-2 text-sm font-semibold text-zinc-200 transition hover:border-indigo-500/60 hover:text-white"
+            className="tms-control inline-flex items-center gap-2 rounded-lg border border-[#333] bg-[#1a1a1e] text-sm font-semibold text-zinc-200 transition hover:border-indigo-500/60 hover:text-white"
           >
             <FileSpreadsheet className="h-4 w-4" />
             파일 선택
@@ -2078,7 +2086,7 @@ function ProductVariantKeywordPanel({
             type="button"
             onClick={handlePreview}
             disabled={previewing || !variantFile}
-            className="inline-flex items-center gap-2 rounded-lg bg-zinc-100 px-4 py-2 text-sm font-semibold text-zinc-950 transition hover:bg-white disabled:opacity-60"
+            className="tms-control inline-flex items-center gap-2 rounded-lg bg-zinc-100 text-sm font-semibold text-zinc-950 transition hover:bg-white disabled:opacity-60"
           >
             {previewing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
             Preview
@@ -2102,15 +2110,15 @@ function ProductVariantKeywordPanel({
           setUnmappedRowKeys({});
           setActiveFilter('ALL');
           setQualityFilter('ALL');
-          setPageSize(DEFAULT_PAGE_SIZE);
+          resetCandidatePageSize();
           setCurrentPage(1);
-          setQualityPageSize(DEFAULT_PAGE_SIZE);
+          resetQualityPageSize();
           setQualityCurrentPage(1);
           setMessage(null);
         }}
       />
 
-      <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-zinc-400">
+      <div className="tms-toolbar mt-4 flex flex-wrap items-center gap-3 text-sm text-zinc-400">
         <span className="rounded-lg border border-[#262629] bg-[#0c0c0e] px-3 py-2">
           {variantFile ? variantFile.name : '선택된 파일 없음'}
         </span>
@@ -2133,7 +2141,7 @@ function ProductVariantKeywordPanel({
       )}
 
       {lastApplySummary && (
-        <div className="mt-4 rounded-lg border border-[#262629] bg-[#0c0c0e] p-4">
+        <div className="tms-panel mt-4 rounded-lg border border-[#262629] bg-[#0c0c0e]">
           <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <p className="text-sm font-semibold text-white">수동확정 결과 요약</p>
@@ -2177,8 +2185,8 @@ function ProductVariantKeywordPanel({
             onViewCandidate={handleViewCandidate}
           />
 
-          <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
-            <div className="flex flex-wrap gap-2">
+          <div className="tms-toolbar flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+            <div className="tms-toolbar flex flex-wrap gap-2">
               {variantCandidateFilters.map((filter) => (
                 <button
                   key={filter.key}
@@ -2188,7 +2196,7 @@ function ProductVariantKeywordPanel({
                     setCurrentPage(1);
                     setQualityCurrentPage(1);
                   }}
-                  className={`rounded-lg px-3 py-2 text-xs font-semibold transition ${
+                  className={`tms-control rounded-lg text-xs font-semibold transition ${
                     activeFilter === filter.key
                       ? 'bg-zinc-100 text-zinc-950'
                       : 'border border-[#333] bg-[#1a1a1e] text-zinc-300 hover:border-indigo-500/60 hover:text-white'
@@ -2198,12 +2206,12 @@ function ProductVariantKeywordPanel({
                 </button>
               ))}
             </div>
-            <div className="flex flex-wrap gap-2">
+            <div className="tms-toolbar flex flex-wrap gap-2">
               <button
                 type="button"
                 onClick={() => applySelectionPreset('FILTER_ALL')}
                 disabled={filteredSelectableRows.length === 0}
-                className="rounded-lg border border-[#333] bg-[#1a1a1e] px-3 py-2 text-xs font-semibold text-zinc-200 transition hover:border-indigo-500/60 hover:text-white disabled:opacity-60"
+                className="tms-control rounded-lg border border-[#333] bg-[#1a1a1e] text-xs font-semibold text-zinc-200 transition hover:border-indigo-500/60 hover:text-white disabled:opacity-60"
               >
                 현재 필터 전체 선택
               </button>
@@ -2211,7 +2219,7 @@ function ProductVariantKeywordPanel({
                 type="button"
                 onClick={() => applySelectionPreset('PAGE')}
                 disabled={currentPageSelectableRows.length === 0}
-                className="rounded-lg border border-[#333] bg-[#1a1a1e] px-3 py-2 text-xs font-semibold text-zinc-200 transition hover:border-indigo-500/60 hover:text-white disabled:opacity-60"
+                className="tms-control rounded-lg border border-[#333] bg-[#1a1a1e] text-xs font-semibold text-zinc-200 transition hover:border-indigo-500/60 hover:text-white disabled:opacity-60"
               >
                 현재 페이지 선택
               </button>
@@ -2219,7 +2227,7 @@ function ProductVariantKeywordPanel({
                 type="button"
                 onClick={() => applySelectionPreset('RESOLVED')}
                 disabled={filteredSelectableRows.length === 0}
-                className="rounded-lg border border-[#333] bg-[#1a1a1e] px-3 py-2 text-xs font-semibold text-zinc-200 transition hover:border-indigo-500/60 hover:text-white disabled:opacity-60"
+                className="tms-control rounded-lg border border-[#333] bg-[#1a1a1e] text-xs font-semibold text-zinc-200 transition hover:border-indigo-500/60 hover:text-white disabled:opacity-60"
               >
                 SKU 확정 후보만 선택
               </button>
@@ -2227,7 +2235,7 @@ function ProductVariantKeywordPanel({
                 type="button"
                 onClick={() => applySelectionPreset('SINGLE')}
                 disabled={filteredSelectableRows.length === 0}
-                className="rounded-lg border border-[#333] bg-[#1a1a1e] px-3 py-2 text-xs font-semibold text-zinc-200 transition hover:border-indigo-500/60 hover:text-white disabled:opacity-60"
+                className="tms-control rounded-lg border border-[#333] bg-[#1a1a1e] text-xs font-semibold text-zinc-200 transition hover:border-indigo-500/60 hover:text-white disabled:opacity-60"
               >
                 단품 후보만 선택
               </button>
@@ -2235,7 +2243,7 @@ function ProductVariantKeywordPanel({
                 type="button"
                 onClick={() => applySelectionPreset('SET')}
                 disabled={filteredSelectableRows.length === 0}
-                className="rounded-lg border border-[#333] bg-[#1a1a1e] px-3 py-2 text-xs font-semibold text-zinc-200 transition hover:border-indigo-500/60 hover:text-white disabled:opacity-60"
+                className="tms-control rounded-lg border border-[#333] bg-[#1a1a1e] text-xs font-semibold text-zinc-200 transition hover:border-indigo-500/60 hover:text-white disabled:opacity-60"
               >
                 세트상품 후보만 선택
               </button>
@@ -2243,14 +2251,14 @@ function ProductVariantKeywordPanel({
                 type="button"
                 onClick={() => applySelectionPreset('CLEAR')}
                 disabled={checkedRows.length === 0}
-                className="rounded-lg border border-[#333] bg-[#1a1a1e] px-3 py-2 text-xs font-semibold text-zinc-200 transition hover:border-indigo-500/60 hover:text-white disabled:opacity-60"
+                className="tms-control rounded-lg border border-[#333] bg-[#1a1a1e] text-xs font-semibold text-zinc-200 transition hover:border-indigo-500/60 hover:text-white disabled:opacity-60"
               >
                 선택 해제
               </button>
             </div>
           </div>
 
-          <div className="flex flex-col gap-3 rounded-lg border border-[#262629] bg-[#0c0c0e] px-4 py-3 lg:flex-row lg:items-center lg:justify-between">
+          <div className="tms-toolbar flex flex-col gap-3 rounded-lg border border-[#262629] bg-[#0c0c0e] px-4 py-3 lg:flex-row lg:items-center lg:justify-between">
             <PageSizeSelect
               value={pageSize}
               onChange={(value) => {
@@ -2274,17 +2282,17 @@ function ProductVariantKeywordPanel({
           </div>
 
           {/* ProductVariantKeyword 액션바 - 스크롤 박스 바깥 */}
-          <div className="sticky top-4 z-30 mb-3 flex items-center justify-between rounded-lg border border-blue-500/30 bg-[#121214] px-4 py-3 shadow-lg shadow-black/30">
+          <div className="tms-toolbar sticky top-4 z-30 mb-3 flex items-center justify-between rounded-lg border border-blue-500/30 bg-[#121214] px-4 py-3 shadow-lg shadow-black/30">
             <div className="text-sm text-zinc-300">
               현재 필터 후보 {filteredRows.length}개 · 선택 {checkedRows.length}개 · 매핑완료 {mappedRowCount}개
             </div>
 
-            <div className="flex flex-wrap justify-end gap-2">
+            <div className="tms-toolbar flex flex-wrap justify-end gap-2">
               <button
                 type="button"
                 disabled={exporting}
                 onClick={handleExport}
-                className="inline-flex items-center gap-2 rounded-md border border-emerald-500/30 bg-emerald-500/10 px-4 py-2 text-sm font-medium text-emerald-200 transition hover:bg-emerald-500/20 disabled:cursor-not-allowed disabled:opacity-60"
+                className="tms-control inline-flex items-center gap-2 rounded-md border border-emerald-500/30 bg-emerald-500/10 text-sm font-medium text-emerald-200 transition hover:bg-emerald-500/20 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
                 매핑 현황 엑셀 다운로드
@@ -2293,7 +2301,7 @@ function ProductVariantKeywordPanel({
                 type="button"
                 disabled={checkedRows.length === 0 || saving}
                 onClick={handleSave}
-                className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:bg-zinc-700 disabled:text-zinc-400"
+                className="tms-control inline-flex items-center gap-2 rounded-md bg-blue-600 text-sm font-medium text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:bg-zinc-700 disabled:text-zinc-400"
               >
                 {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                 선택 후보 수동확정
@@ -2306,7 +2314,7 @@ function ProductVariantKeywordPanel({
           </div>
           <div className="rounded-lg border border-[#262629] bg-[#121214]">
             <div className="max-h-[70vh] overflow-auto pb-3 [&::-webkit-scrollbar]:h-3 [&::-webkit-scrollbar]:w-3 [&::-webkit-scrollbar-track]:bg-[#0c0c0e] [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-zinc-600" style={{ scrollbarWidth: 'auto' }}>
-              <table className="min-w-[2400px] table-fixed text-left text-sm relative w-full">
+              <table className="tms-table min-w-[2400px] table-fixed text-left text-sm relative w-full">
                 <thead className="bg-[#0c0c0e]">
                   <tr>
                     <th className="sticky left-0 top-0 z-40 w-[72px] min-w-[72px] px-4 py-3 text-xs font-medium text-zinc-500 bg-[#0c0c0e]">No.</th>
@@ -2508,9 +2516,15 @@ export default function ProductDetailPage() {
   const router = useRouter();
   const productId = Array.isArray(params.id) ? params.id[0] : params.id;
   const [product, setProduct] = useState<ProductDetail | null>(null);
-  const [optionsPageSize, setOptionsPageSize] = useState<CommonPageSize>(DEFAULT_PAGE_SIZE);
+  const {
+    pageSize: optionsPageSize,
+    setPageSize: setOptionsPageSize,
+  } = useConfiguredPageSize();
   const [optionsCurrentPage, setOptionsCurrentPage] = useState(1);
-  const [additionalsPageSize, setAdditionalsPageSize] = useState<CommonPageSize>(DEFAULT_PAGE_SIZE);
+  const {
+    pageSize: additionalsPageSize,
+    setPageSize: setAdditionalsPageSize,
+  } = useConfiguredPageSize();
   const [additionalsCurrentPage, setAdditionalsCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -2587,19 +2601,19 @@ export default function ProductDetailPage() {
   );
 
   return (
-    <div className="min-h-screen p-8">
+    <div className="min-h-screen p-5 lg:p-8">
       <div className="mx-auto max-w-7xl space-y-6">
         <button
           type="button"
           onClick={() => router.push('/dashboard/products')}
-          className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-zinc-400 transition hover:bg-[#1a1a1e] hover:text-zinc-200"
+          className="tms-control inline-flex items-center gap-2 rounded-lg text-sm font-medium text-zinc-400 transition hover:bg-[#1a1a1e] hover:text-zinc-200"
         >
           <ArrowLeft className="h-4 w-4" />
           상품 목록으로 돌아가기
         </button>
 
-        <section className="rounded-lg border border-[#262629] bg-[#121214] p-6">
-          <div className="mb-4 flex items-start justify-between gap-4">
+        <section className="tms-panel rounded-lg border border-[#262629] bg-[#121214]">
+          <div className="tms-toolbar mb-4 flex items-start justify-between gap-4">
             <div className="min-w-0 flex-1">
               <h1 className="truncate text-2xl font-bold tracking-tight text-white">{product.name}</h1>
               <p className="mt-1 text-sm text-zinc-500">{product.smartstore.name}</p>
@@ -2636,7 +2650,7 @@ export default function ProductDetailPage() {
 
         <ProductVariantKeywordPanel product={product} onProductRefresh={refreshProduct} />
 
-        <section className="rounded-lg border border-[#262629] bg-[#121214] p-6">
+        <section className="tms-panel rounded-lg border border-[#262629] bg-[#121214]">
           <h2 className="mb-3 text-lg font-semibold text-white">단일상품 연결 SKU</h2>
           <div className="rounded-lg border border-[#1e1e22] bg-[#0c0c0e] px-4 py-3 font-mono text-sm text-emerald-300">
             {formatSkuMappings(product.skuMappings, product.sku)}
@@ -2657,7 +2671,7 @@ export default function ProductDetailPage() {
           ) : (
             <div className="space-y-3">
               <div className="px-6 pt-4">
-                <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                <div className="tms-toolbar flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                   <PageSizeSelect
                     value={optionsPageSize}
                     onChange={(value) => {
@@ -2677,7 +2691,7 @@ export default function ProductDetailPage() {
                 </div>
               </div>
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
+              <table className="tms-table w-full text-left text-sm">
                 <thead className="border-b border-[#262629] bg-[#0c0c0e]">
                   <tr>
                     <th className="px-6 py-3 text-xs font-medium text-zinc-500">No.</th>
@@ -2735,7 +2749,7 @@ export default function ProductDetailPage() {
             </div>
             <div className="space-y-3">
               <div className="px-6 pt-4">
-                <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                <div className="tms-toolbar flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                   <PageSizeSelect
                     value={additionalsPageSize}
                     onChange={(value) => {
@@ -2755,7 +2769,7 @@ export default function ProductDetailPage() {
                 </div>
               </div>
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
+              <table className="tms-table w-full text-left text-sm">
                 <thead className="border-b border-[#262629] bg-[#0c0c0e]">
                   <tr>
                     <th className="px-6 py-3 text-xs font-medium text-zinc-500">No.</th>

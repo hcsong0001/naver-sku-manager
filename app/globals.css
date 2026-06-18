@@ -55,6 +55,91 @@ body {
   padding-right: var(--tms-control-padding-x) !important;
 }
 
+.tms-theme-shell .tms-button {
+  min-height: var(--tms-control-height);
+  padding-left: var(--tms-control-padding-x) !important;
+  padding-right: var(--tms-control-padding-x) !important;
+}
+
+.tms-theme-shell .tms-button-primary {
+  background-color: var(--tms-button-primary-bg) !important;
+  color: var(--tms-button-primary-text) !important;
+}
+
+.tms-theme-shell .tms-button-secondary {
+  background-color: var(--tms-button-secondary-bg) !important;
+  color: var(--tms-button-secondary-text) !important;
+}
+
+.tms-theme-shell .tms-file-button {
+  background-color: var(--tms-button-secondary-bg) !important;
+  color: var(--tms-button-secondary-text) !important;
+}
+
+.tms-theme-shell .tms-button-muted {
+  background-color: var(--tms-button-muted-bg) !important;
+  color: var(--tms-button-muted-text) !important;
+}
+
+.tms-theme-shell .tms-button-disabled,
+.tms-theme-shell .tms-button:disabled,
+.tms-theme-shell .tms-file-button:disabled {
+  background-color: var(--tms-button-disabled-bg) !important;
+  color: var(--tms-button-disabled-text) !important;
+  border-color: var(--tms-button-disabled-border) !important;
+}
+
+.tms-theme-shell .tms-control {
+  background-color: var(--tms-input-bg) !important;
+  border-color: var(--tms-border) !important;
+  color: var(--tms-text) !important;
+}
+
+.tms-theme-shell button[class*="bg-[#1a1a1e]"],
+.tms-theme-shell button[class*="bg-[#121214]"],
+.tms-theme-shell button[class*="bg-[#0c0c0e]"],
+.tms-theme-shell button[class*="bg-zinc-100"],
+.tms-theme-shell label[class*="bg-[#1a1a1e]"],
+.tms-theme-shell label[class*="bg-[#121214]"],
+.tms-theme-shell label[class*="bg-[#0c0c0e]"],
+.tms-theme-shell label[class*="bg-zinc-100"] {
+  background-color: var(--tms-button-secondary-bg) !important;
+  border-color: var(--tms-border) !important;
+  color: var(--tms-button-secondary-text) !important;
+}
+
+.tms-theme-shell button:disabled,
+.tms-theme-shell button[disabled] {
+  background-color: var(--tms-button-disabled-bg) !important;
+  border-color: var(--tms-button-disabled-border) !important;
+  color: var(--tms-button-disabled-text) !important;
+}
+
+.tms-theme-shell .tms-selected-row {
+  background-color: var(--tms-selected-bg) !important;
+  color: var(--tms-selected-text) !important;
+}
+
+.tms-theme-shell .tms-status-success {
+  background-color: var(--tms-status-success-bg) !important;
+  color: var(--tms-status-success-text) !important;
+}
+
+.tms-theme-shell .tms-status-warning {
+  background-color: var(--tms-status-warning-bg) !important;
+  color: var(--tms-status-warning-text) !important;
+}
+
+.tms-theme-shell .tms-status-danger {
+  background-color: var(--tms-status-danger-bg) !important;
+  color: var(--tms-status-danger-text) !important;
+}
+
+.tms-theme-shell .tms-status-muted {
+  background-color: var(--tms-status-muted-bg) !important;
+  color: var(--tms-status-muted-text) !important;
+}
+
 .tms-theme-shell main,
 .tms-theme-shell .min-h-screen {
   background-color: var(--tms-bg);
