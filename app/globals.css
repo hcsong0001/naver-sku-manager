@@ -24,3 +24,94 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+.tms-theme-shell {
+  background-color: var(--tms-bg);
+  color: var(--tms-text);
+}
+
+.tms-theme-shell main,
+.tms-theme-shell .min-h-screen {
+  background-color: var(--tms-bg);
+  color: var(--tms-text);
+}
+
+.tms-theme-shell .tms-sidebar {
+  background-color: var(--tms-sidebar-bg);
+  color: var(--tms-sidebar-text);
+  border-color: var(--tms-border);
+}
+
+.tms-theme-shell .tms-sidebar-link:not(.is-active):hover {
+  background-color: color-mix(in srgb, var(--tms-selected-bg) 45%, transparent);
+  color: var(--tms-text);
+}
+
+.tms-theme-shell .tms-sidebar-link:not(.is-active):hover svg {
+  color: var(--tms-text);
+}
+
+.tms-theme-shell .tms-selected-bg {
+  background-color: var(--tms-selected-bg) !important;
+}
+
+.tms-theme-shell .tms-selected-text {
+  color: var(--tms-selected-text) !important;
+}
+
+.tms-theme-shell .tms-text-primary {
+  color: var(--tms-text) !important;
+}
+
+.tms-theme-shell .tms-text-muted {
+  color: var(--tms-muted-text) !important;
+}
+
+.tms-theme-shell .tms-border-color,
+.tms-theme-shell .tms-border-soft {
+  border-color: var(--tms-border) !important;
+}
+
+.tms-theme-shell [class*="bg-[#121214]"],
+.tms-theme-shell [class*="bg-[#111114]"],
+.tms-theme-shell [class*="bg-[#151519]"] {
+  background-color: var(--tms-card-bg) !important;
+}
+
+.tms-theme-shell [class*="bg-[#0c0c0e]"],
+.tms-theme-shell [class*="bg-[#09090b]"] {
+  background-color: var(--tms-card-muted-bg) !important;
+}
+
+.tms-theme-shell [class*="border-[#262629]"],
+.tms-theme-shell [class*="border-[#333]"],
+.tms-theme-shell [class*="border-[#222]"],
+.tms-theme-shell [class*="border-zinc-700"] {
+  border-color: var(--tms-border) !important;
+}
+
+.tms-theme-shell [class*="text-white"],
+.tms-theme-shell [class*="text-zinc-100"],
+.tms-theme-shell [class*="text-zinc-200"],
+.tms-theme-shell [class*="text-zinc-300"] {
+  color: var(--tms-text) !important;
+}
+
+.tms-theme-shell [class*="text-zinc-400"],
+.tms-theme-shell [class*="text-zinc-500"],
+.tms-theme-shell [class*="text-zinc-600"] {
+  color: var(--tms-muted-text) !important;
+}
+
+.tms-theme-shell input:not([type="checkbox"]):not([type="radio"]),
+.tms-theme-shell select,
+.tms-theme-shell textarea {
+  background-color: var(--tms-input-bg) !important;
+  border-color: var(--tms-border) !important;
+  color: var(--tms-text) !important;
+}
+
+.tms-theme-shell input::placeholder,
+.tms-theme-shell textarea::placeholder {
+  color: var(--tms-muted-text) !important;
+}

@@ -43,7 +43,7 @@ const menuItems: MenuItem[] = [
   { name: "위험 후보 정리", href: "/dashboard/mapping-risk-resolution", icon: ShieldAlert },
   { name: "재고 이력", href: "/inventory-log", icon: History },
   { name: "가격 이력", href: "/price-log", icon: TrendingUp },
-  { name: "설정", href: "/settings", icon: Settings },
+  { name: "설정", href: "/dashboard/settings", icon: Settings },
 ];
 
 export default function Sidebar() {
@@ -51,12 +51,12 @@ export default function Sidebar() {
   const [logoError, setLogoError] = React.useState(false);
 
   return (
-    <aside className="w-64 bg-[#121214] border-r border-[#262629] flex flex-col h-full shrink-0">
+    <aside className="w-64 shrink-0 border-r tms-sidebar flex h-full flex-col">
       {/* 브랜드 헤더 */}
-      <div className="h-16 flex items-center px-6 border-b border-[#262629] gap-3">
-        <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-lg border border-indigo-500/30 bg-indigo-600/10">
+      <div className="flex h-16 items-center gap-3 border-b px-6 tms-border-color">
+        <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-lg border tms-border-soft tms-selected-bg">
           {logoError ? (
-            <div className="flex h-full w-full items-center justify-center bg-indigo-600/20 text-xs font-bold text-indigo-300">
+            <div className="flex h-full w-full items-center justify-center text-xs font-bold tms-selected-text">
               TMS
             </div>
           ) : (
@@ -71,10 +71,10 @@ export default function Sidebar() {
           )}
         </div>
         <div className="min-w-0">
-          <h1 className="text-sm font-semibold text-zinc-100 tracking-wide">
+          <h1 className="text-sm font-semibold tracking-wide tms-text-primary">
             TMS
           </h1>
-          <p className="truncate text-[10px] font-medium text-zinc-500">
+          <p className="truncate text-[10px] font-medium tms-text-muted">
             Tooltalk Management System
           </p>
         </div>
@@ -90,15 +90,15 @@ export default function Sidebar() {
             <Link
               key={item.name}
               href={item.href}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group ${
+              className={`tms-sidebar-link group flex items-center gap-3 rounded-lg border px-3 py-2.5 text-sm font-medium transition-all duration-200 ${
                 isActive
-                  ? "bg-indigo-600/10 text-indigo-400 border border-indigo-500/20 shadow-[0_0_15px_rgba(99,102,241,0.05)]"
-                  : "text-zinc-400 hover:text-zinc-200 hover:bg-[#1a1a1e] border border-transparent"
+                  ? "is-active tms-selected-bg tms-selected-text tms-border-soft shadow-[0_0_15px_rgba(99,102,241,0.05)]"
+                  : "border-transparent tms-text-muted"
               }`}
             >
               <Icon
-                className={`w-4 h-4 transition-transform duration-200 group-hover:scale-110 ${
-                  isActive ? "text-indigo-400" : "text-zinc-400 group-hover:text-zinc-300"
+                className={`h-4 w-4 transition-transform duration-200 group-hover:scale-110 ${
+                  isActive ? "tms-selected-text" : "tms-text-muted"
                 }`}
               />
               <span>{item.name}</span>
@@ -108,16 +108,16 @@ export default function Sidebar() {
       </nav>
 
       {/* 사용자 영역 */}
-      <div className="p-4 border-t border-[#262629] bg-[#0c0c0e]/50">
-        <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-[#1a1a1e] transition-colors cursor-pointer">
-          <div className="bg-zinc-800 p-2 rounded-full text-zinc-400 border border-zinc-700/50">
+      <div className="border-t p-4 tms-border-color" style={{ backgroundColor: 'color-mix(in srgb, var(--tms-card-muted-bg) 80%, transparent)' }}>
+        <div className="flex cursor-pointer items-center gap-3 rounded-lg p-2 transition-colors hover:bg-white/5">
+          <div className="rounded-full border p-2 tms-border-soft" style={{ backgroundColor: 'color-mix(in srgb, var(--tms-card-bg) 85%, black 15%)' }}>
             <User className="w-4 h-4" />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-xs font-semibold text-zinc-200 truncate">
+            <p className="truncate text-xs font-semibold tms-text-primary">
               hcsong0001
             </p>
-            <p className="text-[10px] text-zinc-500 truncate">
+            <p className="truncate text-[10px] tms-text-muted">
               스토어 관리자
             </p>
           </div>
