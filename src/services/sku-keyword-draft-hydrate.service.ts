@@ -77,6 +77,48 @@ function additionalDisplayName(additional: {
   return uniqueStrings([additional.additionalName, additional.additionalValue]).join(' / ');
 }
 
+function getChannelIdUnavailableMessage(seed: SkuKeywordDraftSeedCandidate): string {
+  return `${seed.mappingType} 대상 hydrate 문맥에는 channelId 전용 필드가 없습니다. Smartstore.sellerId/naverAccountId는 존재하지만 channelId와 동일하다고 단정할 수 없어 null로 유지합니다.`;
+}
+
+function getCurrentPriceUnavailableMessage(
+  seed: SkuKeywordDraftSeedCandidate,
+  contextAvailable: boolean,
+): string {
+  if (seed.mappingType === 'PRODUCT') {
+    return contextAvailable
+      ? 'NaverProduct 모델에는 현재 스마트스토어 판매가 컬럼이 없어 PRODUCT 현재가를 hydrate 단계에서 채울 수 없습니다.'
+      : 'PRODUCT 대상 문맥이 없어 현재 스마트스토어 판매가를 확인할 수 없습니다.';
+  }
+  if (seed.mappingType === 'OPTION') {
+    return contextAvailable
+      ? 'NaverProductOption 모델에는 옵션 현재 판매가 컬럼이 없어 OPTION 현재가를 hydrate 단계에서 채울 수 없습니다.'
+      : 'OPTION 대상 문맥이 없어 현재 스마트스토어 판매가를 확인할 수 없습니다.';
+  }
+  return contextAvailable
+    ? 'NaverProductAdditional.price 값이 비어 있어 ADDITIONAL 현재가를 hydrate 단계에서 채울 수 없습니다.'
+    : 'ADDITIONAL 대상 문맥이 없어 현재 스마트스토어 판매가를 확인할 수 없습니다.';
+}
+
+function getCurrentStockUnavailableMessage(
+  seed: SkuKeywordDraftSeedCandidate,
+  contextAvailable: boolean,
+): string {
+  if (seed.mappingType === 'PRODUCT') {
+    return contextAvailable
+      ? 'NaverProduct 모델에는 현재 스마트스토어 재고 컬럼이 없어 PRODUCT 현재재고를 hydrate 단계에서 채울 수 없습니다.'
+      : 'PRODUCT 대상 문맥이 없어 현재 스마트스토어 재고를 확인할 수 없습니다.';
+  }
+  if (seed.mappingType === 'OPTION') {
+    return contextAvailable
+      ? 'NaverProductOption 모델에는 옵션 현재 재고 컬럼이 없어 OPTION 현재재고를 hydrate 단계에서 채울 수 없습니다.'
+      : 'OPTION 대상 문맥이 없어 현재 스마트스토어 재고를 확인할 수 없습니다.';
+  }
+  return contextAvailable
+    ? 'NaverProductAdditional.stockQuantity 값이 비어 있어 ADDITIONAL 현재재고를 hydrate 단계에서 채울 수 없습니다.'
+    : 'ADDITIONAL 대상 문맥이 없어 현재 스마트스토어 재고를 확인할 수 없습니다.';
+}
+
 function resolveSkuRecord(
   seedSku: SkuKeywordDraftSeedSku,
   context: SkuKeywordHydrateContext,
@@ -340,6 +382,7 @@ export function buildSkuKeywordHydratedCandidate(
   const channelId: string | null = null;
   let currentSmartstorePrice: number | null = null;
   let currentSmartstoreStock: number | null = null;
+  let targetContextAvailable = false;
 
   if (seed.mappingType === 'PRODUCT') {
     const product = context.productById.get(seed.itemId);
@@ -350,6 +393,7 @@ export function buildSkuKeywordHydratedCandidate(
         message: `PRODUCT 대상 ${seed.itemId} 문맥을 찾을 수 없습니다.`,
       }));
     } else {
+      targetContextAvailable = true;
       productName = product.productName;
       itemName = product.productName;
       storeId = product.smartstoreId;
@@ -371,6 +415,7 @@ export function buildSkuKeywordHydratedCandidate(
         message: `OPTION 대상 ${seed.itemId} 문맥을 찾을 수 없습니다.`,
       }));
     } else {
+      targetContextAvailable = true;
       productName = option.productName;
       itemName = optionDisplayName(option);
       storeId = option.smartstoreId;
@@ -392,6 +437,7 @@ export function buildSkuKeywordHydratedCandidate(
         message: `ADDITIONAL 대상 ${seed.itemId} 문맥을 찾을 수 없습니다.`,
       }));
     } else {
+      targetContextAvailable = true;
       productName = additional.productName;
       itemName = additionalDisplayName(additional);
       storeId = additional.smartstoreId;
@@ -419,14 +465,14 @@ export function buildSkuKeywordHydratedCandidate(
   issues.push(buildIssue({
     code: 'CHANNEL_ID_UNAVAILABLE',
     severity: 'info',
-    message: '현재 운영 상품 스키마에는 channelId 필드가 없어 hydrate 단계에서는 null로 유지합니다.',
+    message: getChannelIdUnavailableMessage(seed),
   }));
 
   if (currentSmartstorePrice === null) {
     issues.push(buildIssue({
       code: 'CURRENT_PRICE_UNAVAILABLE',
       severity: 'info',
-      message: '현재 스마트스토어 판매가를 운영 상품 문맥에서 확인할 수 없습니다.',
+      message: getCurrentPriceUnavailableMessage(seed, targetContextAvailable),
     }));
   }
 
@@ -434,7 +480,7 @@ export function buildSkuKeywordHydratedCandidate(
     issues.push(buildIssue({
       code: 'CURRENT_STOCK_UNAVAILABLE',
       severity: 'info',
-      message: '현재 스마트스토어 재고를 운영 상품 문맥에서 확인할 수 없습니다.',
+      message: getCurrentStockUnavailableMessage(seed, targetContextAvailable),
     }));
   }
 

@@ -23,6 +23,7 @@ import {
   getTotalPages,
   type CommonPageSize,
 } from '@/src/utils/pagination';
+import type { SkuKeywordHydrateIssueCode } from '@/src/types/sku-keyword-draft-hydrate.types';
 import type {
   SkuKeywordDraftPreviewRequest,
   SkuKeywordDraftPreviewResponse,
@@ -78,6 +79,26 @@ const draftCandidateFilterLabels: Record<DraftCandidateFilter, string> = {
   PRICE_CHANGE: 'priceChange',
   STOCK_CHANGE: 'stockChange',
   HAS_RISK: 'risk 있음',
+};
+
+const draftHydrateIssueLabels: Record<SkuKeywordHydrateIssueCode, string> = {
+  SKU_NOT_FOUND: 'SKU를 찾지 못함',
+  TARGET_NOT_FOUND: '대상 상품 문맥 없음',
+  TARGET_CHANNEL_PRODUCT_MISMATCH: '대상 상품과 채널상품번호 불일치',
+  STORE_CONTEXT_UNAVAILABLE: '스마트스토어 문맥 없음',
+  CHANNEL_ID_UNAVAILABLE: 'channelId 없음',
+  CURRENT_PRICE_UNAVAILABLE: '현재 가격 문맥 없음',
+  CURRENT_STOCK_UNAVAILABLE: '현재 재고 문맥 없음',
+};
+
+const draftHydrateIssueHints: Record<SkuKeywordHydrateIssueCode, string> = {
+  SKU_NOT_FOUND: 'SKU 마스터, 별칭, 바코드 연결 상태를 먼저 확인해 주세요.',
+  TARGET_NOT_FOUND: '스마트스토어 상품, 옵션, 추가상품이 현재 DB에 수집되어 있는지 확인해 주세요.',
+  TARGET_CHANNEL_PRODUCT_MISMATCH: 'channelProductNo와 itemId가 같은 상품 문맥을 가리키는지 다시 확인해 주세요.',
+  STORE_CONTEXT_UNAVAILABLE: '스마트스토어 연결 정보와 상품-스토어 관계를 먼저 확인해 주세요.',
+  CHANNEL_ID_UNAVAILABLE: '스마트스토어 channelId 연결 정보가 별도로 필요합니다.',
+  CURRENT_PRICE_UNAVAILABLE: '현재 스마트스토어 가격 문맥이 저장되어 있어야 Draft 가능 판정이 가능합니다.',
+  CURRENT_STOCK_UNAVAILABLE: '현재 스마트스토어 재고 문맥이 저장되어 있어야 Draft 가능 판정이 가능합니다.',
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -300,6 +321,26 @@ function getDraftCandidateSkuText(
   return skuCodes.length > 0 ? skuCodes.join(', ') : '-';
 }
 
+function getDraftCandidateIssueMessages(
+  candidate: SkuKeywordDraftPreviewResponse['candidates'][number],
+): string[] {
+  const issueMessages = candidate.issues
+    .map((issue) => issue.message?.trim() || issue.code?.trim() || '')
+    .filter((message) => message.length > 0);
+
+  const riskMessages = candidate.riskMessages.filter((message) => message.trim().length > 0);
+  return Array.from(new Set([...issueMessages, ...riskMessages]));
+}
+
+function getHydrateIssueEntries(
+  counts: Partial<Record<SkuKeywordHydrateIssueCode, number>>,
+): Array<{ code: SkuKeywordHydrateIssueCode; count: number }> {
+  return (Object.entries(counts) as Array<[SkuKeywordHydrateIssueCode, number | undefined]>)
+    .filter((entry): entry is [SkuKeywordHydrateIssueCode, number] => (entry[1] ?? 0) > 0)
+    .sort((left, right) => right[1] - left[1])
+    .map(([code, count]) => ({ code, count }));
+}
+
 function DraftPreviewPanel({
   result,
 }: {
@@ -307,6 +348,7 @@ function DraftPreviewPanel({
 }) {
   const [activeFilter, setActiveFilter] = useState<DraftCandidateFilter>('ALL');
   const [selectedCandidateIds, setSelectedCandidateIds] = useState<string[]>([]);
+  const [jsonMessage, setJsonMessage] = useState<Message | null>(null);
   const filteredCandidates = useMemo(
     () => filterDraftCandidates(result.candidates, activeFilter),
     [activeFilter, result.candidates],
@@ -349,6 +391,73 @@ function DraftPreviewPanel({
     () => result.candidates.filter((candidate) => selectedCandidateIdSet.has(candidate.id)),
     [result.candidates, selectedCandidateIdSet],
   );
+  const selectedCandidateTypeCounts = useMemo<Record<string, number>>(
+    () =>
+      selectedCandidates.reduce<Record<string, number>>((accumulator, candidate) => {
+        accumulator[candidate.candidateType] = (accumulator[candidate.candidateType] ?? 0) + 1;
+        return accumulator;
+      }, {}),
+    [selectedCandidates],
+  );
+  const selectedTargetTypeCounts = useMemo<Record<string, number>>(
+    () =>
+      selectedCandidates.reduce<Record<string, number>>((accumulator, candidate) => {
+        accumulator[candidate.sourceMappingType] = (accumulator[candidate.sourceMappingType] ?? 0) + 1;
+        return accumulator;
+      }, {}),
+    [selectedCandidates],
+  );
+  const selectedReviewSummary = useMemo(
+    () => ({
+      selectedCount: selectedCandidates.length,
+      draftCreatableCount: selectedCandidates.filter((candidate) => candidate.draftCreatable).length,
+      priceChangeCount: selectedCandidates.filter((candidate) => candidate.hasPriceChange).length,
+      stockChangeCount: selectedCandidates.filter((candidate) => candidate.hasStockChange).length,
+      riskOrIssueCount: selectedCandidates.filter(
+        (candidate) => candidate.riskMessages.length > 0 || candidate.issues.length > 0,
+      ).length,
+    }),
+    [selectedCandidates],
+  );
+  const reviewPayload = useMemo(() => {
+    const items = selectedCandidates.map((candidate) => ({
+      candidateId: candidate.id,
+      candidateType: candidate.candidateType,
+      targetType: candidate.sourceMappingType,
+      channelProductNo: candidate.channelProductNo,
+      itemId: candidate.itemId,
+      optionId: candidate.candidateType === 'OPTION' ? candidate.itemId : null,
+      additionalProductId: candidate.candidateType === 'ADDITIONAL' ? candidate.itemId : null,
+      skuCode: getDraftCandidateSkuText(candidate),
+      skuName: candidate.productName ?? null,
+      productName: candidate.productName,
+      itemName: candidate.itemName,
+      draftCreatable: candidate.draftCreatable,
+      priceChange: candidate.hasPriceChange,
+      stockChange: candidate.hasStockChange,
+      issues: getDraftCandidateIssueMessages(candidate),
+      recommendedAction: candidate.recommendedAction,
+      reviewMessage: candidate.reviewMessage,
+    }));
+
+    return {
+      schemaVersion: 1,
+      source: 'sku-keyword-matching',
+      selectedCount: items.length,
+      createdAt: new Date().toISOString(),
+      items,
+    };
+  }, [selectedCandidates]);
+  const reviewPayloadText = useMemo(() => JSON.stringify(reviewPayload, null, 2), [reviewPayload]);
+  const hydrateIssueEntries = useMemo(
+    () => getHydrateIssueEntries(result.issueSummary.hydrateIssueCounts),
+    [result.issueSummary.hydrateIssueCounts],
+  );
+  const topHydrateIssueEntries = hydrateIssueEntries.slice(0, 3);
+  const totalHydrateIssueCount = useMemo(
+    () => hydrateIssueEntries.reduce((sum, entry) => sum + entry.count, 0),
+    [hydrateIssueEntries],
+  );
 
   const toggleCandidateSelection = (candidateId: string) => {
     setSelectedCandidateIds((current) =>
@@ -374,6 +483,37 @@ function DraftPreviewPanel({
 
   const handleClearAllSelection = () => {
     setSelectedCandidateIds([]);
+  };
+
+  const handleCopyReviewJson = async () => {
+    if (typeof navigator === 'undefined' || !navigator.clipboard?.writeText) {
+      setJsonMessage({ type: 'error', text: '클립보드 복사를 지원하지 않는 환경입니다.' });
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(reviewPayloadText);
+      setJsonMessage({ type: 'success', text: '검토용 JSON을 클립보드에 복사했습니다.' });
+    } catch {
+      setJsonMessage({ type: 'error', text: '검토용 JSON 복사에 실패했습니다.' });
+    }
+  };
+
+  const handleDownloadReviewJson = () => {
+    try {
+      const blob = new Blob([reviewPayloadText], { type: 'application/json;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'sku-keyword-draft-review-payload.json';
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      setJsonMessage({ type: 'success', text: '검토용 JSON 파일 다운로드를 시작했습니다.' });
+    } catch {
+      setJsonMessage({ type: 'error', text: '검토용 JSON 다운로드를 시작하지 못했습니다.' });
+    }
   };
 
   return (
@@ -410,6 +550,82 @@ function DraftPreviewPanel({
           title="상태 집계"
           counts={result.issueSummary.statusCounts}
         />
+      </div>
+
+      {result.summary.draftCreatableCount === 0 && (
+        <div className="rounded-lg border border-amber-500/20 bg-amber-500/10 p-4">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-300" />
+            <div className="space-y-3">
+              <div>
+                <p className="text-sm font-semibold text-amber-200">Draft 가능 후보가 아직 없습니다.</p>
+                <p className="mt-1 text-xs text-amber-100/80">
+                  현재 후보는 모두 필수 문맥이 부족하거나 위험 이슈가 남아 있어 Draft 후보로 올리지 않습니다.
+                  아래 주요 이슈와 해결 힌트를 먼저 확인해 주세요.
+                </p>
+              </div>
+              {topHydrateIssueEntries.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {topHydrateIssueEntries.map((entry) => (
+                    <span
+                      key={entry.code}
+                      className="inline-flex items-center gap-2 rounded-md border border-amber-500/20 bg-[#121214] px-2.5 py-1 text-xs text-amber-100"
+                    >
+                      <span className="font-mono text-[11px] text-amber-200">{entry.code}</span>
+                      <span>{entry.count.toLocaleString()}건</span>
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="rounded-lg border border-[#262629] bg-[#0c0c0e] p-4">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-sm font-semibold text-white">issue 해결 힌트</p>
+            <p className="mt-1 text-xs text-zinc-500">
+              현재 DB와 Prisma 모델 기준으로 자동 보강할 수 없는 문맥은 issue로 유지됩니다.
+            </p>
+          </div>
+          <div className="rounded-md border border-[#262629] bg-[#121214] px-3 py-2 text-xs text-zinc-300">
+            현재 hydrate issue 합계: {totalHydrateIssueCount.toLocaleString()}건
+          </div>
+        </div>
+
+        {hydrateIssueEntries.length === 0 ? (
+          <p className="mt-3 text-xs text-zinc-500">표시할 hydrate issue가 없습니다.</p>
+        ) : (
+          <div className="mt-3 grid gap-3 lg:grid-cols-2">
+            {hydrateIssueEntries.map((entry) => (
+              <div
+                key={entry.code}
+                className="rounded-lg border border-[#262629] bg-[#121214] p-3"
+              >
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="rounded-md border border-[#262629] bg-[#0c0c0e] px-2 py-0.5 font-mono text-[11px] text-zinc-300">
+                        {entry.code}
+                      </span>
+                      <span className="text-sm font-semibold text-white">
+                        {draftHydrateIssueLabels[entry.code]}
+                      </span>
+                    </div>
+                    <p className="mt-2 text-xs text-zinc-400">
+                      해결 힌트: {draftHydrateIssueHints[entry.code]}
+                    </p>
+                  </div>
+                  <span className="rounded-md border border-[#262629] bg-[#0c0c0e] px-2.5 py-1 text-xs font-semibold text-white">
+                    {entry.count.toLocaleString()}건
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="rounded-lg border border-[#262629] bg-[#0c0c0e] p-4">
@@ -540,6 +756,151 @@ function DraftPreviewPanel({
             </div>
           )}
         </div>
+      </div>
+
+      <div className="space-y-4 rounded-lg border border-[#262629] bg-[#0c0c0e] p-4">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-sm font-semibold text-white">선택 후보 검토</p>
+            <p className="mt-1 text-xs text-zinc-500">
+              실제 Draft Batch 생성 전, 현재 선택 후보를 검토용 payload 형태로만 확인합니다.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => void handleCopyReviewJson()}
+              disabled={selectedCandidates.length === 0}
+              className="tms-button tms-button-secondary inline-flex items-center justify-center rounded-lg border px-3 py-2 text-xs font-semibold transition disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              JSON 복사
+            </button>
+            <button
+              type="button"
+              onClick={handleDownloadReviewJson}
+              disabled={selectedCandidates.length === 0}
+              className="tms-button tms-button-muted inline-flex items-center justify-center rounded-lg border px-3 py-2 text-xs font-semibold transition disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              JSON 다운로드
+            </button>
+          </div>
+        </div>
+
+        {jsonMessage && (
+          <div
+            className={`flex items-center gap-2 rounded-lg border px-4 py-3 text-sm ${
+              jsonMessage.type === 'success'
+                ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-300'
+                : 'border-red-500/20 bg-red-500/10 text-red-300'
+            }`}
+          >
+            {jsonMessage.type === 'success' ? (
+              <CheckCircle2 className="h-4 w-4 shrink-0" />
+            ) : (
+              <AlertTriangle className="h-4 w-4 shrink-0" />
+            )}
+            {jsonMessage.text}
+          </div>
+        )}
+
+        {selectedCandidates.length === 0 ? (
+          <div className="rounded-lg border border-[#262629] bg-[#121214] px-4 py-6 text-sm text-zinc-400">
+            <p>선택된 Draft 후보가 없습니다.</p>
+            <p className="mt-1">draftCreatable 후보를 선택하면 검토용 payload가 표시됩니다.</p>
+          </div>
+        ) : (
+          <>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              <CountBadge label="선택된 후보 수" value={selectedReviewSummary.selectedCount} />
+              <CountBadge label="draftCreatable 후보 수" value={selectedReviewSummary.draftCreatableCount} />
+              <CountBadge label="priceChange 후보 수" value={selectedReviewSummary.priceChangeCount} />
+              <CountBadge label="stockChange 후보 수" value={selectedReviewSummary.stockChangeCount} />
+              <CountBadge label="risk/issue 있는 후보 수" value={selectedReviewSummary.riskOrIssueCount} />
+              <CountBadge label="Draft Batch 생성 가능" value={selectedReviewSummary.draftCreatableCount} />
+              <CountBadge
+                label="Draft Batch 생성 불가"
+                value={selectedReviewSummary.selectedCount - selectedReviewSummary.draftCreatableCount}
+              />
+            </div>
+
+            <div className="grid gap-4 lg:grid-cols-2">
+              <CountList title="candidateType별 개수" counts={selectedCandidateTypeCounts} />
+              <CountList title="targetType별 개수" counts={selectedTargetTypeCounts} />
+            </div>
+
+            <div className="rounded-lg border border-[#262629] bg-[#121214] p-4">
+              <p className="text-sm font-semibold text-white">후보별 상세 검토 목록</p>
+              <div className="mt-3 space-y-3">
+                {selectedCandidates.map((candidate) => {
+                  const issueMessages = getDraftCandidateIssueMessages(candidate);
+                  return (
+                    <div
+                      key={`review-${candidate.id}`}
+                      className="rounded-lg border border-[#262629] bg-[#0c0c0e] p-4"
+                    >
+                      <div className="flex flex-col gap-2 lg:flex-row lg:items-start lg:justify-between">
+                        <div className="min-w-0">
+                          <p className="font-mono text-[11px] text-zinc-400">{candidate.id}</p>
+                          <p className="mt-1 text-sm font-semibold text-white">
+                            {candidate.candidateType} · {candidate.sourceMappingType}
+                          </p>
+                          <p className="mt-1 text-sm text-zinc-300">
+                            {candidate.channelProductNo} · {candidate.itemId}
+                          </p>
+                          {candidate.candidateType === 'OPTION' && (
+                            <p className="mt-1 text-xs text-zinc-400">optionId: {candidate.itemId}</p>
+                          )}
+                          {candidate.candidateType === 'ADDITIONAL' && (
+                            <p className="mt-1 text-xs text-zinc-400">additionalProductId: {candidate.itemId}</p>
+                          )}
+                          <p className="mt-1 text-xs text-zinc-400">
+                            SKU: {getDraftCandidateSkuText(candidate)}
+                          </p>
+                          <p className="mt-1 text-xs text-zinc-400">
+                            상품명: {candidate.productName ?? '-'} / 항목명: {candidate.itemName ?? '-'}
+                          </p>
+                        </div>
+                        <div className="grid gap-1 text-xs text-zinc-300 sm:grid-cols-2 lg:min-w-[320px]">
+                          <span>draftCreatable: {candidate.draftCreatable ? 'true' : 'false'}</span>
+                          <span>priceChange: {candidate.hasPriceChange ? 'true' : 'false'}</span>
+                          <span>stockChange: {candidate.hasStockChange ? 'true' : 'false'}</span>
+                          <span>issue 개수: {candidate.issues.length.toLocaleString()}</span>
+                        </div>
+                      </div>
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {issueMessages.length > 0 ? (
+                          issueMessages.map((message, index) => (
+                            <span
+                              key={`${candidate.id}-issue-${index}`}
+                              className="inline-flex rounded-md border border-amber-500/20 bg-amber-500/10 px-2 py-1 text-[11px] text-amber-200"
+                            >
+                              {message}
+                            </span>
+                          ))
+                        ) : (
+                          <span className="inline-flex rounded-md border border-emerald-500/20 bg-emerald-500/10 px-2 py-1 text-[11px] text-emerald-200">
+                            주요 issue 없음
+                          </span>
+                        )}
+                      </div>
+                      <div className="mt-3 space-y-1 text-xs text-zinc-400">
+                        <p>권장 조치: {candidate.recommendedAction || '-'}</p>
+                        <p>검토 메모: {candidate.reviewMessage || '-'}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="rounded-lg border border-[#262629] bg-[#121214] p-4">
+              <p className="text-sm font-semibold text-white">검토용 JSON 미리보기</p>
+              <pre className="mt-3 overflow-x-auto rounded-lg border border-[#262629] bg-[#0c0c0e] p-4 text-xs text-zinc-300">
+                {reviewPayloadText}
+              </pre>
+            </div>
+          </>
+        )}
       </div>
 
       <details className="rounded-lg border border-[#262629] bg-[#0c0c0e]">
