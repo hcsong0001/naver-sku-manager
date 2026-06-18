@@ -40,6 +40,7 @@ type StockRow = {
   modelName: string;
   supplierItemCode: string;
   optionCode: string;
+  sellingPrice: unknown;
   costPrice: unknown;
   stockQuantity: number | null;
   skuCodeCandidate: string;
@@ -62,6 +63,7 @@ type MappingRow = {
 type MappingTarget = {
   id: string;
   candidateType: Exclude<StagingMappingCandidateType, 'BUNDLE'>;
+  storeId: string | null;
   storeName: string;
   channelId: string;
   channelProductNo: string;
@@ -91,6 +93,7 @@ type ProductVariantRow = {
   quantity: number | null;
   isSetProduct: boolean;
   job: {
+    storeId: string | null;
     channelId: string | null;
     store: { name: string } | null;
   };
@@ -218,6 +221,7 @@ function stockToSku(stock: StockRow, quantity: number, matchSource: string): Sta
     productName: stock.productName,
     purchaseProductName: stock.purchaseProductName,
     quantity,
+    sellingPrice: numberOrNull(stock.sellingPrice),
     costPrice: numberOrNull(stock.costPrice),
     stockQuantity: stock.stockQuantity,
     matchSource,
@@ -275,6 +279,7 @@ function mappingRowsToSkus(rows: MappingRow[], stockIndex: StockIndex): StagingM
       productName: row.productName,
       purchaseProductName: '',
       quantity: Math.max(row.quantity, 1),
+      sellingPrice: null,
       costPrice: null,
       stockQuantity: null,
       matchSource: '기존 staging 매핑',
@@ -319,6 +324,7 @@ function componentFromVariantRow(row: ProductVariantRow, stockIndex: StockIndex)
     legacyStockCode: stock ? stockLegacyCode(stock) : '',
     barcode: stock?.barcode ?? '',
     productName: stock?.productName ?? '',
+    sellingPrice: stock ? numberOrNull(stock.sellingPrice) : null,
     costPrice: stock ? numberOrNull(stock.costPrice) : null,
     stockQuantity: stock?.stockQuantity ?? null,
     candidateSkuCodes: uniqueStrings(matches.map(stockSkuCode)),
@@ -382,6 +388,7 @@ function componentsFromSkus(skus: StagingMappingSku[]): StagingMappingSetCompone
     legacyStockCode: sku.legacyStockCode,
     barcode: sku.barcode,
     productName: sku.productName,
+    sellingPrice: sku.sellingPrice,
     costPrice: sku.costPrice,
     stockQuantity: sku.stockQuantity,
     candidateSkuCodes: sku.skuCode ? [sku.skuCode] : [],
@@ -491,6 +498,7 @@ function buildTargetCandidate(
 
   return finalizeCandidate({
     id: target.id,
+    storeId: target.storeId,
     storeName: target.storeName,
     channelId: target.channelId,
     channelProductNo: target.channelProductNo,
@@ -551,6 +559,7 @@ function buildVariantCandidate(
       productName: component.productName,
       purchaseProductName: '',
       quantity: component.quantity ?? 1,
+      sellingPrice: component.sellingPrice,
       costPrice: component.costPrice,
       stockQuantity: component.stockQuantity,
       matchSource: 'ProductVariantKeyword 세트 구성',
@@ -581,6 +590,7 @@ function buildVariantCandidate(
 
   return finalizeCandidate({
     id: `PVK:${channelProductNo}:${first.serialNo}:${normalize(itemName)}`,
+    storeId: first.job.storeId,
     storeName: existingRows[0]?.smartstoreName || first.job.store?.name || '',
     channelId: first.job.channelId || '',
     channelProductNo,
@@ -613,7 +623,7 @@ function applyFilter(rows: StagingMappingCandidate[], filter: StagingMappingFilt
   return rows.filter((row) => row.candidateType === filter);
 }
 
-async function buildSnapshot(): Promise<Snapshot> {
+export async function getStagingMappingSnapshot(): Promise<Snapshot> {
   const jobs = await loadLatestSnapshotJobs();
   const smartstoreJobIds = jobIds(jobs, 'SMARTSTORE_PRODUCT');
   const stockJobIds = jobIds(jobs, 'ERP_STOCK');
@@ -655,6 +665,7 @@ async function buildSnapshot(): Promise<Snapshot> {
     const channelProductNo = product.channelProductNo ?? product.originProductNo ?? product.externalProductId ?? '';
     const productTargetBase = {
       candidateType: 'PRODUCT' as const,
+      storeId: product.storeId,
       storeName,
       channelId,
       channelProductNo,
@@ -672,6 +683,7 @@ async function buildSnapshot(): Promise<Snapshot> {
       const itemName = uniqueStrings([option.optionName, option.optionValue]).join(' / ');
       const optionTargetBase = {
         candidateType: 'OPTION' as const,
+        storeId: product.storeId,
         storeName,
         channelId,
         channelProductNo: option.channelProductNo ?? channelProductNo,
@@ -690,6 +702,7 @@ async function buildSnapshot(): Promise<Snapshot> {
       const itemName = uniqueStrings([additional.additionalName, additional.additionalValue]).join(' / ');
       const additionalTargetBase = {
         candidateType: 'ADDITIONAL' as const,
+        storeId: product.storeId,
         storeName,
         channelId,
         channelProductNo: additional.channelProductNo ?? channelProductNo,
@@ -758,7 +771,7 @@ async function buildSnapshot(): Promise<Snapshot> {
 }
 
 export async function getStagingMappingSummary(): Promise<StagingMappingSummaryResponse> {
-  const snapshot = await buildSnapshot();
+  const snapshot = await getStagingMappingSnapshot();
   return {
     summary: snapshot.summary,
     sourceJobs: snapshot.sourceJobs,
@@ -771,7 +784,7 @@ export async function getStagingMappingCandidates(input: {
   page: number;
   pageSize: CommonPageSize;
 }): Promise<StagingMappingCandidatesResponse> {
-  const snapshot = await buildSnapshot();
+  const snapshot = await getStagingMappingSnapshot();
   const filteredRows = applyFilter(snapshot.rows, input.filter);
   const totalPages = getTotalPages(filteredRows.length, input.pageSize);
   const currentPage = getSafeCurrentPage(input.page, totalPages);

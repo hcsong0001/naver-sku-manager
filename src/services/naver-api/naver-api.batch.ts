@@ -51,6 +51,61 @@ export function calculateNaverApiBundle(
   };
 }
 
+function buildBatchPreviewItemCreateInput(item: NaverApiBatchPreviewInput['items'][number], draft: boolean) {
+  const isBundle = item.targetType === 'BUNDLE' || (item.bundleComponents?.length ?? 0) > 0;
+  const bundleCalculation = isBundle
+    ? calculateNaverApiBundle(item.bundleComponents ?? [])
+    : null;
+
+  return {
+    storeId: item.storeId,
+    channelId: item.channelId ?? null,
+    productNo: item.productNo ?? null,
+    channelProductNo: item.channelProductNo ?? null,
+    targetType: item.targetType,
+    targetId: item.targetId,
+    operation: item.operation,
+    internalSkuCode: item.internalSkuCode ?? null,
+    legacyStockCode: item.legacyStockCode ?? null,
+    barcode: item.barcode ?? null,
+    skuLookupKeys: toJsonValue(item.skuLookupKeys),
+    calculationType: isBundle ? 'BUNDLE' : 'SINGLE',
+    bundleComponents: toJsonValue(item.bundleComponents),
+    calculatedCost: bundleCalculation?.totalCost ?? null,
+    calculatedStock: bundleCalculation?.sellableStock ?? null,
+    previewBefore: toJsonValue(item.previewBefore),
+    previewAfter: toJsonValue(item.previewAfter),
+    requestPayload: toJsonValue(item.requestPayload),
+    status: draft ? 'DRAFT' as const : 'PREVIEWED' as const,
+    errorMessage: bundleCalculation && !bundleCalculation.valid
+      ? bundleCalculation.errors.join(' / ')
+      : null,
+  };
+}
+
+export async function createNaverApiDraftBatch(input: NaverApiBatchPreviewInput) {
+  if (input.items.length === 0) {
+    throw new Error('네이버 API draft batch 항목이 없습니다.');
+  }
+
+  return prisma.naverApiBatchJob.create({
+    data: {
+      jobType: input.jobType,
+      module: input.module,
+      status: 'DRAFT',
+      dryRun: true,
+      description: input.description ?? null,
+      totalItems: input.items.length,
+      previewSummary: toJsonValue(input.previewSummary),
+      metadata: toJsonValue(input.metadata),
+      items: {
+        create: input.items.map((item) => buildBatchPreviewItemCreateInput(item, true)),
+      },
+    },
+    include: { items: { orderBy: { createdAt: 'asc' } } },
+  });
+}
+
 export async function createNaverApiBatchPreview(input: NaverApiBatchPreviewInput) {
   if (input.items.length === 0) {
     throw new Error('네이버 API batch preview 항목이 없습니다.');
@@ -67,36 +122,7 @@ export async function createNaverApiBatchPreview(input: NaverApiBatchPreviewInpu
       previewSummary: toJsonValue(input.previewSummary),
       metadata: toJsonValue(input.metadata),
       items: {
-        create: input.items.map((item) => {
-          const isBundle = item.targetType === 'BUNDLE' || (item.bundleComponents?.length ?? 0) > 0;
-          const bundleCalculation = isBundle
-            ? calculateNaverApiBundle(item.bundleComponents ?? [])
-            : null;
-          return {
-            storeId: item.storeId,
-            channelId: item.channelId ?? null,
-            productNo: item.productNo ?? null,
-            channelProductNo: item.channelProductNo ?? null,
-            targetType: item.targetType,
-            targetId: item.targetId,
-            operation: item.operation,
-            internalSkuCode: item.internalSkuCode ?? null,
-            legacyStockCode: item.legacyStockCode ?? null,
-            barcode: item.barcode ?? null,
-            skuLookupKeys: toJsonValue(item.skuLookupKeys),
-            calculationType: isBundle ? 'BUNDLE' : 'SINGLE',
-            bundleComponents: toJsonValue(item.bundleComponents),
-            calculatedCost: bundleCalculation?.totalCost ?? null,
-            calculatedStock: bundleCalculation?.sellableStock ?? null,
-            previewBefore: toJsonValue(item.previewBefore),
-            previewAfter: toJsonValue(item.previewAfter),
-            requestPayload: toJsonValue(item.requestPayload),
-            status: 'PREVIEWED' as const,
-            errorMessage: bundleCalculation && !bundleCalculation.valid
-              ? bundleCalculation.errors.join(' / ')
-              : null,
-          };
-        }),
+        create: input.items.map((item) => buildBatchPreviewItemCreateInput(item, false)),
       },
     },
     include: { items: { orderBy: { createdAt: 'asc' } } },

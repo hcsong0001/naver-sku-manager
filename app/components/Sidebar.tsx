@@ -16,6 +16,7 @@ import {
   FileSpreadsheet,
   Search,
   Upload,
+  PackageCheck,
   type LucideIcon,
 } from "lucide-react";
 
@@ -37,6 +38,7 @@ const menuItems: MenuItem[] = [
   { name: "키워드 자동매칭", href: "/dashboard/sku-keyword-matching", icon: Search },
   { name: "전체 데이터 Import", href: "/dashboard/staging-import", icon: Upload },
   { name: "전체 매핑 Preview", href: "/dashboard/staging-mapping-preview", icon: Search },
+  { name: "가격/재고 수정 Preview", href: "/dashboard/bulk-update-preview", icon: PackageCheck },
   { name: "재고 이력", href: "/inventory-log", icon: History },
   { name: "가격 이력", href: "/price-log", icon: TrendingUp },
   { name: "설정", href: "/settings", icon: Settings },

@@ -37,6 +37,7 @@ export type StagingMappingSku = {
   productName: string;
   purchaseProductName: string;
   quantity: number;
+  sellingPrice: number | null;
   costPrice: number | null;
   stockQuantity: number | null;
   matchSource: string;
@@ -51,6 +52,7 @@ export type StagingMappingSetComponent = {
   legacyStockCode: string;
   barcode: string;
   productName: string;
+  sellingPrice: number | null;
   costPrice: number | null;
   stockQuantity: number | null;
   candidateSkuCodes: string[];
@@ -58,6 +60,7 @@ export type StagingMappingSetComponent = {
 
 export type StagingMappingCandidate = {
   id: string;
+  storeId: string | null;
   storeName: string;
   channelId: string;
   channelProductNo: string;
