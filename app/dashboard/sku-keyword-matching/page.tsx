@@ -86,7 +86,7 @@ const draftHydrateIssueLabels: Record<SkuKeywordHydrateIssueCode, string> = {
   TARGET_NOT_FOUND: '대상 상품 문맥 없음',
   TARGET_CHANNEL_PRODUCT_MISMATCH: '대상 상품과 채널상품번호 불일치',
   STORE_CONTEXT_UNAVAILABLE: '스마트스토어 문맥 없음',
-  CHANNEL_ID_UNAVAILABLE: 'channelId 없음',
+  CHANNEL_ID_UNAVAILABLE: '채널 ID 보조 문맥 미확인 (정보)',
   CURRENT_PRICE_UNAVAILABLE: '현재 가격 문맥 없음',
   CURRENT_STOCK_UNAVAILABLE: '현재 재고 문맥 없음',
 };
@@ -96,7 +96,7 @@ const draftHydrateIssueHints: Record<SkuKeywordHydrateIssueCode, string> = {
   TARGET_NOT_FOUND: '스마트스토어 상품, 옵션, 추가상품이 현재 DB에 수집되어 있는지 확인해 주세요.',
   TARGET_CHANNEL_PRODUCT_MISMATCH: 'channelProductNo와 itemId가 같은 상품 문맥을 가리키는지 다시 확인해 주세요.',
   STORE_CONTEXT_UNAVAILABLE: '스마트스토어 연결 정보와 상품-스토어 관계를 먼저 확인해 주세요.',
-  CHANNEL_ID_UNAVAILABLE: 'Smartstore.naverChannelId 설정이 필요합니다. 스마트스토어 문맥 준비 상태에서 해당 스토어를 확인해 주세요.',
+  CHANNEL_ID_UNAVAILABLE: 'naverChannelId의 공식 출처가 아직 확인되지 않아 정보성 경고로만 표시됩니다. Draft 판정은 channelProductNo/originProductNo와 현재 가격·재고 문맥을 우선 사용합니다.',
   CURRENT_PRICE_UNAVAILABLE: '상품·옵션 currentSalePrice 또는 추가상품 price가 필요합니다. 스마트스토어 문맥 준비 상태에서 준비율을 확인해 주세요.',
   CURRENT_STOCK_UNAVAILABLE: '상품·옵션 currentStockQuantity 또는 추가상품 stockQuantity가 필요합니다. 스마트스토어 문맥 준비 상태에서 준비율을 확인해 주세요.',
 };

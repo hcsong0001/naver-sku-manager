@@ -78,7 +78,7 @@ function additionalDisplayName(additional: {
 }
 
 function getChannelIdUnavailableMessage(seed: SkuKeywordDraftSeedCandidate): string {
-  return `${seed.mappingType} 대상 hydrate 문맥에는 channelId 전용 필드가 없습니다. Smartstore.sellerId/naverAccountId는 존재하지만 channelId와 동일하다고 단정할 수 없어 null로 유지합니다.`;
+  return `${seed.mappingType} 대상의 naverChannelId 공식 출처가 아직 확인되지 않았습니다. Smartstore.sellerId/naverAccountId는 대체값으로 사용하지 않으며, 정보성 보조 문맥 이슈로만 유지합니다.`;
 }
 
 function getCurrentPriceUnavailableMessage(

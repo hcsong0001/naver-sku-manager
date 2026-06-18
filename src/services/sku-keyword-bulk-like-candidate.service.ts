@@ -16,7 +16,7 @@ const RISK_MESSAGES: Record<SkuKeywordBulkLikeRiskType, string> = {
   TARGET_NOT_FOUND: '운영 상품/옵션/추가상품 문맥을 찾을 수 없습니다.',
   TARGET_CHANNEL_PRODUCT_MISMATCH: '상품번호 기준이 운영 상품 문맥과 다릅니다.',
   STORE_CONTEXT_UNAVAILABLE: '스토어 문맥이 없어 후속 draft 검토가 어렵습니다.',
-  CHANNEL_ID_UNAVAILABLE: 'channelId가 없어 최종 Draft Batch 후보로 승격할 수 없습니다.',
+  CHANNEL_ID_UNAVAILABLE: 'naverChannelId의 공식 출처가 확인되지 않아 보조 채널 문맥이 비어 있습니다. Draft 후보 판정은 차단하지 않습니다.',
   CURRENT_PRICE_UNAVAILABLE: '현재 스마트스토어 판매가를 확인할 수 없습니다.',
   CURRENT_STOCK_UNAVAILABLE: '현재 스마트스토어 재고를 확인할 수 없습니다.',
   TARGET_PRICE_UNAVAILABLE: '계산 기준 판매가가 없어 가격 변경 후보를 만들 수 없습니다.',
@@ -31,6 +31,37 @@ const RISK_MESSAGES: Record<SkuKeywordBulkLikeRiskType, string> = {
 
 function uniqueRiskTypes(values: SkuKeywordBulkLikeRiskType[]): SkuKeywordBulkLikeRiskType[] {
   return Array.from(new Set(values));
+}
+
+function isBlockingRiskForChanges(
+  riskType: SkuKeywordBulkLikeRiskType,
+  input: {
+    hasPriceChange: boolean;
+    hasStockChange: boolean;
+  },
+): boolean {
+  if (riskType === 'CHANNEL_ID_UNAVAILABLE' || riskType === 'NO_CHANGE_DETECTED') {
+    return false;
+  }
+
+  if (
+    riskType === 'CURRENT_PRICE_UNAVAILABLE'
+    || riskType === 'TARGET_PRICE_UNAVAILABLE'
+    || riskType === 'LINKED_SKU_PRICE_UNAVAILABLE'
+    || riskType === 'LINKED_SKU_COST_UNAVAILABLE'
+  ) {
+    return input.hasPriceChange;
+  }
+
+  if (
+    riskType === 'CURRENT_STOCK_UNAVAILABLE'
+    || riskType === 'TARGET_STOCK_UNAVAILABLE'
+    || riskType === 'LINKED_SKU_STOCK_UNAVAILABLE'
+  ) {
+    return input.hasStockChange;
+  }
+
+  return true;
 }
 
 function toBulkLikeLinkedSku(linkedSku: SkuKeywordHydratedLinkedSku): SkuKeywordBulkLikeLinkedSku {
@@ -174,12 +205,20 @@ function buildRecommendedAction(
     return '운영 상품/옵션/추가상품 대상을 다시 확인하세요.';
   }
 
-  if (riskTypes.includes('CURRENT_PRICE_UNAVAILABLE') || riskTypes.includes('CURRENT_STOCK_UNAVAILABLE')) {
-    return '현재 스마트스토어 가격/재고 문맥을 보강해야 Draft Batch 후보로 올릴 수 있습니다.';
+  if (input.hasPriceChange && riskTypes.includes('CURRENT_PRICE_UNAVAILABLE')) {
+    return '가격 변경에 필요한 현재 스마트스토어 가격 문맥을 보강하세요.';
   }
 
-  if (riskTypes.includes('TARGET_PRICE_UNAVAILABLE') || riskTypes.includes('TARGET_STOCK_UNAVAILABLE')) {
-    return 'SKU 기준 판매가/재고 계산 로직 또는 문맥을 먼저 보강하세요.';
+  if (input.hasStockChange && riskTypes.includes('CURRENT_STOCK_UNAVAILABLE')) {
+    return '재고 변경에 필요한 현재 스마트스토어 재고 문맥을 보강하세요.';
+  }
+
+  if (input.hasPriceChange && riskTypes.includes('TARGET_PRICE_UNAVAILABLE')) {
+    return '가격 변경에 필요한 SKU 기준 목표 판매가 문맥을 보강하세요.';
+  }
+
+  if (input.hasStockChange && riskTypes.includes('TARGET_STOCK_UNAVAILABLE')) {
+    return '재고 변경에 필요한 SKU 기준 목표 재고 문맥을 보강하세요.';
   }
 
   if (riskTypes.includes('NO_CHANGE_DETECTED')) {
@@ -219,13 +258,12 @@ export function buildSkuKeywordBulkLikeCandidate(
     && candidate.currentSmartstoreStock !== calculatedTargetStock;
   const riskTypes = buildSkuKeywordBulkLikeIssues(candidate);
   const draftCreatable = !isSetProduct
-    && candidate.currentSmartstorePrice !== null
-    && candidate.currentSmartstoreStock !== null
-    && calculatedTargetPrice !== null
-    && calculatedTargetStock !== null
     && linkedSkus.length === 1
     && (hasPriceChange || hasStockChange)
-    && !riskTypes.some((riskType) => riskType !== 'NO_CHANGE_DETECTED');
+    && !riskTypes.some((riskType) => isBlockingRiskForChanges(riskType, {
+      hasPriceChange,
+      hasStockChange,
+    }));
   const executable = draftCreatable;
 
   return {

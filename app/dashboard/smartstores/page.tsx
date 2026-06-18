@@ -66,7 +66,7 @@ function getReadyRate(ready: number, total: number): string {
 
 function getMissingContextItems(store: CurrentContextStore): string[] {
   const missing: string[] = [];
-  if (!store.hasNaverChannelId) missing.push('채널 ID');
+  if (!store.hasNaverChannelId) missing.push('채널 보조 문맥 미확인');
   if (store.productCurrentBothReady < store.productTotal) missing.push('상품 현재 가격/재고');
   if (store.optionCurrentBothReady < store.optionTotal) missing.push('옵션 현재 가격/재고');
   if (store.additionalCurrentBothReady < store.additionalTotal) missing.push('추가상품 가격/재고');
@@ -218,7 +218,7 @@ export default function SmartstoresPage() {
           <div>
             <h1 className="text-3xl font-bold tracking-tight">스마트스토어 관리</h1>
             <p className="tms-text-muted mt-2 text-sm">
-              네이버 스마트스토어 연결 정보와 API 인증 키 및 채널 ID를 관리합니다.
+              네이버 스마트스토어 연결 정보, API 인증 키와 보조 채널 문맥을 관리합니다.
             </p>
           </div>
           <button
@@ -269,13 +269,13 @@ export default function SmartstoresPage() {
             <>
               <div className="mb-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                 <div className="tms-card-muted rounded-lg border p-4">
-                  <p className="tms-text-muted text-xs">채널 ID 설정</p>
+                  <p className="tms-text-muted text-xs">채널 ID 보조 문맥</p>
                   <p className="mt-1 text-xl font-semibold">
                     {contextData.summary.storesWithNaverChannelId.toLocaleString()} /{' '}
                     {contextData.summary.storeTotal.toLocaleString()}
                   </p>
                   <p className="tms-warning-text mt-1 text-xs">
-                    미설정 {contextData.summary.storesMissingNaverChannelId.toLocaleString()}개
+                    미확인 {contextData.summary.storesMissingNaverChannelId.toLocaleString()}개
                   </p>
                 </div>
                 <div className="tms-card-muted rounded-lg border p-4">
@@ -347,7 +347,7 @@ export default function SmartstoresPage() {
                                 store.hasNaverChannelId ? 'tms-status-success' : 'tms-status-warning'
                               }`}
                             >
-                              {store.hasNaverChannelId ? '설정됨' : '미설정'}
+                              {store.hasNaverChannelId ? '확인값 있음' : '미확인'}
                             </span>
                             {store.naverChannelId && (
                               <p className="tms-row-text-muted mt-1 max-w-48 truncate font-mono text-xs">
@@ -432,7 +432,7 @@ export default function SmartstoresPage() {
               <div className="tms-card-muted mt-4 rounded-lg border p-4 text-xs">
                 <p className="font-semibold">진단 기준</p>
                 <ul className="tms-text-muted mt-2 list-disc space-y-1 pl-5">
-                  <li>naverChannelId가 없으면 CHANNEL_ID_UNAVAILABLE 이슈가 유지됩니다.</li>
+                  <li>naverChannelId가 없으면 정보성 CHANNEL_ID_UNAVAILABLE 이슈가 표시되지만 Draft 판정을 차단하지 않습니다.</li>
                   <li>
                     PRODUCT의 currentSalePrice/currentStockQuantity가 없으면 현재 가격·재고 이슈가 유지됩니다.
                   </li>
@@ -451,16 +451,16 @@ export default function SmartstoresPage() {
           <div className="flex gap-3">
             <HelpCircle className="mt-0.5 h-5 w-5 shrink-0 text-indigo-400" />
             <div className="space-y-1">
-              <h4 className="text-sm font-semibold">네이버 채널 ID (naverChannelId) 설정 안내</h4>
+              <h4 className="text-sm font-semibold">네이버 채널 ID (naverChannelId) 보조 문맥 안내</h4>
               <ul className="tms-text-muted list-disc space-y-1 pl-5 text-xs">
                 <li>
-                  <strong>naverChannelId</strong>는 Draft Batch 생성 시 네이버 API 실행 컨텍스트에 필요한 필수 채널 식별자입니다.
+                  <strong>naverChannelId</strong>는 현재 Draft 판정의 필수값이 아닌 보조 문맥값입니다. 확인된 공식 출처가 있을 때만 입력해 주세요.
                 </li>
                 <li>
                   기존의 <strong>sellerId</strong>나 <strong>naverAccountId</strong>와는 다른 의미의 고유 채널 값이므로, 정확히 확인된 값만 입력해 주세요.
                 </li>
                 <li>
-                  값이 비어 있는 스토어의 상품들은 sku-keyword draft 후보에서 <strong className="text-amber-400">CHANNEL_ID_UNAVAILABLE</strong> 이슈로 차단되어 생성 불가능 상태로 유지됩니다.
+                  값이 비어 있으면 <strong className="text-amber-400">CHANNEL_ID_UNAVAILABLE</strong>이 정보성 경고로 표시되며, 이 이슈만으로 Draft 후보가 차단되지는 않습니다.
                 </li>
               </ul>
             </div>
@@ -518,7 +518,7 @@ export default function SmartstoresPage() {
                               type="text"
                               value={channelIdValues[store.id] ?? ''}
                               onChange={(e) => handleChannelIdChange(store.id, e.target.value)}
-                              placeholder="채널 ID 입력"
+                              placeholder="공식 출처 확인 후 입력"
                               className="tms-control flex-1 rounded-lg border border-[#333] bg-[#1a1a1e] px-3 py-1.5 text-xs text-zinc-200 outline-none focus:border-indigo-500 transition"
                               disabled={isSaving}
                             />
