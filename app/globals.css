@@ -34,6 +34,12 @@ body {
   padding: var(--tms-card-padding) !important;
 }
 
+.tms-theme-shell .tms-card-muted {
+  background-color: var(--tms-card-muted-bg) !important;
+  border-color: var(--tms-border) !important;
+  color: var(--tms-text) !important;
+}
+
 .tms-theme-shell .tms-toolbar {
   gap: var(--tms-filter-gap) !important;
 }
