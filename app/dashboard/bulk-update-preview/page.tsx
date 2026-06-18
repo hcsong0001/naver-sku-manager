@@ -43,6 +43,13 @@ const FILTERS: { value: BulkUpdatePreviewFilter; label: string }[] = [
   { value: 'BUNDLE', label: 'BUNDLE' },
 ];
 
+const FILE_TYPE_LABELS: Record<string, string> = {
+  ERP_STOCK: 'ERP 재고',
+  SMARTSTORE_PRODUCT: '스마트스토어 상품',
+  SKU_MAPPING: '기존 SKU 매핑',
+  PRODUCT_VARIANT_KEYWORD: 'ProductVariantKeyword',
+};
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
 }
@@ -91,6 +98,11 @@ async function requestDraftBatch(candidateIds: string[]): Promise<BulkUpdateDraf
   const data = await readJson<BulkUpdateDraftBatchResponse | { error: string }>(response);
   if (!response.ok) throw new Error(getErrorMessage(data, 'draft batch 생성에 실패했습니다.'));
   return data as BulkUpdateDraftBatchResponse;
+}
+
+function formatDate(value: string | null): string {
+  if (!value) return '-';
+  return new Intl.DateTimeFormat('ko-KR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(value));
 }
 
 function formatMoney(value: number | null): string {
@@ -178,6 +190,7 @@ export default function BulkUpdatePreviewPage() {
   const [summaryError, setSummaryError] = useState<string | null>(null);
   const [candidatesError, setCandidatesError] = useState<string | null>(null);
   const [submitMessage, setSubmitMessage] = useState<string | null>(null);
+  const [lastDraftBatch, setLastDraftBatch] = useState<BulkUpdateDraftBatchResponse | null>(null);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   useEffect(() => {
@@ -233,6 +246,10 @@ export default function BulkUpdatePreviewPage() {
     (sum, row) => sum + (row.hasPriceChange ? 1 : 0) + (row.hasStockChange ? 1 : 0),
     0,
   );
+  const draftActionsDisabled = submitting
+    || !summary
+    || !summary.snapshot.hasRequiredBulkData
+    || !summary.snapshot.hasCandidateRows;
   const pagination = useMemo(() => getPaginationRange(
     candidates?.totalCount ?? 0,
     candidates?.pageSize ?? pageSize,
@@ -262,7 +279,7 @@ export default function BulkUpdatePreviewPage() {
   const submitDraftBatch = async () => {
     if (selectedIds.length === 0) return;
     const confirmed = window.confirm(
-      `선택한 ${selectedIds.length}건으로 draft batch를 생성하시겠습니까?\n예상 API 호출 ${selectedApiCallCount}건`,
+      `실제 네이버 API는 호출하지 않고 DRAFT batch만 생성합니다. 진행하시겠습니까?\n선택 후보 ${selectedIds.length}건 / 예상 API 호출 ${selectedApiCallCount}건`,
     );
     if (!confirmed) return;
 
@@ -270,8 +287,9 @@ export default function BulkUpdatePreviewPage() {
     setSubmitMessage(null);
     try {
       const result = await requestDraftBatch(selectedIds);
+      setLastDraftBatch(result);
       setSubmitMessage(
-        `Draft batch 생성 완료: ${result.candidateCount}건, 예상 API 호출 ${result.expectedApiCallCount}건, 상태 ${result.status}`,
+        `Draft batch 생성 완료: BatchJob ${result.batchJobId}, 상태 ${result.status}, 전체 ${result.totalItems}건, 성공 ${result.successItems}건, 실패 ${result.failedItems}건, 스킵 ${result.skippedItems}건, 실제 API 호출 false`,
       );
       refresh();
     } catch (error) {
@@ -317,6 +335,17 @@ export default function BulkUpdatePreviewPage() {
           </div>
         )}
 
+        {lastDraftBatch && (
+          <div className="grid gap-4 rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-4 md:grid-cols-2 xl:grid-cols-6">
+            <div><p className="text-xs text-emerald-400/70">BatchJob ID</p><p className="mt-1 break-all font-mono text-xs text-emerald-200">{lastDraftBatch.batchJobId}</p></div>
+            <div><p className="text-xs text-emerald-400/70">상태</p><p className="mt-1 text-sm font-semibold text-emerald-200">{lastDraftBatch.status}</p></div>
+            <div><p className="text-xs text-emerald-400/70">전체 item 수</p><p className="mt-1 text-sm font-semibold text-emerald-200">{lastDraftBatch.totalItems.toLocaleString()}건</p></div>
+            <div><p className="text-xs text-emerald-400/70">성공 / 실패 / 스킵</p><p className="mt-1 text-sm font-semibold text-emerald-200">{lastDraftBatch.successItems} / {lastDraftBatch.failedItems} / {lastDraftBatch.skippedItems}</p></div>
+            <div><p className="text-xs text-emerald-400/70">예상 API 호출</p><p className="mt-1 text-sm font-semibold text-emerald-200">{lastDraftBatch.expectedApiCallCount.toLocaleString()}건</p></div>
+            <div><p className="text-xs text-emerald-400/70">실제 API 호출 여부</p><p className="mt-1 text-sm font-semibold text-emerald-200">{String(lastDraftBatch.actualApiCalled)}</p></div>
+          </div>
+        )}
+
         <section className="space-y-4">
           <div className="flex items-center gap-2">
             <ShoppingCart className="h-5 w-5 text-indigo-300" />
@@ -324,19 +353,94 @@ export default function BulkUpdatePreviewPage() {
             {summaryLoading && <Loader2 className="h-4 w-4 animate-spin text-zinc-500" />}
           </div>
           {summary && (
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 2xl:grid-cols-6">
-              <SummaryCard label="전체 후보 수" value={summary.summary.totalCandidateCount} accent="cyan" />
-              <SummaryCard label="가격 수정 후보 수" value={summary.summary.priceUpdateCandidateCount} accent="indigo" />
-              <SummaryCard label="재고 수정 후보 수" value={summary.summary.stockUpdateCandidateCount} accent="emerald" />
-              <SummaryCard label="가격+재고 후보 수" value={summary.summary.priceAndStockUpdateCandidateCount} accent="violet" />
-              <SummaryCard label="단품 후보 수" value={summary.summary.singleCandidateCount} accent="cyan" />
-              <SummaryCard label="세트상품 후보 수" value={summary.summary.setCandidateCount} accent="violet" />
-              <SummaryCard label="안전 후보 수" value={summary.summary.safeCandidateCount} accent="emerald" />
-              <SummaryCard label="위험 후보 수" value={summary.summary.riskCandidateCount} accent="rose" />
-              <SummaryCard label="실행 제외 후보 수" value={summary.summary.excludedCandidateCount} accent="amber" />
-              <SummaryCard label="예상 API 호출 건수" value={summary.summary.expectedApiCallCount} accent="indigo" />
-              <SummaryCard label="draft 생성 가능 후보 수" value={summary.summary.draftBatchCreatableCount} accent="emerald" />
-            </div>
+            <>
+              <div className="rounded-lg border border-[#262629] bg-[#0c0c0e] p-4">
+                <div className="flex flex-col gap-3 xl:flex-row xl:items-start xl:justify-between">
+                  <div>
+                    <p className="text-sm font-semibold text-white">현재 사용 중인 staging snapshot</p>
+                    <p className="mt-1 text-xs text-zinc-500">
+                      기준일 {formatDate(summary.snapshot.latestAppliedAt)} / 최신 ImportJob 기준
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {summary.snapshot.hasRequiredBulkData ? (
+                      <span className="rounded-md border border-emerald-500/20 bg-emerald-500/10 px-2 py-1 text-[11px] text-emerald-300">
+                        필수 staging 데이터 준비됨
+                      </span>
+                    ) : (
+                      summary.snapshot.missingBulkRequirements.map((fileType) => (
+                        <span key={fileType} className="rounded-md border border-rose-500/20 bg-rose-500/10 px-2 py-1 text-[11px] text-rose-300">
+                          {FILE_TYPE_LABELS[fileType] ?? fileType} 없음
+                        </span>
+                      ))
+                    )}
+                    {!summary.snapshot.hasCandidateRows && (
+                      <span className="rounded-md border border-amber-500/20 bg-amber-500/10 px-2 py-1 text-[11px] text-amber-300">
+                        매핑 후보 없음
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div className="mt-4 grid gap-3 lg:grid-cols-2">
+                  <div className="rounded-lg border border-[#222] bg-[#111114] p-3">
+                    <p className="text-xs font-semibold text-zinc-400">최신 ImportJob ID</p>
+                    <div className="mt-2 space-y-2">
+                      {Object.entries(summary.snapshot.latestAppliedJobs).length === 0 ? (
+                        <p className="text-xs text-zinc-600">APPLIED staging 데이터 없음</p>
+                      ) : Object.entries(summary.snapshot.latestAppliedJobs).map(([fileType, job]) => (
+                        <div key={fileType} className="flex items-start justify-between gap-3 text-xs">
+                          <span className="text-zinc-300">{FILE_TYPE_LABELS[fileType] ?? fileType}</span>
+                          <span className="break-all font-mono text-zinc-500">{job?.jobId ?? '-'}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="rounded-lg border border-[#222] bg-[#111114] p-3">
+                    <p className="text-xs font-semibold text-zinc-400">데이터 준비 여부</p>
+                    <div className="mt-2 space-y-2 text-xs">
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="text-zinc-300">ERP 재고</span>
+                        <span className={summary.snapshot.latestAppliedJobs.ERP_STOCK ? 'text-emerald-300' : 'text-rose-300'}>
+                          {summary.snapshot.latestAppliedJobs.ERP_STOCK ? '있음' : '없음'}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="text-zinc-300">스마트스토어 상품</span>
+                        <span className={summary.snapshot.latestAppliedJobs.SMARTSTORE_PRODUCT ? 'text-emerald-300' : 'text-rose-300'}>
+                          {summary.snapshot.latestAppliedJobs.SMARTSTORE_PRODUCT ? '있음' : '없음'}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="text-zinc-300">기존 SKU 매핑</span>
+                        <span className={summary.snapshot.latestAppliedJobs.SKU_MAPPING ? 'text-emerald-300' : 'text-amber-300'}>
+                          {summary.snapshot.latestAppliedJobs.SKU_MAPPING ? '있음' : '없음'}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="text-zinc-300">ProductVariantKeyword</span>
+                        <span className={summary.snapshot.latestAppliedJobs.PRODUCT_VARIANT_KEYWORD ? 'text-emerald-300' : 'text-rose-300'}>
+                          {summary.snapshot.latestAppliedJobs.PRODUCT_VARIANT_KEYWORD ? '있음' : '없음'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 2xl:grid-cols-6">
+                <SummaryCard label="전체 후보 수" value={summary.summary.totalCandidateCount} accent="cyan" />
+                <SummaryCard label="가격 수정 후보 수" value={summary.summary.priceUpdateCandidateCount} accent="indigo" />
+                <SummaryCard label="재고 수정 후보 수" value={summary.summary.stockUpdateCandidateCount} accent="emerald" />
+                <SummaryCard label="가격+재고 후보 수" value={summary.summary.priceAndStockUpdateCandidateCount} accent="violet" />
+                <SummaryCard label="단품 후보 수" value={summary.summary.singleCandidateCount} accent="cyan" />
+                <SummaryCard label="세트상품 후보 수" value={summary.summary.setCandidateCount} accent="violet" />
+                <SummaryCard label="안전 후보 수" value={summary.summary.safeCandidateCount} accent="emerald" />
+                <SummaryCard label="위험 후보 수" value={summary.summary.riskCandidateCount} accent="rose" />
+                <SummaryCard label="실행 제외 후보 수" value={summary.summary.excludedCandidateCount} accent="amber" />
+                <SummaryCard label="예상 API 호출 건수" value={summary.summary.expectedApiCallCount} accent="indigo" />
+                <SummaryCard label="draft 생성 가능 후보 수" value={summary.summary.draftBatchCreatableCount} accent="emerald" />
+              </div>
+            </>
           )}
         </section>
 
@@ -389,7 +493,7 @@ export default function BulkUpdatePreviewPage() {
                 <button
                   type="button"
                   onClick={selectExecutableRows}
-                  disabled={executableRows.length === 0}
+                  disabled={executableRows.length === 0 || draftActionsDisabled}
                   className="rounded-lg border border-[#333] bg-[#121214] px-3 py-2 text-xs font-semibold text-zinc-300 transition hover:border-emerald-500/50 disabled:opacity-50"
                 >
                   현재 페이지 실행 가능 후보 선택
@@ -404,8 +508,13 @@ export default function BulkUpdatePreviewPage() {
                 <button
                   type="button"
                   onClick={() => void submitDraftBatch()}
-                  disabled={selectedIds.length === 0 || submitting}
+                  disabled={selectedIds.length === 0 || draftActionsDisabled}
                   className="inline-flex items-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/15 px-3 py-2 text-xs font-semibold text-emerald-200 transition hover:border-emerald-400 disabled:opacity-50"
+                  title={summary && !summary.snapshot.hasRequiredBulkData
+                    ? `부족한 staging 데이터: ${summary.snapshot.missingBulkRequirements.map((fileType) => FILE_TYPE_LABELS[fileType] ?? fileType).join(', ')}`
+                    : summary && !summary.snapshot.hasCandidateRows
+                      ? '매핑 후보가 없어 draft batch를 생성할 수 없습니다.'
+                      : '선택 후보 Draft Batch 생성'}
                 >
                   {submitting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
                   선택 후보 Draft Batch 생성

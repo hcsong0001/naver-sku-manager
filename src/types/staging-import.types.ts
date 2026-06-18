@@ -53,11 +53,42 @@ export type StagingImportLatestJob = {
   totalRows: number;
   successRows: number;
   errorRows: number;
+  createdAt?: string | null;
   appliedAt: string | null;
+};
+
+export type StagingImportHistoryRow = {
+  jobId: string;
+  fileType: StagingImportFileType;
+  fileName: string;
+  status: StagingImportJobStatus;
+  totalRows: number;
+  successRows: number;
+  errorRows: number;
+  createdAt: string;
+  completedAt: string | null;
+};
+
+export type StagingSnapshotInfo = {
+  hasAppliedData: boolean;
+  missingAppliedFileTypes: StagingImportFileType[];
+  latestAppliedJobs: Partial<Record<StagingImportFileType, StagingImportLatestJob>>;
+  latestAppliedAt: string | null;
+  counts: {
+    stagingStockCount: number;
+    stagingProductCount: number;
+    stagingOptionCount: number;
+    stagingAdditionalCount: number;
+    stagingSkuMappingCount: number;
+    stagingProductVariantKeywordCount: number;
+  };
 };
 
 export type StagingImportSummaryResponse = {
   latestJobs: Partial<Record<StagingImportFileType, StagingImportLatestJob>>;
+  latestAppliedJobs: Partial<Record<StagingImportFileType, StagingImportLatestJob>>;
+  jobHistory: StagingImportHistoryRow[];
+  snapshot: StagingSnapshotInfo;
   summary: {
     importJobCount: number;
     stagingStockCount: number;

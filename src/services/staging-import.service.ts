@@ -11,12 +11,15 @@ import type { SkuMappingParsedRow } from '@/src/types/sku-mapping.types';
 import type {
   StagingImportApplyResponse,
   StagingImportFileType,
+  StagingImportHistoryRow,
   StagingImportLatestJob,
   StagingImportPreviewResponse,
   StagingImportPreviewRow,
   StagingImportPreviewSummary,
+  StagingSnapshotInfo,
   StagingImportSummaryResponse,
 } from '@/src/types/staging-import.types';
+import { STAGING_IMPORT_FILE_TYPES } from '@/src/types/staging-import.types';
 
 type PreviewInput = {
   fileType: StagingImportFileType;
@@ -779,6 +782,60 @@ function parseSummaryJson(value: unknown): StagingImportPreviewSummary {
   };
 }
 
+function latestJobToResponse(job: {
+  id: string;
+  fileName: string;
+  status: string;
+  totalRows: number;
+  successRows: number;
+  errorRows: number;
+  createdAt: Date;
+  appliedAt: Date | null;
+}): StagingImportLatestJob {
+  return {
+    jobId: job.id,
+    fileName: job.fileName,
+    status: job.status as StagingImportLatestJob['status'],
+    totalRows: job.totalRows,
+    successRows: job.successRows,
+    errorRows: job.errorRows,
+    createdAt: job.createdAt.toISOString(),
+    appliedAt: job.appliedAt ? job.appliedAt.toISOString() : null,
+  };
+}
+
+function buildSnapshotInfo(input: {
+  latestAppliedJobs: Partial<Record<StagingImportFileType, StagingImportLatestJob>>;
+  stagingStockCount: number;
+  stagingProductCount: number;
+  stagingOptionCount: number;
+  stagingAdditionalCount: number;
+  stagingSkuMappingCount: number;
+  stagingProductVariantKeywordCount: number;
+}): StagingSnapshotInfo {
+  const latestAppliedAt = Object.values(input.latestAppliedJobs)
+    .map((job) => job?.appliedAt ?? null)
+    .filter((value): value is string => Boolean(value))
+    .sort()
+    .at(-1) ?? null;
+  const missingAppliedFileTypes = STAGING_IMPORT_FILE_TYPES.filter((fileType) => !input.latestAppliedJobs[fileType]);
+
+  return {
+    hasAppliedData: Object.keys(input.latestAppliedJobs).length > 0,
+    missingAppliedFileTypes,
+    latestAppliedJobs: input.latestAppliedJobs,
+    latestAppliedAt,
+    counts: {
+      stagingStockCount: input.stagingStockCount,
+      stagingProductCount: input.stagingProductCount,
+      stagingOptionCount: input.stagingOptionCount,
+      stagingAdditionalCount: input.stagingAdditionalCount,
+      stagingSkuMappingCount: input.stagingSkuMappingCount,
+      stagingProductVariantKeywordCount: input.stagingProductVariantKeywordCount,
+    },
+  };
+}
+
 export async function getStagingImportSummary(storeId?: string): Promise<StagingImportSummaryResponse> {
   const jobWhere = storeId ? { storeId } : undefined;
   const stagingWhere = storeId ? { job: { storeId } } : undefined;
@@ -804,21 +861,29 @@ export async function getStagingImportSummary(storeId?: string): Promise<Staging
   ]);
 
   const latestJobs: Partial<Record<StagingImportFileType, StagingImportLatestJob>> = {};
+  const latestAppliedJobs: Partial<Record<StagingImportFileType, StagingImportLatestJob>> = {};
   for (const job of jobs) {
-    if (latestJobs[job.fileType as StagingImportFileType]) continue;
-    latestJobs[job.fileType as StagingImportFileType] = {
-      jobId: job.id,
-      fileName: job.fileName,
-      status: job.status,
-      totalRows: job.totalRows,
-      successRows: job.successRows,
-      errorRows: job.errorRows,
-      appliedAt: job.appliedAt ? job.appliedAt.toISOString() : null,
-    };
+    const fileType = job.fileType as StagingImportFileType;
+    if (!latestJobs[fileType]) latestJobs[fileType] = latestJobToResponse(job);
+    if (job.status === 'APPLIED' && !latestAppliedJobs[fileType]) {
+      latestAppliedJobs[fileType] = latestJobToResponse(job);
+    }
   }
 
+  const jobHistory: StagingImportHistoryRow[] = jobs.map((job) => ({
+    jobId: job.id,
+    fileType: job.fileType as StagingImportFileType,
+    fileName: job.fileName,
+    status: job.status as StagingImportHistoryRow['status'],
+    totalRows: job.totalRows,
+    successRows: job.successRows,
+    errorRows: job.errorRows,
+    createdAt: job.createdAt.toISOString(),
+    completedAt: job.appliedAt ? job.appliedAt.toISOString() : null,
+  }));
+
   const summary = createEmptySummary();
-  for (const job of Object.values(latestJobs)) {
+  for (const job of Object.values(latestAppliedJobs)) {
     if (!job) continue;
     const fullJob = jobs.find((item) => item.id === job.jobId);
     const jobSummary = parseSummaryJson(fullJob?.previewSummary);
@@ -831,8 +896,21 @@ export async function getStagingImportSummary(storeId?: string): Promise<Staging
     summary.setProductCount += jobSummary.setProductCount;
   }
 
+  const snapshot = buildSnapshotInfo({
+    latestAppliedJobs,
+    stagingStockCount,
+    stagingProductCount,
+    stagingOptionCount,
+    stagingAdditionalCount,
+    stagingSkuMappingCount,
+    stagingProductVariantKeywordCount,
+  });
+
   return {
     latestJobs,
+    latestAppliedJobs,
+    jobHistory,
+    snapshot,
     summary: {
       importJobCount: jobs.length,
       stagingStockCount,

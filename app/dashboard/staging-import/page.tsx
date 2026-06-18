@@ -17,6 +17,7 @@ import {
   STAGING_IMPORT_FILE_TYPES,
   type StagingImportApplyResponse,
   type StagingImportFileType,
+  type StagingImportHistoryRow,
   type StagingImportPreviewResponse,
   type StagingImportPreviewRow,
   type StagingImportSummaryResponse,
@@ -56,6 +57,9 @@ const COLUMN_LABELS: Record<string, string> = {
   successRows: '정상 행 수',
   errorRows: '오류 행 수',
   appliedAt: '저장 일시',
+  createdAt: '생성일',
+  completedAt: '적용일 / 완료일',
+  jobId: 'Job ID',
   rowNumber: '원본 행',
   sourceSheet: '시트',
   barcode: '바코드',
@@ -260,14 +264,48 @@ export default function StagingImportPage() {
       if (!job) return [];
       return [{
         fileType: FILE_TYPE_LABELS[type],
+        jobId: job.jobId,
         fileName: job.fileName,
         status: STATUS_LABELS[job.status] ?? job.status,
         totalRows: job.totalRows,
         successRows: job.successRows,
         errorRows: job.errorRows,
+        createdAt: formatDate(job.createdAt ?? null),
         appliedAt: formatDate(job.appliedAt),
       }];
     });
+  }, [summary]);
+
+  const latestAppliedJobRows = useMemo<StagingImportPreviewRow[]>(() => {
+    return STAGING_IMPORT_FILE_TYPES.flatMap((type) => {
+      const job = summary?.latestAppliedJobs[type];
+      if (!job) return [];
+      return [{
+        fileType: FILE_TYPE_LABELS[type],
+        jobId: job.jobId,
+        fileName: job.fileName,
+        status: STATUS_LABELS[job.status] ?? job.status,
+        totalRows: job.totalRows,
+        successRows: job.successRows,
+        errorRows: job.errorRows,
+        createdAt: formatDate(job.createdAt ?? null),
+        appliedAt: formatDate(job.appliedAt),
+      }];
+    });
+  }, [summary]);
+
+  const importJobHistoryRows = useMemo<StagingImportPreviewRow[]>(() => {
+    return (summary?.jobHistory ?? []).map((job: StagingImportHistoryRow) => ({
+      jobId: job.jobId,
+      fileType: FILE_TYPE_LABELS[job.fileType],
+      fileName: job.fileName,
+      status: STATUS_LABELS[job.status] ?? job.status,
+      totalRows: job.totalRows,
+      successRows: job.successRows,
+      errorRows: job.errorRows,
+      createdAt: formatDate(job.createdAt),
+      completedAt: formatDate(job.completedAt),
+    }));
   }, [summary]);
 
   const previewReady = Boolean(preview && file && preview.errorRows === 0 && preview.successRows > 0);
@@ -506,6 +544,18 @@ export default function StagingImportPage() {
                 title="파일 타입별 최신 Import"
                 rows={latestJobRows}
                 emptyText="저장된 ImportJob이 없습니다."
+              />
+              <PreviewRowsTable
+                key={`latest-applied-${latestAppliedJobRows.map((row) => row.jobId).join('-')}`}
+                title="파일 타입별 최신 APPLIED Import"
+                rows={latestAppliedJobRows}
+                emptyText="APPLIED ImportJob이 없습니다."
+              />
+              <PreviewRowsTable
+                key={`history-${importJobHistoryRows.length}`}
+                title="ImportJob 이력 목록"
+                rows={importJobHistoryRows}
+                emptyText="ImportJob 이력이 없습니다."
               />
             </>
           )}

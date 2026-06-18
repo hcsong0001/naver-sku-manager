@@ -307,6 +307,74 @@ export default function StagingMappingPreviewPage() {
           </div>
           {summary && (
             <>
+              <div className="rounded-lg border border-[#262629] bg-[#0c0c0e] p-4">
+                <div className="flex flex-col gap-3 xl:flex-row xl:items-start xl:justify-between">
+                  <div>
+                    <p className="text-sm font-semibold text-white">현재 사용 중인 staging snapshot</p>
+                    <p className="mt-1 text-xs text-zinc-500">
+                      {summary.snapshot.hasAppliedData ? '최신 APPLIED ImportJob 기준으로 계산 중' : 'APPLIED staging 데이터 없음'}
+                    </p>
+                  </div>
+                  {summary.snapshot.missingAppliedFileTypes.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5">
+                      {summary.snapshot.missingAppliedFileTypes.map((fileType) => (
+                        <span key={fileType} className="rounded-md border border-rose-500/20 bg-rose-500/10 px-2 py-1 text-[11px] text-rose-300">
+                          {FILE_TYPE_LABELS[fileType] ?? fileType} 없음
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <div className="mt-4 grid gap-3 lg:grid-cols-2">
+                  <div className="rounded-lg border border-[#222] bg-[#111114] p-3">
+                    <p className="text-xs font-semibold text-zinc-400">기준 ImportJob ID</p>
+                    <div className="mt-2 space-y-2">
+                      {Object.entries(summary.snapshot.latestAppliedJobs).length === 0 ? (
+                        <p className="text-xs text-zinc-600">APPLIED staging 데이터 없음</p>
+                      ) : Object.entries(summary.snapshot.latestAppliedJobs).map(([fileType, job]) => (
+                        <div key={fileType} className="flex items-start justify-between gap-3 text-xs">
+                          <span className="text-zinc-300">{FILE_TYPE_LABELS[fileType] ?? fileType}</span>
+                          <span className="break-all font-mono text-zinc-500">{job?.jobId ?? '-'}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="rounded-lg border border-[#222] bg-[#111114] p-3">
+                    <p className="text-xs font-semibold text-zinc-400">파일 타입별 최신 APPLIED 시간</p>
+                    <div className="mt-2 space-y-2">
+                      {Object.entries(summary.snapshot.latestAppliedJobs).length === 0 ? (
+                        <p className="text-xs text-zinc-600">APPLIED staging 데이터 없음</p>
+                      ) : Object.entries(summary.snapshot.latestAppliedJobs).map(([fileType, job]) => (
+                        <div key={fileType} className="flex items-start justify-between gap-3 text-xs">
+                          <span className="text-zinc-300">{FILE_TYPE_LABELS[fileType] ?? fileType}</span>
+                          <span className="text-zinc-500">{formatDate(job?.appliedAt ?? null)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <span className="rounded-md border border-[#333] bg-[#151519] px-2.5 py-1 text-[11px] text-zinc-300">
+                    재고 {summary.snapshot.counts.stagingStockCount.toLocaleString()}건
+                  </span>
+                  <span className="rounded-md border border-[#333] bg-[#151519] px-2.5 py-1 text-[11px] text-zinc-300">
+                    상품 {summary.snapshot.counts.stagingProductCount.toLocaleString()}건
+                  </span>
+                  <span className="rounded-md border border-[#333] bg-[#151519] px-2.5 py-1 text-[11px] text-zinc-300">
+                    옵션 {summary.snapshot.counts.stagingOptionCount.toLocaleString()}건
+                  </span>
+                  <span className="rounded-md border border-[#333] bg-[#151519] px-2.5 py-1 text-[11px] text-zinc-300">
+                    추가상품 {summary.snapshot.counts.stagingAdditionalCount.toLocaleString()}건
+                  </span>
+                  <span className="rounded-md border border-[#333] bg-[#151519] px-2.5 py-1 text-[11px] text-zinc-300">
+                    기존 매핑 {summary.snapshot.counts.stagingSkuMappingCount.toLocaleString()}건
+                  </span>
+                  <span className="rounded-md border border-[#333] bg-[#151519] px-2.5 py-1 text-[11px] text-zinc-300">
+                    ProductVariantKeyword {summary.snapshot.counts.stagingProductVariantKeywordCount.toLocaleString()}건
+                  </span>
+                </div>
+              </div>
+
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 2xl:grid-cols-6">
                 <SummaryCard label="Staging 상품 수" value={summary.summary.stagingProductCount} accent="cyan" />
                 <SummaryCard label="Staging 옵션 수" value={summary.summary.stagingOptionCount} accent="indigo" />
