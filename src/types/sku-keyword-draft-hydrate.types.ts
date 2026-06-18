@@ -45,6 +45,11 @@ export type SkuKeywordHydrateProductRecord = {
   smartstoreId: string;
   storeName: string;
   productName: string;
+  channelId: string | null;
+  currentSalePrice: number | null;
+  currentStockQuantity: number | null;
+  currentStateSyncedAt: Date | null;
+  currentStateSource: string | null;
 };
 
 export type SkuKeywordHydrateOptionRecord = {
@@ -56,6 +61,11 @@ export type SkuKeywordHydrateOptionRecord = {
   optionName: string;
   optionValue: string;
   optionCode: string | null;
+  channelId: string | null;
+  currentSalePrice: number | null;
+  currentStockQuantity: number | null;
+  currentStateSyncedAt: Date | null;
+  currentStateSource: string | null;
 };
 
 export type SkuKeywordHydrateAdditionalRecord = {
@@ -69,6 +79,9 @@ export type SkuKeywordHydrateAdditionalRecord = {
   sellerManagementCode: string | null;
   price: number | null;
   stockQuantity: number | null;
+  channelId: string | null;
+  currentStateSyncedAt: Date | null;
+  currentStateSource: string | null;
 };
 
 export type SkuKeywordHydrateContext = {
@@ -128,6 +141,8 @@ export type SkuKeywordHydratedCandidate = {
   currentSmartstorePrice: number | null;
   currentSmartstoreStock: number | null;
   issues: SkuKeywordHydrateIssue[];
+  currentStateSyncedAt: Date | null;
+  currentStateSource: string | null;
 };
 
 export type SkuKeywordHydrateInput = {

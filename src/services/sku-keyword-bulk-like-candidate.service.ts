@@ -270,6 +270,8 @@ export function buildSkuKeywordBulkLikeCandidate(
     warningMessage: candidate.warningMessage,
     memo: candidate.memo,
     reviewMessage: candidate.reviewMessage,
+    currentStateSyncedAt: candidate.currentStateSyncedAt,
+    currentStateSource: candidate.currentStateSource,
   };
 }
 

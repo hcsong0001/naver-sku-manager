@@ -149,6 +149,10 @@ export async function collectNaverProductByChannelProductNo(
       status: productData.status,
       channelProductNo: productData.channelProductNo,
       smartstoreId: productData.smartstoreId,
+      currentSalePrice: productData.salePrice,
+      currentStockQuantity: productData.stockQuantity,
+      currentStateSyncedAt: new Date(),
+      currentStateSource: 'NAVER_PRODUCT_COLLECTION',
     },
     create: {
       id: productData.naverProductId,
@@ -157,6 +161,10 @@ export async function collectNaverProductByChannelProductNo(
       status: productData.status,
       channelProductNo: productData.channelProductNo,
       smartstoreId: productData.smartstoreId,
+      currentSalePrice: productData.salePrice,
+      currentStockQuantity: productData.stockQuantity,
+      currentStateSyncedAt: new Date(),
+      currentStateSource: 'NAVER_PRODUCT_COLLECTION',
     },
   });
 
@@ -206,6 +214,8 @@ export async function collectNaverProductByChannelProductNo(
     sellerManagementCode: supplementProduct.sellerManagementCode ?? null,
     usable: supplementProduct.usable ?? null,
     sortType: supplementProductInfo?.sortType ?? null,
+    currentStateSyncedAt: new Date(),
+    currentStateSource: 'NAVER_PRODUCT_COLLECTION',
   }));
 
   if (additionalData.length > 0) {

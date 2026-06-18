@@ -190,7 +190,7 @@ export async function loadSkuKeywordDraftSeedContext(
       where: { id: { in: productIds } },
       include: {
         smartstore: {
-          select: { id: true, name: true },
+          select: { id: true, name: true, naverChannelId: true },
         },
       },
     }),
@@ -200,7 +200,7 @@ export async function loadSkuKeywordDraftSeedContext(
         naverProduct: {
           include: {
             smartstore: {
-              select: { id: true, name: true },
+              select: { id: true, name: true, naverChannelId: true },
             },
           },
         },
@@ -212,7 +212,7 @@ export async function loadSkuKeywordDraftSeedContext(
         naverProduct: {
           include: {
             smartstore: {
-              select: { id: true, name: true },
+              select: { id: true, name: true, naverChannelId: true },
             },
           },
         },
@@ -260,6 +260,11 @@ export async function loadSkuKeywordDraftSeedContext(
         smartstoreId: product.smartstore.id,
         storeName: product.smartstore.name,
         productName: product.name,
+        channelId: product.smartstore.naverChannelId ?? null,
+        currentSalePrice: product.currentSalePrice ?? null,
+        currentStockQuantity: product.currentStockQuantity ?? null,
+        currentStateSyncedAt: product.currentStateSyncedAt ?? null,
+        currentStateSource: product.currentStateSource ?? null,
       },
     ]),
   );
@@ -276,6 +281,11 @@ export async function loadSkuKeywordDraftSeedContext(
         optionName: option.optionName,
         optionValue: option.optionValue,
         optionCode: option.optionCode ?? null,
+        channelId: option.naverProduct.smartstore.naverChannelId ?? null,
+        currentSalePrice: option.currentSalePrice ?? null,
+        currentStockQuantity: option.currentStockQuantity ?? null,
+        currentStateSyncedAt: option.currentStateSyncedAt ?? null,
+        currentStateSource: option.currentStateSource ?? null,
       },
     ]),
   );
@@ -294,6 +304,9 @@ export async function loadSkuKeywordDraftSeedContext(
         sellerManagementCode: additional.sellerManagementCode ?? null,
         price: additional.price ?? null,
         stockQuantity: additional.stockQuantity ?? null,
+        channelId: additional.naverProduct.smartstore.naverChannelId ?? null,
+        currentStateSyncedAt: additional.currentStateSyncedAt ?? null,
+        currentStateSource: additional.currentStateSource ?? null,
       },
     ]),
   );
@@ -379,9 +392,11 @@ export function buildSkuKeywordHydratedCandidate(
   let itemName: string | null = null;
   let storeId: string | null = null;
   let storeName: string | null = null;
-  const channelId: string | null = null;
+  let channelId: string | null = null;
   let currentSmartstorePrice: number | null = null;
   let currentSmartstoreStock: number | null = null;
+  let currentStateSyncedAt: Date | null = null;
+  let currentStateSource: string | null = null;
   let targetContextAvailable = false;
 
   if (seed.mappingType === 'PRODUCT') {
@@ -398,6 +413,11 @@ export function buildSkuKeywordHydratedCandidate(
       itemName = product.productName;
       storeId = product.smartstoreId;
       storeName = product.storeName;
+      channelId = product.channelId;
+      currentSmartstorePrice = product.currentSalePrice;
+      currentSmartstoreStock = product.currentStockQuantity;
+      currentStateSyncedAt = product.currentStateSyncedAt;
+      currentStateSource = product.currentStateSource;
       if (product.channelProductNo && product.channelProductNo !== seed.channelProductNo) {
         issues.push(buildIssue({
           code: 'TARGET_CHANNEL_PRODUCT_MISMATCH',
@@ -420,6 +440,11 @@ export function buildSkuKeywordHydratedCandidate(
       itemName = optionDisplayName(option);
       storeId = option.smartstoreId;
       storeName = option.storeName;
+      channelId = option.channelId;
+      currentSmartstorePrice = option.currentSalePrice;
+      currentSmartstoreStock = option.currentStockQuantity;
+      currentStateSyncedAt = option.currentStateSyncedAt;
+      currentStateSource = option.currentStateSource;
       if (option.channelProductNo && option.channelProductNo !== seed.channelProductNo) {
         issues.push(buildIssue({
           code: 'TARGET_CHANNEL_PRODUCT_MISMATCH',
@@ -442,8 +467,11 @@ export function buildSkuKeywordHydratedCandidate(
       itemName = additionalDisplayName(additional);
       storeId = additional.smartstoreId;
       storeName = additional.storeName;
+      channelId = additional.channelId;
       currentSmartstorePrice = additional.price;
       currentSmartstoreStock = additional.stockQuantity;
+      currentStateSyncedAt = additional.currentStateSyncedAt;
+      currentStateSource = additional.currentStateSource;
       if (additional.channelProductNo && additional.channelProductNo !== seed.channelProductNo) {
         issues.push(buildIssue({
           code: 'TARGET_CHANNEL_PRODUCT_MISMATCH',
@@ -462,11 +490,13 @@ export function buildSkuKeywordHydratedCandidate(
     }));
   }
 
-  issues.push(buildIssue({
-    code: 'CHANNEL_ID_UNAVAILABLE',
-    severity: 'info',
-    message: getChannelIdUnavailableMessage(seed),
-  }));
+  if (!channelId) {
+    issues.push(buildIssue({
+      code: 'CHANNEL_ID_UNAVAILABLE',
+      severity: 'info',
+      message: getChannelIdUnavailableMessage(seed),
+    }));
+  }
 
   if (currentSmartstorePrice === null) {
     issues.push(buildIssue({
@@ -514,6 +544,8 @@ export function buildSkuKeywordHydratedCandidate(
     currentSmartstorePrice,
     currentSmartstoreStock,
     issues,
+    currentStateSyncedAt,
+    currentStateSource,
   };
 }
 

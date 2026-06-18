@@ -96,9 +96,9 @@ const draftHydrateIssueHints: Record<SkuKeywordHydrateIssueCode, string> = {
   TARGET_NOT_FOUND: '스마트스토어 상품, 옵션, 추가상품이 현재 DB에 수집되어 있는지 확인해 주세요.',
   TARGET_CHANNEL_PRODUCT_MISMATCH: 'channelProductNo와 itemId가 같은 상품 문맥을 가리키는지 다시 확인해 주세요.',
   STORE_CONTEXT_UNAVAILABLE: '스마트스토어 연결 정보와 상품-스토어 관계를 먼저 확인해 주세요.',
-  CHANNEL_ID_UNAVAILABLE: '스마트스토어 channelId 연결 정보가 별도로 필요합니다.',
-  CURRENT_PRICE_UNAVAILABLE: '현재 스마트스토어 가격 문맥이 저장되어 있어야 Draft 가능 판정이 가능합니다.',
-  CURRENT_STOCK_UNAVAILABLE: '현재 스마트스토어 재고 문맥이 저장되어 있어야 Draft 가능 판정이 가능합니다.',
+  CHANNEL_ID_UNAVAILABLE: 'Smartstore.naverChannelId 설정 필요',
+  CURRENT_PRICE_UNAVAILABLE: 'NaverProduct/NaverProductOption currentSalePrice 또는 Additional price 필요',
+  CURRENT_STOCK_UNAVAILABLE: 'NaverProduct/NaverProductOption currentStockQuantity 또는 Additional stockQuantity 필요',
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -859,6 +859,11 @@ function DraftPreviewPanel({
                           <p className="tms-text-muted mt-1 text-xs">
                             상품명: {candidate.productName ?? '-'} / 항목명: {candidate.itemName ?? '-'}
                           </p>
+                          {candidate.currentStateSyncedAt && (
+                            <p className="tms-text-muted mt-1 text-[11px]">
+                              동기화: {new Date(candidate.currentStateSyncedAt).toLocaleString('ko-KR')} ({candidate.currentStateSource ?? '미지정'})
+                            </p>
+                          )}
                         </div>
                         <div className="tms-row-text grid gap-1 text-xs sm:grid-cols-2 lg:min-w-[320px]">
                           <span>draftCreatable: {candidate.draftCreatable ? 'true' : 'false'}</span>
@@ -941,6 +946,11 @@ function DraftPreviewPanel({
                     <p className="tms-text-muted mt-1 font-mono text-xs">
                       {candidate.channelProductNo} · {candidate.itemId}
                     </p>
+                    {candidate.currentStateSyncedAt && (
+                      <p className="tms-text-muted mt-1 text-[11px]">
+                        동기화: {new Date(candidate.currentStateSyncedAt).toLocaleString('ko-KR')} ({candidate.currentStateSource ?? '미지정'})
+                      </p>
+                    )}
                     {!candidate.draftCreatable && (
                       <p className="tms-warning-text mt-2 text-xs">
                         선택 불가 사유: {getDraftCandidateSelectionReason(candidate)}

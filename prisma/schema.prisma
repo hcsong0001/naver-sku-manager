@@ -18,6 +18,7 @@ model Smartstore {
   tokenExpiresAt         DateTime?
   naverPartnerType       String                     @default("SELF")
   naverAccountId         String?
+  naverChannelId         String?
   createdAt              DateTime                   @default(now())
   updatedAt              DateTime                   @updatedAt
   products               NaverProduct[]
@@ -138,6 +139,10 @@ model NaverProduct {
   createdAt        DateTime                 @default(now())
   updatedAt        DateTime                 @updatedAt
   channelProductNo String?                  @unique
+  currentSalePrice Int?
+  currentStockQuantity Int?
+  currentStateSyncedAt DateTime?
+  currentStateSource String?
   sku              Sku?                     @relation(fields: [skuId], references: [id])
   smartstore       Smartstore               @relation(fields: [smartstoreId], references: [id], onDelete: Cascade)
   additionals      NaverProductAdditional[]
@@ -543,6 +548,10 @@ model NaverProductOption {
   skuId          String?
   createdAt      DateTime                @default(now())
   updatedAt      DateTime                @updatedAt
+  currentSalePrice Int?
+  currentStockQuantity Int?
+  currentStateSyncedAt DateTime?
+  currentStateSource String?
   naverProduct   NaverProduct            @relation(fields: [naverProductId], references: [id], onDelete: Cascade)
   sku            Sku?                    @relation(fields: [skuId], references: [id])
   skuMappings    NaverProductOptionSku[]
@@ -565,6 +574,8 @@ model NaverProductAdditional {
   skuId                String?
   createdAt            DateTime                    @default(now())
   updatedAt            DateTime                    @updatedAt
+  currentStateSyncedAt DateTime?
+  currentStateSource String?
   naverProduct         NaverProduct                @relation(fields: [naverProductId], references: [id], onDelete: Cascade)
   sku                  Sku?                        @relation(fields: [skuId], references: [id])
   skuMappings          NaverProductAdditionalSku[]

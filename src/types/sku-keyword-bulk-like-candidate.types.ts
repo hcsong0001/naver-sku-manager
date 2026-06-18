@@ -78,6 +78,8 @@ export type SkuKeywordBulkLikeCandidate = {
   warningMessage: string | null;
   memo: string;
   reviewMessage: string;
+  currentStateSyncedAt: Date | null;
+  currentStateSource: string | null;
 };
 
 export type SkuKeywordBulkLikeTransformInput = {
