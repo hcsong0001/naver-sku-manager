@@ -140,17 +140,6 @@ function readWorkbook(buffer: Buffer, fileName: string): XLSX.WorkBook {
   return XLSX.read(buffer, { type: 'buffer', raw: false });
 }
 
-function findHeader(headers: string[], candidates: string[]): string {
-  const normalizedCandidates = candidates.map(normalizeHeader);
-  return (
-    headers.find((header) => normalizedCandidates.includes(normalizeHeader(header))) ??
-    headers.find((header) =>
-      normalizedCandidates.some((candidate) => normalizeHeader(header).includes(candidate)),
-    ) ??
-    ''
-  );
-}
-
 function parseOptionalInt(value: string): number | null {
   if (!value) return null;
   const numberValue = Number(value.replace(/,/g, ''));
@@ -217,64 +206,159 @@ function parseSmartstoreProductWorkbook(buffer: Buffer, fileName: string): Smart
       defval: '',
       raw: false,
     });
-    const headers = sheetRows[0] ? Object.keys(sheetRows[0]) : [];
+    
+    if (sheetRows.length === 0) continue;
 
-    const externalProductIdHeader = findHeader(headers, ['상품번호', 'productid', 'externalproductid']);
-    const channelProductNoHeader = findHeader(headers, ['채널상품번호', 'channelproductno']);
-    const originProductNoHeader = findHeader(headers, ['원상품번호', 'originproductno', 'naverproductid']);
-    const productNameHeader = findHeader(headers, ['상품명', 'productname', 'channelproductname']);
-    const statusHeader = findHeader(headers, ['상품상태', '상태', 'statustype']);
-    const sellerManagementCodeHeader = findHeader(headers, ['판매자관리코드', 'sellermanagementcode']);
-    const optionIdHeader = findHeader(headers, ['옵션id', 'optionid']);
-    const optionNameHeader = findHeader(headers, ['옵션명', 'optionname']);
-    const optionValueHeader = findHeader(headers, ['옵션값', 'optionvalue', '옵션내용']);
-    const optionCodeHeader = findHeader(headers, ['옵션코드', 'optioncode', 'sellermanagercode']);
-    const additionalIdHeader = findHeader(headers, ['추가상품id', 'additionalid', 'supplementproductid']);
-    const additionalNameHeader = findHeader(headers, ['추가상품명', 'additionalname', 'groupname']);
-    const additionalValueHeader = findHeader(headers, ['추가상품값', 'additionalvalue', 'name']);
-    const additionalSellerManagementCodeHeader = findHeader(headers, [
-      '추가상품판매자관리코드',
-      'additionalsellermanagementcode',
-      'sellermanagementcode',
-    ]);
-    const additionalPriceHeader = findHeader(headers, ['추가상품가격', 'additionalprice', 'price']);
-    const additionalStockQuantityHeader = findHeader(headers, [
-      '추가상품재고',
-      'additionalstockquantity',
-      'stockquantity',
-    ]);
-    const additionalUsableHeader = findHeader(headers, ['사용여부', 'usable']);
-    const additionalSortTypeHeader = findHeader(headers, ['정렬유형', 'sorttype']);
+    const keys = Object.keys(sheetRows[0]);
+    const isDoubleHeader = keys.some((k) => k.includes('수정불가') || k.includes('상품 기본정보') || k.includes('할인/혜택정보'));
 
-    sheetRows.forEach((row, index) => {
+    let externalProductIdKey = '';
+    let channelProductNoKey = '';
+    let originProductNoKey = '';
+    let productNameKey = '';
+    let statusKey = '';
+    let sellerManagementCodeKey = '';
+    let optionIdKey = '';
+    let optionNameKey = '';
+    let optionValueKey = '';
+    let optionCodeKey = '';
+    let additionalIdKey = '';
+    let additionalNameKey = '';
+    let additionalValueKey = '';
+    let additionalSellerManagementCodeKey = '';
+    let additionalPriceKey = '';
+    let additionalStockQuantityKey = '';
+    let additionalUsableKey = '';
+    let additionalSortTypeKey = '';
+
+    let dataRows: Record<string, unknown>[] = [];
+    let startRowNumber = 2;
+
+    if (isDoubleHeader && sheetRows.length > 1) {
+      const headerRow = sheetRows[0];
+      
+      function findKeyByValue(candidates: string[]): string {
+        const normalizedCandidates = candidates.map((c) => normalizeHeader(c));
+        for (const [key, val] of Object.entries(headerRow)) {
+          const normalizedVal = normalizeHeader(String(val));
+          if (normalizedCandidates.some((c) => normalizedVal.includes(c))) {
+            return key;
+          }
+        }
+        return '';
+      }
+
+      externalProductIdKey = findKeyByValue(['상품번호', 'productid', 'externalproductid']);
+      channelProductNoKey = findKeyByValue(['채널상품번호', 'channelproductno']);
+      originProductNoKey = findKeyByValue(['원상품번호', 'originproductno', 'naverproductid']);
+      productNameKey = findKeyByValue(['상품명', 'productname', 'channelproductname']);
+      statusKey = findKeyByValue(['상품상태', '상태', 'statustype']);
+      sellerManagementCodeKey = findKeyByValue(['판매자관리코드', 'sellermanagementcode', '판매자 상품코드', '판매자상품코드']);
+      optionIdKey = findKeyByValue(['옵션id', 'optionid']);
+      optionNameKey = findKeyByValue(['옵션명', 'optionname']);
+      optionValueKey = findKeyByValue(['옵션값', 'optionvalue', '옵션내용']);
+      optionCodeKey = findKeyByValue(['옵션코드', 'optioncode', 'sellermanagercode']);
+      additionalIdKey = findKeyByValue(['추가상품id', 'additionalid', 'supplementproductid']);
+      additionalNameKey = findKeyByValue(['추가상품명', 'additionalname', 'groupname']);
+      additionalValueKey = findKeyByValue(['추가상품값', 'additionalvalue', 'name']);
+      additionalSellerManagementCodeKey = findKeyByValue([
+        '추가상품판매자관리코드',
+        'additionalsellermanagementcode',
+        'sellermanagementcode',
+      ]);
+      additionalPriceKey = findKeyByValue(['추가상품가격', 'additionalprice', 'price']);
+      additionalStockQuantityKey = findKeyByValue([
+        '추가상품재고',
+        'additionalstockquantity',
+        'stockquantity',
+      ]);
+      additionalUsableKey = findKeyByValue(['사용여부', 'usable']);
+      additionalSortTypeKey = findKeyByValue(['정렬유형', 'sorttype']);
+
+      dataRows = sheetRows.slice(1);
+      startRowNumber = 3;
+    } else {
+      function findKeyByHeader(candidates: string[]): string {
+        const normalizedCandidates = candidates.map((c) => normalizeHeader(c));
+        return (
+          keys.find((k) => normalizedCandidates.includes(normalizeHeader(k))) ??
+          keys.find((k) =>
+            normalizedCandidates.some((c) => normalizeHeader(k).includes(c)),
+          ) ??
+          ''
+        );
+      }
+
+      externalProductIdKey = findKeyByHeader(['상품번호', 'productid', 'externalproductid', '상품일련번호']);
+      channelProductNoKey = findKeyByHeader(['채널상품번호', 'channelproductno', '판매처상품코드']);
+      originProductNoKey = findKeyByHeader(['원상품번호', 'originproductno', 'naverproductid']);
+      productNameKey = findKeyByHeader(['상품명', 'productname', 'channelproductname']);
+      statusKey = findKeyByHeader(['상품상태', '상태', 'statustype']);
+      sellerManagementCodeKey = findKeyByHeader(['판매자관리코드', 'sellermanagementcode', '자체상품코드', '상품코드', '판매자 상품코드', '판매자상품코드']);
+      optionIdKey = findKeyByHeader(['옵션id', 'optionid']);
+      optionNameKey = findKeyByHeader(['옵션명', 'optionname']);
+      optionValueKey = findKeyByHeader(['옵션값', 'optionvalue', '옵션내용']);
+      optionCodeKey = findKeyByHeader(['옵션코드', 'optioncode', 'sellermanagercode']);
+      additionalIdKey = findKeyByHeader(['추가상품id', 'additionalid', 'supplementproductid']);
+      additionalNameKey = findKeyByHeader(['추가상품명', 'additionalname', 'groupname']);
+      additionalValueKey = findKeyByHeader(['추가상품값', 'additionalvalue', 'name']);
+      additionalSellerManagementCodeKey = findKeyByHeader([
+        '추가상품판매자관리코드',
+        'additionalsellermanagementcode',
+        'sellermanagementcode',
+      ]);
+      additionalPriceKey = findKeyByHeader(['추가상품가격', 'additionalprice', 'price']);
+      additionalStockQuantityKey = findKeyByHeader([
+        '추가상품재고',
+        'additionalstockquantity',
+        'stockquantity',
+      ]);
+      additionalUsableKey = findKeyByHeader(['사용여부', 'usable']);
+      additionalSortTypeKey = findKeyByHeader(['정렬유형', 'sorttype']);
+
+      dataRows = sheetRows;
+      startRowNumber = 2;
+    }
+
+    dataRows.forEach((row, index) => {
       const parsedRow: SmartstoreProductParsedRow = {
-        rowNumber: index + 2,
+        rowNumber: index + startRowNumber,
         sourceSheet: sheetName,
-        externalProductId: normalizeCell(row[externalProductIdHeader]),
-        channelProductNo: normalizeCell(row[channelProductNoHeader]),
-        originProductNo: normalizeCell(row[originProductNoHeader]),
-        productName: normalizeCell(row[productNameHeader]),
-        statusType: normalizeCell(row[statusHeader]),
-        sellerManagementCode: normalizeCell(row[sellerManagementCodeHeader]),
-        optionId: normalizeCell(row[optionIdHeader]),
-        optionName: normalizeCell(row[optionNameHeader]),
-        optionValue: normalizeCell(row[optionValueHeader]),
-        optionCode: normalizeCell(row[optionCodeHeader]),
-        additionalId: normalizeCell(row[additionalIdHeader]),
-        additionalName: normalizeCell(row[additionalNameHeader]),
-        additionalValue: normalizeCell(row[additionalValueHeader]),
-        additionalSellerManagementCode: normalizeCell(row[additionalSellerManagementCodeHeader]),
-        additionalPrice: parseOptionalInt(normalizeCell(row[additionalPriceHeader])),
-        additionalStockQuantity: parseOptionalInt(normalizeCell(row[additionalStockQuantityHeader])),
-        additionalUsable: parseOptionalBoolean(normalizeCell(row[additionalUsableHeader])),
-        additionalSortType: normalizeCell(row[additionalSortTypeHeader]),
+        externalProductId: externalProductIdKey ? normalizeCell(row[externalProductIdKey]) : '',
+        channelProductNo: channelProductNoKey ? normalizeCell(row[channelProductNoKey]) : '',
+        originProductNo: originProductNoKey ? normalizeCell(row[originProductNoKey]) : '',
+        productName: productNameKey ? normalizeCell(row[productNameKey]) : '',
+        statusType: statusKey ? normalizeCell(row[statusKey]) : '',
+        sellerManagementCode: sellerManagementCodeKey ? normalizeCell(row[sellerManagementCodeKey]) : '',
+        optionId: optionIdKey ? normalizeCell(row[optionIdKey]) : '',
+        optionName: optionNameKey ? normalizeCell(row[optionNameKey]) : '',
+        optionValue: optionValueKey ? normalizeCell(row[optionValueKey]) : '',
+        optionCode: optionCodeKey ? normalizeCell(row[optionCodeKey]) : '',
+        additionalId: additionalIdKey ? normalizeCell(row[additionalIdKey]) : '',
+        additionalName: additionalNameKey ? normalizeCell(row[additionalNameKey]) : '',
+        additionalValue: additionalValueKey ? normalizeCell(row[additionalValueKey]) : '',
+        additionalSellerManagementCode: additionalSellerManagementCodeKey
+          ? normalizeCell(row[additionalSellerManagementCodeKey])
+          : '',
+        additionalPrice: additionalPriceKey ? parseOptionalInt(normalizeCell(row[additionalPriceKey])) : null,
+        additionalStockQuantity: additionalStockQuantityKey
+          ? parseOptionalInt(normalizeCell(row[additionalStockQuantityKey]))
+          : null,
+        additionalUsable: additionalUsableKey ? parseOptionalBoolean(normalizeCell(row[additionalUsableKey])) : null,
+        additionalSortType: additionalSortTypeKey ? normalizeCell(row[additionalSortTypeKey]) : '',
       };
 
-      const hasMeaningfulValue = Object.values(parsedRow).some((value) => {
-        if (typeof value === 'number') return true;
-        if (typeof value === 'boolean') return true;
-        return typeof value === 'string' ? value.trim().length > 0 : false;
-      });
+      const hasMeaningfulValue = [
+        parsedRow.externalProductId,
+        parsedRow.channelProductNo,
+        parsedRow.originProductNo,
+        parsedRow.productName,
+        parsedRow.sellerManagementCode,
+        parsedRow.optionName,
+        parsedRow.optionValue,
+        parsedRow.additionalName,
+        parsedRow.additionalValue,
+      ].some((val) => val && val.trim().length > 0);
 
       if (hasMeaningfulValue) {
         rows.push(parsedRow);
@@ -355,10 +439,6 @@ function previewSkuMappingImport(buffer: Buffer): PreviewDataset<SkuMappingParse
     }
     if (!row.itemId) {
       errors.push({ rowNumber: row.rowNumber, errorMessage: 'itemId가 비어 있습니다.' });
-      return false;
-    }
-    if (!row.skuCode) {
-      errors.push({ rowNumber: row.rowNumber, errorMessage: 'skuCode가 비어 있습니다.' });
       return false;
     }
     const quantity = Number(row.quantity || '1');

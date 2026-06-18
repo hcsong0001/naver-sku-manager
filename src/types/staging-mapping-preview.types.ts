@@ -12,6 +12,14 @@ export const STAGING_MAPPING_FILTERS = [
   'OPTION',
   'ADDITIONAL',
   'PRODUCT',
+  // 신규 위험 유형 및 중복 필터 추가
+  'SET_COMPONENT_QUANTITY_INVALID',
+  'SET_COMPONENT_SKU_UNRESOLVED',
+  'DUPLICATE_CANDIDATE',
+  'NO_CANDIDATE_SKU',
+  'STOCK_SKU_MISSING',
+  'DIFFERENT_FROM_EXISTING',
+  'PRICE_BASELINE_MISSING',
 ] as const;
 
 export type StagingMappingFilter = (typeof STAGING_MAPPING_FILTERS)[number];
@@ -72,6 +80,7 @@ export type StagingMappingCandidate = {
   serialNo: string;
   mappingStatus: StagingMappingStatus;
   isSetProduct: boolean;
+  isDuplicate: boolean; // 중복 여부 추가
   candidateSkus: StagingMappingSku[];
   existingSkus: StagingMappingSku[];
   setComponents: StagingMappingSetComponent[];
@@ -98,6 +107,20 @@ export type StagingMappingPreviewSummary = {
   setProductCandidateCount: number;
   singleProductCandidateCount: number;
   unresolvedSkuCandidateCount: number;
+  // 신규 통계 필드 추가
+  originalCandidateCount: number;
+  uniqueCandidateCount: number;
+  duplicateCandidateCount: number;
+  totalRiskCount: number;
+  riskUniqueCandidateCount: number;
+  riskSetComponentQuantityInvalidCount: number;
+  riskSkuUnresolvedCount: number;
+  riskSetComponentSkuUnresolvedCount: number;
+  riskDuplicateCandidateCount: number;
+  riskNoCandidateSkuCount: number;
+  riskStockSkuMissingCount: number;
+  riskDifferentFromExistingCount: number;
+  riskPriceBaselineMissingCount: number;
 };
 
 export type StagingMappingSourceJob = {

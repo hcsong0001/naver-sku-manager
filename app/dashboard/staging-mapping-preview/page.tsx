@@ -30,12 +30,19 @@ const FILTERS: { value: StagingMappingFilter; label: string }[] = [
   { value: 'MAPPED', label: '매핑완료' },
   { value: 'UNMAPPED', label: '미매핑' },
   { value: 'RISK', label: '위험 후보' },
-  { value: 'SKU_UNRESOLVED', label: 'SKU 미확정' },
   { value: 'SET', label: '세트상품' },
   { value: 'SINGLE', label: '단품' },
+  { value: 'PRODUCT', label: 'PRODUCT' },
   { value: 'OPTION', label: 'OPTION' },
   { value: 'ADDITIONAL', label: 'ADDITIONAL' },
-  { value: 'PRODUCT', label: 'PRODUCT' },
+  // 신규 위험 유형 및 중복 필터
+  { value: 'SKU_UNRESOLVED', label: 'SKU 미확정 (전체)' },
+  { value: 'SET_COMPONENT_QUANTITY_INVALID', label: '세트 구성 수량 이상' },
+  { value: 'SET_COMPONENT_SKU_UNRESOLVED', label: '세트 SKU 미확정' },
+  { value: 'DUPLICATE_CANDIDATE', label: '중복 후보' },
+  { value: 'NO_CANDIDATE_SKU', label: '후보 SKU 없음' },
+  { value: 'STOCK_SKU_MISSING', label: '재고 SKU 없음' },
+  { value: 'DIFFERENT_FROM_EXISTING', label: '기존 매핑과 다름' },
 ];
 
 const FILE_TYPE_LABELS: Record<string, string> = {
@@ -307,6 +314,11 @@ export default function StagingMappingPreviewPage() {
           </div>
           {summary && (
             <>
+              {/* 집계 기준 설명 배너 */}
+              <div className="rounded-lg border border-indigo-500/20 bg-indigo-500/10 px-4 py-3 text-sm text-indigo-300">
+                💡 <strong>집계 기준 설명:</strong> 원본 후보에서 동일 상품/옵션 중복을 제거한 뒤 ProductVariantKeyword 후보를 우선 사용합니다.
+              </div>
+
               <div className="rounded-lg border border-[#262629] bg-[#0c0c0e] p-4">
                 <div className="flex flex-col gap-3 xl:flex-row xl:items-start xl:justify-between">
                   <div>
@@ -375,19 +387,57 @@ export default function StagingMappingPreviewPage() {
                 </div>
               </div>
 
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 2xl:grid-cols-6">
-                <SummaryCard label="Staging 상품 수" value={summary.summary.stagingProductCount} accent="cyan" />
-                <SummaryCard label="Staging 옵션 수" value={summary.summary.stagingOptionCount} accent="indigo" />
-                <SummaryCard label="Staging 추가상품 수" value={summary.summary.stagingAdditionalCount} accent="amber" />
-                <SummaryCard label="Staging 재고 SKU 수" value={summary.summary.stagingStockSkuCount} accent="emerald" />
-                <SummaryCard label="Staging 기존 매핑 수" value={summary.summary.stagingExistingMappingCount} accent="violet" />
-                <SummaryCard label="ProductVariantKeyword 후보 수" value={summary.summary.productVariantKeywordCandidateCount} accent="violet" />
+              {/* 핵심 후보군 통계 */}
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 2xl:grid-cols-5">
+                <SummaryCard label="원본 후보 수" value={summary.summary.originalCandidateCount} accent="indigo" />
+                <SummaryCard label="중복 제거 후보 수 (실제 후보)" value={summary.summary.uniqueCandidateCount} accent="cyan" />
+                <SummaryCard label="중복 제거로 제외된 후보 수" value={summary.summary.duplicateCandidateCount} accent="violet" />
+                <SummaryCard label="단품 후보 수" value={summary.summary.singleProductCandidateCount} accent="cyan" />
+                <SummaryCard label="BUNDLE/세트상품 후보 수" value={summary.summary.setProductCandidateCount} accent="violet" />
                 <SummaryCard label="매핑완료 후보 수" value={summary.summary.mappedCandidateCount} accent="emerald" />
                 <SummaryCard label="미매핑 후보 수" value={summary.summary.unmappedCandidateCount} accent="amber" />
-                <SummaryCard label="위험 후보 수" value={summary.summary.riskCandidateCount} accent="rose" />
-                <SummaryCard label="세트상품 후보 수" value={summary.summary.setProductCandidateCount} accent="violet" />
-                <SummaryCard label="단품 후보 수" value={summary.summary.singleProductCandidateCount} accent="cyan" />
-                <SummaryCard label="SKU 미확정 후보 수" value={summary.summary.unresolvedSkuCandidateCount} accent="rose" />
+                <SummaryCard label="위험 후보 수 (고유 후보 기준)" value={summary.summary.riskUniqueCandidateCount} accent="rose" />
+                <SummaryCard label="위험 유형 총 발생 건수" value={summary.summary.totalRiskCount} accent="rose" />
+                <SummaryCard label="Staging 재고 SKU 수" value={summary.summary.stagingStockSkuCount} accent="emerald" />
+              </div>
+
+              {/* 세부 위험 유형별 발생 건수 */}
+              <div className="rounded-lg border border-[#262629] bg-[#0c0c0e] p-4 space-y-3">
+                <p className="text-sm font-semibold text-white">⚠️ 주요 위험 유형별 발생 건수 (고유 후보 기준)</p>
+                <div className="grid gap-3 grid-cols-2 sm:grid-cols-4 lg:grid-cols-8">
+                  <div className="rounded border border-[#222] bg-[#111114] p-3 text-center">
+                    <p className="text-[11px] text-zinc-500 font-medium">세트 구성 수량 이상</p>
+                    <p className="mt-1.5 text-lg font-bold text-rose-300">{summary.summary.riskSetComponentQuantityInvalidCount}</p>
+                  </div>
+                  <div className="rounded border border-[#222] bg-[#111114] p-3 text-center">
+                    <p className="text-[11px] text-zinc-500 font-medium">SKU 미확정</p>
+                    <p className="mt-1.5 text-lg font-bold text-rose-300">{summary.summary.riskSkuUnresolvedCount}</p>
+                  </div>
+                  <div className="rounded border border-[#222] bg-[#111114] p-3 text-center">
+                    <p className="text-[11px] text-zinc-500 font-medium">세트 SKU 미확정</p>
+                    <p className="mt-1.5 text-lg font-bold text-rose-300">{summary.summary.riskSetComponentSkuUnresolvedCount}</p>
+                  </div>
+                  <div className="rounded border border-[#222] bg-[#111114] p-3 text-center">
+                    <p className="text-[11px] text-zinc-500 font-medium">재고/SKU 후보 중복 위험 건수</p>
+                    <p className="mt-1.5 text-lg font-bold text-rose-300">{summary.summary.riskDuplicateCandidateCount}</p>
+                  </div>
+                  <div className="rounded border border-[#222] bg-[#111114] p-3 text-center">
+                    <p className="text-[11px] text-zinc-500 font-medium">후보 SKU 없음</p>
+                    <p className="mt-1.5 text-lg font-bold text-rose-300">{summary.summary.riskNoCandidateSkuCount}</p>
+                  </div>
+                  <div className="rounded border border-[#222] bg-[#111114] p-3 text-center">
+                    <p className="text-[11px] text-zinc-500 font-medium">재고 SKU 없음</p>
+                    <p className="mt-1.5 text-lg font-bold text-rose-300">{summary.summary.riskStockSkuMissingCount}</p>
+                  </div>
+                  <div className="rounded border border-[#222] bg-[#111114] p-3 text-center">
+                    <p className="text-[11px] text-zinc-500 font-medium">기존 매핑과 다름</p>
+                    <p className="mt-1.5 text-lg font-bold text-rose-300">{summary.summary.riskDifferentFromExistingCount}</p>
+                  </div>
+                  <div className="rounded border border-[#222] bg-[#111114] p-3 text-center">
+                    <p className="text-[11px] text-zinc-500 font-medium">가격 기준 없음</p>
+                    <p className="mt-1.5 text-lg font-bold text-rose-300">{summary.summary.riskPriceBaselineMissingCount}</p>
+                  </div>
+                </div>
               </div>
 
               <div className="flex flex-wrap gap-2 rounded-lg border border-[#262629] bg-[#0c0c0e] px-4 py-3">
@@ -489,6 +539,9 @@ export default function StagingMappingPreviewPage() {
                   <tr key={row.id} className="align-top hover:bg-[#121216]">
                     <td className="whitespace-nowrap px-3 py-3 font-mono text-xs text-zinc-500">
                       {getRowNumber(index, candidates?.currentPage ?? currentPage, candidates?.pageSize ?? pageSize)}
+                      {row.isDuplicate && (
+                        <span className="ml-1.5 rounded bg-zinc-700/60 px-1 py-0.5 text-[9px] text-zinc-400">중복</span>
+                      )}
                     </td>
                     <td className="min-w-40 px-3 py-3">
                       <p className="text-xs font-medium text-zinc-200">{row.storeName || '-'}</p>

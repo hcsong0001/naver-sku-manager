@@ -96,6 +96,8 @@ export type BulkUpdatePreviewSummary = {
   excludedCandidateCount: number;
   expectedApiCallCount: number;
   draftBatchCreatableCount: number;
+  mappingSafeCandidateCount: number;    // 매핑 기준 안전 후보 수
+  updateTargetCandidateCount: number;    // 가격/재고 수정 대상 후보 수
 };
 
 export type BulkUpdatePreviewSummaryResponse = {

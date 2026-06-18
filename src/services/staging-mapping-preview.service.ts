@@ -510,6 +510,7 @@ function buildTargetCandidate(
     itemName: target.itemName,
     serialNo: '',
     isSetProduct,
+    isDuplicate: false, // 기본값 설정
     candidateSkus,
     existingSkus,
     setComponents,
@@ -602,6 +603,7 @@ function buildVariantCandidate(
     itemName,
     serialNo: first.serialNo,
     isSetProduct,
+    isDuplicate: false, // 기본값 설정
     candidateSkus,
     existingSkus,
     setComponents: components,
@@ -610,18 +612,39 @@ function buildVariantCandidate(
 }
 
 function applyFilter(rows: StagingMappingCandidate[], filter: StagingMappingFilter): StagingMappingCandidate[] {
-  if (filter === 'ALL') return rows;
-  if (filter === 'MAPPED') return rows.filter((row) => row.mappingStatus === 'MAPPED');
-  if (filter === 'UNMAPPED') return rows.filter((row) => row.mappingStatus === 'UNMAPPED');
-  if (filter === 'RISK') return rows.filter((row) => row.mappingStatus === 'RISK');
+  // 중복 필터(DUPLICATE_CANDIDATE)일 때는 중복으로 제외된 후보와 ERP 매칭 중복 고유 후보를 모두 반환한다.
+  if (filter === 'DUPLICATE_CANDIDATE') {
+    return rows.filter((row) => row.isDuplicate || row.riskTypes.includes('DUPLICATE_CANDIDATE'));
+  }
+
+  // 중복 필터가 아닌 다른 모든 필터는 고유 후보들만 대상으로 한다.
+  const uniqueRows = rows.filter((row) => !row.isDuplicate);
+
+  if (filter === 'ALL') return uniqueRows;
+  if (filter === 'MAPPED') return uniqueRows.filter((row) => row.mappingStatus === 'MAPPED');
+  if (filter === 'UNMAPPED') return uniqueRows.filter((row) => row.mappingStatus === 'UNMAPPED');
+  if (filter === 'RISK') return uniqueRows.filter((row) => row.mappingStatus === 'RISK');
   if (filter === 'SKU_UNRESOLVED') {
-    return rows.filter((row) => row.riskTypes.some((risk) =>
+    return uniqueRows.filter((row) => row.riskTypes.some((risk) =>
       ['SKU_UNRESOLVED', 'NO_CANDIDATE_SKU', 'SET_COMPONENT_SKU_UNRESOLVED'].includes(risk),
     ));
   }
-  if (filter === 'SET') return rows.filter((row) => row.isSetProduct);
-  if (filter === 'SINGLE') return rows.filter((row) => !row.isSetProduct);
-  return rows.filter((row) => row.candidateType === filter);
+  if (filter === 'SET') return uniqueRows.filter((row) => row.isSetProduct);
+  if (filter === 'SINGLE') return uniqueRows.filter((row) => !row.isSetProduct);
+
+  // 상세 위험 필터 처리
+  if ([
+    'SET_COMPONENT_QUANTITY_INVALID',
+    'SET_COMPONENT_SKU_UNRESOLVED',
+    'NO_CANDIDATE_SKU',
+    'STOCK_SKU_MISSING',
+    'DIFFERENT_FROM_EXISTING',
+    'PRICE_BASELINE_MISSING'
+  ].includes(filter)) {
+    return uniqueRows.filter((row) => row.riskTypes.includes(filter as StagingMappingRiskType));
+  }
+
+  return uniqueRows.filter((row) => row.candidateType === filter);
 }
 
 export async function getStagingMappingSnapshot(): Promise<Snapshot> {
@@ -732,17 +755,63 @@ export async function getStagingMappingSnapshot(): Promise<Snapshot> {
   const variantRows = Array.from(variantGroups.values()).map((group) =>
     buildVariantCandidate(group, stockIndex, mappingIndex),
   );
-  const rows = [...targetRows, ...variantRows].sort((left, right) => {
+
+  // 1. targetRows와 variantRows 전체 합침 (원본 후보군)
+  const allRawRows = [...targetRows, ...variantRows];
+
+  // 2. channelProductNo와 itemName을 매치 키로 하여 그룹화 및 중복 판정
+  const matchGroups = new Map<string, typeof allRawRows>();
+  for (const r of allRawRows) {
+    const key = `${r.channelProductNo}:${normalize(r.itemName)}`;
+    const group = matchGroups.get(key) ?? [];
+    group.push(r);
+    matchGroups.set(key, group);
+  }
+
+  // 각 그룹 내에서 고유 후보 1개 선정 (PVK 우선순위)
+  const rows = allRawRows.map((row) => {
+    const key = `${row.channelProductNo}:${normalize(row.itemName)}`;
+    const group = matchGroups.get(key) ?? [];
+    
+    // 대표 후보 선정: PVK:로 시작하는 후보가 있으면 그것들 중 첫 번째, 없으면 첫 번째 후보
+    const primary = group.find((g) => g.id.startsWith('PVK:')) ?? group[0];
+    const isDuplicate = row.id !== primary.id;
+
+    // 만약 중복 후보로 걸러졌다면, 중복 후보 위험을 추가해 준다.
+    const riskTypes = [...row.riskTypes];
+    if (isDuplicate && !riskTypes.includes('DUPLICATE_CANDIDATE')) {
+      riskTypes.push('DUPLICATE_CANDIDATE');
+    }
+    const uniqueRisks = Array.from(new Set(riskTypes));
+
+    return {
+      ...row,
+      isDuplicate,
+      riskTypes: uniqueRisks,
+      riskMessages: uniqueRisks.map((risk) => RISK_MESSAGES[risk] || risk),
+    };
+  }).sort((left, right) => {
+    // 중복 여부에 따라 먼저 정렬 (고유 후보가 먼저 나오도록)
+    if (left.isDuplicate !== right.isDuplicate) {
+      return left.isDuplicate ? 1 : -1;
+    }
     const statusOrder = { RISK: 0, UNMAPPED: 1, MAPPED: 2 } as const;
     return statusOrder[left.mappingStatus] - statusOrder[right.mappingStatus]
       || left.channelProductNo.localeCompare(right.channelProductNo)
       || left.itemName.localeCompare(right.itemName, 'ko');
   });
+
   const unresolvedRisks: StagingMappingRiskType[] = [
     'SKU_UNRESOLVED',
     'NO_CANDIDATE_SKU',
     'SET_COMPONENT_SKU_UNRESOLVED',
   ];
+
+  // 고유 후보군 (isDuplicate === false)
+  const uniqueRows = rows.filter((row) => !row.isDuplicate);
+  // 중복 후보군 (isDuplicate === true)
+  const duplicateRows = rows.filter((row) => row.isDuplicate);
+
   const summary: StagingMappingPreviewSummary = {
     stagingProductCount: targetRows.filter((row) => row.candidateType === 'PRODUCT').length,
     stagingOptionCount: targetRows.filter((row) => row.candidateType === 'OPTION').length,
@@ -750,15 +819,49 @@ export async function getStagingMappingSnapshot(): Promise<Snapshot> {
     stagingStockSkuCount: new Set(stocks.map(stockSkuCode).filter(Boolean)).size,
     stagingExistingMappingCount: mappings.length,
     productVariantKeywordCandidateCount: variantGroups.size,
-    mappedCandidateCount: rows.filter((row) => row.mappingStatus === 'MAPPED').length,
-    unmappedCandidateCount: rows.filter((row) => row.mappingStatus === 'UNMAPPED').length,
-    riskCandidateCount: rows.filter((row) => row.mappingStatus === 'RISK').length,
-    setProductCandidateCount: rows.filter((row) => row.isSetProduct).length,
-    singleProductCandidateCount: rows.filter((row) => !row.isSetProduct).length,
-    unresolvedSkuCandidateCount: rows.filter((row) =>
+
+    // 고유 후보 기준 요약
+    mappedCandidateCount: uniqueRows.filter((row) => row.mappingStatus === 'MAPPED').length,
+    unmappedCandidateCount: uniqueRows.filter((row) => row.mappingStatus === 'UNMAPPED').length,
+    riskCandidateCount: uniqueRows.filter((row) => row.mappingStatus === 'RISK').length,
+    setProductCandidateCount: uniqueRows.filter((row) => row.isSetProduct).length,
+    singleProductCandidateCount: uniqueRows.filter((row) => !row.isSetProduct).length,
+    unresolvedSkuCandidateCount: uniqueRows.filter((row) =>
       row.riskTypes.some((risk) => unresolvedRisks.includes(risk)),
     ).length,
+
+    // 신규 수치 집계
+    originalCandidateCount: rows.length,
+    uniqueCandidateCount: uniqueRows.length,
+    duplicateCandidateCount: duplicateRows.length,
+    totalRiskCount: uniqueRows.reduce((sum, row) => sum + row.riskTypes.length, 0),
+    riskUniqueCandidateCount: uniqueRows.filter((row) => row.riskTypes.length > 0).length,
+
+    // 상세 위험 유형별 건수 (고유 후보 기준)
+    riskSetComponentQuantityInvalidCount: uniqueRows.filter((row) =>
+      row.riskTypes.includes('SET_COMPONENT_QUANTITY_INVALID'),
+    ).length,
+    riskSkuUnresolvedCount: uniqueRows.filter((row) =>
+      row.riskTypes.includes('SKU_UNRESOLVED'),
+    ).length,
+    riskSetComponentSkuUnresolvedCount: uniqueRows.filter((row) =>
+      row.riskTypes.includes('SET_COMPONENT_SKU_UNRESOLVED'),
+    ).length,
+    riskDuplicateCandidateCount: uniqueRows.filter((row) =>
+      row.riskTypes.includes('DUPLICATE_CANDIDATE'),
+    ).length,
+    riskNoCandidateSkuCount: uniqueRows.filter((row) =>
+      row.riskTypes.includes('NO_CANDIDATE_SKU'),
+    ).length,
+    riskStockSkuMissingCount: uniqueRows.filter((row) =>
+      row.riskTypes.includes('STOCK_SKU_MISSING'),
+    ).length,
+    riskDifferentFromExistingCount: uniqueRows.filter((row) =>
+      row.riskTypes.includes('DIFFERENT_FROM_EXISTING'),
+    ).length,
+    riskPriceBaselineMissingCount: 0, // mapping-preview에는 없음
   };
+
   const sourceJobs: StagingMappingSourceJob[] = jobs.map((job) => ({
     jobId: job.id,
     fileType: job.fileType,

@@ -249,7 +249,8 @@ export default function BulkUpdatePreviewPage() {
   const draftActionsDisabled = submitting
     || !summary
     || !summary.snapshot.hasRequiredBulkData
-    || !summary.snapshot.hasCandidateRows;
+    || !summary.snapshot.hasCandidateRows
+    || summary.summary.draftBatchCreatableCount === 0;
   const pagination = useMemo(() => getPaginationRange(
     candidates?.totalCount ?? 0,
     candidates?.pageSize ?? pageSize,
@@ -354,6 +355,26 @@ export default function BulkUpdatePreviewPage() {
           </div>
           {summary && (
             <>
+              {/* 집계 기준 설명 배너 */}
+              <div className="rounded-lg border border-indigo-500/20 bg-indigo-500/10 px-4 py-3 text-sm text-indigo-300">
+                💡 <strong>집계 기준 설명:</strong> 원본 후보에서 동일 상품/옵션 중복을 제거한 뒤 ProductVariantKeyword 후보를 우선 사용합니다.
+              </div>
+
+              {/* 실행 가능 후보 0건 안내 배너 */}
+              {summary.summary.draftBatchCreatableCount === 0 && (
+                <div className="flex items-start gap-2.5 rounded-lg border border-rose-500/20 bg-rose-500/10 px-4 py-3.5 text-sm text-rose-300">
+                  <ShieldAlert className="h-5 w-5 shrink-0 text-rose-400 mt-0.5" />
+                  <div>
+                    <p className="font-semibold">Draft Batch 생성 불가 안내</p>
+                    {summary.summary.mappingSafeCandidateCount === 0 ? (
+                      <p className="mt-1 text-xs text-rose-400/90">현재 모든 후보가 위험 상태이므로 Draft Batch를 생성할 수 없습니다. 먼저 SKU 미확정, 세트 구성 오류, 중복 후보를 정리해야 합니다.</p>
+                    ) : (
+                      <p className="mt-1 text-xs text-rose-400/90">위험이 없는 후보는 있으나, 현재 가격 또는 재고 변경이 필요한 후보가 없어 Draft Batch를 생성할 수 없습니다.</p>
+                    )}
+                  </div>
+                </div>
+              )}
+
               <div className="rounded-lg border border-[#262629] bg-[#0c0c0e] p-4">
                 <div className="flex flex-col gap-3 xl:flex-row xl:items-start xl:justify-between">
                   <div>
@@ -427,18 +448,19 @@ export default function BulkUpdatePreviewPage() {
                 </div>
               </div>
 
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 2xl:grid-cols-6">
-                <SummaryCard label="전체 후보 수" value={summary.summary.totalCandidateCount} accent="cyan" />
-                <SummaryCard label="가격 수정 후보 수" value={summary.summary.priceUpdateCandidateCount} accent="indigo" />
-                <SummaryCard label="재고 수정 후보 수" value={summary.summary.stockUpdateCandidateCount} accent="emerald" />
-                <SummaryCard label="가격+재고 후보 수" value={summary.summary.priceAndStockUpdateCandidateCount} accent="violet" />
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 2xl:grid-cols-5">
+                <SummaryCard label="전체 후보 수 (중복 제거)" value={summary.summary.totalCandidateCount} accent="cyan" />
+                <SummaryCard label="매핑 기준 안전 후보 수" value={summary.summary.mappingSafeCandidateCount} accent="emerald" />
+                <SummaryCard label="가격/재고 수정 대상 후보 수" value={summary.summary.updateTargetCandidateCount} accent="indigo" />
+                <SummaryCard label="Draft Batch 생성 가능 후보 수" value={summary.summary.draftBatchCreatableCount} accent="emerald" />
+                <SummaryCard label="실행 제외 후보 수" value={summary.summary.excludedCandidateCount} accent="amber" />
+                <SummaryCard label="가격 수정 대상 후보 수" value={summary.summary.priceUpdateCandidateCount} accent="indigo" />
+                <SummaryCard label="재고 수정 대상 후보 수" value={summary.summary.stockUpdateCandidateCount} accent="emerald" />
+                <SummaryCard label="가격+재고 수정 대상 후보 수" value={summary.summary.priceAndStockUpdateCandidateCount} accent="violet" />
                 <SummaryCard label="단품 후보 수" value={summary.summary.singleCandidateCount} accent="cyan" />
                 <SummaryCard label="세트상품 후보 수" value={summary.summary.setCandidateCount} accent="violet" />
-                <SummaryCard label="안전 후보 수" value={summary.summary.safeCandidateCount} accent="emerald" />
                 <SummaryCard label="위험 후보 수" value={summary.summary.riskCandidateCount} accent="rose" />
-                <SummaryCard label="실행 제외 후보 수" value={summary.summary.excludedCandidateCount} accent="amber" />
                 <SummaryCard label="예상 API 호출 건수" value={summary.summary.expectedApiCallCount} accent="indigo" />
-                <SummaryCard label="draft 생성 가능 후보 수" value={summary.summary.draftBatchCreatableCount} accent="emerald" />
               </div>
             </>
           )}

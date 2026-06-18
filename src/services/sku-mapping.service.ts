@@ -319,9 +319,7 @@ export async function validateSkuMappingRows(
         errors.push('매핑 대상 항목을 찾을 수 없습니다.');
       }
 
-      if (!skuCode) {
-        errors.push('skuCode가 비어 있습니다.');
-      } else if (!sku) {
+      if (skuCode && !sku) {
         errors.push('skuCode에 해당하는 SKU가 없습니다.');
       }
 
@@ -347,11 +345,11 @@ export async function validateSkuMappingRows(
         quantity: quantity === null ? row.quantity : String(quantity),
       };
 
-      if (errors.length === 0 && isMappingType(mappingType) && sku && quantity !== null) {
+      if (errors.length === 0 && isMappingType(mappingType) && quantity !== null) {
         validRows.push({
           ...displayRow,
           mappingType,
-          skuId: sku.id,
+          skuId: sku?.id || '',
           quantityValue: quantity,
         });
       }

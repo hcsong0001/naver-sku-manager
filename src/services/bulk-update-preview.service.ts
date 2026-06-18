@@ -457,7 +457,10 @@ async function buildBulkUpdateSnapshot() {
     getStagingImportSummary(),
   ]);
 
-  const rows = snapshot.rows.map((row) => {
+  // 중복이 제외된 고유 후보군만 벌크 업데이트 후보로 빌드
+  const uniqueRows = snapshot.rows.filter((row) => !row.isDuplicate);
+
+  const rows = uniqueRows.map((row) => {
     const currentValueSource = currentValueSources.byCandidateId.get(row.id)
       ?? (row.sourceMappingType && row.itemId
         ? currentValueSources.byItemLookup.get(itemLookupKey({
@@ -487,6 +490,8 @@ async function buildBulkUpdateSnapshot() {
     expectedApiCallCount: rows.reduce((sum, row) =>
       sum + (row.executable && row.hasPriceChange ? 1 : 0) + (row.executable && row.hasStockChange ? 1 : 0), 0),
     draftBatchCreatableCount: rows.filter((row) => row.draftCreatable).length,
+    mappingSafeCandidateCount: uniqueRows.filter((row) => row.riskTypes.length === 0).length,
+    updateTargetCandidateCount: rows.filter((row) => row.hasPriceChange || row.hasStockChange).length,
   };
 
   const missingBulkRequirements = [
