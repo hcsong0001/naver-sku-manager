@@ -16,6 +16,7 @@
 - 목록 화면 필터는 `?status=DRAFT | APPROVED | ALL` URL query와 동기화되며, 잘못된 값은 UI에서 `DRAFT`로 fallback
 - 목록 화면 상단에는 현재 필터 상태 설명과 Batch 수 / Item 수 요약이 함께 표시된다
 - 위험 / blocked 요약은 저장된 `previewSummary.riskCount`, `previewSummary.blockedCount`를 읽기 전용으로 합산해 표시한다
+- 각 Batch row도 동일한 `previewSummary.riskCount`, `previewSummary.blockedCount` 기준으로 위험 / 차단 badge를 표시한다
 - 네이버 API 호출 없음
 - 스마트스토어 가격/재고 변경 없음
 - 실행(`EXECUTING`) 전환 미구현

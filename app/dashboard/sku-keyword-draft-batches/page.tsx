@@ -103,6 +103,38 @@ function getStatusBadge(jobStatus: string) {
   };
 }
 
+function getRowSummaryBadges(job: DraftBatchListItem) {
+  const blockedCount = job.summary?.blockedCount ?? 0;
+  const riskCount = job.summary?.riskCount ?? 0;
+
+  if (blockedCount <= 0 && riskCount <= 0) {
+    return [
+      {
+        key: 'clean',
+        label: '문제 없음',
+        className: 'border border-emerald-500/20 bg-emerald-500/10 text-emerald-300',
+      },
+    ];
+  }
+
+  return [
+    ...(blockedCount > 0
+      ? [{
+        key: 'blocked',
+        label: `차단 ${blockedCount}`,
+        className: 'border border-red-500/30 bg-red-500/15 text-red-300',
+      }]
+      : []),
+    ...(riskCount > 0
+      ? [{
+        key: 'risk',
+        label: `위험 ${riskCount}`,
+        className: 'border border-amber-500/30 bg-amber-500/15 text-amber-300',
+      }]
+      : []),
+  ];
+}
+
 export default function DraftBatchesPage() {
   const router = useRouter();
   const pathname = usePathname();
@@ -200,15 +232,15 @@ export default function DraftBatchesPage() {
           {STATUS_OPTIONS.map((option) => {
             const selected = statusFilter === option.value;
             return (
-                <button
-                  key={option.value}
-                  type="button"
-                  onClick={() => updateStatusFilter(option.value)}
-                  className={`rounded-md px-3 py-1.5 text-sm font-semibold transition ${
-                    selected
-                      ? 'border border-indigo-500/40 bg-indigo-500/20 text-indigo-200'
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => updateStatusFilter(option.value)}
+                className={`rounded-md px-3 py-1.5 text-sm font-semibold transition ${
+                  selected
+                    ? 'border border-indigo-500/40 bg-indigo-500/20 text-indigo-200'
                     : 'border border-[#2b2b30] bg-[#18181b] text-gray-300 hover:border-indigo-500/30 hover:text-white'
-                }`}
+                  }`}
               >
                 {option.label}
               </button>
@@ -311,6 +343,7 @@ export default function DraftBatchesPage() {
               ) : (
                 jobs.map((job) => {
                   const badge = getStatusBadge(job.status);
+                  const summaryBadges = getRowSummaryBadges(job);
                   return (
                     <tr key={job.id} className="transition-colors hover:bg-[#18181b]">
                       <td className="px-4 py-3 font-mono text-xs">{job.id}</td>
@@ -325,16 +358,20 @@ export default function DraftBatchesPage() {
                       <td className="px-4 py-3">{job.itemCount}건</td>
                       <td className="px-4 py-3 text-xs">
                         {job.summary ? (
-                          <div className="flex gap-2">
-                            {(job.summary.riskCount ?? 0) > 0 && (
-                              <span className="text-amber-400">Risk: {job.summary.riskCount}</span>
-                            )}
-                            {(job.summary.blockedCount ?? 0) > 0 && (
-                              <span className="text-red-400">Blocked: {job.summary.blockedCount}</span>
-                            )}
-                            {(job.summary.riskCount ?? 0) === 0 && (job.summary.blockedCount ?? 0) === 0 && (
-                              <span className="text-gray-500">-</span>
-                            )}
+                          <div className="space-y-2">
+                            <div className="flex flex-wrap gap-2">
+                              {summaryBadges.map((summaryBadge) => (
+                                <span
+                                  key={summaryBadge.key}
+                                  className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${summaryBadge.className}`}
+                                >
+                                  {summaryBadge.label}
+                                </span>
+                              ))}
+                            </div>
+                            <p className="text-[11px] text-gray-500">
+                              dry-run 기준 참고값
+                            </p>
                           </div>
                         ) : '-'}
                       </td>
