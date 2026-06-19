@@ -8,6 +8,8 @@
 
 이번 작업은 설계 문서 작성만 수행한다. API, 서비스, 타입, 인증, 재검증 함수, Worker, 실행 API와 네이버 API 호출은 구현하지 않으며 DB를 변경하지 않는다.
 
+실제 코드 작업의 파일 구성, 단계별 게이트와 테스트 순서는 [최종 승인 artifact 생성 API 구현 계획](./sku-keyword-batch-final-approval-api-implementation-plan.md)을 따른다.
+
 ## 관련 문서와 현재 전제
 
 - [실행 직전 최종 승인 설계](./sku-keyword-batch-final-approval-design.md)
