@@ -175,6 +175,8 @@ type ApproveBlockedResponse = {
 - `targetType`, `targetId` 보정 없음
 - `approvedAt`, `executedAt` 등 다른 필드 갱신 없음
 
+이 문서에서 `APPROVED`와 Item `READY`는 **검토 승인 완료**를 뜻한다. 현재 승인 API는 `dryRun=true`, `approvedAt=null`, `approvedBy=null`을 유지하므로 이것만으로 실제 실행 자격이 생기지 않는다. 승인 메타데이터와 최종 실행 자격 선택지는 [SKU Keyword Matching Batch 실행 Worker 설계](./sku-keyword-batch-execution-worker-design.md)의 관련 섹션에서 비교한다.
+
 ## 후속 단계
 
 실행 단계의 상태 흐름, 실행 자격, payload 변환, 재검증, idempotency, 실패 및 재시도 정책은 [SKU Keyword Matching Batch 실행 Worker 설계](./sku-keyword-batch-execution-worker-design.md)를 따른다.
@@ -190,5 +192,5 @@ type ApproveBlockedResponse = {
 - 네이버 API dry-run 이후 실제 LIVE 실행
 - 부분 성공/재시도/실패 복구 흐름
 
-즉, 이번 단계의 승인 기능은 **실행 준비 상태를 명시하는 승인 절차**일 뿐이며,
+즉, 이번 단계의 승인 기능은 **검토 승인 완료 상태를 명시하는 절차**일 뿐이며,
 실제 외부 반영 단계는 별도 Worker / Execution 설계 이후에만 진행한다.
