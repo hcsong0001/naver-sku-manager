@@ -13,6 +13,7 @@
 
 근거 문서는 다음과 같다.
 
+- [최종 승인 artifact schema 변경 승인 요청서](./sku-keyword-batch-final-approval-schema-approval-request.md)
 - [실행 직전 최종 승인 설계](./sku-keyword-batch-final-approval-design.md)
 - [최종 승인 artifact 스키마 필요성 검토](./sku-keyword-batch-final-approval-schema-review.md)
 - [최종 승인 artifact schema 상세 설계](./sku-keyword-batch-final-approval-schema-design.md)

@@ -14,6 +14,7 @@
 
 관련 기준 문서는 다음과 같다.
 
+- [schema 변경 승인 요청서](./sku-keyword-batch-final-approval-schema-approval-request.md)
 - [Prisma schema 비실행 초안](./sku-keyword-batch-final-approval-prisma-schema-draft.md)
 - [schema 변경 의사결정 요약](./sku-keyword-batch-final-approval-schema-decision.md)
 - [schema 변경 전 체크리스트](./sku-keyword-batch-final-approval-schema-change-checklist.md)
