@@ -422,6 +422,11 @@ function buildDraftBatchPreview(selectedCandidates: SkuKeywordBulkLikeCandidate[
       warnings.push('업로드 파일 기준 현재값 보강 (실제 스토어값 다를 수 있음)');
     }
     candidate.riskMessages.forEach(msg => warnings.push(`위험: ${msg}`));
+    candidate.issues.forEach(i => {
+      if (i.code === 'CHANNEL_ID_UNAVAILABLE') {
+        warnings.push('채널 ID 정보 없음 (CHANNEL_ID_UNAVAILABLE)');
+      }
+    });
 
     const executable = blockedReasons.length === 0;
 

@@ -38,3 +38,33 @@ Preview 로직이 깨졌는지 확인할 때 사용합니다.
 
 같은 파일명이 여러 폴더에 있을 수 있으므로 테스트 시 반드시 full path를 확인해야 합니다.
 브라우저 업로드 테스트에서는 파일 탐색기에서 정확한 폴더를 직접 열어 선택해야 합니다.
+
+## Batch dry-run preview 검증 기준
+
+### Regression 4-match 세트
+
+경로:
+`test-data/sku-keyword-matching-regression-4match/`
+
+기대:
+- Preview matchedRows: 4
+- Draft candidates: 4
+- draftCreatable: 1
+- server dry-run executableCount: 1
+- server dry-run blockedCount: 3
+
+### 공식 100행 세트
+
+경로:
+`test-data/sku-keyword-matching/`
+
+기대:
+- Preview matchedRows: 0
+- warningRows: 184
+- Draft 후보 없음 또는 selectedCount 0
+- server dry-run 빈 결과 안전 처리
+
+### 주의
+
+Batch dry-run preview는 DB 저장, NaverApiBatchJob 저장, 네이버 API 호출을 하지 않는다.
+실제 Batch 생성 전 검토용이다.
