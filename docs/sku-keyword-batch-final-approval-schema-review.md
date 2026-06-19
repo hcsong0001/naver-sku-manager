@@ -1,6 +1,6 @@
 # SKU Keyword Matching 최종 승인 artifact 스키마 필요성 검토
 
-> 별도 모델 권장 후보의 필드·관계·제약·불변성·무효화·migration 상세안은 [최종 승인 artifact schema 변경안 상세 설계](./sku-keyword-batch-final-approval-schema-design.md)를 참고한다.
+> 별도 모델 권장 후보의 필드·관계·제약·불변성·무효화·migration 상세안은 [최종 승인 artifact schema 변경안 상세 설계](./sku-keyword-batch-final-approval-schema-design.md)를 참고한다. 실제 변경 착수 전 승인 조건은 [schema 변경 전 체크리스트](./sku-keyword-batch-final-approval-schema-change-checklist.md)에서 확인한다.
 
 ## 문서 목적
 
