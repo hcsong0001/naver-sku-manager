@@ -177,6 +177,8 @@ type ApproveBlockedResponse = {
 
 ## 후속 단계
 
+실행 단계의 상태 흐름, 실행 자격, payload 변환, 재검증, idempotency, 실패 및 재시도 정책은 [SKU Keyword Matching Batch 실행 Worker 설계](./sku-keyword-batch-execution-worker-design.md)를 따른다.
+
 이번 단계 이후에도 아직 미구현인 항목:
 
 - `APPROVED`는 승인 완료 상태이지만 실행 완료 상태가 아님
