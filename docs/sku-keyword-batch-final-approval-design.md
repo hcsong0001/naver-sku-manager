@@ -8,6 +8,8 @@
 
 이번 단계에서는 문서만 작성한다. 최종 승인 API, 상태 전환, DB write, payload 변환, 실행 API, Worker, Scheduler, LIVE adapter와 네이버 API 호출을 구현하지 않는다.
 
+적용된 artifact schema를 기준으로 한 생성 API의 요청·검증·transaction·hash 계약은 [최종 승인 artifact 생성 API 설계](./sku-keyword-batch-final-approval-api-design.md)를 따른다.
+
 ## 현재 상태와 안전상 간극
 
 현재 Keyword 승인 직후 상태는 다음과 같다.
