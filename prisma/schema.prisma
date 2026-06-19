@@ -97,6 +97,12 @@ enum NaverApiBatchItemStatus {
   CANCELLED
 }
 
+enum NaverApiBatchFinalApprovalStatus {
+  ACTIVE
+  INVALIDATED
+  SUPERSEDED
+}
+
 model Sku {
   id                 String                      @id @default(uuid())
   skuCode            String                      @unique
@@ -292,24 +298,25 @@ model NaverApiCallLog {
 
 /// 네이버 API 대량 변경의 preview, 승인, 실행 상태를 관리하는 작업
 model NaverApiBatchJob {
-  id             String                 @id @default(uuid())
+  id             String                       @id @default(uuid())
   jobType        String
   module         String
-  status         NaverApiBatchJobStatus @default(DRAFT)
-  dryRun         Boolean                @default(true)
+  status         NaverApiBatchJobStatus      @default(DRAFT)
+  dryRun         Boolean                     @default(true)
   description    String?
-  totalItems     Int                    @default(0)
-  successItems   Int                    @default(0)
-  failedItems    Int                    @default(0)
-  skippedItems   Int                    @default(0)
+  totalItems     Int                         @default(0)
+  successItems   Int                         @default(0)
+  failedItems    Int                         @default(0)
+  skippedItems   Int                         @default(0)
   previewSummary Json?
   metadata       Json?
   approvedBy     String?
-  createdAt      DateTime               @default(now())
-  updatedAt      DateTime               @updatedAt
+  createdAt      DateTime                    @default(now())
+  updatedAt      DateTime                    @updatedAt
   approvedAt     DateTime?
   executedAt     DateTime?
   items          NaverApiBatchJobItem[]
+  finalApprovals NaverApiBatchFinalApproval[]
 
   @@index([jobType])
   @@index([module])
@@ -349,6 +356,7 @@ model NaverApiBatchJobItem {
   batchJob          NaverApiBatchJob        @relation(fields: [batchJobId], references: [id], onDelete: Cascade)
   store             Smartstore              @relation(fields: [storeId], references: [id], onDelete: Restrict)
   callLogs          NaverApiCallLog[]
+  finalApprovalItems NaverApiBatchFinalApprovalItem[]
 
   @@index([batchJobId])
   @@index([storeId, channelProductNo])
@@ -359,6 +367,63 @@ model NaverApiBatchJobItem {
   @@index([internalSkuCode])
   @@index([legacyStockCode])
   @@index([barcode])
+}
+
+/// 네이버 API 대량 작업의 LIVE 실행 권한과 검증 근거를 보존하는 최종 승인 artifact
+model NaverApiBatchFinalApproval {
+  id                     String                             @id @default(uuid())
+  jobId                  String
+  version                Int
+  status                 NaverApiBatchFinalApprovalStatus  @default(ACTIVE)
+  finalApprovedAt        DateTime
+  finalApprovedBy        String
+  finalApprovalMemo      String?
+  approvalSource         String
+  validationSnapshot     Json
+  validationSnapshotHash String                             @db.VarChar(64)
+  validationExpiresAt    DateTime
+  payloadHash            String                             @db.VarChar(64)
+  executionScope         Json
+  hashSpec               Json
+  invalidatedAt          DateTime?
+  invalidatedBy          String?
+  invalidationReason     String?
+  supersedesApprovalId   String?
+  createdAt              DateTime                           @default(now())
+  job                    NaverApiBatchJob                   @relation(fields: [jobId], references: [id], onDelete: Restrict)
+  items                  NaverApiBatchFinalApprovalItem[]
+  supersedes             NaverApiBatchFinalApproval?        @relation("NaverApiBatchFinalApprovalSupersession", fields: [supersedesApprovalId], references: [id], onDelete: Restrict)
+  supersededBy           NaverApiBatchFinalApproval[]       @relation("NaverApiBatchFinalApprovalSupersession")
+
+  @@unique([jobId, version])
+  @@index([jobId, status])
+  @@index([status])
+  @@index([supersedesApprovalId])
+  @@index([finalApprovedAt])
+  @@index([validationExpiresAt])
+}
+
+/// 최종 승인 당시 전체 Job Item의 포함·제외 범위와 hash snapshot
+model NaverApiBatchFinalApprovalItem {
+  id                 String                       @id @default(uuid())
+  finalApprovalId    String
+  jobItemId          String
+  targetType         String
+  targetId           String
+  storeId            String
+  operation          String
+  included           Boolean
+  excludedReason     String?
+  itemPayloadHash    String                       @db.VarChar(64)
+  itemValidationHash String                       @db.VarChar(64)
+  createdAt          DateTime                     @default(now())
+  finalApproval      NaverApiBatchFinalApproval   @relation(fields: [finalApprovalId], references: [id], onDelete: Restrict)
+  jobItem            NaverApiBatchJobItem         @relation(fields: [jobItemId], references: [id], onDelete: Restrict)
+
+  @@unique([finalApprovalId, jobItemId])
+  @@index([finalApprovalId, included])
+  @@index([jobItemId])
+  @@index([storeId, targetType, targetId])
 }
 
 model StagingStockItem {
