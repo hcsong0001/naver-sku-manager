@@ -10,6 +10,7 @@
 
 - [최종 승인 단계 설계](./sku-keyword-batch-final-approval-design.md)
 - [최종 승인 artifact 스키마 필요성 검토](./sku-keyword-batch-final-approval-schema-review.md)
+- [최종 승인 artifact schema 변경 의사결정 요약](./sku-keyword-batch-final-approval-schema-decision.md)
 - [최종 승인 artifact schema 변경 전 체크리스트](./sku-keyword-batch-final-approval-schema-change-checklist.md)
 - [실행 직전 사전 검증 설계](./sku-keyword-batch-pre-execution-validation-design.md)
 - [payload 변환 설계](./sku-keyword-batch-payload-transform-design.md)

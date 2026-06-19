@@ -4,7 +4,7 @@
 
 이 문서는 `NaverApiBatchFinalApproval`과 `NaverApiBatchFinalApprovalItem` 후보 모델을 실제 Prisma schema와 운영 DB에 반영하기 전에 반드시 확인하고 명시적으로 승인해야 할 항목을 정의한다.
 
-이 체크리스트는 [최종 승인 artifact schema 상세 설계](./sku-keyword-batch-final-approval-schema-design.md)의 구현 전 승인 게이트다. 체크 표시만 남기는 문서가 아니라 각 결정의 근거, 검증 결과, 승인 주체를 추적하기 위한 문서로 사용한다.
+이 체크리스트는 [최종 승인 artifact schema 상세 설계](./sku-keyword-batch-final-approval-schema-design.md)의 구현 전 승인 게이트다. 변경 필요성, 권장안과 현재 NO-GO 판정은 [schema 변경 의사결정 요약](./sku-keyword-batch-final-approval-schema-decision.md)을 따른다. 체크 표시만 남기는 문서가 아니라 각 결정의 근거, 검증 결과, 승인 주체를 추적하기 위한 문서로 사용한다.
 
 이번 작업은 문서 작성만 수행한다. Prisma schema, migration, DB, 코드, Job/Item status, payload와 네이버 API에는 어떠한 변경도 하지 않는다.
 
