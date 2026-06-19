@@ -93,7 +93,7 @@
 
 ## 최종 승인 메타데이터 초안
 
-현재 Prisma 모델의 수용 가능성, JSON 저장 한계와 별도 승인/Item 범위 모델 후보는 [SKU Keyword Matching 최종 승인 artifact 스키마 필요성 검토](./sku-keyword-batch-final-approval-schema-review.md)를 따른다.
+현재 Prisma 모델의 수용 가능성과 JSON 저장 한계는 [SKU Keyword Matching 최종 승인 artifact 스키마 필요성 검토](./sku-keyword-batch-final-approval-schema-review.md)를 따르고, 별도 승인/Item 범위 모델의 필드·관계·제약 상세안은 [최종 승인 artifact schema 변경안 상세 설계](./sku-keyword-batch-final-approval-schema-design.md)를 따른다.
 
 최종 승인은 최소한 다음 정보를 하나의 불변 승인 artifact로 묶어야 한다.
 
