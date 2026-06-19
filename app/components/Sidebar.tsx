@@ -18,6 +18,7 @@ import {
   Upload,
   PackageCheck,
   ShieldAlert,
+  ScanSearch,
   type LucideIcon,
 } from "lucide-react";
 
@@ -37,6 +38,7 @@ const menuItems: MenuItem[] = [
   { name: "SKU 코드/키워드", href: "/dashboard/sku-aliases", icon: FileSpreadsheet },
   { name: "SKU 바코드", href: "/dashboard/sku-barcodes", icon: FileSpreadsheet },
   { name: "키워드 자동매칭", href: "/dashboard/sku-keyword-matching", icon: Search },
+  { name: "OPTION 현재 문맥", href: "/dashboard/option-current-context", icon: ScanSearch },
   { name: "전체 데이터 Import", href: "/dashboard/staging-import", icon: Upload },
   { name: "전체 매핑 Preview", href: "/dashboard/staging-mapping-preview", icon: Search },
   { name: "가격/재고 수정 Preview", href: "/dashboard/bulk-update-preview", icon: PackageCheck },
