@@ -158,6 +158,8 @@ payload transformer가 받는 논리 입력은 다음 범주로 분리한다.
 
 ## 실행 전 필수 재검증
 
+상세 실행 자격, 최신 문맥 차이, risk/blocked 재계산과 전체 차단 정책은 [SKU Keyword Matching Batch 실행 전 재검증 설계](./sku-keyword-batch-pre-execution-validation-design.md)를 따른다.
+
 ### Job 수준
 
 - `jobType === PRICE_STOCK_UPDATE`

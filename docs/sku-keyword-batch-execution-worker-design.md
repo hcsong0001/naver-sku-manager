@@ -255,6 +255,8 @@ Job의 실행 자격이 별도로 충족된 경우에만 가능하다. Item `REA
 
 ## 실행 전 재검증
 
+상세 Job/Item 조건, risk/blocked 재계산, 최신 문맥 비교와 실패 정책은 [SKU Keyword Matching Batch 실행 전 재검증 설계](./sku-keyword-batch-pre-execution-validation-design.md)를 따른다.
+
 dry-run과 실제 실행 사이에는 시간 차이가 있으므로 승인 당시 값만 신뢰할 수 없다. 실제 호출 직전에 최소한 다음을 다시 확인해야 한다.
 
 1. Job/Item 상태와 승인 정보가 여전히 유효한지 확인
