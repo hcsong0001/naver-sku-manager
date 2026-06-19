@@ -4,6 +4,8 @@
 
 이 문서는 [최종 승인 artifact 생성 API 설계](./sku-keyword-batch-final-approval-api-design.md)를 실제 코드로 옮기기 전에 구현 파일, 책임 경계, 작업 순서, transaction·hash·오류 처리와 검증 게이트를 정의한다.
 
+인증 주체, 재검증 기준, canonical hash와 격리 테스트 DB의 MVP 확정값은 [API 구현 선결 조건 확정](./sku-keyword-batch-final-approval-api-prerequisites.md)을 따른다.
+
 구현 대상은 최종 승인 artifact 생성까지다. 성공하더라도 Job은 `APPROVED`, Item은 `READY`로 유지하며 네이버 API 호출, Worker 실행과 `EXECUTING` 전환으로 이어지지 않는다.
 
 이번 작업에서는 계획 문서만 작성한다. route, service, type, test, Prisma schema와 migration을 생성하거나 수정하지 않으며 DB write를 수행하지 않는다.
@@ -46,7 +48,7 @@
 - test runner 도입 또는 기존 검증 대안에 대한 별도 승인
 - API 구현 및 DB write에 대한 사용자 명시 승인
 
-현재 계획 단계의 판정은 **구현 전 조건부 NO-GO**다.
+선결 조건 문서에서 네 정책을 확정했으므로 현재 판정은 **별도 사용자 승인을 전제로 한 구현 GO 후보**다. 구현 착수 시 실제 server config, Docker test 환경과 test runner 승인 여부를 다시 확인한다.
 
 ## 구현 대상 파일 후보
 
