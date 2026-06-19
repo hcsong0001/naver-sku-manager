@@ -171,6 +171,12 @@ export default function OptionCurrentContextPage() {
                   있거나, 최종 옵션 판매가가 직접 제공되어야 합니다.
                 </p>
                 <p className="tms-text-muted">
+                  스마트스토어 상품관리 엑셀의 작성가이드 행(필수/비필수 안내, 설명 행)은 Preview에서 자동 제외합니다.
+                </p>
+                <p className="tms-text-muted">
+                  판매자할인 단위가 <code>%</code>인 경우에는 금액 계산에 바로 사용할 수 없어 경고로 표시합니다.
+                </p>
+                <p className="tms-text-muted">
                   추가상품은 옵션 계산식이 아니라 단일가격 기준입니다. ERP 대표판매가/ERP 현재재고를 스마트스토어 현재
                   옵션가/현재 판매재고로 사용하지 마세요.
                 </p>

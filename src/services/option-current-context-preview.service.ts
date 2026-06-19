@@ -20,6 +20,7 @@ type OptionCurrentContextParsedRow = {
   optionValue: string;
   baseSalePriceRaw: string;
   sellerDiscountRaw: string;
+  sellerDiscountUnitRaw: string;
   optionPriceRaw: string;
   currentEffectiveOptionPriceRaw: string;
   currentOptionStockQuantityRaw: string;
@@ -27,6 +28,7 @@ type OptionCurrentContextParsedRow = {
   additionalStockQuantityRaw: string;
   memo: string;
   hasSellerDiscountColumn: boolean;
+  channelProductNoDerivedFromFileName: boolean;
 };
 
 type ParsedIntegerResult = {
@@ -38,6 +40,7 @@ const HEADER_CANDIDATES = {
   smartstoreId: ['smartstoreid', '스토어id', '스토어아이디'],
   storeName: ['storename', '스토어명', '스토어이름'],
   channelProductNo: ['channelproductno', '채널상품번호', '판매처상품코드'],
+  channelProductNoAlt: ['상품번호'],
   originProductNo: ['originproductno', '원상품번호', '네이버상품번호', 'naverproductid'],
   optionId: ['optionid', '옵션id', '옵션번호'],
   sellerManagerCode: [
@@ -47,11 +50,20 @@ const HEADER_CANDIDATES = {
     '판매자상품코드',
     '판매자 상품코드',
     '옵션코드',
+    '관리코드',
   ],
   optionName: ['optionname', '옵션명'],
   optionValue: ['optionvalue', '옵션값', '옵션내용'],
   baseSalePrice: ['basesaleprice', '판매가', '기본판매가', '정상품판매가', '기준상품판매가'],
-  sellerDiscount: ['sellerdiscount', '판매자할인', '판매자할인금액'],
+  sellerDiscount: [
+    'sellerdiscount',
+    '판매자할인',
+    '판매자할인금액',
+    '기본할인값',
+    '즉시할인값기본할인',
+    '즉시할인 값(기본할인)',
+  ],
+  sellerDiscountUnit: ['sellerdiscountunit', '기본할인단위', '즉시할인단위기본할인', '즉시할인 단위(기본할인)'],
   optionPrice: ['optionprice', 'optionpricedelta', '옵션가', '옵션가감액', '옵션추가금액', '옵션차액'],
   currentEffectiveOptionPrice: [
     'currenteffectiveoptionprice',
@@ -68,9 +80,11 @@ const HEADER_CANDIDATES = {
     '현재옵션재고',
     '옵션재고',
     '옵션판매재고',
+    '옵션재고수량',
+    '옵션 재고수량',
   ],
-  additionalPrice: ['additionalprice', '추가상품가격', '추가상품단일가격'],
-  additionalStockQuantity: ['additionalstockquantity', '추가상품재고'],
+  additionalPrice: ['additionalprice', '추가상품가격', '추가상품단일가격', '추가상품가'],
+  additionalStockQuantity: ['additionalstockquantity', '추가상품재고', '추가상품재고수량', '추가상품 재고수량'],
   memo: ['memo', '비고', '메모'],
 } as const;
 
@@ -163,6 +177,7 @@ function hasMeaningfulValue(row: OptionCurrentContextParsedRow): boolean {
     row.optionValue,
     row.baseSalePriceRaw,
     row.sellerDiscountRaw,
+    row.sellerDiscountUnitRaw,
     row.optionPriceRaw,
     row.currentEffectiveOptionPriceRaw,
     row.currentOptionStockQuantityRaw,
@@ -172,9 +187,79 @@ function hasMeaningfulValue(row: OptionCurrentContextParsedRow): boolean {
   ].some((value) => value.trim().length > 0);
 }
 
+function extractChannelProductNoFromFileName(fileName: string): string {
+  const normalizedFileName = fileName.replace(/\.[^.]+$/, '');
+  const match =
+    normalizedFileName.match(/상품[_-]?(\d{8,})[_-]?추가상품목록/i) ??
+    normalizedFileName.match(/channel[_-]?product[_-]?(\d{8,})/i);
+
+  return match?.[1] ?? '';
+}
+
+function isRequirementGuideRow(row: Record<string, unknown>): boolean {
+  const values = Object.values(row)
+    .map((value) => normalizeCell(value))
+    .filter((value) => value.length > 0);
+
+  if (values.length === 0) return false;
+
+  const guideFlags = new Set(['필수', '비필수', '조건부필수', '조건부 필수']);
+  return values.every((value) => guideFlags.has(value));
+}
+
+function isInstructionGuideRow(row: Record<string, unknown>): boolean {
+  const joined = Object.values(row)
+    .map((value) => normalizeCell(value))
+    .filter((value) => value.length > 0)
+    .join(' ');
+
+  if (!joined) return false;
+
+  return (
+    joined.includes('작성가이드는 삭제하시기 바랍니다') ||
+    joined.includes('스마트스토어 상품번호를 기준으로 상품정보를 수정합니다') ||
+    joined.includes('최대 30자까지 입력할 수 있습니다') ||
+    joined.includes('옵션가 등록 시 주의사항')
+  );
+}
+
+function shouldUseGenericAdditionalStockKey(
+  row: Record<string, unknown>,
+  explicitAdditionalStockKey: string,
+): boolean {
+  if (explicitAdditionalStockKey) return false;
+
+  const hasAdditionalContext = ['추가상품명', '추가상품값', '추가상품가', '추가상품가격', '추가상품단일가격'].some(
+    (label) =>
+      Object.values(row).some((value) => normalizeHeader(String(value)) === normalizeHeader(label)),
+  );
+
+  if (!hasAdditionalContext) return false;
+
+  return Object.values(row).some((value) => normalizeHeader(String(value)) === normalizeHeader('재고수량'));
+}
+
+function shouldUseGenericAdditionalStockHeaderKey(
+  keys: string[],
+  explicitAdditionalStockKey: string,
+): boolean {
+  if (explicitAdditionalStockKey) return false;
+
+  const normalizedKeys = keys.map((key) => normalizeHeader(key));
+  const hasAdditionalContext =
+    normalizedKeys.includes(normalizeHeader('추가상품명')) &&
+    (normalizedKeys.includes(normalizeHeader('추가상품값')) ||
+      normalizedKeys.includes(normalizeHeader('추가상품가')) ||
+      normalizedKeys.includes(normalizeHeader('추가상품가격')) ||
+      normalizedKeys.includes(normalizeHeader('추가상품단일가격')));
+
+  return hasAdditionalContext && normalizedKeys.includes(normalizeHeader('재고수량'));
+}
+
 function parseWorkbookRows(buffer: Buffer, fileName: string): OptionCurrentContextParsedRow[] {
   const workbook = readWorkbook(buffer, fileName);
   const parsedRows: OptionCurrentContextParsedRow[] = [];
+  const channelProductNoFromFileName = extractChannelProductNoFromFileName(fileName);
 
   for (const sheetName of workbook.SheetNames) {
     const worksheet = workbook.Sheets[sheetName];
@@ -203,6 +288,7 @@ function parseWorkbookRows(buffer: Buffer, fileName: string): OptionCurrentConte
     let optionValueKey = '';
     let baseSalePriceKey = '';
     let sellerDiscountKey = '';
+    let sellerDiscountUnitKey = '';
     let optionPriceKey = '';
     let currentEffectiveOptionPriceKey = '';
     let currentOptionStockQuantityKey = '';
@@ -218,6 +304,9 @@ function parseWorkbookRows(buffer: Buffer, fileName: string): OptionCurrentConte
       smartstoreIdKey = findKeyByRowValue(headerRow, HEADER_CANDIDATES.smartstoreId);
       storeNameKey = findKeyByRowValue(headerRow, HEADER_CANDIDATES.storeName);
       channelProductNoKey = findKeyByRowValue(headerRow, HEADER_CANDIDATES.channelProductNo);
+      if (!channelProductNoKey) {
+        channelProductNoKey = findKeyByRowValue(headerRow, HEADER_CANDIDATES.channelProductNoAlt);
+      }
       originProductNoKey = findKeyByRowValue(headerRow, HEADER_CANDIDATES.originProductNo);
       optionIdKey = findKeyByRowValue(headerRow, HEADER_CANDIDATES.optionId);
       sellerManagerCodeKey = findKeyByRowValue(headerRow, HEADER_CANDIDATES.sellerManagerCode);
@@ -225,6 +314,7 @@ function parseWorkbookRows(buffer: Buffer, fileName: string): OptionCurrentConte
       optionValueKey = findKeyByRowValue(headerRow, HEADER_CANDIDATES.optionValue);
       baseSalePriceKey = findKeyByRowValue(headerRow, HEADER_CANDIDATES.baseSalePrice);
       sellerDiscountKey = findKeyByRowValue(headerRow, HEADER_CANDIDATES.sellerDiscount);
+      sellerDiscountUnitKey = findKeyByRowValue(headerRow, HEADER_CANDIDATES.sellerDiscountUnit);
       optionPriceKey = findKeyByRowValue(headerRow, HEADER_CANDIDATES.optionPrice);
       currentEffectiveOptionPriceKey = findKeyByRowValue(
         headerRow,
@@ -236,6 +326,9 @@ function parseWorkbookRows(buffer: Buffer, fileName: string): OptionCurrentConte
       );
       additionalPriceKey = findKeyByRowValue(headerRow, HEADER_CANDIDATES.additionalPrice);
       additionalStockQuantityKey = findKeyByRowValue(headerRow, HEADER_CANDIDATES.additionalStockQuantity);
+      if (shouldUseGenericAdditionalStockKey(headerRow, additionalStockQuantityKey)) {
+        additionalStockQuantityKey = findKeyByRowValue(headerRow, ['재고수량']);
+      }
       memoKey = findKeyByRowValue(headerRow, HEADER_CANDIDATES.memo);
       dataRows = sheetRows.slice(1);
       startRowNumber = 3;
@@ -243,6 +336,9 @@ function parseWorkbookRows(buffer: Buffer, fileName: string): OptionCurrentConte
       smartstoreIdKey = findKeyByHeaderKeys(keys, HEADER_CANDIDATES.smartstoreId);
       storeNameKey = findKeyByHeaderKeys(keys, HEADER_CANDIDATES.storeName);
       channelProductNoKey = findKeyByHeaderKeys(keys, HEADER_CANDIDATES.channelProductNo);
+      if (!channelProductNoKey) {
+        channelProductNoKey = findKeyByHeaderKeys(keys, HEADER_CANDIDATES.channelProductNoAlt);
+      }
       originProductNoKey = findKeyByHeaderKeys(keys, HEADER_CANDIDATES.originProductNo);
       optionIdKey = findKeyByHeaderKeys(keys, HEADER_CANDIDATES.optionId);
       sellerManagerCodeKey = findKeyByHeaderKeys(keys, HEADER_CANDIDATES.sellerManagerCode);
@@ -250,6 +346,7 @@ function parseWorkbookRows(buffer: Buffer, fileName: string): OptionCurrentConte
       optionValueKey = findKeyByHeaderKeys(keys, HEADER_CANDIDATES.optionValue);
       baseSalePriceKey = findKeyByHeaderKeys(keys, HEADER_CANDIDATES.baseSalePrice);
       sellerDiscountKey = findKeyByHeaderKeys(keys, HEADER_CANDIDATES.sellerDiscount);
+      sellerDiscountUnitKey = findKeyByHeaderKeys(keys, HEADER_CANDIDATES.sellerDiscountUnit);
       optionPriceKey = findKeyByHeaderKeys(keys, HEADER_CANDIDATES.optionPrice);
       currentEffectiveOptionPriceKey = findKeyByHeaderKeys(
         keys,
@@ -258,18 +355,27 @@ function parseWorkbookRows(buffer: Buffer, fileName: string): OptionCurrentConte
       currentOptionStockQuantityKey = findKeyByHeaderKeys(keys, HEADER_CANDIDATES.currentOptionStockQuantity);
       additionalPriceKey = findKeyByHeaderKeys(keys, HEADER_CANDIDATES.additionalPrice);
       additionalStockQuantityKey = findKeyByHeaderKeys(keys, HEADER_CANDIDATES.additionalStockQuantity);
+      if (shouldUseGenericAdditionalStockHeaderKey(keys, additionalStockQuantityKey)) {
+        additionalStockQuantityKey = findKeyByHeaderKeys(keys, ['재고수량']);
+      }
       memoKey = findKeyByHeaderKeys(keys, HEADER_CANDIDATES.memo);
       dataRows = sheetRows;
       startRowNumber = 2;
     }
 
     dataRows.forEach((row, index) => {
+      if (isRequirementGuideRow(row) || isInstructionGuideRow(row)) {
+        return;
+      }
+
       const parsedRow: OptionCurrentContextParsedRow = {
         rowNumber: index + startRowNumber,
         sourceSheet: sheetName,
         smartstoreId: smartstoreIdKey ? normalizeCell(row[smartstoreIdKey]) : '',
         storeName: storeNameKey ? normalizeCell(row[storeNameKey]) : '',
-        channelProductNo: channelProductNoKey ? normalizeCell(row[channelProductNoKey]) : '',
+        channelProductNo: channelProductNoKey
+          ? normalizeCell(row[channelProductNoKey])
+          : channelProductNoFromFileName,
         originProductNo: originProductNoKey ? normalizeCell(row[originProductNoKey]) : '',
         optionId: optionIdKey ? normalizeCell(row[optionIdKey]) : '',
         sellerManagerCode: sellerManagerCodeKey ? normalizeCell(row[sellerManagerCodeKey]) : '',
@@ -277,6 +383,7 @@ function parseWorkbookRows(buffer: Buffer, fileName: string): OptionCurrentConte
         optionValue: optionValueKey ? normalizeCell(row[optionValueKey]) : '',
         baseSalePriceRaw: baseSalePriceKey ? normalizeCell(row[baseSalePriceKey]) : '',
         sellerDiscountRaw: sellerDiscountKey ? normalizeCell(row[sellerDiscountKey]) : '',
+        sellerDiscountUnitRaw: sellerDiscountUnitKey ? normalizeCell(row[sellerDiscountUnitKey]) : '',
         optionPriceRaw: optionPriceKey ? normalizeCell(row[optionPriceKey]) : '',
         currentEffectiveOptionPriceRaw: currentEffectiveOptionPriceKey
           ? normalizeCell(row[currentEffectiveOptionPriceKey])
@@ -290,6 +397,7 @@ function parseWorkbookRows(buffer: Buffer, fileName: string): OptionCurrentConte
           : '',
         memo: memoKey ? normalizeCell(row[memoKey]) : '',
         hasSellerDiscountColumn: Boolean(sellerDiscountKey),
+        channelProductNoDerivedFromFileName: !channelProductNoKey && Boolean(channelProductNoFromFileName),
       };
 
       if (hasMeaningfulValue(parsedRow)) {
@@ -349,6 +457,8 @@ export function previewOptionCurrentContextFile(input: {
 
     if (!row.channelProductNo) {
       errors.push('channelProductNo가 없습니다.');
+    } else if (row.channelProductNoDerivedFromFileName) {
+      warnings.push('channelProductNo를 파일명에서 추론했습니다. 업로드 전 상품번호를 다시 확인하세요.');
     }
 
     if (rowType === 'OPTION' && !row.optionId && !row.sellerManagerCode) {
@@ -392,8 +502,31 @@ export function previewOptionCurrentContextFile(input: {
     }
 
     let resolvedSellerDiscount = sellerDiscount.value;
+    const normalizedSellerDiscountUnit = normalizeHeader(row.sellerDiscountUnitRaw);
+    const usesPercentSellerDiscount =
+      normalizedSellerDiscountUnit === '%' ||
+      normalizedSellerDiscountUnit === '퍼센트' ||
+      normalizedSellerDiscountUnit === 'percent';
+
+    if (usesPercentSellerDiscount) {
+      warnings.push('판매자할인 단위가 %라서 판매가 - 판매자할인 + 옵션가 계산에 사용하지 않았습니다.');
+      resolvedSellerDiscount = null;
+    } else if (
+      row.sellerDiscountUnitRaw &&
+      normalizedSellerDiscountUnit !== '원' &&
+      normalizedSellerDiscountUnit !== ''
+    ) {
+      warnings.push('판매자할인 단위를 해석할 수 없어 판매가 - 판매자할인 + 옵션가 계산에 사용하지 않았습니다.');
+      resolvedSellerDiscount = null;
+    }
+
     if (rowType === 'OPTION' && row.hasSellerDiscountColumn && resolvedSellerDiscount === null) {
-      resolvedSellerDiscount = 0;
+      if (
+        !usesPercentSellerDiscount &&
+        (normalizedSellerDiscountUnit === '' || normalizedSellerDiscountUnit === '원')
+      ) {
+        resolvedSellerDiscount = 0;
+      }
     }
 
     let calculatedEffectiveOptionPrice: number | null = null;
