@@ -13,6 +13,7 @@
 - Job 상태 전환 구현 완료: `DRAFT -> APPROVED`
 - Item 상태 전환 구현 완료: `DRAFT -> READY`
 - 목록 화면에서 `DRAFT / APPROVED / 전체` 조회 필터 지원
+- 목록 화면 필터는 `?status=DRAFT | APPROVED | ALL` URL query와 동기화되며, 잘못된 값은 UI에서 `DRAFT`로 fallback
 - 네이버 API 호출 없음
 - 스마트스토어 가격/재고 변경 없음
 - 실행(`EXECUTING`) 전환 미구현

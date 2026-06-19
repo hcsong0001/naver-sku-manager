@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { AlertTriangle, List, RefreshCw, Search } from 'lucide-react';
 
 type DraftBatchStatusFilter = 'DRAFT' | 'APPROVED' | 'ALL';
@@ -38,6 +39,14 @@ const STATUS_OPTIONS: Array<{
   { value: 'ALL', label: '전체' },
 ];
 
+function parseStatusFilter(value: string | null): DraftBatchStatusFilter {
+  if (value === 'APPROVED' || value === 'ALL' || value === 'DRAFT') {
+    return value;
+  }
+
+  return 'DRAFT';
+}
+
 function getStatusBadge(jobStatus: string) {
   if (jobStatus === 'DRAFT') {
     return {
@@ -60,11 +69,21 @@ function getStatusBadge(jobStatus: string) {
 }
 
 export default function DraftBatchesPage() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [jobs, setJobs] = useState<DraftBatchListItem[]>([]);
-  const [statusFilter, setStatusFilter] = useState<DraftBatchStatusFilter>('DRAFT');
   const [refreshToken, setRefreshToken] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const statusFilter = parseStatusFilter(searchParams.get('status'));
+
+  const updateStatusFilter = (nextStatus: DraftBatchStatusFilter) => {
+    const nextParams = new URLSearchParams(searchParams.toString());
+    nextParams.set('status', nextStatus);
+    router.push(`${pathname}?${nextParams.toString()}`, { scroll: false });
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -133,13 +152,13 @@ export default function DraftBatchesPage() {
           {STATUS_OPTIONS.map((option) => {
             const selected = statusFilter === option.value;
             return (
-              <button
-                key={option.value}
-                type="button"
-                onClick={() => setStatusFilter(option.value)}
-                className={`rounded-md px-3 py-1.5 text-sm font-semibold transition ${
-                  selected
-                    ? 'border border-indigo-500/40 bg-indigo-500/20 text-indigo-200'
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => updateStatusFilter(option.value)}
+                  className={`rounded-md px-3 py-1.5 text-sm font-semibold transition ${
+                    selected
+                      ? 'border border-indigo-500/40 bg-indigo-500/20 text-indigo-200'
                     : 'border border-[#2b2b30] bg-[#18181b] text-gray-300 hover:border-indigo-500/30 hover:text-white'
                 }`}
               >
@@ -148,7 +167,7 @@ export default function DraftBatchesPage() {
             );
           })}
           <span className="ml-auto text-xs text-gray-500">
-            기본 조회: DRAFT
+            기본 조회: URL status가 없거나 잘못되면 DRAFT
           </span>
         </div>
       </div>
