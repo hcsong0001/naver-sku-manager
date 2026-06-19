@@ -10,6 +10,7 @@
 
 - [schema 변경 의사결정 요약](./sku-keyword-batch-final-approval-schema-decision.md)
 - [schema 변경안 상세 설계](./sku-keyword-batch-final-approval-schema-design.md)
+- [migration 생성·검토·적용 절차](./sku-keyword-batch-final-approval-migration-plan.md)
 - [schema 변경 전 체크리스트](./sku-keyword-batch-final-approval-schema-change-checklist.md)
 - [최종 승인 artifact 스키마 필요성 검토](./sku-keyword-batch-final-approval-schema-review.md)
 - [실행 직전 최종 승인 설계](./sku-keyword-batch-final-approval-design.md)
