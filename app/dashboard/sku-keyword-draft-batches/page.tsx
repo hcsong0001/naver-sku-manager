@@ -14,8 +14,13 @@ type DraftBatchListItem = {
   updatedAt: string;
   itemCount: number;
   summary?: {
+    receivedCount?: number;
+    selectedCount?: number;
+    executableCount?: number;
     riskCount?: number;
     blockedCount?: number;
+    uploadContextCount?: number;
+    dbContextCount?: number;
   };
 };
 
@@ -111,6 +116,8 @@ export default function DraftBatchesPage() {
   const filterSummary = getFilterSummary(statusFilter);
   const jobCount = jobs.length;
   const totalItemCount = jobs.reduce((sum, job) => sum + job.itemCount, 0);
+  const totalBlockedItemCount = jobs.reduce((sum, job) => sum + (job.summary?.blockedCount ?? 0), 0);
+  const totalRiskItemCount = jobs.reduce((sum, job) => sum + (job.summary?.riskCount ?? 0), 0);
 
   const updateStatusFilter = (nextStatus: DraftBatchStatusFilter) => {
     const nextParams = new URLSearchParams(searchParams.toString());
@@ -212,7 +219,7 @@ export default function DraftBatchesPage() {
           </span>
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-3">
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
           <div className="rounded-lg border border-[#262629] bg-[#121214] p-4">
             <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">현재 필터</p>
             <div className="mt-2 flex items-center gap-2">
@@ -235,6 +242,31 @@ export default function DraftBatchesPage() {
             <p className="mt-2 text-2xl font-bold text-white">{totalItemCount.toLocaleString()}</p>
             <p className="mt-2 text-sm text-gray-400">현재 목록에 포함된 item 수 합계입니다.</p>
           </div>
+
+          <div className="rounded-lg border border-[#262629] bg-[#121214] p-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">차단 / 실행 불가 Item 수</p>
+            <p className="mt-2 text-2xl font-bold text-red-300">{totalBlockedItemCount.toLocaleString()}</p>
+            <p className="mt-2 text-sm text-gray-400">
+              저장된 `previewSummary.blockedCount` 합계 기준입니다.
+            </p>
+          </div>
+
+          <div className="rounded-lg border border-[#262629] bg-[#121214] p-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">위험 / 확인 필요 Item 수</p>
+            <p className="mt-2 text-2xl font-bold text-amber-300">{totalRiskItemCount.toLocaleString()}</p>
+            <p className="mt-2 text-sm text-gray-400">
+              저장된 `previewSummary.riskCount` 합계 기준입니다.
+            </p>
+          </div>
+        </div>
+
+        <div className="rounded-lg border border-[#262629] bg-[#121214] p-4 text-sm text-gray-400">
+          <p className="font-medium text-gray-300">요약 기준</p>
+          <ul className="mt-2 space-y-1">
+            <li>- 차단 / 실행 불가 Item 수는 각 Batch의 `previewSummary.blockedCount`를 합산합니다.</li>
+            <li>- 위험 / 확인 필요 Item 수는 각 Batch의 `previewSummary.riskCount`를 합산합니다.</li>
+            <li>- APPROVED 상태에서도 이 값은 승인 전 dry-run 기준 참고용 요약이며, 실행 결과를 뜻하지 않습니다.</li>
+          </ul>
         </div>
       </div>
 
