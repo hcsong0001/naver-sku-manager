@@ -27,7 +27,11 @@ import type { SkuKeywordHydrateIssueCode } from '@/src/types/sku-keyword-draft-h
 import type {
   SkuKeywordDraftPreviewRequest,
   SkuKeywordDraftPreviewResponse,
+  SkuKeywordDraftBatchPreview,
+  SkuKeywordDraftBatchPreviewItem,
+  SkuKeywordDraftBatchPreviewSummary,
 } from '@/src/types/sku-keyword-draft-preview.types';
+import type { SkuKeywordBulkLikeCandidate } from '@/src/types/sku-keyword-bulk-like-candidate.types';
 import type {
   SkuKeywordErrorRow,
   SkuKeywordManualApplyRequest,
@@ -371,6 +375,94 @@ function getHydrateIssueEntries(
     .map(([code, count]) => ({ code, count }));
 }
 
+function buildDraftBatchPreview(selectedCandidates: SkuKeywordBulkLikeCandidate[]): SkuKeywordDraftBatchPreview {
+  const summary: SkuKeywordDraftBatchPreviewSummary = {
+    selectedCount: selectedCandidates.length,
+    executableCount: 0,
+    blockedCount: 0,
+    riskCount: 0,
+    priceChangeCount: 0,
+    stockChangeCount: 0,
+    optionCount: 0,
+    additionalCount: 0,
+    singleCount: 0,
+    uploadContextCount: 0,
+    dbContextCount: 0,
+  };
+
+  const items: SkuKeywordDraftBatchPreviewItem[] = selectedCandidates.map(candidate => {
+    let targetType: SkuKeywordDraftBatchPreviewItem['targetType'] = 'UNKNOWN';
+    if (candidate.candidateType === 'PRODUCT') targetType = 'SINGLE';
+    else if (candidate.candidateType === 'OPTION') targetType = 'OPTION';
+    else if (candidate.candidateType === 'ADDITIONAL') targetType = 'ADDITIONAL';
+
+    let changeType: SkuKeywordDraftBatchPreviewItem['changeType'] = 'UNKNOWN';
+    if (candidate.hasPriceChange && candidate.hasStockChange) changeType = 'PRICE_AND_STOCK';
+    else if (candidate.hasPriceChange) changeType = 'PRICE';
+    else if (candidate.hasStockChange) changeType = 'STOCK';
+
+    const blockedReasons: string[] = [];
+    if (!candidate.draftCreatable) {
+      blockedReasons.push('draftCreatable=false (시스템 차단)');
+    }
+    if (candidate.status === 'NEEDS_CONTEXT') {
+      blockedReasons.push('문맥 부족 (NEEDS_CONTEXT)');
+    }
+    if (candidate.issues.some(i => i.code === 'CURRENT_PRICE_UNAVAILABLE')) {
+      blockedReasons.push('현재 가격 문맥 없음');
+    }
+    if (candidate.issues.some(i => i.code === 'CURRENT_STOCK_UNAVAILABLE')) {
+      blockedReasons.push('현재 재고 문맥 없음');
+    }
+
+    const warnings: string[] = [];
+    if (candidate.currentStateSource === 'UPLOAD_OPTION_CURRENT_CONTEXT_PREVIEW') {
+      warnings.push('업로드 파일 기준 현재값 보강 (실제 스토어값 다를 수 있음)');
+    }
+    candidate.riskMessages.forEach(msg => warnings.push(`위험: ${msg}`));
+
+    const executable = blockedReasons.length === 0;
+
+    let riskLevel: SkuKeywordDraftBatchPreviewItem['riskLevel'] = 'LOW';
+    if (blockedReasons.length > 0) riskLevel = 'HIGH';
+    else if (warnings.length > 0) riskLevel = 'MEDIUM';
+
+    if (executable) summary.executableCount++;
+    else summary.blockedCount++;
+
+    if (riskLevel === 'HIGH' || riskLevel === 'MEDIUM') summary.riskCount++;
+    if (changeType === 'PRICE' || changeType === 'PRICE_AND_STOCK') summary.priceChangeCount++;
+    if (changeType === 'STOCK' || changeType === 'PRICE_AND_STOCK') summary.stockChangeCount++;
+    if (targetType === 'OPTION') summary.optionCount++;
+    else if (targetType === 'ADDITIONAL') summary.additionalCount++;
+    else if (targetType === 'SINGLE') summary.singleCount++;
+
+    if (candidate.currentStateSource === 'UPLOAD_OPTION_CURRENT_CONTEXT_PREVIEW') summary.uploadContextCount++;
+    else summary.dbContextCount++;
+
+    return {
+      candidateId: candidate.id,
+      targetType,
+      changeType,
+      executable,
+      blockedReasons,
+      warnings,
+      riskLevel,
+      sourceSummary: candidate.currentStateSource || 'UNKNOWN',
+      before: {
+        price: candidate.currentSmartstorePrice,
+        stock: candidate.currentSmartstoreStock,
+      },
+      after: {
+        price: candidate.calculatedTargetPrice,
+        stock: candidate.calculatedTargetStock,
+      }
+    };
+  });
+
+  return { summary, items };
+}
+
 function DraftPreviewPanel({
   result,
 }: {
@@ -484,6 +576,7 @@ function DraftPreviewPanel({
     };
   }, [selectedCandidates]);
   const reviewPayloadText = useMemo(() => JSON.stringify(reviewPayload, null, 2), [reviewPayload]);
+  const batchPreview = useMemo(() => buildDraftBatchPreview(selectedCandidates), [selectedCandidates]);
   const hydrateIssueEntries = useMemo(
     () => getHydrateIssueEntries(result.issueSummary.hydrateIssueCounts),
     [result.issueSummary.hydrateIssueCounts],
@@ -902,6 +995,39 @@ function DraftPreviewPanel({
               <CountBadge label="재고 변경" value={selectedReviewSummary.stockChangeCount} />
             </div>
 
+            <div className="mt-6 rounded-lg border border-indigo-500/20 bg-indigo-500/10 p-5">
+              <div className="flex items-start gap-3">
+                <FileSpreadsheet className="text-indigo-400 mt-1 h-5 w-5 shrink-0" />
+                <div className="flex-1">
+                  <h4 className="text-base font-semibold text-indigo-300">Batch dry-run 미리보기</h4>
+                  <p className="mt-1 text-sm text-indigo-200/80">
+                    실제 Batch 작업으로 넘어갈 경우 예상되는 작업 내용 요약입니다. 이 단계에서는 DB 저장이나 네이버 API 호출을 하지 않습니다.
+                  </p>
+
+                  {batchPreview.summary.blockedCount > 0 && (
+                    <div className="mt-3 rounded-md bg-amber-500/10 p-3 border border-amber-500/20">
+                      <p className="text-sm font-semibold text-amber-300">⚠️ 주의: 선택 후보 중 {batchPreview.summary.blockedCount.toLocaleString()}건은 dry-run 작업으로 넘길 수 없습니다.</p>
+                      <p className="mt-1 text-xs text-amber-200/80">먼저 현재 가격/재고 문맥을 보강하거나 후보 선택에서 제외하세요.</p>
+                    </div>
+                  )}
+
+                  <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+                    <CountBadge label="실행 가능 후보 수" value={batchPreview.summary.executableCount} />
+                    <CountBadge label="차단 후보 수" value={batchPreview.summary.blockedCount} />
+                    <CountBadge label="위험 후보 수" value={batchPreview.summary.riskCount} />
+                    <CountBadge label="OPTION 후보 수" value={batchPreview.summary.optionCount} />
+                    <CountBadge label="업로드 문맥 보강 수" value={batchPreview.summary.uploadContextCount} />
+                  </div>
+                  
+                  {batchPreview.summary.blockedCount > 0 && (
+                    <div className="mt-3 text-xs text-indigo-200/60">
+                      <strong>주요 차단 사유:</strong> {Array.from(new Set(batchPreview.items.flatMap(i => i.blockedReasons))).join(' / ')}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
             <div className="grid gap-4 lg:grid-cols-2 mt-4">
               <CountList title="candidateType별 개수" counts={selectedCandidateTypeCounts} />
               <CountList title="targetType별 개수" counts={selectedTargetTypeCounts} />
@@ -1042,7 +1168,7 @@ function DraftPreviewPanel({
               <summary className="tms-text-primary cursor-pointer list-none p-4 text-sm font-semibold hover:bg-[#1a1a1e] transition-colors rounded-lg">
                 검토용 JSON 미리보기 (클릭하여 펼치기)
                 <span className="ml-2 text-xs font-normal text-zinc-500">
-                  선택된 {selectedReviewSummary.selectedCount}건의 후보 정보만 포함됩니다.
+                  선택된 {selectedReviewSummary.selectedCount}건의 원본 후보 정보를 확인하기 위한 것입니다. Batch dry-run 미리보기와 달리, 차단된 정보도 포함됩니다.
                 </span>
               </summary>
               <div className="border-t border-[#262629] p-4">

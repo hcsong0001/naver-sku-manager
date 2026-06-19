@@ -51,3 +51,41 @@ export type SkuKeywordDraftPreviewResponse = {
   summary: SkuKeywordDraftPreviewSummary;
   issueSummary: SkuKeywordDraftPreviewIssueSummary;
 };
+
+export type SkuKeywordDraftBatchPreviewSummary = {
+  selectedCount: number;
+  executableCount: number;
+  blockedCount: number;
+  riskCount: number;
+  priceChangeCount: number;
+  stockChangeCount: number;
+  optionCount: number;
+  additionalCount: number;
+  singleCount: number;
+  uploadContextCount: number;
+  dbContextCount: number;
+};
+
+export type SkuKeywordDraftBatchPreviewItem = {
+  candidateId: string;
+  targetType: 'SINGLE' | 'OPTION' | 'ADDITIONAL' | 'UNKNOWN';
+  changeType: 'PRICE' | 'STOCK' | 'PRICE_AND_STOCK' | 'UNKNOWN';
+  executable: boolean;
+  blockedReasons: string[];
+  warnings: string[];
+  riskLevel: 'LOW' | 'MEDIUM' | 'HIGH';
+  sourceSummary: string;
+  before?: {
+    price?: number | null;
+    stock?: number | null;
+  };
+  after?: {
+    price?: number | null;
+    stock?: number | null;
+  };
+};
+
+export type SkuKeywordDraftBatchPreview = {
+  summary: SkuKeywordDraftBatchPreviewSummary;
+  items: SkuKeywordDraftBatchPreviewItem[];
+};
