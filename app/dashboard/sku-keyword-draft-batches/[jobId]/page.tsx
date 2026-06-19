@@ -364,6 +364,11 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             <AlertTriangle className="mr-2 inline-block h-4 w-4" />
             이 화면에서는 DRAFT Batch를 APPROVED 상태로만 전환할 수 있습니다. 네이버 API 호출이나 스마트스토어 가격/재고 변경은 수행하지 않습니다.
           </div>
+        ) : job.status === 'APPROVED' ? (
+          <div className="mt-2 rounded-md border border-emerald-500/20 bg-emerald-500/10 p-3 text-sm text-emerald-200">
+            <CheckCircle2 className="mr-2 inline-block h-4 w-4" />
+            이 Batch는 APPROVED 상태입니다. 각 item은 READY 상태로 승인되었습니다. 아직 네이버 API 호출이나 스마트스토어 가격/재고 변경은 수행되지 않았습니다. 실제 실행 기능은 별도 단계에서만 구현됩니다.
+          </div>
         ) : (
           <div className="mt-2 rounded-md border border-emerald-500/20 bg-emerald-500/10 p-3 text-sm text-emerald-200">
             <CheckCircle2 className="mr-2 inline-block h-4 w-4" />

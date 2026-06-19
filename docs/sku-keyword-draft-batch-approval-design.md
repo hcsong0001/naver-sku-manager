@@ -12,6 +12,7 @@
 - APPROVED 승인 API 구현 완료
 - Job 상태 전환 구현 완료: `DRAFT -> APPROVED`
 - Item 상태 전환 구현 완료: `DRAFT -> READY`
+- 목록 화면에서 `DRAFT / APPROVED / 전체` 조회 필터 지원
 - 네이버 API 호출 없음
 - 스마트스토어 가격/재고 변경 없음
 - 실행(`EXECUTING`) 전환 미구현
@@ -173,10 +174,12 @@ type ApproveBlockedResponse = {
 
 이번 단계 이후에도 아직 미구현인 항목:
 
+- `APPROVED`는 승인 완료 상태이지만 실행 완료 상태가 아님
+- `APPROVED` 상태에서도 네이버 API 호출은 없음
 - `APPROVED -> EXECUTING` 실행 API
 - 실행 Worker / Scheduler
 - 네이버 API dry-run 이후 실제 LIVE 실행
 - 부분 성공/재시도/실패 복구 흐름
 
 즉, 이번 단계의 승인 기능은 **실행 준비 상태를 명시하는 승인 절차**일 뿐이며,
-실제 외부 반영 단계는 후속 작업으로 분리한다.
+실제 외부 반영 단계는 별도 Worker / Execution 설계 이후에만 진행한다.
