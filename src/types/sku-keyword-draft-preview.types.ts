@@ -131,3 +131,21 @@ export type SkuKeywordDraftBatchDryRunPreviewResponse = {
   }>;
   issueSummary: Record<string, number>;
 };
+
+export type SkuKeywordDraftBatchSaveDraftRequest = {
+  candidates: SkuKeywordBulkLikeCandidate[];
+  selectedCandidateIds: string[];
+  confirmSaveDraftOnly: true;
+};
+
+export type SkuKeywordDraftBatchSaveDraftResponse = {
+  ok: boolean;
+  jobId?: string;
+  status: 'DRAFT';
+  receivedCount: number;
+  selectedCount: number;
+  savedItemCount: number;
+  blockedItemCount: number;
+  warnings: string[];
+  blockedReasons: string[];
+};

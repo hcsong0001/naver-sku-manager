@@ -32,6 +32,8 @@ import type {
   SkuKeywordDraftBatchPreviewSummary,
   SkuKeywordDraftBatchDryRunPreviewRequest,
   SkuKeywordDraftBatchDryRunPreviewResponse,
+  SkuKeywordDraftBatchSaveDraftRequest,
+  SkuKeywordDraftBatchSaveDraftResponse,
 } from '@/src/types/sku-keyword-draft-preview.types';
 import type { SkuKeywordBulkLikeCandidate } from '@/src/types/sku-keyword-bulk-like-candidate.types';
 import type {
@@ -480,6 +482,8 @@ function DraftPreviewPanel({
   const [jsonMessage, setJsonMessage] = useState<Message | null>(null);
   const [isDryRunLoading, setIsDryRunLoading] = useState(false);
   const [dryRunResult, setDryRunResult] = useState<SkuKeywordDraftBatchDryRunPreviewResponse | null>(null);
+  const [isSaveDraftLoading, setIsSaveDraftLoading] = useState(false);
+  const [saveDraftResult, setSaveDraftResult] = useState<SkuKeywordDraftBatchSaveDraftResponse | null>(null);
   
   const filteredCandidates = useMemo(
     () => filterDraftCandidates(result.candidates, activeFilter),
@@ -603,11 +607,44 @@ function DraftPreviewPanel({
         throw new Error(String(data) || '서버 오류가 발생했습니다.');
       }
       setDryRunResult(data);
+      setSaveDraftResult(null);
       setJsonMessage({ type: 'success', text: '서버 기반 Dry-run 검증을 완료했습니다.' });
-    } catch (error) {
-      setJsonMessage({ type: 'error', text: getErrorMessage(error, 'Dry-run 서버 검증 중 오류가 발생했습니다.') });
+    } catch (err: unknown) {
+      setJsonMessage({ type: 'error', text: err instanceof Error ? err.message : String(err) });
     } finally {
       setIsDryRunLoading(false);
+    }
+  };
+
+  const handleSaveDraft = async () => {
+    try {
+      setIsSaveDraftLoading(true);
+      setJsonMessage(null);
+      const response = await fetch('/api/sku-matching/draft-batch/save-draft', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          candidates: selectedCandidates,
+          selectedCandidateIds: selectedCandidateIdsInResult,
+          confirmSaveDraftOnly: true,
+        } satisfies SkuKeywordDraftBatchSaveDraftRequest),
+      });
+
+      const data = (await response.json()) as SkuKeywordDraftBatchSaveDraftResponse;
+      if (!response.ok) {
+        throw new Error(
+          (data as { blockedReasons?: string[]; message?: string; error?: string }).blockedReasons?.join(', ') || 
+          (data as { message?: string; error?: string }).message || 
+          (data as { message?: string; error?: string }).error || 
+          '저장 중 오류가 발생했습니다.'
+        );
+      }
+      setSaveDraftResult(data);
+      setJsonMessage({ type: 'success', text: 'DRAFT 상태로 성공적으로 저장되었습니다.' });
+    } catch (err: unknown) {
+      setJsonMessage({ type: 'error', text: err instanceof Error ? err.message : String(err) });
+    } finally {
+      setIsSaveDraftLoading(false);
     }
   };
 
@@ -971,6 +1008,24 @@ function DraftPreviewPanel({
               {isDryRunLoading && <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />}
               Dry-run 서버 검증
             </button>
+            {dryRunResult && (
+              <button
+                type="button"
+                onClick={() => void handleSaveDraft()}
+                disabled={
+                  isSaveDraftLoading ||
+                  selectedCandidates.length === 0 ||
+                  dryRunResult.summary.executableCount !== selectedCandidates.length ||
+                  dryRunResult.summary.blockedCount > 0 ||
+                  dryRunResult.summary.riskCount > 0
+                }
+                className="tms-button inline-flex items-center justify-center rounded-lg border border-emerald-500/50 bg-emerald-500/20 px-3 py-2 text-xs font-semibold text-emerald-300 transition hover:bg-emerald-500/30 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {isSaveDraftLoading && <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />}
+                <Save className="mr-2 h-3.5 w-3.5" />
+                검토용 DRAFT 저장
+              </button>
+            )}
             <button
               type="button"
               onClick={() => void handleCopyReviewJson()}
@@ -1079,6 +1134,24 @@ function DraftPreviewPanel({
                       {dryRunResult.summary.blockedCount > 0 && (
                         <div className="mt-3 text-xs text-indigo-200/60">
                           <strong>주요 차단 사유:</strong> {Array.from(new Set(dryRunResult.items.flatMap((i: SkuKeywordDraftBatchDryRunPreviewResponse['items'][0]) => i.blockedReasons))).join(' / ')}
+                        </div>
+                      )}
+                      
+                      {saveDraftResult && (
+                        <div className="mt-4 rounded-md border border-emerald-500/20 bg-emerald-500/10 p-4">
+                          <h5 className="text-sm font-semibold text-emerald-300 flex items-center gap-2">
+                            <CheckCircle2 className="h-4 w-4" />
+                            DRAFT 저장 성공
+                          </h5>
+                          <div className="mt-2 text-sm text-emerald-200/80">
+                            <p><strong>Job ID:</strong> {saveDraftResult.jobId}</p>
+                            <p><strong>저장된 항목 수:</strong> {saveDraftResult.savedItemCount}</p>
+                            <p><strong>상태:</strong> {saveDraftResult.status}</p>
+                            <p className="mt-2 text-xs text-emerald-200/60">
+                              이 작업은 DRAFT 상태로만 저장됩니다.<br/>
+                              네이버 API 호출이나 스마트스토어 가격/재고 변경은 수행하지 않았습니다.
+                            </p>
+                          </div>
                         </div>
                       )}
                     </>
