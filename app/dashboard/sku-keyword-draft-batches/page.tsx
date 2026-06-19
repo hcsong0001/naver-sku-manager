@@ -47,6 +47,36 @@ function parseStatusFilter(value: string | null): DraftBatchStatusFilter {
   return 'DRAFT';
 }
 
+function getFilterSummary(status: DraftBatchStatusFilter) {
+  if (status === 'APPROVED') {
+    return {
+      badgeLabel: 'APPROVED 조회',
+      badgeClassName: 'border border-emerald-500/30 bg-emerald-500/15 text-emerald-300',
+      title: '승인 완료 Batch',
+      description: '승인 완료되었지만 아직 실행 전인 Batch입니다.',
+      helper: '승인 완료 상태이며, 아직 네이버 반영/실행 단계가 아닙니다.',
+    };
+  }
+
+  if (status === 'ALL') {
+    return {
+      badgeLabel: '전체 조회',
+      badgeClassName: 'border border-indigo-500/30 bg-indigo-500/15 text-indigo-300',
+      title: '전체 Batch',
+      description: 'DRAFT와 APPROVED Batch 전체를 함께 보여줍니다.',
+      helper: '검토 중 Batch와 승인 완료 Batch를 함께 보여줍니다.',
+    };
+  }
+
+  return {
+    badgeLabel: 'DRAFT 조회',
+    badgeClassName: 'border border-amber-500/30 bg-amber-500/15 text-amber-300',
+    title: '검토 저장 Batch',
+    description: '검토 저장 후 아직 승인되지 않은 Batch입니다.',
+    helper: '검토 후 승인할 수 있는 저장된 Batch입니다.',
+  };
+}
+
 function getStatusBadge(jobStatus: string) {
   if (jobStatus === 'DRAFT') {
     return {
@@ -78,6 +108,9 @@ export default function DraftBatchesPage() {
   const [error, setError] = useState<string | null>(null);
 
   const statusFilter = parseStatusFilter(searchParams.get('status'));
+  const filterSummary = getFilterSummary(statusFilter);
+  const jobCount = jobs.length;
+  const totalItemCount = jobs.reduce((sum, job) => sum + job.itemCount, 0);
 
   const updateStatusFilter = (nextStatus: DraftBatchStatusFilter) => {
     const nextParams = new URLSearchParams(searchParams.toString());
@@ -135,6 +168,14 @@ export default function DraftBatchesPage() {
               <br />
               네이버 API 호출이나 스마트스토어 가격/재고 변경은 수행하지 않습니다.
             </p>
+            <div className="mt-3 flex flex-wrap items-center gap-2 text-sm">
+              <span className={`rounded-full px-2.5 py-1 font-semibold ${filterSummary.badgeClassName}`}>
+                {filterSummary.badgeLabel}
+              </span>
+              <span className="text-gray-300">{filterSummary.title}</span>
+              <span className="text-gray-500">|</span>
+              <span className="text-gray-400">{filterSummary.description}</span>
+            </div>
           </div>
           <button
             type="button"
@@ -169,6 +210,31 @@ export default function DraftBatchesPage() {
           <span className="ml-auto text-xs text-gray-500">
             기본 조회: URL status가 없거나 잘못되면 DRAFT
           </span>
+        </div>
+
+        <div className="grid gap-3 sm:grid-cols-3">
+          <div className="rounded-lg border border-[#262629] bg-[#121214] p-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">현재 필터</p>
+            <div className="mt-2 flex items-center gap-2">
+              <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${filterSummary.badgeClassName}`}>
+                {filterSummary.badgeLabel}
+              </span>
+              <span className="text-sm font-medium text-white">{filterSummary.title}</span>
+            </div>
+            <p className="mt-2 text-sm text-gray-400">{filterSummary.helper}</p>
+          </div>
+
+          <div className="rounded-lg border border-[#262629] bg-[#121214] p-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Batch 수</p>
+            <p className="mt-2 text-2xl font-bold text-white">{jobCount.toLocaleString()}</p>
+            <p className="mt-2 text-sm text-gray-400">현재 필터 기준으로 조회된 Batch 개수입니다.</p>
+          </div>
+
+          <div className="rounded-lg border border-[#262629] bg-[#121214] p-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">전체 Item 수</p>
+            <p className="mt-2 text-2xl font-bold text-white">{totalItemCount.toLocaleString()}</p>
+            <p className="mt-2 text-sm text-gray-400">현재 목록에 포함된 item 수 합계입니다.</p>
+          </div>
         </div>
       </div>
 
