@@ -16,6 +16,7 @@
 - [실행 직전 최종 승인 설계](./sku-keyword-batch-final-approval-design.md)
 - [최종 승인 artifact 스키마 필요성 검토](./sku-keyword-batch-final-approval-schema-review.md)
 - [최종 승인 artifact schema 상세 설계](./sku-keyword-batch-final-approval-schema-design.md)
+- [최종 승인 artifact Prisma schema 초안](./sku-keyword-batch-final-approval-prisma-schema-draft.md)
 - [schema 변경 전 체크리스트](./sku-keyword-batch-final-approval-schema-change-checklist.md)
 
 이번 단계에서는 문서만 작성한다. Prisma schema, migration, DB, 코드, Job/Item status, payload와 외부 API를 변경하지 않는다.
