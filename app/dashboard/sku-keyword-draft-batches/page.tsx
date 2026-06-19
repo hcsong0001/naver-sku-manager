@@ -6,6 +6,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { AlertTriangle, List, RefreshCw, Search } from 'lucide-react';
 
 type DraftBatchStatusFilter = 'DRAFT' | 'APPROVED' | 'ALL';
+type DraftBatchSortOption = 'default' | 'blocked' | 'risk';
 
 type DraftBatchListItem = {
   id: string;
@@ -44,12 +45,29 @@ const STATUS_OPTIONS: Array<{
   { value: 'ALL', label: '전체' },
 ];
 
+const SORT_OPTIONS: Array<{
+  value: DraftBatchSortOption;
+  label: string;
+}> = [
+  { value: 'default', label: '기본순' },
+  { value: 'blocked', label: '차단 우선' },
+  { value: 'risk', label: '위험 우선' },
+];
+
 function parseStatusFilter(value: string | null): DraftBatchStatusFilter {
   if (value === 'APPROVED' || value === 'ALL' || value === 'DRAFT') {
     return value;
   }
 
   return 'DRAFT';
+}
+
+function parseSortOption(value: string | null): DraftBatchSortOption {
+  if (value === 'blocked' || value === 'risk' || value === 'default') {
+    return value;
+  }
+
+  return 'default';
 }
 
 function getFilterSummary(status: DraftBatchStatusFilter) {
@@ -145,16 +163,42 @@ export default function DraftBatchesPage() {
   const [error, setError] = useState<string | null>(null);
 
   const statusFilter = parseStatusFilter(searchParams.get('status'));
+  const sortOption = parseSortOption(searchParams.get('sort'));
   const filterSummary = getFilterSummary(statusFilter);
-  const jobCount = jobs.length;
-  const totalItemCount = jobs.reduce((sum, job) => sum + job.itemCount, 0);
-  const totalBlockedItemCount = jobs.reduce((sum, job) => sum + (job.summary?.blockedCount ?? 0), 0);
-  const totalRiskItemCount = jobs.reduce((sum, job) => sum + (job.summary?.riskCount ?? 0), 0);
+  const sortedJobs = jobs
+    .map((job, index) => ({ job, index }))
+    .sort((left, right) => {
+      if (sortOption === 'blocked') {
+        const blockedDiff = (right.job.summary?.blockedCount ?? 0) - (left.job.summary?.blockedCount ?? 0);
+        if (blockedDiff !== 0) return blockedDiff;
+      }
 
-  const updateStatusFilter = (nextStatus: DraftBatchStatusFilter) => {
+      if (sortOption === 'risk') {
+        const riskDiff = (right.job.summary?.riskCount ?? 0) - (left.job.summary?.riskCount ?? 0);
+        if (riskDiff !== 0) return riskDiff;
+      }
+
+      return left.index - right.index;
+    })
+    .map(({ job }) => job);
+  const jobCount = sortedJobs.length;
+  const totalItemCount = sortedJobs.reduce((sum, job) => sum + job.itemCount, 0);
+  const totalBlockedItemCount = sortedJobs.reduce((sum, job) => sum + (job.summary?.blockedCount ?? 0), 0);
+  const totalRiskItemCount = sortedJobs.reduce((sum, job) => sum + (job.summary?.riskCount ?? 0), 0);
+
+  const updateQuery = (nextStatus: DraftBatchStatusFilter, nextSort: DraftBatchSortOption) => {
     const nextParams = new URLSearchParams(searchParams.toString());
     nextParams.set('status', nextStatus);
+    nextParams.set('sort', nextSort);
     router.push(`${pathname}?${nextParams.toString()}`, { scroll: false });
+  };
+
+  const updateStatusFilter = (nextStatus: DraftBatchStatusFilter) => {
+    updateQuery(nextStatus, sortOption);
+  };
+
+  const updateSortOption = (nextSort: DraftBatchSortOption) => {
+    updateQuery(statusFilter, nextSort);
   };
 
   useEffect(() => {
@@ -247,7 +291,31 @@ export default function DraftBatchesPage() {
             );
           })}
           <span className="ml-auto text-xs text-gray-500">
-            기본 조회: URL status가 없거나 잘못되면 DRAFT
+            기본 조회: URL status가 없거나 잘못되면 DRAFT / sort가 없거나 잘못되면 default
+          </span>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2 rounded-lg border border-[#262629] bg-[#121214] p-3">
+          <span className="text-sm font-medium text-gray-300">정렬</span>
+          {SORT_OPTIONS.map((option) => {
+            const selected = sortOption === option.value;
+            return (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => updateSortOption(option.value)}
+                className={`rounded-md px-3 py-1.5 text-sm font-semibold transition ${
+                  selected
+                    ? 'border border-indigo-500/40 bg-indigo-500/20 text-indigo-200'
+                    : 'border border-[#2b2b30] bg-[#18181b] text-gray-300 hover:border-indigo-500/30 hover:text-white'
+                }`}
+              >
+                {option.label}
+              </button>
+            );
+          })}
+          <span className="ml-auto text-xs text-gray-500">
+            현재 정렬: {sortOption}
           </span>
         </div>
 
@@ -324,13 +392,13 @@ export default function DraftBatchesPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-[#262629]">
-              {loading && jobs.length === 0 ? (
+              {loading && sortedJobs.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
                     목록을 불러오는 중입니다...
                   </td>
                 </tr>
-              ) : jobs.length === 0 ? (
+              ) : sortedJobs.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
                     {statusFilter === 'APPROVED'
@@ -341,7 +409,7 @@ export default function DraftBatchesPage() {
                   </td>
                 </tr>
               ) : (
-                jobs.map((job) => {
+                sortedJobs.map((job) => {
                   const badge = getStatusBadge(job.status);
                   const summaryBadges = getRowSummaryBadges(job);
                   return (
