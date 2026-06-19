@@ -89,3 +89,45 @@ export type SkuKeywordDraftBatchPreview = {
   summary: SkuKeywordDraftBatchPreviewSummary;
   items: SkuKeywordDraftBatchPreviewItem[];
 };
+
+export type SkuKeywordDraftBatchDryRunPreviewRequest = {
+  candidates: SkuKeywordBulkLikeCandidate[];
+};
+
+export type SkuKeywordDraftBatchDryRunPreviewResponse = {
+  ok: boolean;
+  summary: {
+    receivedCount: number;
+    selectedCount: number;
+    executableCount: number;
+    blockedCount: number;
+    riskCount: number;
+    priceChangeCount: number;
+    stockChangeCount: number;
+    priceAndStockChangeCount: number;
+    optionCount: number;
+    additionalCount: number;
+    singleCount: number;
+    uploadContextCount: number;
+    dbContextCount: number;
+  };
+  items: Array<{
+    candidateId: string;
+    targetType: 'SINGLE' | 'OPTION' | 'ADDITIONAL' | 'UNKNOWN';
+    changeType: 'PRICE' | 'STOCK' | 'PRICE_AND_STOCK' | 'UNKNOWN';
+    executable: boolean;
+    blockedReasons: string[];
+    warnings: string[];
+    riskLevel: 'LOW' | 'MEDIUM' | 'HIGH';
+    sourceSummary: string;
+    before?: {
+      price?: number | null;
+      stock?: number | null;
+    };
+    after?: {
+      price?: number | null;
+      stock?: number | null;
+    };
+  }>;
+  issueSummary: Record<string, number>;
+};

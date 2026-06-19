@@ -30,6 +30,8 @@ import type {
   SkuKeywordDraftBatchPreview,
   SkuKeywordDraftBatchPreviewItem,
   SkuKeywordDraftBatchPreviewSummary,
+  SkuKeywordDraftBatchDryRunPreviewRequest,
+  SkuKeywordDraftBatchDryRunPreviewResponse,
 } from '@/src/types/sku-keyword-draft-preview.types';
 import type { SkuKeywordBulkLikeCandidate } from '@/src/types/sku-keyword-bulk-like-candidate.types';
 import type {
@@ -471,6 +473,9 @@ function DraftPreviewPanel({
   const [activeFilter, setActiveFilter] = useState<DraftCandidateFilter>('ALL');
   const [selectedCandidateIds, setSelectedCandidateIds] = useState<string[]>([]);
   const [jsonMessage, setJsonMessage] = useState<Message | null>(null);
+  const [isDryRunLoading, setIsDryRunLoading] = useState(false);
+  const [dryRunResult, setDryRunResult] = useState<SkuKeywordDraftBatchDryRunPreviewResponse | null>(null);
+  
   const filteredCandidates = useMemo(
     () => filterDraftCandidates(result.candidates, activeFilter),
     [activeFilter, result.candidates],
@@ -577,6 +582,30 @@ function DraftPreviewPanel({
   }, [selectedCandidates]);
   const reviewPayloadText = useMemo(() => JSON.stringify(reviewPayload, null, 2), [reviewPayload]);
   const batchPreview = useMemo(() => buildDraftBatchPreview(selectedCandidates), [selectedCandidates]);
+  
+  const handleServerDryRun = async () => {
+    try {
+      setIsDryRunLoading(true);
+      setJsonMessage(null);
+      const response = await fetch('/api/sku-matching/draft-batch-dry-run-preview', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ candidates: selectedCandidates } satisfies SkuKeywordDraftBatchDryRunPreviewRequest),
+      });
+
+      const data = (await response.json()) as SkuKeywordDraftBatchDryRunPreviewResponse;
+      if (!response.ok) {
+        throw new Error(String(data) || '서버 오류가 발생했습니다.');
+      }
+      setDryRunResult(data);
+      setJsonMessage({ type: 'success', text: '서버 기반 Dry-run 검증을 완료했습니다.' });
+    } catch (error) {
+      setJsonMessage({ type: 'error', text: getErrorMessage(error, 'Dry-run 서버 검증 중 오류가 발생했습니다.') });
+    } finally {
+      setIsDryRunLoading(false);
+    }
+  };
+
   const hydrateIssueEntries = useMemo(
     () => getHydrateIssueEntries(result.issueSummary.hydrateIssueCounts),
     [result.issueSummary.hydrateIssueCounts],
@@ -930,6 +959,15 @@ function DraftPreviewPanel({
           <div className="flex flex-wrap gap-2">
             <button
               type="button"
+              onClick={() => void handleServerDryRun()}
+              disabled={selectedCandidates.length === 0 || isDryRunLoading}
+              className="tms-button tms-button-primary inline-flex items-center justify-center rounded-lg border border-indigo-500/50 bg-indigo-500/20 px-3 py-2 text-xs font-semibold text-indigo-300 transition hover:bg-indigo-500/30 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {isDryRunLoading && <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />}
+              Dry-run 서버 검증
+            </button>
+            <button
+              type="button"
               onClick={() => void handleCopyReviewJson()}
               disabled={selectedCandidates.length === 0}
               className="tms-button tms-button-secondary inline-flex items-center justify-center rounded-lg border px-3 py-2 text-xs font-semibold transition disabled:cursor-not-allowed disabled:opacity-60"
@@ -999,30 +1037,46 @@ function DraftPreviewPanel({
               <div className="flex items-start gap-3">
                 <FileSpreadsheet className="text-indigo-400 mt-1 h-5 w-5 shrink-0" />
                 <div className="flex-1">
-                  <h4 className="text-base font-semibold text-indigo-300">Batch dry-run 미리보기</h4>
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                    <h4 className="text-base font-semibold text-indigo-300">Server Dry-run Preview</h4>
+                    {dryRunResult && dryRunResult.summary.executableCount !== batchPreview.summary.executableCount && (
+                      <span className="rounded-md bg-rose-500/20 px-2 py-1 text-xs font-semibold text-rose-300">
+                        주의: 프론트 예측치와 서버 결과가 다릅니다. 서버 기준 결과를 우선하세요.
+                      </span>
+                    )}
+                  </div>
                   <p className="mt-1 text-sm text-indigo-200/80">
-                    실제 Batch 작업으로 넘어갈 경우 예상되는 작업 내용 요약입니다. 이 단계에서는 DB 저장이나 네이버 API 호출을 하지 않습니다.
+                    실제 Batch 작업으로 변환 가능한 후보인지 <strong>서버 기준으로 검토한 결과</strong>입니다.<br/>
+                    이 결과는 서버 기준 dry-run 검토입니다. DB 저장, Batch 생성, 네이버 API 호출은 수행하지 않았습니다.
                   </p>
 
-                  {batchPreview.summary.blockedCount > 0 && (
-                    <div className="mt-3 rounded-md bg-amber-500/10 p-3 border border-amber-500/20">
-                      <p className="text-sm font-semibold text-amber-300">⚠️ 주의: 선택 후보 중 {batchPreview.summary.blockedCount.toLocaleString()}건은 dry-run 작업으로 넘길 수 없습니다.</p>
-                      <p className="mt-1 text-xs text-amber-200/80">먼저 현재 가격/재고 문맥을 보강하거나 후보 선택에서 제외하세요.</p>
+                  {!dryRunResult ? (
+                    <div className="mt-4 rounded-md border border-indigo-500/20 bg-[#121214] p-4 text-center text-sm text-indigo-300/60">
+                      상단의 [Dry-run 서버 검증] 버튼을 눌러 서버 검토 결과를 확인해 주세요.
                     </div>
-                  )}
+                  ) : (
+                    <>
+                      {dryRunResult.summary.blockedCount > 0 && (
+                        <div className="mt-3 rounded-md bg-amber-500/10 p-3 border border-amber-500/20">
+                          <p className="text-sm font-semibold text-amber-300">⚠️ 주의: 선택 후보 중 {dryRunResult.summary.blockedCount.toLocaleString()}건은 dry-run 작업으로도 넘길 수 없습니다.</p>
+                          <p className="mt-1 text-xs text-amber-200/80">먼저 현재 가격/재고 문맥을 보강하거나 후보 선택에서 제외하세요.</p>
+                        </div>
+                      )}
 
-                  <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-                    <CountBadge label="실행 가능 후보 수" value={batchPreview.summary.executableCount} />
-                    <CountBadge label="차단 후보 수" value={batchPreview.summary.blockedCount} />
-                    <CountBadge label="위험 후보 수" value={batchPreview.summary.riskCount} />
-                    <CountBadge label="OPTION 후보 수" value={batchPreview.summary.optionCount} />
-                    <CountBadge label="업로드 문맥 보강 수" value={batchPreview.summary.uploadContextCount} />
-                  </div>
-                  
-                  {batchPreview.summary.blockedCount > 0 && (
-                    <div className="mt-3 text-xs text-indigo-200/60">
-                      <strong>주요 차단 사유:</strong> {Array.from(new Set(batchPreview.items.flatMap(i => i.blockedReasons))).join(' / ')}
-                    </div>
+                      <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+                        <CountBadge label="실행 가능 후보 수" value={dryRunResult.summary.executableCount} />
+                        <CountBadge label="차단 후보 수" value={dryRunResult.summary.blockedCount} />
+                        <CountBadge label="위험 후보 수" value={dryRunResult.summary.riskCount} />
+                        <CountBadge label="OPTION 후보 수" value={dryRunResult.summary.optionCount} />
+                        <CountBadge label="업로드 문맥 보강 수" value={dryRunResult.summary.uploadContextCount} />
+                      </div>
+                      
+                      {dryRunResult.summary.blockedCount > 0 && (
+                        <div className="mt-3 text-xs text-indigo-200/60">
+                          <strong>주요 차단 사유:</strong> {Array.from(new Set(dryRunResult.items.flatMap((i: SkuKeywordDraftBatchDryRunPreviewResponse['items'][0]) => i.blockedReasons))).join(' / ')}
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
               </div>
