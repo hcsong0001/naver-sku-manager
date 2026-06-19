@@ -181,6 +181,8 @@ type ApproveBlockedResponse = {
 
 - `APPROVED`는 승인 완료 상태이지만 실행 완료 상태가 아님
 - `APPROVED` 상태에서도 네이버 API 호출은 없음
+- 목록의 `riskFilter=all | blocked | risk | clean` URL query로 저장된 `previewSummary.blockedCount`, `previewSummary.riskCount` 기준 서브필터를 지원한다.
+- 서브필터는 목록 API 결과에 클라이언트에서 적용하며, 적용 후 `sort=default | blocked | risk` 기준으로 정렬한다.
 - `APPROVED -> EXECUTING` 실행 API
 - 실행 Worker / Scheduler
 - 네이버 API dry-run 이후 실제 LIVE 실행

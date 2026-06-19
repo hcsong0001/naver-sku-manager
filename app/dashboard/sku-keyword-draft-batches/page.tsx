@@ -7,6 +7,7 @@ import { AlertTriangle, List, RefreshCw, Search } from 'lucide-react';
 
 type DraftBatchStatusFilter = 'DRAFT' | 'APPROVED' | 'ALL';
 type DraftBatchSortOption = 'default' | 'blocked' | 'risk';
+type DraftBatchRiskFilter = 'all' | 'blocked' | 'risk' | 'clean';
 
 type DraftBatchListItem = {
   id: string;
@@ -54,6 +55,16 @@ const SORT_OPTIONS: Array<{
   { value: 'risk', label: '위험 우선' },
 ];
 
+const RISK_FILTER_OPTIONS: Array<{
+  value: DraftBatchRiskFilter;
+  label: string;
+}> = [
+  { value: 'all', label: '전체' },
+  { value: 'blocked', label: '차단 있음' },
+  { value: 'risk', label: '위험 있음' },
+  { value: 'clean', label: '문제 없음' },
+];
+
 function parseStatusFilter(value: string | null): DraftBatchStatusFilter {
   if (value === 'APPROVED' || value === 'ALL' || value === 'DRAFT') {
     return value;
@@ -68,6 +79,18 @@ function parseSortOption(value: string | null): DraftBatchSortOption {
   }
 
   return 'default';
+}
+
+function parseRiskFilter(value: string | null): DraftBatchRiskFilter {
+  if (value === 'blocked' || value === 'risk' || value === 'clean' || value === 'all') {
+    return value;
+  }
+
+  return 'all';
+}
+
+function getRiskFilterLabel(riskFilter: DraftBatchRiskFilter) {
+  return RISK_FILTER_OPTIONS.find((option) => option.value === riskFilter)?.label ?? '전체';
 }
 
 function getFilterSummary(status: DraftBatchStatusFilter) {
@@ -164,9 +187,19 @@ export default function DraftBatchesPage() {
 
   const statusFilter = parseStatusFilter(searchParams.get('status'));
   const sortOption = parseSortOption(searchParams.get('sort'));
+  const riskFilter = parseRiskFilter(searchParams.get('riskFilter'));
   const filterSummary = getFilterSummary(statusFilter);
-  const sortedJobs = jobs
+  const filteredAndSortedJobs = jobs
     .map((job, index) => ({ job, index }))
+    .filter(({ job }) => {
+      const blockedCount = job.summary?.blockedCount ?? 0;
+      const riskCount = job.summary?.riskCount ?? 0;
+
+      if (riskFilter === 'blocked') return blockedCount > 0;
+      if (riskFilter === 'risk') return riskCount > 0;
+      if (riskFilter === 'clean') return blockedCount === 0 && riskCount === 0;
+      return true;
+    })
     .sort((left, right) => {
       if (sortOption === 'blocked') {
         const blockedDiff = (right.job.summary?.blockedCount ?? 0) - (left.job.summary?.blockedCount ?? 0);
@@ -181,24 +214,39 @@ export default function DraftBatchesPage() {
       return left.index - right.index;
     })
     .map(({ job }) => job);
-  const jobCount = sortedJobs.length;
-  const totalItemCount = sortedJobs.reduce((sum, job) => sum + job.itemCount, 0);
-  const totalBlockedItemCount = sortedJobs.reduce((sum, job) => sum + (job.summary?.blockedCount ?? 0), 0);
-  const totalRiskItemCount = sortedJobs.reduce((sum, job) => sum + (job.summary?.riskCount ?? 0), 0);
+  const jobCount = filteredAndSortedJobs.length;
+  const totalItemCount = filteredAndSortedJobs.reduce((sum, job) => sum + job.itemCount, 0);
+  const totalBlockedItemCount = filteredAndSortedJobs.reduce(
+    (sum, job) => sum + (job.summary?.blockedCount ?? 0),
+    0,
+  );
+  const totalRiskItemCount = filteredAndSortedJobs.reduce(
+    (sum, job) => sum + (job.summary?.riskCount ?? 0),
+    0,
+  );
 
-  const updateQuery = (nextStatus: DraftBatchStatusFilter, nextSort: DraftBatchSortOption) => {
+  const updateQuery = (
+    nextStatus: DraftBatchStatusFilter,
+    nextSort: DraftBatchSortOption,
+    nextRiskFilter: DraftBatchRiskFilter,
+  ) => {
     const nextParams = new URLSearchParams(searchParams.toString());
     nextParams.set('status', nextStatus);
     nextParams.set('sort', nextSort);
+    nextParams.set('riskFilter', nextRiskFilter);
     router.push(`${pathname}?${nextParams.toString()}`, { scroll: false });
   };
 
   const updateStatusFilter = (nextStatus: DraftBatchStatusFilter) => {
-    updateQuery(nextStatus, sortOption);
+    updateQuery(nextStatus, sortOption, riskFilter);
   };
 
   const updateSortOption = (nextSort: DraftBatchSortOption) => {
-    updateQuery(statusFilter, nextSort);
+    updateQuery(statusFilter, nextSort, riskFilter);
+  };
+
+  const updateRiskFilter = (nextRiskFilter: DraftBatchRiskFilter) => {
+    updateQuery(statusFilter, sortOption, nextRiskFilter);
   };
 
   useEffect(() => {
@@ -291,7 +339,31 @@ export default function DraftBatchesPage() {
             );
           })}
           <span className="ml-auto text-xs text-gray-500">
-            기본 조회: URL status가 없거나 잘못되면 DRAFT / sort가 없거나 잘못되면 default
+            기본 조회: 잘못된 status는 DRAFT / sort는 default / riskFilter는 all
+          </span>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2 rounded-lg border border-[#262629] bg-[#121214] p-3">
+          <span className="text-sm font-medium text-gray-300">위험 서브필터</span>
+          {RISK_FILTER_OPTIONS.map((option) => {
+            const selected = riskFilter === option.value;
+            return (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => updateRiskFilter(option.value)}
+                className={`rounded-md px-3 py-1.5 text-sm font-semibold transition ${
+                  selected
+                    ? 'border border-indigo-500/40 bg-indigo-500/20 text-indigo-200'
+                    : 'border border-[#2b2b30] bg-[#18181b] text-gray-300 hover:border-indigo-500/30 hover:text-white'
+                }`}
+              >
+                {option.label}
+              </button>
+            );
+          })}
+          <span className="ml-auto text-xs text-gray-500">
+            현재 서브필터: {getRiskFilterLabel(riskFilter)}
           </span>
         </div>
 
@@ -329,6 +401,9 @@ export default function DraftBatchesPage() {
               <span className="text-sm font-medium text-white">{filterSummary.title}</span>
             </div>
             <p className="mt-2 text-sm text-gray-400">{filterSummary.helper}</p>
+            <p className="mt-1 text-xs text-gray-500">
+              위험 서브필터: {getRiskFilterLabel(riskFilter)}
+            </p>
           </div>
 
           <div className="rounded-lg border border-[#262629] bg-[#121214] p-4">
@@ -392,24 +467,26 @@ export default function DraftBatchesPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-[#262629]">
-              {loading && sortedJobs.length === 0 ? (
+              {loading && filteredAndSortedJobs.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
                     목록을 불러오는 중입니다...
                   </td>
                 </tr>
-              ) : sortedJobs.length === 0 ? (
+              ) : filteredAndSortedJobs.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
-                    {statusFilter === 'APPROVED'
-                      ? 'APPROVED 상태의 Batch가 없습니다.'
-                      : statusFilter === 'ALL'
-                        ? '조회 가능한 Batch가 없습니다.'
-                        : 'DRAFT 상태의 Batch가 없습니다.'}
+                    {jobs.length > 0
+                      ? `${getRiskFilterLabel(riskFilter)} 조건에 맞는 Batch가 없습니다.`
+                      : statusFilter === 'APPROVED'
+                        ? 'APPROVED 상태의 Batch가 없습니다.'
+                        : statusFilter === 'ALL'
+                          ? '조회 가능한 Batch가 없습니다.'
+                          : 'DRAFT 상태의 Batch가 없습니다.'}
                   </td>
                 </tr>
               ) : (
-                sortedJobs.map((job) => {
+                filteredAndSortedJobs.map((job) => {
                   const badge = getStatusBadge(job.status);
                   const summaryBadges = getRowSummaryBadges(job);
                   return (
