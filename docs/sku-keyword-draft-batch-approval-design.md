@@ -180,6 +180,7 @@ type ApproveBlockedResponse = {
 ## 후속 단계
 
 실행 단계의 상태 흐름, 실행 자격, payload 변환, 재검증, idempotency, 실패 및 재시도 정책은 [SKU Keyword Matching Batch 실행 Worker 설계](./sku-keyword-batch-execution-worker-design.md)를 따른다.
+검토 승인 이후 실제 실행 권한을 부여하는 별도 안전 게이트는 [SKU Keyword Matching Batch 실행 직전 최종 승인 설계](./sku-keyword-batch-final-approval-design.md)를 따른다.
 
 이번 단계 이후에도 아직 미구현인 항목:
 

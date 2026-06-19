@@ -30,6 +30,8 @@
 - 최종 승인 범위와 경고 확인 여부 검증
 - 실행 가능한 Item 집합을 제안하되 외부 호출과 상태 전환은 수행하지 않음
 
+재검증 결과를 실제 실행 권한에 묶는 승인 artifact와 `dryRun` 처리 선택지는 [SKU Keyword Matching Batch 실행 직전 최종 승인 설계](./sku-keyword-batch-final-approval-design.md)를 따른다.
+
 ### payload 변환
 
 - 재검증을 통과한 Item만 공식 operation의 요청 자료로 변환
