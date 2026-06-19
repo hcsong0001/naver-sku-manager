@@ -103,6 +103,7 @@ function isDraftPreviewRequest(value: unknown): value is SkuKeywordDraftPreviewR
   if (!value.preview.matchedRows.every(isMatchedRow)) return false;
   if (!value.preview.warningRows.every(isWarningRow)) return false;
   if (!isManualSelections(value.manualSelections)) return false;
+  if (value.optionCurrentContextRows !== undefined && !Array.isArray(value.optionCurrentContextRows)) return false;
   return true;
 }
 
@@ -122,7 +123,10 @@ function buildResponse(
     manualSelections,
   });
 
-  return hydrateSkuKeywordDraftSeeds({ seeds }).then((hydrateResult) => {
+  return hydrateSkuKeywordDraftSeeds({
+    seeds,
+    optionCurrentContextRows: input.optionCurrentContextRows,
+  }).then((hydrateResult) => {
     const bulkLikeResult = buildSkuKeywordBulkLikeCandidates({
       candidates: hydrateResult.candidates,
     });

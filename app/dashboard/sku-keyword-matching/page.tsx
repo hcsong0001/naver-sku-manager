@@ -39,6 +39,10 @@ import type {
   SkuKeywordWarningRow,
   SkuMappingType,
 } from '@/src/types/sku-keyword-matching.types';
+import type {
+  OptionCurrentContextPreviewResponse,
+  OptionCurrentContextPreviewRow,
+} from '@/src/types/option-current-context.types';
 
 type Message = { type: 'success' | 'error'; text: string };
 type ResultTab = 'matched' | 'warning' | 'error';
@@ -1650,6 +1654,7 @@ export default function SkuKeywordMatchingPage() {
   const [erpFile, setErpFile] = useState<File | null>(null);
   const [csvFile, setCsvFile] = useState<File | null>(null);
   const [stockFile, setStockFile] = useState<File | null>(null);
+  const [optionCurrentContextFile, setOptionCurrentContextFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<SkuKeywordPreviewResponse | null>(null);
   const [message, setMessage] = useState<Message | null>(null);
   const [activeTab, setActiveTab] = useState<ResultTab>('warning');
@@ -1877,12 +1882,32 @@ export default function SkuKeywordMatchingPage() {
     setDraftPreviewError(null);
 
     try {
+      let optionCurrentContextRows: OptionCurrentContextPreviewRow[] | undefined;
+      
+      if (optionCurrentContextFile) {
+        const formData = new FormData();
+        formData.append('file', optionCurrentContextFile);
+        const optResponse = await fetch('/api/option-current-context/preview', {
+          method: 'POST',
+          body: formData,
+        });
+        
+        if (!optResponse.ok) {
+          const data = await readJson<{ error: string }>(optResponse).catch(() => ({ error: '알 수 없는 오류' }));
+          throw new Error(getErrorMessage(data, 'OPTION 현재 문맥 파일 파싱에 실패했습니다.'));
+        }
+        
+        const optData = await readJson<OptionCurrentContextPreviewResponse>(optResponse);
+        optionCurrentContextRows = optData.rows;
+      }
+
       const payload: SkuKeywordDraftPreviewRequest = {
         preview: {
           matchedRows: preview.matchedRows,
           warningRows: preview.warningRows,
         },
         manualSelections,
+        optionCurrentContextRows,
       };
 
       const response = await fetch('/api/sku-matching/keyword-draft-preview', {
@@ -1993,6 +2018,17 @@ export default function SkuKeywordMatchingPage() {
               onFileChange={(file) => {
                 setStockFile(file);
                 resetPreview();
+              }}
+            />
+            <FileUploadInput
+              id="option-context-file"
+              label="OPTION 문맥 (선택) (.csv, .xls)"
+              accept=".csv,.xls,.xlsx"
+              file={optionCurrentContextFile}
+              onFileChange={(file) => {
+                setOptionCurrentContextFile(file);
+                setDraftPreviewResult(null);
+                setDraftPreviewError(null);
               }}
             />
           </div>

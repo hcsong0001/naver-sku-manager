@@ -6,6 +6,9 @@ import type {
   SkuKeywordDraftSeedResolutionSource,
   SkuKeywordDraftSeedSource,
 } from '@/src/types/sku-keyword-draft-seed.types';
+import type {
+  OptionCurrentContextPreviewRow,
+} from '@/src/types/option-current-context.types';
 
 export type SkuKeywordHydrateIssueCode =
   | 'SKU_NOT_FOUND'
@@ -92,6 +95,7 @@ export type SkuKeywordHydrateContext = {
   productById: Map<string, SkuKeywordHydrateProductRecord>;
   optionById: Map<string, SkuKeywordHydrateOptionRecord>;
   additionalById: Map<string, SkuKeywordHydrateAdditionalRecord>;
+  optionCurrentContextRows: OptionCurrentContextPreviewRow[];
 };
 
 export type SkuKeywordHydratedLinkedSku = {
@@ -147,6 +151,7 @@ export type SkuKeywordHydratedCandidate = {
 
 export type SkuKeywordHydrateInput = {
   seeds: SkuKeywordDraftSeedCandidate[];
+  optionCurrentContextRows?: OptionCurrentContextPreviewRow[];
 };
 
 export type SkuKeywordHydrateResult = {

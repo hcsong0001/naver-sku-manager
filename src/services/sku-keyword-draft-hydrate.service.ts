@@ -15,6 +15,9 @@ import type {
   SkuKeywordHydratedCandidate,
   SkuKeywordHydratedLinkedSku,
 } from '@/src/types/sku-keyword-draft-hydrate.types';
+import type {
+  OptionCurrentContextPreviewRow,
+} from '@/src/types/option-current-context.types';
 
 function uniqueStrings(values: (string | null | undefined)[]): string[] {
   return Array.from(new Set(values.map((value) => value?.trim() ?? '').filter(Boolean)));
@@ -139,6 +142,42 @@ function resolveSkuRecord(
   }
 
   return null;
+}
+
+function findFallbackContextRow(
+  seed: SkuKeywordDraftSeedCandidate,
+  record: SkuKeywordHydrateProductRecord | SkuKeywordHydrateOptionRecord | SkuKeywordHydrateAdditionalRecord | null,
+  context: SkuKeywordHydrateContext,
+): { row: OptionCurrentContextPreviewRow | null; matchType: string } {
+  const rows = context.optionCurrentContextRows ?? [];
+  if (rows.length === 0 || !record) return { row: null, matchType: '' };
+
+  const validRows = rows.filter((r) => r.status !== 'ERROR' && r.channelProductNo === seed.channelProductNo);
+  if (validRows.length === 0) return { row: null, matchType: '' };
+
+  if (seed.mappingType === 'OPTION') {
+    const optionRecord = record as SkuKeywordHydrateOptionRecord;
+    if (optionRecord.optionCode) {
+      const byId = validRows.find((r) => r.rowType === 'OPTION' && r.optionId === optionRecord.optionCode);
+      if (byId) return { row: byId, matchType: 'OPTION_ID' };
+    }
+    if (optionRecord.optionValue) {
+      const byValue = validRows.find((r) => r.rowType === 'OPTION' && r.optionValue === optionRecord.optionValue);
+      if (byValue) return { row: byValue, matchType: 'OPTION_VALUE' };
+    }
+  } else if (seed.mappingType === 'ADDITIONAL') {
+    const addRecord = record as SkuKeywordHydrateAdditionalRecord;
+    if (addRecord.sellerManagementCode) {
+      const byCode = validRows.find((r) => r.rowType === 'ADDITIONAL' && r.sellerManagerCode === addRecord.sellerManagementCode);
+      if (byCode) return { row: byCode, matchType: 'SELLER_MANAGER_CODE' };
+    }
+    if (addRecord.additionalValue) {
+      const byValue = validRows.find((r) => r.rowType === 'ADDITIONAL' && r.optionValue === addRecord.additionalValue);
+      if (byValue) return { row: byValue, matchType: 'OPTION_VALUE' };
+    }
+  }
+
+  return { row: null, matchType: '' };
 }
 
 export async function loadSkuKeywordDraftSeedContext(
@@ -319,6 +358,7 @@ export async function loadSkuKeywordDraftSeedContext(
     productById,
     optionById,
     additionalById,
+    optionCurrentContextRows: input.optionCurrentContextRows ?? [],
   };
 }
 
@@ -478,6 +518,64 @@ export function buildSkuKeywordHydratedCandidate(
           severity: 'warning',
           message: `seed 상품번호 ${seed.channelProductNo}와 운영 상품번호 ${additional.channelProductNo}가 다릅니다.`,
         }));
+      }
+    }
+  }
+
+  const { row: fallbackRow, matchType: fallbackMatchType } = findFallbackContextRow(
+    seed,
+    seed.mappingType === 'PRODUCT'
+      ? (context.productById.get(seed.itemId) ?? null)
+      : seed.mappingType === 'OPTION'
+        ? (context.optionById.get(seed.itemId) ?? null)
+        : (context.additionalById.get(seed.itemId) ?? null),
+    context,
+  );
+
+  let fallbackPriceUsed = false;
+  let fallbackStockUsed = false;
+
+  if (fallbackRow) {
+    if (currentSmartstorePrice === null && fallbackRow.currentEffectiveOptionPrice !== null && fallbackRow.currentEffectiveOptionPrice !== undefined) {
+      currentSmartstorePrice = fallbackRow.currentEffectiveOptionPrice;
+      fallbackPriceUsed = true;
+    } else if (currentSmartstorePrice === null && fallbackRow.additionalPrice !== null && fallbackRow.additionalPrice !== undefined) {
+      currentSmartstorePrice = fallbackRow.additionalPrice;
+      fallbackPriceUsed = true;
+    }
+
+    if (currentSmartstoreStock === null && fallbackRow.currentOptionStockQuantity !== null && fallbackRow.currentOptionStockQuantity !== undefined) {
+      currentSmartstoreStock = fallbackRow.currentOptionStockQuantity;
+      fallbackStockUsed = true;
+    } else if (currentSmartstoreStock === null && fallbackRow.additionalStockQuantity !== null && fallbackRow.additionalStockQuantity !== undefined) {
+      currentSmartstoreStock = fallbackRow.additionalStockQuantity;
+      fallbackStockUsed = true;
+    }
+
+    if (fallbackPriceUsed || fallbackStockUsed) {
+      currentStateSource = 'UPLOAD_OPTION_CURRENT_CONTEXT_PREVIEW';
+      
+      const matchMsg = fallbackMatchType === 'OPTION_ID' ? 'optionId' 
+        : fallbackMatchType === 'SELLER_MANAGER_CODE' ? 'sellerManagerCode'
+        : 'optionValue';
+        
+      seed.reviewMessage = `현재값 출처: OPTION 현재 문맥 업로드 Preview (매칭: ${matchMsg})\n${seed.reviewMessage}`.trim();
+      seed.warningMessage = `현재 가격/재고는 업로드 파일 Preview 기준입니다. 실제 적용 전 최신 스마트스토어 상태 확인이 필요합니다.\n${seed.warningMessage || ''}`.trim();
+
+      if (fallbackMatchType === 'OPTION_VALUE') {
+        issues.push(buildIssue({
+          code: 'CURRENT_PRICE_UNAVAILABLE',
+          severity: 'warning',
+          message: '업로드 파일에서 optionValue 보조 매칭으로 현재값을 보강했습니다. 매칭 정확도 확인이 필요합니다.',
+        }));
+      } else if (fallbackPriceUsed) {
+        const idx = issues.findIndex(i => i.code === 'CURRENT_PRICE_UNAVAILABLE');
+        if (idx !== -1) issues.splice(idx, 1);
+      }
+
+      if (fallbackStockUsed) {
+        const idx = issues.findIndex(i => i.code === 'CURRENT_STOCK_UNAVAILABLE');
+        if (idx !== -1) issues.splice(idx, 1);
       }
     }
   }

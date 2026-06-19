@@ -11,10 +11,14 @@ import type {
 import type {
   SkuKeywordHydrateIssueCode,
 } from '@/src/types/sku-keyword-draft-hydrate.types';
+import type {
+  OptionCurrentContextPreviewRow,
+} from '@/src/types/option-current-context.types';
 
 export type SkuKeywordDraftPreviewRequest = {
   preview: SkuKeywordDraftSeedPreviewInput;
   manualSelections?: SkuKeywordDraftSeedManualSelections;
+  optionCurrentContextRows?: OptionCurrentContextPreviewRow[];
 };
 
 export type SkuKeywordDraftPreviewSummary = {
