@@ -149,3 +149,27 @@ export type SkuKeywordDraftBatchSaveDraftResponse = {
   warnings: string[];
   blockedReasons: string[];
 };
+
+export type SkuKeywordDraftBatchApproveRequest = {
+  confirmApproveOnly: true;
+  acknowledgedWarnings?: string[];
+};
+
+export type SkuKeywordDraftBatchApproveBlockedItem = {
+  itemId: string;
+  targetType?: string;
+  targetId?: string;
+  reasons: string[];
+};
+
+export type SkuKeywordDraftBatchApproveResponse = {
+  ok: boolean;
+  jobId: string;
+  previousJobStatus: string | null;
+  nextJobStatus: 'APPROVED' | null;
+  nextItemStatus: 'READY' | null;
+  itemCount: number;
+  warnings: string[];
+  blockedReasons: string[];
+  blockedItems: SkuKeywordDraftBatchApproveBlockedItem[];
+};
