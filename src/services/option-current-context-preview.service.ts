@@ -9,12 +9,15 @@ import {
 
 type OptionCurrentContextParsedRow = {
   rowNumber: number;
+  originalRowNumber: number;
   sourceSheet: string;
+  parserType: OptionCurrentContextPreviewRow['parserType'];
   smartstoreId: string;
   storeName: string;
   channelProductNo: string;
   originProductNo: string;
   optionId: string;
+  identifierSource: OptionCurrentContextPreviewRow['identifierSource'];
   sellerManagerCode: string;
   optionName: string;
   optionValue: string;
@@ -29,6 +32,7 @@ type OptionCurrentContextParsedRow = {
   memo: string;
   hasSellerDiscountColumn: boolean;
   channelProductNoDerivedFromFileName: boolean;
+  optionArrayLengthMismatch: boolean;
 };
 
 type ParsedIntegerResult = {
@@ -165,6 +169,34 @@ function parseOptionalInteger(rawValue: string): ParsedIntegerResult {
   return { value: Number(cleaned), invalid: false };
 }
 
+function splitMultilineValues(rawValue: string): string[] {
+  const normalized = rawValue.replace(/\r\n/g, '\n').replace(/\r/g, '\n').trim();
+  if (!normalized) return [];
+  return normalized
+    .split('\n')
+    .map((value) => value.trim())
+    .filter((value) => value.length > 0);
+}
+
+function splitDelimitedValues(rawValue: string): string[] {
+  const trimmed = rawValue.trim();
+  if (!trimmed) return [];
+
+  const multilineValues = splitMultilineValues(trimmed);
+  if (multilineValues.length > 1) {
+    return multilineValues;
+  }
+
+  if (trimmed.includes(',')) {
+    return trimmed
+      .split(',')
+      .map((value) => value.trim())
+      .filter((value) => value.length > 0);
+  }
+
+  return trimmed ? [trimmed] : [];
+}
+
 function hasMeaningfulValue(row: OptionCurrentContextParsedRow): boolean {
   return [
     row.smartstoreId,
@@ -256,6 +288,228 @@ function shouldUseGenericAdditionalStockHeaderKey(
   return hasAdditionalContext && normalizedKeys.includes(normalizeHeader('재고수량'));
 }
 
+function isSmartstoreBulkProductHeaderRow(headerRow: Record<string, unknown>): boolean {
+  const requiredHeaders = [
+    '상품번호',
+    '판매가',
+    '옵션번호',
+    '옵션값',
+    '옵션가',
+    '옵션 재고수량',
+    '즉시할인 값(기본할인)',
+    '즉시할인 단위(기본할인)',
+  ];
+
+  return requiredHeaders.every((header) =>
+    Object.values(headerRow).some((value) => normalizeHeader(String(value)) === normalizeHeader(header)),
+  );
+}
+
+function buildStandardParsedRow(input: {
+  row: Record<string, unknown>;
+  rowNumber: number;
+  sourceSheet: string;
+  smartstoreIdKey: string;
+  storeNameKey: string;
+  channelProductNoKey: string;
+  originProductNoKey: string;
+  optionIdKey: string;
+  sellerManagerCodeKey: string;
+  optionNameKey: string;
+  optionValueKey: string;
+  baseSalePriceKey: string;
+  sellerDiscountKey: string;
+  sellerDiscountUnitKey: string;
+  optionPriceKey: string;
+  currentEffectiveOptionPriceKey: string;
+  currentOptionStockQuantityKey: string;
+  additionalPriceKey: string;
+  additionalStockQuantityKey: string;
+  memoKey: string;
+  channelProductNoFromFileName: string;
+}): OptionCurrentContextParsedRow {
+  const {
+    row,
+    rowNumber,
+    sourceSheet,
+    smartstoreIdKey,
+    storeNameKey,
+    channelProductNoKey,
+    originProductNoKey,
+    optionIdKey,
+    sellerManagerCodeKey,
+    optionNameKey,
+    optionValueKey,
+    baseSalePriceKey,
+    sellerDiscountKey,
+    sellerDiscountUnitKey,
+    optionPriceKey,
+    currentEffectiveOptionPriceKey,
+    currentOptionStockQuantityKey,
+    additionalPriceKey,
+    additionalStockQuantityKey,
+    memoKey,
+    channelProductNoFromFileName,
+  } = input;
+
+  const optionId = optionIdKey ? normalizeCell(row[optionIdKey]) : '';
+  const sellerManagerCode = sellerManagerCodeKey ? normalizeCell(row[sellerManagerCodeKey]) : '';
+  const optionValue = optionValueKey ? normalizeCell(row[optionValueKey]) : '';
+  let identifierSource: OptionCurrentContextPreviewRow['identifierSource'] = 'MISSING';
+
+  if (optionId) {
+    identifierSource = 'OPTION_ID';
+  } else if (sellerManagerCode) {
+    identifierSource = 'SELLER_MANAGER_CODE';
+  } else if (optionValue) {
+    identifierSource = 'OPTION_VALUE';
+  }
+
+  return {
+    rowNumber,
+    originalRowNumber: rowNumber,
+    sourceSheet,
+    parserType: 'STANDARD',
+    smartstoreId: smartstoreIdKey ? normalizeCell(row[smartstoreIdKey]) : '',
+    storeName: storeNameKey ? normalizeCell(row[storeNameKey]) : '',
+    channelProductNo: channelProductNoKey
+      ? normalizeCell(row[channelProductNoKey])
+      : channelProductNoFromFileName,
+    originProductNo: originProductNoKey ? normalizeCell(row[originProductNoKey]) : '',
+    optionId,
+    identifierSource,
+    sellerManagerCode,
+    optionName: optionNameKey ? normalizeCell(row[optionNameKey]) : '',
+    optionValue,
+    baseSalePriceRaw: baseSalePriceKey ? normalizeCell(row[baseSalePriceKey]) : '',
+    sellerDiscountRaw: sellerDiscountKey ? normalizeCell(row[sellerDiscountKey]) : '',
+    sellerDiscountUnitRaw: sellerDiscountUnitKey ? normalizeCell(row[sellerDiscountUnitKey]) : '',
+    optionPriceRaw: optionPriceKey ? normalizeCell(row[optionPriceKey]) : '',
+    currentEffectiveOptionPriceRaw: currentEffectiveOptionPriceKey
+      ? normalizeCell(row[currentEffectiveOptionPriceKey])
+      : '',
+    currentOptionStockQuantityRaw: currentOptionStockQuantityKey
+      ? normalizeCell(row[currentOptionStockQuantityKey])
+      : '',
+    additionalPriceRaw: additionalPriceKey ? normalizeCell(row[additionalPriceKey]) : '',
+    additionalStockQuantityRaw: additionalStockQuantityKey
+      ? normalizeCell(row[additionalStockQuantityKey])
+      : '',
+    memo: memoKey ? normalizeCell(row[memoKey]) : '',
+    hasSellerDiscountColumn: Boolean(sellerDiscountKey),
+    channelProductNoDerivedFromFileName: !channelProductNoKey && Boolean(channelProductNoFromFileName),
+    optionArrayLengthMismatch: false,
+  };
+}
+
+function buildExplodedBulkProductRows(input: {
+  row: Record<string, unknown>;
+  rowNumber: number;
+  sourceSheet: string;
+  smartstoreIdKey: string;
+  storeNameKey: string;
+  channelProductNoKey: string;
+  originProductNoKey: string;
+  optionIdKey: string;
+  sellerManagerCodeKey: string;
+  optionNameKey: string;
+  optionValueKey: string;
+  baseSalePriceKey: string;
+  sellerDiscountKey: string;
+  sellerDiscountUnitKey: string;
+  optionPriceKey: string;
+  currentOptionStockQuantityKey: string;
+  memoKey: string;
+  channelProductNoFromFileName: string;
+}): OptionCurrentContextParsedRow[] {
+  const {
+    row,
+    rowNumber,
+    sourceSheet,
+    smartstoreIdKey,
+    storeNameKey,
+    channelProductNoKey,
+    originProductNoKey,
+    optionIdKey,
+    sellerManagerCodeKey,
+    optionNameKey,
+    optionValueKey,
+    baseSalePriceKey,
+    sellerDiscountKey,
+    sellerDiscountUnitKey,
+    optionPriceKey,
+    currentOptionStockQuantityKey,
+    memoKey,
+    channelProductNoFromFileName,
+  } = input;
+
+  const optionIds = splitDelimitedValues(optionIdKey ? normalizeCell(row[optionIdKey]) : '');
+  const optionValues = splitMultilineValues(optionValueKey ? normalizeCell(row[optionValueKey]) : '');
+  const optionPrices = splitDelimitedValues(optionPriceKey ? normalizeCell(row[optionPriceKey]) : '');
+  const optionStocks = splitDelimitedValues(
+    currentOptionStockQuantityKey ? normalizeCell(row[currentOptionStockQuantityKey]) : '',
+  );
+
+  const optionCount = Math.max(optionIds.length, optionValues.length, optionPrices.length, optionStocks.length);
+  if (optionCount === 0) {
+    return [];
+  }
+
+  const populatedLengths = [optionIds.length, optionValues.length, optionPrices.length, optionStocks.length].filter(
+    (length) => length > 0,
+  );
+  const optionArrayLengthMismatch =
+    populatedLengths.length > 1 && new Set(populatedLengths).size > 1;
+
+  const sharedSellerManagerCode = sellerManagerCodeKey ? normalizeCell(row[sellerManagerCodeKey]) : '';
+  const sharedOptionName = optionNameKey ? normalizeCell(row[optionNameKey]) : '';
+
+  return Array.from({ length: optionCount }, (_, index) => {
+    const optionId = optionIds[index] ?? '';
+    const optionValue = optionValues[index] ?? '';
+    const sellerManagerCode = sharedSellerManagerCode;
+    let identifierSource: OptionCurrentContextPreviewRow['identifierSource'] = 'MISSING';
+
+    if (optionId) {
+      identifierSource = 'OPTION_ID';
+    } else if (sellerManagerCode) {
+      identifierSource = 'SELLER_MANAGER_CODE';
+    } else if (optionValue) {
+      identifierSource = 'OPTION_VALUE';
+    }
+
+    return {
+      rowNumber: rowNumber * 1000 + index + 1,
+      originalRowNumber: rowNumber,
+      sourceSheet,
+      parserType: 'SMARTSTORE_BULK_PRODUCT_EXPLODE',
+      smartstoreId: smartstoreIdKey ? normalizeCell(row[smartstoreIdKey]) : '',
+      storeName: storeNameKey ? normalizeCell(row[storeNameKey]) : '',
+      channelProductNo: channelProductNoKey
+        ? normalizeCell(row[channelProductNoKey])
+        : channelProductNoFromFileName,
+      originProductNo: originProductNoKey ? normalizeCell(row[originProductNoKey]) : '',
+      optionId,
+      identifierSource,
+      sellerManagerCode,
+      optionName: sharedOptionName,
+      optionValue,
+      baseSalePriceRaw: baseSalePriceKey ? normalizeCell(row[baseSalePriceKey]) : '',
+      sellerDiscountRaw: sellerDiscountKey ? normalizeCell(row[sellerDiscountKey]) : '',
+      sellerDiscountUnitRaw: sellerDiscountUnitKey ? normalizeCell(row[sellerDiscountUnitKey]) : '',
+      optionPriceRaw: optionPrices[index] ?? '',
+      currentEffectiveOptionPriceRaw: '',
+      currentOptionStockQuantityRaw: optionStocks[index] ?? '',
+      additionalPriceRaw: '',
+      additionalStockQuantityRaw: '',
+      memo: memoKey ? normalizeCell(row[memoKey]) : '',
+      hasSellerDiscountColumn: Boolean(sellerDiscountKey),
+      channelProductNoDerivedFromFileName: !channelProductNoKey && Boolean(channelProductNoFromFileName),
+      optionArrayLengthMismatch,
+    };
+  });
+}
+
 function parseWorkbookRows(buffer: Buffer, fileName: string): OptionCurrentContextParsedRow[] {
   const workbook = readWorkbook(buffer, fileName);
   const parsedRows: OptionCurrentContextParsedRow[] = [];
@@ -298,9 +552,11 @@ function parseWorkbookRows(buffer: Buffer, fileName: string): OptionCurrentConte
 
     let dataRows: Record<string, unknown>[] = [];
     let startRowNumber = 2;
+    let isSmartstoreBulkProductSheet = false;
 
     if (isDoubleHeader && sheetRows.length > 1) {
       const headerRow = sheetRows[0];
+      isSmartstoreBulkProductSheet = isSmartstoreBulkProductHeaderRow(headerRow);
       smartstoreIdKey = findKeyByRowValue(headerRow, HEADER_CANDIDATES.smartstoreId);
       storeNameKey = findKeyByRowValue(headerRow, HEADER_CANDIDATES.storeName);
       channelProductNoKey = findKeyByRowValue(headerRow, HEADER_CANDIDATES.channelProductNo);
@@ -367,38 +623,59 @@ function parseWorkbookRows(buffer: Buffer, fileName: string): OptionCurrentConte
       if (isRequirementGuideRow(row) || isInstructionGuideRow(row)) {
         return;
       }
+      const rowNumber = index + startRowNumber;
 
-      const parsedRow: OptionCurrentContextParsedRow = {
-        rowNumber: index + startRowNumber,
+      if (isSmartstoreBulkProductSheet) {
+        const explodedRows = buildExplodedBulkProductRows({
+          row,
+          rowNumber,
+          sourceSheet: sheetName,
+          smartstoreIdKey,
+          storeNameKey,
+          channelProductNoKey,
+          originProductNoKey,
+          optionIdKey,
+          sellerManagerCodeKey,
+          optionNameKey,
+          optionValueKey,
+          baseSalePriceKey,
+          sellerDiscountKey,
+          sellerDiscountUnitKey,
+          optionPriceKey,
+          currentOptionStockQuantityKey,
+          memoKey,
+          channelProductNoFromFileName,
+        });
+
+        if (explodedRows.length > 0) {
+          parsedRows.push(...explodedRows.filter((parsedRow) => hasMeaningfulValue(parsedRow)));
+          return;
+        }
+      }
+
+      const parsedRow = buildStandardParsedRow({
+        row,
+        rowNumber,
         sourceSheet: sheetName,
-        smartstoreId: smartstoreIdKey ? normalizeCell(row[smartstoreIdKey]) : '',
-        storeName: storeNameKey ? normalizeCell(row[storeNameKey]) : '',
-        channelProductNo: channelProductNoKey
-          ? normalizeCell(row[channelProductNoKey])
-          : channelProductNoFromFileName,
-        originProductNo: originProductNoKey ? normalizeCell(row[originProductNoKey]) : '',
-        optionId: optionIdKey ? normalizeCell(row[optionIdKey]) : '',
-        sellerManagerCode: sellerManagerCodeKey ? normalizeCell(row[sellerManagerCodeKey]) : '',
-        optionName: optionNameKey ? normalizeCell(row[optionNameKey]) : '',
-        optionValue: optionValueKey ? normalizeCell(row[optionValueKey]) : '',
-        baseSalePriceRaw: baseSalePriceKey ? normalizeCell(row[baseSalePriceKey]) : '',
-        sellerDiscountRaw: sellerDiscountKey ? normalizeCell(row[sellerDiscountKey]) : '',
-        sellerDiscountUnitRaw: sellerDiscountUnitKey ? normalizeCell(row[sellerDiscountUnitKey]) : '',
-        optionPriceRaw: optionPriceKey ? normalizeCell(row[optionPriceKey]) : '',
-        currentEffectiveOptionPriceRaw: currentEffectiveOptionPriceKey
-          ? normalizeCell(row[currentEffectiveOptionPriceKey])
-          : '',
-        currentOptionStockQuantityRaw: currentOptionStockQuantityKey
-          ? normalizeCell(row[currentOptionStockQuantityKey])
-          : '',
-        additionalPriceRaw: additionalPriceKey ? normalizeCell(row[additionalPriceKey]) : '',
-        additionalStockQuantityRaw: additionalStockQuantityKey
-          ? normalizeCell(row[additionalStockQuantityKey])
-          : '',
-        memo: memoKey ? normalizeCell(row[memoKey]) : '',
-        hasSellerDiscountColumn: Boolean(sellerDiscountKey),
-        channelProductNoDerivedFromFileName: !channelProductNoKey && Boolean(channelProductNoFromFileName),
-      };
+        smartstoreIdKey,
+        storeNameKey,
+        channelProductNoKey,
+        originProductNoKey,
+        optionIdKey,
+        sellerManagerCodeKey,
+        optionNameKey,
+        optionValueKey,
+        baseSalePriceKey,
+        sellerDiscountKey,
+        sellerDiscountUnitKey,
+        optionPriceKey,
+        currentEffectiveOptionPriceKey,
+        currentOptionStockQuantityKey,
+        additionalPriceKey,
+        additionalStockQuantityKey,
+        memoKey,
+        channelProductNoFromFileName,
+      });
 
       if (hasMeaningfulValue(parsedRow)) {
         parsedRows.push(parsedRow);
@@ -416,6 +693,10 @@ function buildRowStatus(warnings: string[], errors: string[]): OptionCurrentCont
 }
 
 function determineRowType(row: OptionCurrentContextParsedRow): OptionCurrentContextRowType {
+  if (row.parserType === 'SMARTSTORE_BULK_PRODUCT_EXPLODE') {
+    return 'OPTION';
+  }
+
   if (row.additionalPriceRaw.trim().length > 0 || row.additionalStockQuantityRaw.trim().length > 0) {
     return 'ADDITIONAL';
   }
@@ -461,8 +742,24 @@ export function previewOptionCurrentContextFile(input: {
       warnings.push('channelProductNo를 파일명에서 추론했습니다. 업로드 전 상품번호를 다시 확인하세요.');
     }
 
-    if (rowType === 'OPTION' && !row.optionId && !row.sellerManagerCode) {
-      errors.push('OPTION 행은 optionId와 sellerManagerCode 중 하나 이상이 필요합니다.');
+    if (rowType === 'OPTION' && row.identifierSource === 'MISSING') {
+      errors.push('OPTION 행은 optionId, sellerManagerCode, optionValue 중 하나 이상이 필요합니다.');
+    }
+
+    if (rowType === 'OPTION' && !row.optionId) {
+      warnings.push('optionId 없음: 보조 식별자를 사용합니다.');
+    }
+
+    if (rowType === 'OPTION' && row.identifierSource === 'SELLER_MANAGER_CODE') {
+      warnings.push('sellerManagerCode 보조 식별을 사용했습니다.');
+    }
+
+    if (rowType === 'OPTION' && row.identifierSource === 'OPTION_VALUE') {
+      warnings.push('optionValue 보조 식별을 사용했습니다.');
+    }
+
+    if (row.optionArrayLengthMismatch) {
+      warnings.push('옵션 배열 길이가 일치하지 않아 누락 값을 빈 값으로 보정했습니다.');
     }
 
     if (baseSalePrice.invalid) {
@@ -548,7 +845,10 @@ export function previewOptionCurrentContextFile(input: {
         priceSource = 'DIRECT_FINAL_PRICE';
       } else if (calculatedEffectiveOptionPrice !== null) {
         resolvedCurrentEffectiveOptionPrice = calculatedEffectiveOptionPrice;
-        priceSource = 'CALCULATED_FROM_BASE_DISCOUNT_OPTION';
+        priceSource =
+          row.parserType === 'SMARTSTORE_BULK_PRODUCT_EXPLODE'
+            ? 'CALCULATED_FROM_BULK_PRODUCT_ROW'
+            : 'CALCULATED_FROM_BASE_DISCOUNT_OPTION';
         warnings.push('최종 옵션 판매가가 없어 판매가 - 판매자할인 + 옵션가 계산값을 사용했습니다.');
       } else {
         priceSource = 'MISSING';
@@ -591,24 +891,29 @@ export function previewOptionCurrentContextFile(input: {
 
     return {
       rowNumber: row.rowNumber,
+      originalRowNumber: row.originalRowNumber,
       sourceSheet: row.sourceSheet,
       rowType,
+      parserType: row.parserType,
       smartstoreId: row.smartstoreId || null,
       storeName: row.storeName || null,
       channelProductNo: row.channelProductNo || null,
       originProductNo: row.originProductNo || null,
       optionId: row.optionId || null,
+      identifierSource: row.identifierSource,
       sellerManagerCode: row.sellerManagerCode || null,
       optionName: row.optionName || null,
       optionValue: row.optionValue || null,
       baseSalePrice: baseSalePrice.value,
       sellerDiscount: resolvedSellerDiscount,
+      sellerDiscountUnit: row.sellerDiscountUnitRaw || null,
       optionPrice: optionPrice.value,
       calculatedEffectiveOptionPrice,
       currentEffectiveOptionPrice: resolvedCurrentEffectiveOptionPrice,
       currentOptionStockQuantity: currentOptionStockQuantity.value,
       additionalPrice: additionalPrice.value,
       additionalStockQuantity: additionalStockQuantity.value,
+      optionArrayLengthMismatch: row.optionArrayLengthMismatch,
       priceSource,
       memo: row.memo || null,
       warnings,
@@ -629,7 +934,9 @@ export function previewOptionCurrentContextFile(input: {
     ).length,
     rowsWithDirectEffectivePrice: rows.filter((row) => row.priceSource === 'DIRECT_FINAL_PRICE').length,
     rowsWithCalculatedEffectivePrice: rows.filter(
-      (row) => row.priceSource === 'CALCULATED_FROM_BASE_DISCOUNT_OPTION',
+      (row) =>
+        row.priceSource === 'CALCULATED_FROM_BASE_DISCOUNT_OPTION' ||
+        row.priceSource === 'CALCULATED_FROM_BULK_PRODUCT_ROW',
     ).length,
     rowsMissingSellerDiscount: rows.filter(
       (row) =>
@@ -640,9 +947,31 @@ export function previewOptionCurrentContextFile(input: {
     rowsWithPriceMismatch: rows.filter((row) =>
       row.warnings.some((warning) => warning.includes('계산값이 일치하지 않습니다')),
     ).length,
+    originalProductRows: new Set(
+      rows
+        .filter((row) => row.parserType === 'SMARTSTORE_BULK_PRODUCT_EXPLODE')
+        .map((row) => `${row.sourceSheet ?? ''}:${row.originalRowNumber ?? row.rowNumber}`),
+    ).size,
+    explodedOptionRows: rows.filter((row) => row.parserType === 'SMARTSTORE_BULK_PRODUCT_EXPLODE').length,
+    bulkProductExplodeAppliedRows: new Set(
+      rows
+        .filter((row) => row.parserType === 'SMARTSTORE_BULK_PRODUCT_EXPLODE')
+        .map((row) => `${row.sourceSheet ?? ''}:${row.originalRowNumber ?? row.rowNumber}`),
+    ).size,
+    bulkProductExplodeApplied: rows.some((row) => row.parserType === 'SMARTSTORE_BULK_PRODUCT_EXPLODE'),
+    rowsWithPercentDiscountWarning: rows.filter((row) =>
+      row.warnings.some((warning) => warning.includes('판매자할인 단위가 %')),
+    ).length,
+    rowsWithOptionArrayLengthMismatch: rows.filter((row) => row.optionArrayLengthMismatch).length,
+    rowsWithoutOptionId: rows.filter((row) => row.rowType === 'OPTION' && !row.optionId).length,
+    rowsUsingSellerManagerCodeFallback: rows.filter(
+      (row) => row.rowType === 'OPTION' && row.identifierSource === 'SELLER_MANAGER_CODE',
+    ).length,
     missingChannelProductNo: rows.filter((row) => !row.channelProductNo).length,
     missingOptionIdentifier: rows.filter(
-      (row) => row.rowType === 'OPTION' && !row.optionId && !row.sellerManagerCode,
+      (row) =>
+        row.rowType === 'OPTION' &&
+        row.identifierSource === 'MISSING',
     ).length,
   };
 

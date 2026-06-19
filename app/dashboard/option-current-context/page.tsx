@@ -54,12 +54,29 @@ function getPriceSourceLabel(row: OptionCurrentContextPreviewRow): string {
   if (row.priceSource === 'DIRECT_FINAL_PRICE') {
     return 'DIRECT_FINAL_PRICE';
   }
+  if (row.priceSource === 'CALCULATED_FROM_BULK_PRODUCT_ROW') {
+    return 'CALCULATED_FROM_BULK_PRODUCT_ROW';
+  }
   if (row.priceSource === 'CALCULATED_FROM_BASE_DISCOUNT_OPTION') {
     return 'CALCULATED_FROM_BASE_DISCOUNT_OPTION';
   }
   if (row.priceSource === 'ADDITIONAL_SINGLE_PRICE') {
     return '추가상품 단일가격';
   }
+  return 'MISSING';
+}
+
+function getParserTypeLabel(parserType: OptionCurrentContextPreviewRow['parserType']): string {
+  if (parserType === 'SMARTSTORE_BULK_PRODUCT_EXPLODE') {
+    return '상품 일괄수정 엑셀 explode';
+  }
+  return '기본 파서';
+}
+
+function getIdentifierSourceLabel(identifierSource: OptionCurrentContextPreviewRow['identifierSource']): string {
+  if (identifierSource === 'OPTION_ID') return 'optionId';
+  if (identifierSource === 'SELLER_MANAGER_CODE') return 'sellerManagerCode';
+  if (identifierSource === 'OPTION_VALUE') return 'optionValue';
   return 'MISSING';
 }
 
@@ -177,6 +194,10 @@ export default function OptionCurrentContextPage() {
                   판매자할인 단위가 <code>%</code>인 경우에는 금액 계산에 바로 사용할 수 없어 경고로 표시합니다.
                 </p>
                 <p className="tms-text-muted">
+                  스마트스토어 상품 일괄수정 엑셀은 상품 1행 안의 줄바꿈 옵션 데이터를 OPTION 행 단위로 explode해서 Preview
+                  검증합니다.
+                </p>
+                <p className="tms-text-muted">
                   추가상품은 옵션 계산식이 아니라 단일가격 기준입니다. ERP 대표판매가/ERP 현재재고를 스마트스토어 현재
                   옵션가/현재 판매재고로 사용하지 마세요.
                 </p>
@@ -282,6 +303,9 @@ export default function OptionCurrentContextPage() {
               <SummaryCard label="정상 행 수" value={previewResult.summary.validRows} accentClassName="border-emerald-500/30" />
               <SummaryCard label="경고 행 수" value={previewResult.summary.warningRows} accentClassName="border-amber-500/30" />
               <SummaryCard label="오류 행 수" value={previewResult.summary.errorRows} accentClassName="border-red-500/30" />
+              <SummaryCard label="원본 상품 row 수" value={previewResult.summary.originalProductRows} />
+              <SummaryCard label="explode OPTION row 수" value={previewResult.summary.explodedOptionRows} />
+              <SummaryCard label="explode parser 적용 row" value={previewResult.summary.bulkProductExplodeAppliedRows} />
               <SummaryCard label="가격 문맥 확보" value={previewResult.summary.rowsWithCurrentPrice} />
               <SummaryCard label="재고 문맥 확보" value={previewResult.summary.rowsWithCurrentStock} />
               <SummaryCard label="가격·재고 모두 확보" value={previewResult.summary.rowsWithBothCurrentContext} />
@@ -289,8 +313,27 @@ export default function OptionCurrentContextPage() {
               <SummaryCard label="계산 최종가 행 수" value={previewResult.summary.rowsWithCalculatedEffectivePrice} />
               <SummaryCard label="판매자할인 누락" value={previewResult.summary.rowsMissingSellerDiscount} />
               <SummaryCard label="가격 불일치" value={previewResult.summary.rowsWithPriceMismatch} />
+              <SummaryCard label="할인 단위 % 경고" value={previewResult.summary.rowsWithPercentDiscountWarning} />
+              <SummaryCard label="옵션 배열 길이 불일치" value={previewResult.summary.rowsWithOptionArrayLengthMismatch} />
+              <SummaryCard label="optionId 없음" value={previewResult.summary.rowsWithoutOptionId} />
+              <SummaryCard label="sellerManagerCode 보조 식별" value={previewResult.summary.rowsUsingSellerManagerCodeFallback} />
               <SummaryCard label="채널상품번호 누락" value={previewResult.summary.missingChannelProductNo} />
               <SummaryCard label="옵션 식별자 누락" value={previewResult.summary.missingOptionIdentifier} />
+            </section>
+
+            <section className="tms-panel rounded-lg border">
+              <div className="flex flex-wrap items-center gap-3 text-sm">
+                <span className="inline-flex items-center gap-1 rounded-md border px-3 py-1.5 tms-badge">
+                  OPTION explode parser 적용 여부
+                  <strong className="tms-text-primary">
+                    {previewResult.summary.bulkProductExplodeApplied ? '적용됨' : '미적용'}
+                  </strong>
+                </span>
+                <span className="inline-flex items-center gap-1 rounded-md border px-3 py-1.5 tms-badge">
+                  가격 계산 출처
+                  <strong className="tms-text-primary">CALCULATED_FROM_BULK_PRODUCT_ROW</strong>
+                </span>
+              </div>
             </section>
 
             <section className="tms-panel rounded-lg border">
@@ -327,14 +370,17 @@ export default function OptionCurrentContextPage() {
               </div>
 
               <div className="mt-4 overflow-auto rounded-lg border">
-                <table className="tms-table min-w-[1900px] border-collapse text-sm">
+                <table className="tms-table min-w-[2200px] border-collapse text-sm">
                   <thead>
                     <tr className="border-b">
                       <th className="px-3 py-2 text-left">No.</th>
+                      <th className="px-3 py-2 text-left">원본 row</th>
                       <th className="px-3 py-2 text-left">상태</th>
                       <th className="px-3 py-2 text-left">유형</th>
+                      <th className="px-3 py-2 text-left">파서</th>
                       <th className="px-3 py-2 text-left">channelProductNo</th>
                       <th className="px-3 py-2 text-left">optionId</th>
+                      <th className="px-3 py-2 text-left">식별방식</th>
                       <th className="px-3 py-2 text-left">sellerManagerCode</th>
                       <th className="px-3 py-2 text-left">옵션명/옵션값</th>
                       <th className="px-3 py-2 text-left">판매가</th>
@@ -356,6 +402,9 @@ export default function OptionCurrentContextPage() {
                         <td className="px-3 py-2 font-mono text-xs tms-row-text-muted">
                           {getRowNumber(index, safeCurrentPage, pageSize)}
                         </td>
+                        <td className="px-3 py-2 font-mono text-xs tms-row-text-muted">
+                          {row.originalRowNumber ?? row.rowNumber}
+                        </td>
                         <td className="px-3 py-2">
                           <span
                             className={`inline-flex rounded-md px-2 py-1 text-xs font-semibold ${getStatusBadgeClass(row.status)}`}
@@ -368,8 +417,18 @@ export default function OptionCurrentContextPage() {
                             {getRowTypeLabel(row.rowType)}
                           </span>
                         </td>
+                        <td className="px-3 py-2">
+                          <span className="inline-flex rounded-md border px-2 py-1 text-[11px] tms-badge">
+                            {getParserTypeLabel(row.parserType)}
+                          </span>
+                        </td>
                         <td className="px-3 py-2 font-mono text-xs tms-row-text">{row.channelProductNo ?? '-'}</td>
                         <td className="px-3 py-2 font-mono text-xs tms-row-text">{row.optionId ?? '-'}</td>
+                        <td className="px-3 py-2">
+                          <span className="inline-flex rounded-md border px-2 py-1 text-[11px] tms-badge">
+                            {getIdentifierSourceLabel(row.identifierSource)}
+                          </span>
+                        </td>
                         <td className="px-3 py-2 font-mono text-xs tms-row-text">{row.sellerManagerCode ?? '-'}</td>
                         <td className="px-3 py-2">
                           <div className="space-y-1">
@@ -378,7 +437,12 @@ export default function OptionCurrentContextPage() {
                           </div>
                         </td>
                         <td className="px-3 py-2 tms-row-text">{formatNumber(row.baseSalePrice)}</td>
-                        <td className="px-3 py-2 tms-row-text">{formatNumber(row.sellerDiscount)}</td>
+                        <td className="px-3 py-2">
+                          <div className="space-y-1">
+                            <p className="tms-row-text">{formatNumber(row.sellerDiscount)}</p>
+                            <p className="text-[11px] tms-row-text-muted">{row.sellerDiscountUnit ?? '-'}</p>
+                          </div>
+                        </td>
                         <td className="px-3 py-2 tms-row-text">{formatNumber(row.optionPrice)}</td>
                         <td className="px-3 py-2">
                           <div className="space-y-1">
@@ -435,7 +499,7 @@ export default function OptionCurrentContextPage() {
                     ))}
                     {paginatedRows.length === 0 ? (
                       <tr>
-                        <td colSpan={15} className="px-3 py-10 text-center text-sm tms-text-muted">
+                        <td colSpan={18} className="px-3 py-10 text-center text-sm tms-text-muted">
                           표시할 preview 결과가 없습니다.
                         </td>
                       </tr>
