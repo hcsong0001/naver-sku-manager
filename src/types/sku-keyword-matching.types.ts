@@ -92,6 +92,44 @@ export type SkuKeywordErrorRow = {
   errorMessage: string;
 };
 
+export const WARNING_REASON_MAP: Record<string, { label: string; description: string; hint: string }> = {
+  NO_STOCK_MATCH: {
+    label: '재고 매칭 실패',
+    description: '상품관리 CSV 후보는 찾았지만 재고현황 XLS에서 연결 가능한 재고 row를 찾지 못했습니다.',
+    hint: '재고현황 파일에 해당 상품명/옵션명/관리코드가 있는지 확인하세요.',
+  },
+  FALLBACK_CANDIDATE: {
+    label: '유사 후보 추천',
+    description: '정확히 일치하는 상품 후보가 없어 부분 단어 기반 후보만 찾았습니다.',
+    hint: '상품명, 키워드, 판매자관리코드 기준으로 수동 확인이 필요합니다.',
+  },
+  GENERIC_OPTION_MATCH: {
+    label: '범용 옵션명',
+    description: '옵션명이 너무 짧거나 범용적입니다. 예: 기본, 화이트, 블랙 등.',
+    hint: '같은 옵션명이 여러 상품에 존재할 수 있으므로 자동 확정하지 않습니다.',
+  },
+  PARTIAL_MATCH: {
+    label: '부분 일치',
+    description: '일부 텍스트만 일치합니다.',
+    hint: '상품명/옵션명 차이가 실제 같은 상품인지 수동 확인하세요.',
+  },
+  MULTIPLE_CSV_ROWS: {
+    label: '복수 CSV 후보',
+    description: '상품관리 CSV에서 여러 후보가 발견되었습니다.',
+    hint: '후보 중 정확한 상품/옵션을 수동으로 선택해야 합니다.',
+  },
+  MULTIPLE_STOCK_ROWS: {
+    label: '복수 재고 후보',
+    description: '동일한 키워드로 여러 재고 항목이 발견되었습니다.',
+    hint: '재고현황 파일에서 정확히 매칭할 항목을 수동으로 지정하세요.',
+  },
+  WEAK_STOCK_MATCH: {
+    label: '낮은 재고 매칭률',
+    description: '재고현황 텍스트 매칭 유사도가 너무 낮아 자동 확정을 보류했습니다.',
+    hint: '실제 동일 상품인지 확인 후 수동으로 연결해 주세요.',
+  }
+};
+
 /** 요약 통계 */
 export type SkuKeywordSummary = {
   totalErpRows: number;

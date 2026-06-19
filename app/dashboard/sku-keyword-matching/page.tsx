@@ -43,6 +43,7 @@ import type {
   OptionCurrentContextPreviewResponse,
   OptionCurrentContextPreviewRow,
 } from '@/src/types/option-current-context.types';
+import { WARNING_REASON_MAP } from '@/src/types/sku-keyword-matching.types';
 
 type Message = { type: 'success' | 'error'; text: string };
 type ResultTab = 'matched' | 'warning' | 'error';
@@ -1427,10 +1428,28 @@ function WarningRowsTable({
                 </td>
                 <td className="tms-row-text max-w-72 px-4 py-3">{formatMaybe(row.sourceText)}</td>
                 <td className="tms-link max-w-48 px-4 py-3">{formatMaybe(row.matchedKeyword)}</td>
-                <td className="tms-warning-text whitespace-nowrap px-4 py-3 text-xs">
-                  {formatMaybe(row.warningType)}
+                <td className="px-4 py-3 align-top">
+                  {WARNING_REASON_MAP[row.warningType] ? (
+                    <div className="space-y-1">
+                      <span className="inline-flex rounded border border-amber-500/20 bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-amber-500">
+                        {WARNING_REASON_MAP[row.warningType].label}
+                      </span>
+                      <p className="tms-warning-text mt-1 text-[11px] font-mono opacity-80">{row.warningType}</p>
+                    </div>
+                  ) : (
+                    <span className="tms-warning-text text-xs">{formatMaybe(row.warningType)}</span>
+                  )}
                 </td>
-                <td className="tms-warning-text max-w-80 px-4 py-3">{formatMaybe(row.warningMessage)}</td>
+                <td className="px-4 py-3 align-top">
+                  <div className="space-y-1.5 max-w-80">
+                    <p className="tms-warning-text text-sm font-medium">
+                      {WARNING_REASON_MAP[row.warningType]?.description || row.warningMessage}
+                    </p>
+                    {WARNING_REASON_MAP[row.warningType]?.hint && (
+                      <p className="text-zinc-400 text-xs">💡 {WARNING_REASON_MAP[row.warningType].hint}</p>
+                    )}
+                  </div>
+                </td>
                 <td className="tms-row-text max-w-80 px-4 py-3">{formatMaybe(row.memo)}</td>
                 <td className="whitespace-nowrap px-4 py-3">
                   <span
@@ -1589,30 +1608,56 @@ function ResultTabs({
   onPageChange: (tab: ResultTab, page: number) => void;
   onPageSizeChange: (tab: ResultTab, value: CommonPageSize) => void;
 }) {
-  const tabs: { key: ResultTab; label: string; count: number }[] = [
+  const [warningFilter, setWarningFilter] = useState<string>('ALL');
+  const filteredWarningRows = useMemo(() => {
+    if (warningFilter === 'ALL') return preview.warningRows;
+    return preview.warningRows.filter((r) => r.warningType === warningFilter);
+  }, [preview.warningRows, warningFilter]);
+
+  const tabs: { key: ResultTab; label: string; count: number; filterLabel?: string }[] = [
     { key: 'matched', label: '자동 매칭', count: preview.matchedRows.length },
-    { key: 'warning', label: '수동 검토', count: preview.warningRows.length },
+    { key: 'warning', label: '수동 검토', count: preview.warningRows.length, filterLabel: filteredWarningRows.length > 0 && warningFilter !== 'ALL' ? `${filteredWarningRows.length} / ${preview.warningRows.length}` : undefined },
     { key: 'error', label: '오류', count: preview.errorRows.length },
   ];
 
   return (
     <div className="rounded-lg border border-[#262629] bg-[#121214] p-6">
-      <div className="mb-4 flex flex-wrap gap-2">
-        {tabs.map((tab) => (
-          <button
-            key={tab.key}
-            type="button"
-            onClick={() => onTabChange(tab.key)}
-            className={`tms-button inline-flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-semibold transition ${
-              activeTab === tab.key
-                ? 'tms-selected-bg tms-selected-text border-transparent'
-                : 'tms-button-secondary'
-            }`}
-          >
-            {tab.label}
-            <span className="font-mono text-xs">{tab.count.toLocaleString()}</span>
-          </button>
-        ))}
+      <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-wrap gap-2">
+          {tabs.map((tab) => (
+            <button
+              key={tab.key}
+              type="button"
+              onClick={() => onTabChange(tab.key)}
+              className={`tms-button inline-flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-semibold transition ${
+                activeTab === tab.key
+                  ? 'tms-selected-bg tms-selected-text border-transparent'
+                  : 'tms-button-secondary'
+              }`}
+            >
+              {tab.label}
+              <span className="font-mono text-xs">{tab.filterLabel ?? tab.count.toLocaleString()}</span>
+            </button>
+          ))}
+        </div>
+        {activeTab === 'warning' && (
+          <div className="flex items-center gap-2">
+            <label htmlFor="warning-filter" className="text-xs text-zinc-400">사유 필터</label>
+            <select
+              id="warning-filter"
+              value={warningFilter}
+              onChange={(e) => setWarningFilter(e.target.value)}
+              className="tms-control rounded-lg border border-[#262629] bg-[#121214] px-3 py-1.5 text-sm outline-none"
+            >
+              <option value="ALL">전체</option>
+              {Object.entries(WARNING_REASON_MAP).map(([code, info]) => (
+                <option key={code} value={code}>
+                  {info.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
       </div>
 
       {activeTab === 'matched' && (
@@ -1626,7 +1671,7 @@ function ResultTabs({
       )}
       {activeTab === 'warning' && (
         <WarningRowsTable
-          rows={preview.warningRows}
+          rows={filteredWarningRows}
           selections={selections}
           onAddSku={onAddSku}
           onRemoveSku={onRemoveSku}

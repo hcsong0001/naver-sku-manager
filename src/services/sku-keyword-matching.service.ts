@@ -22,6 +22,8 @@ import type {
   StockListRow,
 } from '@/src/types/sku-keyword-matching.types';
 
+import { WARNING_REASON_MAP } from '@/src/types/sku-keyword-matching.types';
+
 // ---------------------------------------------------------------------------
 // 유틸리티
 // ---------------------------------------------------------------------------
@@ -1835,18 +1837,29 @@ function toMatchedSheetRows(rows: SkuKeywordMatchedRow[]): SheetRow[] {
 }
 
 function toWarningSheetRows(rows: SkuKeywordWarningRow[]): SheetRow[] {
-  return rows.map((row) => ({
-    mappingType: row.mappingType,
-    channelProductNo: row.channelProductNo,
-    itemId: row.itemId,
-    sourceText: row.sourceText,
-    warningType: row.warningType,
-    warningMessage: row.warningMessage,
-    matchedKeyword: row.matchedKeyword,
-    barcode: row.barcode,
-    skuCode: row.skuCode,
-    memo: row.memo,
-  }));
+  return rows.map((row) => {
+    const reasonInfo = WARNING_REASON_MAP[row.warningType] || {
+      label: row.warningType,
+      description: row.warningMessage,
+      hint: '수동 확인 필요',
+    };
+    
+    return {
+      mappingType: row.mappingType,
+      channelProductNo: row.channelProductNo,
+      itemId: row.itemId,
+      sourceText: row.sourceText,
+      검토사유코드: row.warningType,
+      검토사유: reasonInfo.label,
+      자동확정불가이유: reasonInfo.description,
+      해결힌트: reasonInfo.hint,
+      warningMessage: row.warningMessage,
+      matchedKeyword: row.matchedKeyword,
+      barcode: row.barcode,
+      skuCode: row.skuCode,
+      memo: row.memo,
+    };
+  });
 }
 
 function toErrorSheetRows(rows: SkuKeywordErrorRow[]): SheetRow[] {
