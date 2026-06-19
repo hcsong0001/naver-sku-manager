@@ -67,7 +67,12 @@ type DraftCandidateFilter =
   | 'SET_PRODUCT'
   | 'PRICE_CHANGE'
   | 'STOCK_CHANGE'
-  | 'HAS_RISK';
+  | 'HAS_RISK'
+  | 'OPTION'
+  | 'ADDITIONAL'
+  | 'UPLOAD_OPTION_CONTEXT'
+  | 'CURRENT_PRICE_UNAVAILABLE'
+  | 'CURRENT_STOCK_UNAVAILABLE';
 
 const mappingTypeLabels: Record<string, string> = {
   PRODUCT: '단일상품',
@@ -77,13 +82,18 @@ const mappingTypeLabels: Record<string, string> = {
 
 const draftCandidateFilterLabels: Record<DraftCandidateFilter, string> = {
   ALL: '전체',
-  DRAFT_CREATABLE: 'draftCreatable',
-  NEEDS_CONTEXT: 'needsContext',
-  READY_FOR_REVIEW: 'readyForReview',
-  SET_PRODUCT: 'setProduct',
-  PRICE_CHANGE: 'priceChange',
-  STOCK_CHANGE: 'stockChange',
-  HAS_RISK: 'risk 있음',
+  DRAFT_CREATABLE: '생성 가능',
+  NEEDS_CONTEXT: '문맥 부족',
+  READY_FOR_REVIEW: '검토 준비',
+  SET_PRODUCT: '세트 상품',
+  PRICE_CHANGE: '가격 변경',
+  STOCK_CHANGE: '재고 변경',
+  HAS_RISK: '위험 후보',
+  OPTION: '옵션 (OPTION)',
+  ADDITIONAL: '추가상품 (ADDITIONAL)',
+  UPLOAD_OPTION_CONTEXT: '업로드 문맥 보강',
+  CURRENT_PRICE_UNAVAILABLE: '가격 문맥 없음',
+  CURRENT_STOCK_UNAVAILABLE: '재고 문맥 없음',
 };
 
 const draftHydrateIssueLabels: Record<SkuKeywordHydrateIssueCode, string> = {
@@ -303,6 +313,21 @@ function filterDraftCandidates(
   if (filter === 'HAS_RISK') {
     return candidates.filter((candidate) => candidate.riskMessages.length > 0);
   }
+  if (filter === 'OPTION') {
+    return candidates.filter((candidate) => candidate.candidateType === 'OPTION');
+  }
+  if (filter === 'ADDITIONAL') {
+    return candidates.filter((candidate) => candidate.candidateType === 'ADDITIONAL');
+  }
+  if (filter === 'UPLOAD_OPTION_CONTEXT') {
+    return candidates.filter((candidate) => candidate.currentStateSource === 'UPLOAD_OPTION_CURRENT_CONTEXT_PREVIEW');
+  }
+  if (filter === 'CURRENT_PRICE_UNAVAILABLE') {
+    return candidates.filter((candidate) => candidate.issues.some((issue) => issue.code === 'CURRENT_PRICE_UNAVAILABLE'));
+  }
+  if (filter === 'CURRENT_STOCK_UNAVAILABLE') {
+    return candidates.filter((candidate) => candidate.issues.some((issue) => issue.code === 'CURRENT_STOCK_UNAVAILABLE'));
+  }
   return candidates;
 }
 
@@ -380,6 +405,11 @@ function DraftPreviewPanel({
       PRICE_CHANGE: result.candidates.filter((candidate) => candidate.hasPriceChange).length,
       STOCK_CHANGE: result.candidates.filter((candidate) => candidate.hasStockChange).length,
       HAS_RISK: result.candidates.filter((candidate) => candidate.riskMessages.length > 0).length,
+      OPTION: result.candidates.filter((candidate) => candidate.candidateType === 'OPTION').length,
+      ADDITIONAL: result.candidates.filter((candidate) => candidate.candidateType === 'ADDITIONAL').length,
+      UPLOAD_OPTION_CONTEXT: result.candidates.filter((candidate) => candidate.currentStateSource === 'UPLOAD_OPTION_CURRENT_CONTEXT_PREVIEW').length,
+      CURRENT_PRICE_UNAVAILABLE: result.candidates.filter((candidate) => candidate.issues.some((issue) => issue.code === 'CURRENT_PRICE_UNAVAILABLE')).length,
+      CURRENT_STOCK_UNAVAILABLE: result.candidates.filter((candidate) => candidate.issues.some((issue) => issue.code === 'CURRENT_STOCK_UNAVAILABLE')).length,
     }),
     [result.candidates],
   );
@@ -530,16 +560,35 @@ function DraftPreviewPanel({
         </p>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+      <div className="rounded-lg border border-[#262629] bg-[#121214] p-5">
+        <h4 className="text-lg font-semibold text-white">
+          총 후보 {result.summary.bulkLikeCandidateCount.toLocaleString()}건 중{' '}
+          <span className="tms-success-text">{result.summary.draftCreatableCount.toLocaleString()}건</span> Draft 생성 가능
+        </h4>
+        <p className="mt-2 text-sm text-zinc-400">
+          {result.summary.needsContextCount > 0 && (
+            <span className="tms-warning-text font-medium">{result.summary.needsContextCount.toLocaleString()}건은 현재 가격/재고 문맥이 부족합니다. </span>
+          )}
+          위험 후보: {result.candidates.filter(c => c.riskTypes.length > 0).length.toLocaleString()}건.
+        </p>
+        <p className="mt-1 text-sm text-zinc-400">
+          가격 변경: {result.summary.priceChangeCandidateCount.toLocaleString()}건,{' '}
+          재고 변경: {result.summary.stockChangeCandidateCount.toLocaleString()}건.
+        </p>
+        <p className="mt-1 text-sm text-zinc-400">
+          OPTION 현재 문맥 파일로 보강된 후보: {result.candidates.filter(c => c.currentStateSource === 'UPLOAD_OPTION_CURRENT_CONTEXT_PREVIEW').length.toLocaleString()}건
+        </p>
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-8">
         <CountBadge label="전체 후보 수" value={result.summary.bulkLikeCandidateCount} />
         <CountBadge label="Draft 가능" value={result.summary.draftCreatableCount} />
-        <CountBadge label="검토 준비" value={result.summary.readyForReviewCount} />
-        <CountBadge label="문맥 필요" value={result.summary.needsContextCount} />
+        <CountBadge label="단일 상품" value={result.summary.singleProductCount} />
         <CountBadge label="세트 후보" value={result.summary.setProductCount} />
-        <CountBadge
-          label="가격/재고 변경"
-          value={result.summary.priceAndStockChangeCandidateCount}
-        />
+        <CountBadge label="OPTION 후보" value={result.candidates.filter(c => c.candidateType === 'OPTION').length} />
+        <CountBadge label="ADDITIONAL" value={result.candidates.filter(c => c.candidateType === 'ADDITIONAL').length} />
+        <CountBadge label="문맥 필요" value={result.summary.needsContextCount} />
+        <CountBadge label="가격+재고 변경" value={result.summary.priceAndStockChangeCandidateCount} />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
@@ -829,25 +878,36 @@ function DraftPreviewPanel({
           </div>
         ) : (
           <>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <div className="mb-4">
+              {selectedReviewSummary.selectedCount > selectedReviewSummary.draftCreatableCount && (
+                <div className="mb-2 rounded-lg border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
+                  <AlertTriangle className="mr-2 inline-block h-4 w-4" />
+                  선택한 후보 중 {selectedReviewSummary.selectedCount - selectedReviewSummary.draftCreatableCount}건은 Draft 생성 불가 상태(문맥 부족/위험)입니다. JSON payload에는 포함되지만 실제 생성은 차단됩니다.
+                </div>
+              )}
+              {selectedReviewSummary.riskOrIssueCount > 0 && (
+                <div className="mb-2 rounded-lg border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
+                  <AlertTriangle className="mr-2 inline-block h-4 w-4" />
+                  선택한 후보 중 {selectedReviewSummary.riskOrIssueCount}건에 위험(Risk) 또는 이슈(Issue)가 존재합니다. 검토가 필요합니다.
+                </div>
+              )}
+            </div>
+            
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
               <CountBadge label="선택된 후보 수" value={selectedReviewSummary.selectedCount} />
-              <CountBadge label="draftCreatable 후보 수" value={selectedReviewSummary.draftCreatableCount} />
-              <CountBadge label="priceChange 후보 수" value={selectedReviewSummary.priceChangeCount} />
-              <CountBadge label="stockChange 후보 수" value={selectedReviewSummary.stockChangeCount} />
-              <CountBadge label="risk/issue 있는 후보 수" value={selectedReviewSummary.riskOrIssueCount} />
-              <CountBadge label="Draft Batch 생성 가능" value={selectedReviewSummary.draftCreatableCount} />
-              <CountBadge
-                label="Draft Batch 생성 불가"
-                value={selectedReviewSummary.selectedCount - selectedReviewSummary.draftCreatableCount}
-              />
+              <CountBadge label="생성 가능" value={selectedReviewSummary.draftCreatableCount} />
+              <CountBadge label="생성 불가" value={selectedReviewSummary.selectedCount - selectedReviewSummary.draftCreatableCount} />
+              <CountBadge label="위험/이슈 포함" value={selectedReviewSummary.riskOrIssueCount} />
+              <CountBadge label="가격 변경" value={selectedReviewSummary.priceChangeCount} />
+              <CountBadge label="재고 변경" value={selectedReviewSummary.stockChangeCount} />
             </div>
 
-            <div className="grid gap-4 lg:grid-cols-2">
+            <div className="grid gap-4 lg:grid-cols-2 mt-4">
               <CountList title="candidateType별 개수" counts={selectedCandidateTypeCounts} />
               <CountList title="targetType별 개수" counts={selectedTargetTypeCounts} />
             </div>
 
-            <div className="rounded-lg border border-[#262629] bg-[#121214] p-4">
+            <div className="mt-4 rounded-lg border border-[#262629] bg-[#121214] p-4">
               <p className="tms-text-primary text-sm font-semibold">후보별 상세 검토 목록</p>
               <div className="mt-3 space-y-3">
                 {selectedCandidates.map((candidate) => {
@@ -860,23 +920,55 @@ function DraftPreviewPanel({
                       <div className="flex flex-col gap-2 lg:flex-row lg:items-start lg:justify-between">
                         <div className="min-w-0">
                           <p className="tms-text-muted font-mono text-[11px]">{candidate.id}</p>
+                          <div className="flex flex-wrap gap-1.5 mt-2 mb-2">
+                            {candidate.draftCreatable ? (
+                              <span className="tms-success-text border border-emerald-500/20 bg-emerald-500/10 px-1.5 py-0.5 rounded text-[10px] font-semibold">생성 가능</span>
+                            ) : candidate.status === 'NEEDS_CONTEXT' ? (
+                              <span className="tms-warning-text border border-amber-500/20 bg-amber-500/10 px-1.5 py-0.5 rounded text-[10px] font-semibold">문맥 부족</span>
+                            ) : (
+                              <span className="tms-warning-text border border-amber-500/20 bg-amber-500/10 px-1.5 py-0.5 rounded text-[10px] font-semibold">검토 필요</span>
+                            )}
+                            
+                            {candidate.riskTypes.length > 0 && (
+                              <span className="tms-danger-text border border-red-500/20 bg-red-500/10 px-1.5 py-0.5 rounded text-[10px] font-semibold">위험</span>
+                            )}
+                            
+                            {candidate.hasPriceChange && candidate.hasStockChange ? (
+                              <span className="tms-badge-text border border-violet-500/20 bg-violet-500/10 px-1.5 py-0.5 rounded text-[10px] font-semibold">가격+재고 변경</span>
+                            ) : candidate.hasPriceChange ? (
+                              <span className="tms-badge-text border border-violet-500/20 bg-violet-500/10 px-1.5 py-0.5 rounded text-[10px] font-semibold">가격 변경</span>
+                            ) : candidate.hasStockChange ? (
+                              <span className="tms-badge-text border border-violet-500/20 bg-violet-500/10 px-1.5 py-0.5 rounded text-[10px] font-semibold">재고 변경</span>
+                            ) : null}
+
+                            <span className="tms-link border border-sky-500/20 bg-sky-500/10 px-1.5 py-0.5 rounded text-[10px] font-semibold">
+                              {candidate.candidateType === 'PRODUCT' ? '단일 상품' : candidate.candidateType}
+                            </span>
+                            
+                            {candidate.currentStateSource === 'UPLOAD_OPTION_CURRENT_CONTEXT_PREVIEW' ? (
+                              <span className="tms-badge-subtle border border-[#555] bg-[#333] px-1.5 py-0.5 rounded text-[10px] font-semibold">업로드 문맥 보강</span>
+                            ) : (
+                              <span className="text-zinc-500 border border-[#333] bg-[#111] px-1.5 py-0.5 rounded text-[10px] font-semibold">DB 문맥 사용</span>
+                            )}
+
+                            {candidate.issues.some(i => i.code === 'CHANNEL_ID_UNAVAILABLE') && (
+                              <span className="text-zinc-400 border border-[#444] bg-[#222] px-1.5 py-0.5 rounded text-[10px] font-semibold">CHANNEL ID 미확인</span>
+                            )}
+                          </div>
                           <p className="tms-text-primary mt-1 text-sm font-semibold">
-                            {candidate.candidateType} · {candidate.sourceMappingType}
+                            {candidate.productName ?? '-'} / {candidate.itemName ?? '-'}
                           </p>
-                          <p className="tms-row-text mt-1 text-sm">
-                            {candidate.channelProductNo} · {candidate.itemId}
+                          <p className="tms-row-text mt-1 text-xs">
+                            상품번호: {candidate.channelProductNo} · 항목ID: {candidate.itemId}
                           </p>
                           {candidate.candidateType === 'OPTION' && (
-                            <p className="tms-text-muted mt-1 text-xs">optionId: {candidate.itemId}</p>
+                            <p className="tms-text-muted mt-1 text-[11px]">optionId: {candidate.itemId}</p>
                           )}
                           {candidate.candidateType === 'ADDITIONAL' && (
-                            <p className="tms-text-muted mt-1 text-xs">additionalProductId: {candidate.itemId}</p>
+                            <p className="tms-text-muted mt-1 text-[11px]">additionalProductId: {candidate.itemId}</p>
                           )}
-                          <p className="tms-text-muted mt-1 text-xs">
+                          <p className="tms-text-muted mt-1 text-[11px]">
                             SKU: {getDraftCandidateSkuText(candidate)}
-                          </p>
-                          <p className="tms-text-muted mt-1 text-xs">
-                            상품명: {candidate.productName ?? '-'} / 항목명: {candidate.itemName ?? '-'}
                           </p>
                           {candidate.currentStateSyncedAt && (
                             <p className="tms-text-muted mt-1 text-[11px]">
@@ -884,32 +976,61 @@ function DraftPreviewPanel({
                             </p>
                           )}
                         </div>
-                        <div className="tms-row-text grid gap-1 text-xs sm:grid-cols-2 lg:min-w-[320px]">
-                          <span>draftCreatable: {candidate.draftCreatable ? 'true' : 'false'}</span>
-                          <span>priceChange: {candidate.hasPriceChange ? 'true' : 'false'}</span>
-                          <span>stockChange: {candidate.hasStockChange ? 'true' : 'false'}</span>
-                          <span>issue 개수: {candidate.issues.length.toLocaleString()}</span>
+                        <div className="tms-row-text grid gap-2 text-xs sm:grid-cols-2 lg:min-w-[320px] rounded-lg border border-[#262629] bg-[#121214] p-3">
+                          <div className="flex flex-col">
+                            <span className="text-[10px] text-zinc-500">현재 가격</span>
+                            <span className="font-semibold">{formatMaybe(candidate.currentSmartstorePrice)}</span>
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="text-[10px] text-zinc-500">목표 가격</span>
+                            <span className="font-semibold">{formatMaybe(candidate.calculatedTargetPrice)}</span>
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="text-[10px] text-zinc-500">현재 재고</span>
+                            <span className="font-semibold">{formatMaybe(candidate.currentSmartstoreStock)}</span>
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="text-[10px] text-zinc-500">목표 재고</span>
+                            <span className="font-semibold">{formatMaybe(candidate.calculatedTargetStock)}</span>
+                          </div>
                         </div>
                       </div>
-                      <div className="mt-3 flex flex-wrap gap-2">
+
+                      {candidate.currentStateSource === 'UPLOAD_OPTION_CURRENT_CONTEXT_PREVIEW' && (
+                        <div className="mt-4 rounded-md border border-indigo-500/20 bg-indigo-500/10 p-3">
+                          <p className="text-xs font-semibold text-indigo-300">OPTION 업로드 문맥 적용 완료</p>
+                          <p className="mt-1 text-[11px] text-indigo-200/80">
+                            이 후보는 업로드된 OPTION 현재 문맥 엑셀 파일을 기준으로 현재 가격과 재고가 보강되었습니다.<br/>
+                            {candidate.warningMessage && candidate.warningMessage.includes('업로드 파일 Preview 기준') && (
+                              <span className="text-amber-300 mt-1 block">⚠️ 주의: 업로드 파일 기준 현재값이므로 실제 스마트스토어 최신값과 다를 수 있습니다.</span>
+                            )}
+                          </p>
+                        </div>
+                      )}
+
+                      <div className="mt-4 flex flex-col gap-2">
                         {issueMessages.length > 0 ? (
-                          issueMessages.map((message, index) => (
-                            <span
-                              key={`${candidate.id}-issue-${index}`}
-                              className="inline-flex rounded-md border border-amber-500/20 bg-amber-500/10 px-2 py-1 text-[11px] text-amber-200"
-                            >
-                              {message}
-                            </span>
-                          ))
+                          <div className="space-y-1">
+                            {issueMessages.map((message, index) => (
+                              <div
+                                key={`${candidate.id}-issue-${index}`}
+                                className="inline-flex rounded-md border border-amber-500/20 bg-amber-500/10 px-2 py-1.5 text-[11px] text-amber-200"
+                              >
+                                {message}
+                              </div>
+                            ))}
+                          </div>
                         ) : (
-                          <span className="inline-flex rounded-md border border-emerald-500/20 bg-emerald-500/10 px-2 py-1 text-[11px] text-emerald-200">
-                            주요 issue 없음
-                          </span>
+                          <div>
+                            <span className="inline-flex rounded-md border border-emerald-500/20 bg-emerald-500/10 px-2 py-1 text-[11px] text-emerald-200">
+                              주요 issue 없음
+                            </span>
+                          </div>
                         )}
                       </div>
                       <div className="tms-text-muted mt-3 space-y-1 text-xs">
-                        <p>권장 조치: {candidate.recommendedAction || '-'}</p>
-                        <p>검토 메모: {candidate.reviewMessage || '-'}</p>
+                        {candidate.recommendedAction && <p>권장 조치: {candidate.recommendedAction}</p>}
+                        {candidate.reviewMessage && <p className="whitespace-pre-wrap">검토 메모: {candidate.reviewMessage}</p>}
                       </div>
                     </div>
                   );
@@ -917,12 +1038,19 @@ function DraftPreviewPanel({
               </div>
             </div>
 
-            <div className="rounded-lg border border-[#262629] bg-[#121214] p-4">
-              <p className="tms-text-primary text-sm font-semibold">검토용 JSON 미리보기</p>
-              <pre className="tms-row-text mt-3 overflow-x-auto rounded-lg border border-[#262629] bg-[#0c0c0e] p-4 text-xs">
-                {reviewPayloadText}
-              </pre>
-            </div>
+            <details className="mt-4 rounded-lg border border-[#262629] bg-[#121214]">
+              <summary className="tms-text-primary cursor-pointer list-none p-4 text-sm font-semibold hover:bg-[#1a1a1e] transition-colors rounded-lg">
+                검토용 JSON 미리보기 (클릭하여 펼치기)
+                <span className="ml-2 text-xs font-normal text-zinc-500">
+                  선택된 {selectedReviewSummary.selectedCount}건의 후보 정보만 포함됩니다.
+                </span>
+              </summary>
+              <div className="border-t border-[#262629] p-4">
+                <pre className="tms-row-text overflow-x-auto rounded-lg border border-[#262629] bg-[#0c0c0e] p-4 text-xs">
+                  {reviewPayloadText}
+                </pre>
+              </div>
+            </details>
           </>
         )}
       </div>
