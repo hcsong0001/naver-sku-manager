@@ -9,6 +9,7 @@ import {
   FileJson,
   Loader2,
   ShieldAlert,
+  X,
 } from 'lucide-react';
 import type {
   SkuKeywordDraftBatchApproveRequest,
@@ -244,6 +245,8 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
   const [finalApprovalsLoading, setFinalApprovalsLoading] = useState(true);
   const [finalApprovalsError, setFinalApprovalsError] = useState<string | null>(null);
 
+  const [isFinalApprovalModalOpen, setIsFinalApprovalModalOpen] = useState(false);
+
   const [now, setNow] = useState<number | null>(null);
 
   useEffect(() => {
@@ -350,6 +353,26 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
     && approveChecked
     && !hasVisibleHardBlockers
     && !approving;
+
+  const finalApprovalBlockingReasons: string[] = [];
+  if (!job || job.status !== 'APPROVED') {
+    finalApprovalBlockingReasons.push("Batch 상태가 APPROVED가 아닙니다.");
+  }
+  const allItemsReady = job?.items.every(item => item.status === 'READY') ?? false;
+  if (job && !allItemsReady) {
+    finalApprovalBlockingReasons.push("READY가 아닌 Item이 있습니다.");
+  }
+  if (finalApprovalsLoading) {
+    finalApprovalBlockingReasons.push("FinalApproval 조회 중입니다.");
+  }
+  if (finalApprovalsError) {
+    finalApprovalBlockingReasons.push("FinalApproval 조회에 실패했습니다.");
+  }
+  const activeFinalApproval = finalApprovals?.find(a => a.status === 'ACTIVE');
+  if (activeFinalApproval) {
+    finalApprovalBlockingReasons.push("이미 ACTIVE 최종 승인 Artifact가 있습니다.");
+  }
+  const canCreateFinalApproval = finalApprovalBlockingReasons.length === 0;
 
   const handleApprove = async () => {
     if (!job || !canApprove) return;
@@ -575,31 +598,38 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             <div className="text-sm text-gray-400">최종 승인 Artifact가 아직 없습니다.</div>
             <div className="rounded-md border border-indigo-500/20 bg-indigo-500/10 p-3 text-sm text-indigo-200">
               <p className="font-semibold text-indigo-300">최종 승인 생성 준비 상태</p>
-              <ul className="mt-2 space-y-1 text-gray-300">
-                <li className="flex items-center gap-2">
-                  <span className={job.status === 'APPROVED' ? 'text-emerald-400' : 'text-gray-500'}>
-                    {job.status === 'APPROVED' ? '✔' : '○'}
+
+              {finalApprovalBlockingReasons.length > 0 ? (
+                <div className="mt-2 text-red-300">
+                  <p className="mb-1 text-xs">버튼이 비활성화된 사유:</p>
+                  <ul className="list-inside list-disc text-sm">
+                    {finalApprovalBlockingReasons.map((reason, idx) => (
+                      <li key={idx}>{reason}</li>
+                    ))}
+                  </ul>
+                </div>
+              ) : (
+                <p className="mt-2 text-sm text-emerald-300">
+                  모든 조건이 충족되었습니다. 아래 버튼을 눌러 승인 확인 단계를 진행할 수 있습니다.
+                  <br />
+                  <span className="text-xs text-gray-400">
+                    (서버에서 candidate, dryRunItem, 수집 문맥 등을 다시 검증합니다.)
                   </span>
-                  Batch 상태가 APPROVED인가? (현재: {job.status})
-                </li>
-                <li className="flex items-center gap-2">
-                  <span className={job.status === 'APPROVED' ? 'text-emerald-400' : 'text-gray-500'}>
-                    {job.status === 'APPROVED' ? '✔' : '○'}
-                  </span>
-                  Item 상태가 모두 READY인가?
-                </li>
-                <li className="flex items-center gap-2 text-gray-400">
-                  <span>-</span>
-                  현재 단계에서는 생성 버튼을 제공하지 않으며, 별도 승인 UX가 준비된 후 생성할 수 있습니다.
-                </li>
-              </ul>
+                </p>
+              )}
+
               <div className="mt-4">
                 <button
                   type="button"
-                  disabled
-                  className="inline-flex items-center rounded-md bg-slate-700 px-4 py-2 text-sm font-semibold text-slate-300 opacity-70 cursor-not-allowed"
+                  disabled={!canCreateFinalApproval}
+                  onClick={() => setIsFinalApprovalModalOpen(true)}
+                  className={`inline-flex items-center rounded-md px-4 py-2 text-sm font-semibold transition ${
+                    canCreateFinalApproval
+                      ? 'bg-indigo-600 text-white hover:bg-indigo-500'
+                      : 'bg-slate-700 text-slate-300 opacity-70 cursor-not-allowed'
+                  }`}
                 >
-                  최종 승인 Artifact 생성 준비 중
+                  {canCreateFinalApproval ? '최종 승인 Artifact 생성 준비' : '최종 승인 Artifact 생성 불가'}
                 </button>
               </div>
             </div>
@@ -654,21 +684,34 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 <div className="sm:col-span-2 lg:col-span-4 mt-2">
                   <div className="rounded-md border border-amber-500/20 bg-amber-500/10 p-3 text-sm text-amber-100">
                     <p className="font-semibold text-amber-300">최종 승인 생성 준비 상태</p>
-                    <p className="mt-1">
-                      {targetApproval.status === 'ACTIVE'
-                        ? '이미 ACTIVE 최종 승인 Artifact가 있습니다. 현재 Batch는 최종 승인 이력이 있으므로 새 Artifact 생성은 비활성화되어 있습니다.'
-                        : '이전에 생성된 최종 승인 이력이 있습니다. 현재는 안전상 생성 버튼이 비활성화되어 있습니다.'}
-                    </p>
-                    <p className="mt-1 text-gray-400">
-                      실제 생성은 별도 승인 단계에서 진행 예정입니다.
-                    </p>
+
+                    {finalApprovalBlockingReasons.length > 0 ? (
+                      <div className="mt-2 text-red-300">
+                        <p className="mb-1 text-xs">버튼이 비활성화된 사유:</p>
+                        <ul className="list-inside list-disc text-sm">
+                          {finalApprovalBlockingReasons.map((reason, idx) => (
+                            <li key={idx}>{reason}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    ) : (
+                      <p className="mt-2 text-sm text-emerald-300">
+                        모든 조건이 충족되었습니다. 아래 버튼을 눌러 승인 확인 단계를 진행할 수 있습니다.
+                      </p>
+                    )}
+
                     <div className="mt-4">
                       <button
                         type="button"
-                        disabled
-                        className="inline-flex items-center rounded-md bg-slate-700 px-4 py-2 text-sm font-semibold text-slate-300 opacity-70 cursor-not-allowed"
+                        disabled={!canCreateFinalApproval}
+                        onClick={() => setIsFinalApprovalModalOpen(true)}
+                        className={`inline-flex items-center rounded-md px-4 py-2 text-sm font-semibold transition ${
+                          canCreateFinalApproval
+                            ? 'bg-indigo-600 text-white hover:bg-indigo-500'
+                            : 'bg-slate-700 text-slate-300 opacity-70 cursor-not-allowed'
+                        }`}
                       >
-                        최종 승인 Artifact 생성 준비 중
+                        {canCreateFinalApproval ? '최종 승인 Artifact 생성 준비' : '최종 승인 Artifact 생성 불가'}
                       </button>
                     </div>
                   </div>
@@ -776,6 +819,53 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
           </div>
         ))}
       </div>
+
+      {isFinalApprovalModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <div className="relative w-full max-w-lg rounded-xl border border-[#262629] bg-[#121214] p-6 shadow-2xl">
+            <button
+              onClick={() => setIsFinalApprovalModalOpen(false)}
+              className="absolute right-4 top-4 text-gray-400 hover:text-white transition"
+              aria-label="Close"
+            >
+              <X className="h-5 w-5" />
+            </button>
+            <h3 className="mb-4 text-xl font-semibold text-white">최종 승인 Artifact 생성 전 확인</h3>
+            <div className="space-y-3 text-sm text-gray-300">
+              <p>
+                이 단계는 안전한 승인을 위해 다음 제약 사항을 준수합니다.
+              </p>
+              <ul className="list-inside list-disc space-y-1 text-red-300">
+                <li>이 작업은 네이버 API를 호출하지 않습니다.</li>
+                <li>이 작업은 EXECUTING으로 전환하지 않습니다.</li>
+                <li>이 작업은 Job/Item status를 변경하지 않습니다.</li>
+                <li>이 작업은 FinalApproval artifact만 생성하는 단계입니다.</li>
+                <li>기존 ACTIVE artifact가 있으면 생성할 수 없습니다.</li>
+                <li>validationExpiresAt 이후에는 실행 자격으로 사용하면 안 됩니다.</li>
+              </ul>
+              <p className="mt-4 text-indigo-300">
+                서버에서 <span className="font-mono">candidate</span>, <span className="font-mono">dryRunItem</span>, 수집 문맥, gate 설정을 다시 검증합니다.
+              </p>
+            </div>
+            <div className="mt-8 flex items-center justify-end gap-3 border-t border-[#262629] pt-4">
+              <button
+                type="button"
+                onClick={() => setIsFinalApprovalModalOpen(false)}
+                className="rounded-md px-4 py-2 text-sm font-semibold text-gray-300 hover:bg-[#262629] hover:text-white transition"
+              >
+                취소
+              </button>
+              <button
+                type="button"
+                disabled
+                className="rounded-md bg-slate-700 px-4 py-2 text-sm font-semibold text-slate-300 opacity-70 cursor-not-allowed"
+              >
+                생성 API 연결 전 — 아직 실행 안 함
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
