@@ -571,7 +571,39 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             조회 에러: {finalApprovalsError}
           </div>
         ) : !finalApprovals || finalApprovals.length === 0 ? (
-          <div className="text-sm text-gray-400">최종 승인 artifact 없음</div>
+          <div className="space-y-4">
+            <div className="text-sm text-gray-400">최종 승인 Artifact가 아직 없습니다.</div>
+            <div className="rounded-md border border-indigo-500/20 bg-indigo-500/10 p-3 text-sm text-indigo-200">
+              <p className="font-semibold text-indigo-300">최종 승인 생성 준비 상태</p>
+              <ul className="mt-2 space-y-1 text-gray-300">
+                <li className="flex items-center gap-2">
+                  <span className={job.status === 'APPROVED' ? 'text-emerald-400' : 'text-gray-500'}>
+                    {job.status === 'APPROVED' ? '✔' : '○'}
+                  </span>
+                  Batch 상태가 APPROVED인가? (현재: {job.status})
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className={job.status === 'APPROVED' ? 'text-emerald-400' : 'text-gray-500'}>
+                    {job.status === 'APPROVED' ? '✔' : '○'}
+                  </span>
+                  Item 상태가 모두 READY인가?
+                </li>
+                <li className="flex items-center gap-2 text-gray-400">
+                  <span>-</span>
+                  현재 단계에서는 생성 버튼을 제공하지 않으며, 별도 승인 UX가 준비된 후 생성할 수 있습니다.
+                </li>
+              </ul>
+              <div className="mt-4">
+                <button
+                  type="button"
+                  disabled
+                  className="inline-flex items-center rounded-md bg-slate-700 px-4 py-2 text-sm font-semibold text-slate-300 opacity-70 cursor-not-allowed"
+                >
+                  최종 승인 Artifact 생성 준비 중
+                </button>
+              </div>
+            </div>
+          </div>
         ) : (
           (() => {
             const targetApproval = finalApprovals.find(a => a.status === 'ACTIVE') || finalApprovals[0];
@@ -616,6 +648,28 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                     <div>
                       <span className="text-gray-500 mr-2">Validation:</span>
                       <span className="font-mono text-gray-300">{targetApproval.validationSnapshotHash.substring(0, 12)}...</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="sm:col-span-2 lg:col-span-4 mt-2">
+                  <div className="rounded-md border border-amber-500/20 bg-amber-500/10 p-3 text-sm text-amber-100">
+                    <p className="font-semibold text-amber-300">최종 승인 생성 준비 상태</p>
+                    <p className="mt-1">
+                      {targetApproval.status === 'ACTIVE'
+                        ? '이미 ACTIVE 최종 승인 Artifact가 있습니다. 현재 Batch는 최종 승인 이력이 있으므로 새 Artifact 생성은 비활성화되어 있습니다.'
+                        : '이전에 생성된 최종 승인 이력이 있습니다. 현재는 안전상 생성 버튼이 비활성화되어 있습니다.'}
+                    </p>
+                    <p className="mt-1 text-gray-400">
+                      실제 생성은 별도 승인 단계에서 진행 예정입니다.
+                    </p>
+                    <div className="mt-4">
+                      <button
+                        type="button"
+                        disabled
+                        className="inline-flex items-center rounded-md bg-slate-700 px-4 py-2 text-sm font-semibold text-slate-300 opacity-70 cursor-not-allowed"
+                      >
+                        최종 승인 Artifact 생성 준비 중
+                      </button>
                     </div>
                   </div>
                 </div>
