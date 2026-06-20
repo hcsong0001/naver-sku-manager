@@ -64,6 +64,31 @@ type DraftBatchDetailResponse =
     error?: string;
   };
 
+type FinalApprovalSummary = {
+  id: string;
+  version: number;
+  status: 'ACTIVE' | 'INVALIDATED' | 'SUPERSEDED';
+  finalApprovedAt: string;
+  finalApprovedBy: string;
+  validationExpiresAt: string;
+  invalidatedAt: string | null;
+  supersedesApprovalId: string | null;
+  itemCount: number;
+  validationSnapshotHash: string;
+  payloadHash: string;
+};
+
+type FinalApprovalsListResponse =
+  | {
+    ok: true;
+    jobId: string;
+    finalApprovals: FinalApprovalSummary[];
+  }
+  | {
+    ok: false;
+    error?: string;
+  };
+
 const ALLOWED_TARGET_TYPES = new Set(['SINGLE', 'OPTION', 'ADDITIONAL']);
 const WARNING_LABELS: Record<string, string> = {
   CHANNEL_ID_UNAVAILABLE: '채널 ID 정보 없음',
@@ -215,6 +240,21 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
   const [approveError, setApproveError] = useState<string | null>(null);
   const [approveResult, setApproveResult] = useState<SkuKeywordDraftBatchApproveResponse | null>(null);
 
+  const [finalApprovals, setFinalApprovals] = useState<FinalApprovalSummary[] | null>(null);
+  const [finalApprovalsLoading, setFinalApprovalsLoading] = useState(true);
+  const [finalApprovalsError, setFinalApprovalsError] = useState<string | null>(null);
+
+  const [now, setNow] = useState<number | null>(null);
+
+  useEffect(() => {
+    const initTimer = setTimeout(() => setNow(Date.now()), 0);
+    const intervalTimer = setInterval(() => setNow(Date.now()), 60000);
+    return () => {
+      clearTimeout(initTimer);
+      clearInterval(intervalTimer);
+    };
+  }, []);
+
   const fetchJob = useCallback(async () => {
     try {
       setLoading(true);
@@ -261,7 +301,32 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
       }
     };
 
-    void loadInitialJob();
+    const loadFinalApprovals = async () => {
+      try {
+        setFinalApprovalsLoading(true);
+        const response = await fetch(`/api/sku-matching/draft-batch/${params.jobId}/final-approvals`);
+        const data = (await response.json()) as FinalApprovalsListResponse;
+
+        if (!response.ok || !data.ok) {
+          throw new Error('error' in data && data.error ? data.error : 'FinalApproval 조회에 실패했습니다.');
+        }
+
+        if (!cancelled) {
+          setFinalApprovals(data.finalApprovals);
+          setFinalApprovalsError(null);
+        }
+      } catch (err: unknown) {
+        if (!cancelled) {
+          setFinalApprovalsError(err instanceof Error ? err.message : String(err));
+        }
+      } finally {
+        if (!cancelled) {
+          setFinalApprovalsLoading(false);
+        }
+      }
+    };
+
+    void Promise.all([loadInitialJob(), loadFinalApprovals()]);
 
     return () => {
       cancelled = true;
@@ -489,6 +554,76 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
           </div>
         </div>
       )}
+
+      {/* FinalApproval 요약 표시 영역 */}
+      <div className="mb-6 rounded-lg border border-[#262629] bg-[#121214] p-4">
+        <h2 className="mb-4 flex items-center gap-2 text-base font-semibold text-white">
+          <FileJson className="h-5 w-5 text-indigo-400" />
+          최종 승인 Artifact
+        </h2>
+        {finalApprovalsLoading ? (
+          <div className="flex items-center gap-2 text-sm text-gray-400">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            <span>최종 승인 이력 조회 중...</span>
+          </div>
+        ) : finalApprovalsError ? (
+          <div className="text-sm text-red-400">
+            조회 에러: {finalApprovalsError}
+          </div>
+        ) : !finalApprovals || finalApprovals.length === 0 ? (
+          <div className="text-sm text-gray-400">최종 승인 artifact 없음</div>
+        ) : (
+          (() => {
+            const targetApproval = finalApprovals.find(a => a.status === 'ACTIVE') || finalApprovals[0];
+            const isExpired = now === null ? false : new Date(targetApproval.validationExpiresAt).getTime() <= now;
+            return (
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                <div>
+                  <p className="mb-1 text-xs text-gray-500">상태</p>
+                  <span className={`rounded-full border px-2 py-0.5 text-xs font-semibold ${targetApproval.status === 'ACTIVE' ? 'border-emerald-500/30 bg-emerald-500/20 text-emerald-300' : 'border-slate-500/30 bg-slate-500/20 text-slate-300'}`}>
+                    {targetApproval.status}
+                  </span>
+                </div>
+                <div>
+                  <p className="mb-1 text-xs text-gray-500">최종 승인 시각</p>
+                  <p className="text-sm text-gray-200">{new Date(targetApproval.finalApprovedAt).toLocaleString()}</p>
+                </div>
+                <div>
+                  <p className="mb-1 text-xs text-gray-500">검증 만료 시각</p>
+                  <p className="text-sm text-gray-200">{new Date(targetApproval.validationExpiresAt).toLocaleString()}</p>
+                </div>
+                <div>
+                  <p className="mb-1 text-xs text-gray-500">만료 여부</p>
+                  <span className={`text-sm font-semibold ${isExpired ? 'text-red-400' : 'text-emerald-400'}`}>
+                    {isExpired ? '만료됨' : '유효'}
+                  </span>
+                </div>
+                <div>
+                  <p className="mb-1 text-xs text-gray-500">승인자</p>
+                  <p className="text-sm text-gray-200">{targetApproval.finalApprovedBy}</p>
+                </div>
+                <div>
+                  <p className="mb-1 text-xs text-gray-500">대상 item 수</p>
+                  <p className="text-sm text-gray-200">{targetApproval.itemCount}개</p>
+                </div>
+                <div className="sm:col-span-2 lg:col-span-4">
+                  <p className="mb-1 text-xs text-gray-500">해시 검증 (요약)</p>
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    <div>
+                      <span className="text-gray-500 mr-2">Payload:</span>
+                      <span className="font-mono text-gray-300">{targetApproval.payloadHash.substring(0, 12)}...</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-500 mr-2">Validation:</span>
+                      <span className="font-mono text-gray-300">{targetApproval.validationSnapshotHash.substring(0, 12)}...</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })()
+        )}
+      </div>
 
       <div className="flex-1 space-y-4">
         <h2 className="text-lg font-semibold text-gray-200">항목 목록 ({job.items.length}건)</h2>
