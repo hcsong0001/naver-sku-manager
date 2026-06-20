@@ -23,7 +23,9 @@ export type SkuKeywordFinalApprovalErrorCode =
   | 'INCOMPLETE_BATCH_PAYLOAD'
   | 'UNSUPPORTED_BATCH_OPERATION'
   | 'VALIDATION_CONTEXT_UNAVAILABLE'
-  | 'FINAL_APPROVAL_CREATE_FAILED';
+  | 'FINAL_APPROVAL_CREATE_FAILED'
+  | 'FINAL_APPROVAL_QUERY_FAILED'
+  | 'FINAL_APPROVAL_JOB_NOT_FOUND';
 
 export type SkuKeywordFinalApprovalHashSpecV1 = {
   schemaVersion: '1';

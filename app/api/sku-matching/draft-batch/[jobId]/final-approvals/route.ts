@@ -3,6 +3,7 @@ import {
   createSkuKeywordFinalApproval,
   parseSkuKeywordFinalApprovalCreateRequest,
 } from '@/src/services/sku-keyword-final-approval.service';
+import { getFinalApprovalsByJobId } from '@/src/services/sku-keyword-final-approval-query.service';
 import { SkuKeywordFinalApprovalError } from '@/src/services/sku-keyword-final-approval.errors';
 import type { SkuKeywordFinalApprovalErrorResponse } from '@/src/types/sku-keyword-final-approval.types';
 
@@ -75,6 +76,37 @@ export async function POST(
         ok: false,
         code: 'FINAL_APPROVAL_CREATE_FAILED',
         message: '최종 승인 artifact 생성 중 예상하지 못한 오류가 발생했습니다.',
+      },
+      { status: 500 },
+    );
+  }
+}
+
+export async function GET(
+  request: Request,
+  context: { params: Promise<{ jobId: string }> },
+) {
+  try {
+    const { jobId } = await context.params;
+    if (!UUID_PATTERN.test(jobId)) {
+      throw new SkuKeywordFinalApprovalError(
+        'INVALID_FINAL_APPROVAL_REQUEST',
+        400,
+        'jobId 형식이 올바르지 않습니다.',
+      );
+    }
+    const result = await getFinalApprovalsByJobId(jobId);
+    return NextResponse.json(result, { status: 200 });
+  } catch (error: unknown) {
+    if (error instanceof SkuKeywordFinalApprovalError) {
+      return errorResponse(error);
+    }
+
+    return NextResponse.json<SkuKeywordFinalApprovalErrorResponse>(
+      {
+        ok: false,
+        code: 'FINAL_APPROVAL_QUERY_FAILED',
+        message: '최종 승인 artifact 조회 중 예상하지 못한 오류가 발생했습니다.',
       },
       { status: 500 },
     );

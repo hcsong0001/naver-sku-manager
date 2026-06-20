@@ -1,5 +1,6 @@
 import prisma from '@/lib/prisma';
 import { createSkuKeywordFinalApproval, parseSkuKeywordFinalApprovalCreateRequest } from '@/src/services/sku-keyword-final-approval.service';
+import { getFinalApprovalsByJobId } from '@/src/services/sku-keyword-final-approval-query.service';
 import { SkuKeywordFinalApprovalError } from '@/src/services/sku-keyword-final-approval.errors';
 
 if (!process.env.DATABASE_URL?.includes("localhost:55432")) {
@@ -51,7 +52,7 @@ async function setupTestData() {
       currentSalePrice: 1500,
       currentStockQuantity: 100,
       currentStateSource: 'NAVER_PRODUCT_COLLECTION',
-      currentStateSyncedAt: new Date(), // 24시간 이내
+      currentStateSyncedAt: new Date(), // 24?�간 ?�내
     },
   });
 
@@ -144,11 +145,11 @@ async function assertRejects(promise: Promise<unknown>, expectedStatus: number, 
 
 async function runTests() {
   console.log('--- Starting Integration Tests ---');
-  
+
   await setupTestData();
 
-  // Test 1: 정상 생성
-  console.log('Running Test 1: 정상 생성');
+  // Test 1: ?�상 ?�성
+  console.log('Running Test 1: ?�상 ?�성');
   const result1 = await createSkuKeywordFinalApproval({
     jobId: 'test-job-id',
     actorId: TEST_ACTOR,
@@ -161,14 +162,14 @@ async function runTests() {
   });
 
   if (!result1 || !result1.ok) throw new Error('Test 1 failed: Result not ok');
-  
+
   const activeApproval = await prisma.naverApiBatchFinalApproval.findFirst({
     where: { jobId: 'test-job-id', status: 'ACTIVE' },
     include: { items: true },
   });
   if (!activeApproval) throw new Error('Test 1 failed: FinalApproval not found');
   if (activeApproval.items.length !== 1) throw new Error('Test 1 failed: FinalApprovalItem not created correctly');
-  
+
   const currentJob = await prisma.naverApiBatchJob.findUnique({ where: { id: 'test-job-id' }});
   const currentJobItem = await prisma.naverApiBatchJobItem.findUnique({ where: { id: 'test-job-item-id' }});
   if (currentJob?.status !== 'APPROVED') throw new Error('Test 1 failed: Job status changed');
@@ -186,8 +187,8 @@ async function runTests() {
     'ACTIVE_FINAL_APPROVAL_EXISTS'
   );
 
-  // Test 3: confirm 누락 (400)
-  console.log('Running Test 3: confirm 누락 (400)');
+  // Test 3: confirm ?�락 (400)
+  console.log('Running Test 3: confirm ?�락 (400)');
   try {
     parseSkuKeywordFinalApprovalCreateRequest({ confirmFinalApproval: false, acknowledgedWarnings: [] });
     throw new Error('Expected parse to throw');
@@ -212,8 +213,7 @@ async function runTests() {
     }
   }
 
-  // Test 5: validation TTL 검증
-  console.log('Running Test 5: validation TTL 검증');
+  // Test 5: validation TTL 검�?  console.log('Running Test 5: validation TTL 검�?);
   const expiresAt = new Date(activeApproval.validationExpiresAt).getTime();
   const approvedAt = new Date(activeApproval.finalApprovedAt).getTime();
   const diffMs = expiresAt - approvedAt;
@@ -222,11 +222,51 @@ async function runTests() {
     throw new Error(`Test 5 failed: TTL is not 10 minutes. Got ${diffMs}ms`);
   }
 
-  // Test 6: hash 재현성 검증
-  console.log('Running Test 6: hash 재현성 검증');
+  // Test 6: hash ?�현??검�?  console.log('Running Test 6: hash ?�현??검�?);
   if (!activeApproval.payloadHash || !activeApproval.validationSnapshotHash) {
     throw new Error('Test 6 failed: Hashes are empty');
   }
+
+  // Test 7: GET 조회 (?�는 Job)
+  console.log('Running Test 7: GET 조회 (?�는 Job)');
+  try {
+    await getFinalApprovalsByJobId('00000000-0000-0000-0000-000000000000');
+    throw new Error('Expected query to throw 404');
+  } catch (error) {
+    if (error instanceof SkuKeywordFinalApprovalError) {
+      if (error.httpStatus !== 404) throw new Error(`Test 7 failed: Expected 404, got ${error.httpStatus}`);
+    } else {
+      throw error;
+    }
+  }
+
+  // Test 8: GET 조회 (1�?존재)
+  console.log('Running Test 8: GET 조회 (1�?존재)');
+  const queryResult = await getFinalApprovalsByJobId('test-job-id');
+  if (!queryResult.ok) throw new Error('Test 8 failed: Result not ok');
+  if (queryResult.finalApprovals.length !== 1) throw new Error(`Test 8 failed: Expected 1 approval, got ${queryResult.finalApprovals.length}`);
+
+  const fetchedApproval = queryResult.finalApprovals[0];
+  if (fetchedApproval.id !== activeApproval.id) throw new Error('Test 8 failed: Approval ID mismatch');
+  if (fetchedApproval.itemCount !== 1) throw new Error('Test 8 failed: itemCount mismatch');
+  if (!fetchedApproval.payloadHash || !fetchedApproval.validationSnapshotHash) throw new Error('Test 8 failed: Hash missing');
+  if (fetchedApproval.status !== 'ACTIVE') throw new Error('Test 8 failed: Status mismatch');
+
+  // Test 9: �?배열 반환 (Job?� 존재?��?�?Approval?� ?�음)
+  console.log('Running Test 9: GET 조회 (�?배열 반환)');
+  const emptyJob = await prisma.naverApiBatchJob.create({
+    data: {
+      id: 'test-empty-job-id',
+      jobType: 'PRICE_STOCK_UPDATE',
+      module: 'SKU_KEYWORD_MATCHING',
+      status: 'APPROVED',
+      totalItems: 0,
+      dryRun: false,
+    },
+  });
+  const emptyQueryResult = await getFinalApprovalsByJobId(emptyJob.id);
+  if (!emptyQueryResult.ok) throw new Error('Test 9 failed: Result not ok');
+  if (emptyQueryResult.finalApprovals.length !== 0) throw new Error('Test 9 failed: Expected empty array');
 
   console.log('--- All Tests Passed Successfully! ---');
   await prisma.$disconnect();
