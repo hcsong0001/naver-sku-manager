@@ -67,6 +67,8 @@ npx.cmd prisma migrate status
 - ACTIVE FinalApproval이 아직 없는 상태
 
 > **중요:**
+> - API route가 jobId UUID 형식을 요구하므로, seed jobId는 반드시 UUID 형식이어야 합니다.
+> - `TEST_PREFIX`는 `id`가 아니라 marker/description/requestPayload에만 사용해야 합니다.
 > - 기존 운영 DB 데이터를 복사하지 마세요.
 > - 운영 DB dump를 테스트에 사용하지 마세요.
 > - 테스트 전용 최소 seed만 사용하세요.

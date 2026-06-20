@@ -9,6 +9,7 @@ if (!process.env.DATABASE_URL?.includes('localhost:55432')) {
 }
 
 const TEST_PREFIX = 'TMS_FINAL_APPROVAL_UI_POST_TEST';
+const TEST_JOB_ID = 'f93e3d48-8df0-4b5b-b9f4-123456789abc';
 
 async function cleanup() {
   console.log('Cleaning up previous seed data...');
@@ -19,7 +20,7 @@ async function cleanup() {
   });
   
   await prisma.naverApiBatchFinalApproval.deleteMany({
-    where: { jobId: { startsWith: TEST_PREFIX } },
+    where: { jobId: TEST_JOB_ID },
   });
   
   await prisma.naverApiBatchJobItem.deleteMany({
@@ -27,7 +28,7 @@ async function cleanup() {
   });
   
   await prisma.naverApiBatchJob.deleteMany({
-    where: { id: { startsWith: TEST_PREFIX } },
+    where: { id: TEST_JOB_ID },
   });
   
   await prisma.naverProduct.deleteMany({
@@ -86,7 +87,7 @@ async function seed() {
     },
   });
 
-  const jobId = `${TEST_PREFIX}_job`;
+  const jobId = TEST_JOB_ID;
   const job = await prisma.naverApiBatchJob.create({
     data: {
       id: jobId,
