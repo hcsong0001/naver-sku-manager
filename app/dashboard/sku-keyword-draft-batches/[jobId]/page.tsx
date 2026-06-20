@@ -15,6 +15,7 @@ import type {
   SkuKeywordDraftBatchApproveRequest,
   SkuKeywordDraftBatchApproveResponse,
 } from '@/src/types/sku-keyword-draft-preview.types';
+import type { SkuKeywordFinalApprovalCreateRequest } from '@/src/types/sku-keyword-final-approval.types';
 
 type DraftBatchItem = {
   id: string;
@@ -246,6 +247,9 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
   const [finalApprovalsError, setFinalApprovalsError] = useState<string | null>(null);
 
   const [isFinalApprovalModalOpen, setIsFinalApprovalModalOpen] = useState(false);
+  const [isCreatingFinalApproval, setIsCreatingFinalApproval] = useState(false);
+  const [finalApprovalCreateError, setFinalApprovalCreateError] = useState<string | null>(null);
+  const [finalApprovalCreateSuccess, setFinalApprovalCreateSuccess] = useState<string | null>(null);
 
   const [now, setNow] = useState<number | null>(null);
 
@@ -408,6 +412,57 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
       setApproveError(err instanceof Error ? err.message : String(err));
     } finally {
       setApproving(false);
+    }
+  };
+
+  const handleCreateFinalApproval = async () => {
+    if (!job || !canCreateFinalApproval || isCreatingFinalApproval) return;
+
+    try {
+      setIsCreatingFinalApproval(true);
+      setFinalApprovalCreateError(null);
+      setFinalApprovalCreateSuccess(null);
+
+      const requestBody: SkuKeywordFinalApprovalCreateRequest = {
+        confirmFinalApproval: true,
+        approvalMemo: null,
+        acknowledgedWarnings: visibleWarnings,
+      };
+
+      const response = await fetch(`/api/sku-matching/draft-batch/${job.id}/final-approvals`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.ok) {
+        if ('message' in data && typeof data.message === 'string') {
+          throw new Error(data.message);
+        }
+        throw new Error(`최종 승인 생성에 실패했습니다. (${response.status})`);
+      }
+
+      setFinalApprovalCreateSuccess(
+        'FinalApproval artifact가 생성되었습니다. 이 작업은 네이버 API 호출이나 실행 전환을 수행하지 않았습니다.'
+      );
+      setIsFinalApprovalModalOpen(false);
+
+      // 성공 후 최종 승인 목록 재조회
+      setFinalApprovalsLoading(true);
+      const listResponse = await fetch(`/api/sku-matching/draft-batch/${job.id}/final-approvals`);
+      const listData = await listResponse.json();
+      if (listResponse.ok && listData.ok) {
+        setFinalApprovals(listData.finalApprovals);
+      }
+    } catch (err: unknown) {
+      setFinalApprovalCreateError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setIsCreatingFinalApproval(false);
+      setFinalApprovalsLoading(false);
     }
   };
 
@@ -584,6 +639,13 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
           <FileJson className="h-5 w-5 text-indigo-400" />
           최종 승인 Artifact
         </h2>
+
+        {finalApprovalCreateSuccess && (
+          <div className="mb-4 rounded-md border border-emerald-500/20 bg-emerald-500/10 p-3 text-sm text-emerald-300">
+            {finalApprovalCreateSuccess}
+          </div>
+        )}
+
         {finalApprovalsLoading ? (
           <div className="flex items-center gap-2 text-sm text-gray-400">
             <Loader2 className="h-4 w-4 animate-spin" />
@@ -846,21 +908,41 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <p className="mt-4 text-indigo-300">
                 서버에서 <span className="font-mono">candidate</span>, <span className="font-mono">dryRunItem</span>, 수집 문맥, gate 설정을 다시 검증합니다.
               </p>
+
+              {finalApprovalCreateError && (
+                <div className="mt-4 rounded-md border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-400">
+                  <span className="font-semibold text-red-300">오류 발생: </span>
+                  {finalApprovalCreateError}
+                </div>
+              )}
             </div>
             <div className="mt-8 flex items-center justify-end gap-3 border-t border-[#262629] pt-4">
               <button
                 type="button"
                 onClick={() => setIsFinalApprovalModalOpen(false)}
-                className="rounded-md px-4 py-2 text-sm font-semibold text-gray-300 hover:bg-[#262629] hover:text-white transition"
+                disabled={isCreatingFinalApproval}
+                className="rounded-md px-4 py-2 text-sm font-semibold text-gray-300 hover:bg-[#262629] hover:text-white transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 취소
               </button>
               <button
                 type="button"
-                disabled
-                className="rounded-md bg-slate-700 px-4 py-2 text-sm font-semibold text-slate-300 opacity-70 cursor-not-allowed"
+                onClick={() => void handleCreateFinalApproval()}
+                disabled={!canCreateFinalApproval || isCreatingFinalApproval}
+                className={`rounded-md px-4 py-2 text-sm font-semibold transition ${
+                  !canCreateFinalApproval || isCreatingFinalApproval
+                    ? 'bg-slate-700 text-slate-300 opacity-70 cursor-not-allowed'
+                    : 'bg-indigo-600 text-white hover:bg-indigo-500'
+                }`}
               >
-                생성 API 연결 전 — 아직 실행 안 함
+                {isCreatingFinalApproval ? (
+                  <>
+                    <Loader2 className="mr-2 inline-block h-4 w-4 animate-spin" />
+                    생성 중...
+                  </>
+                ) : (
+                  '최종 승인 Artifact 생성'
+                )}
               </button>
             </div>
           </div>
