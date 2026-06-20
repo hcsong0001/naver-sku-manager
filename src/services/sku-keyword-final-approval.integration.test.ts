@@ -154,7 +154,7 @@ async function runTests() {
     actorId: TEST_ACTOR,
     request: {
       confirmFinalApproval: true,
-      approvalMemo: 'Test Memo',
+      approvalMemo: null,
       acknowledgedWarnings: [],
       scopeConfirmation: { mode: 'ALL_ITEMS', expectedItemCount: 1 },
     },
@@ -186,7 +186,7 @@ async function runTests() {
     'ACTIVE_FINAL_APPROVAL_EXISTS'
   );
 
-  // Test 3: malformed payload (이 함수는 내부의 parseSkuKeywordFinalApprovalCreateRequest를 먼저 통과해야 함)
+  // Test 3: confirm 누락 (400)
   console.log('Running Test 3: confirm 누락 (400)');
   try {
     parseSkuKeywordFinalApprovalCreateRequest({ confirmFinalApproval: false, acknowledgedWarnings: [] });
@@ -199,6 +199,7 @@ async function runTests() {
     }
   }
 
+  // Test 4: malformed payload (400)
   console.log('Running Test 4: malformed payload (400)');
   try {
     parseSkuKeywordFinalApprovalCreateRequest({ invalidField: true });
@@ -211,20 +212,20 @@ async function runTests() {
     }
   }
 
-  // Test 4: validation TTL 검증
-  console.log('Running Test 4: validation TTL 검증');
+  // Test 5: validation TTL 검증
+  console.log('Running Test 5: validation TTL 검증');
   const expiresAt = new Date(activeApproval.validationExpiresAt).getTime();
   const approvedAt = new Date(activeApproval.finalApprovedAt).getTime();
   const diffMs = expiresAt - approvedAt;
   const expectedTTL = 10 * 60 * 1000;
   if (diffMs !== expectedTTL) {
-    throw new Error(`Test 4 failed: TTL is not 10 minutes. Got ${diffMs}ms`);
+    throw new Error(`Test 5 failed: TTL is not 10 minutes. Got ${diffMs}ms`);
   }
 
-  // Test 5: hash 재현성 검증
-  console.log('Running Test 5: hash 재현성 검증');
+  // Test 6: hash 재현성 검증
+  console.log('Running Test 6: hash 재현성 검증');
   if (!activeApproval.payloadHash || !activeApproval.validationSnapshotHash) {
-    throw new Error('Test 5 failed: Hashes are empty');
+    throw new Error('Test 6 failed: Hashes are empty');
   }
 
   console.log('--- All Tests Passed Successfully! ---');
