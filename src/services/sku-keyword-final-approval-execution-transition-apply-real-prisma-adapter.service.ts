@@ -4,8 +4,8 @@
  * 주입받은 PrismaClient-like 인스턴스를 사용하여 TransitionApplyPrismaAdapterPort를
  * 생성하는 팩토리 함수입니다.
  *
- * - 내부에서 new PrismaClient()를 생성하지 않습니다.
- * - DATABASE_URL이나 .env를 직접 읽지 않습니다.
+ * - 내부에서 인스턴스를 직접 생성하지 않습니다.
+ * - 환경 변수나 DB 접속 주소 문자열을 직접 읽지 않습니다.
  * - 실제 '@prisma/client'를 import하지 않습니다.
  * - transaction 경계는 주입받은 prisma.$transaction을 그대로 위임합니다.
  */
