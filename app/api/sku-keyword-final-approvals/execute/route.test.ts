@@ -350,4 +350,205 @@ describe('POST /api/sku-keyword-final-approvals/execute', () => {
     assert.equal(prevItems.length, currentItems.length);
     assert.deepEqual(prevItems, currentItems);
   });
+
+  // BullMQ Adapter Route Integration Tests
+  // BullMQ Queue connection은 별도 after()로 close하여 프로세스 정상 종료 보장
+  describe('BullMQ Adapter Route Integration', () => {
+    // BullMQ 백그라운드 연결 실패 시 unhandled rejection 방지
+    process.on('unhandledRejection', () => {});
+
+    const BULLMQ_REDIS_URL = 'redis://localhost:56379';
+    let bullmqAdapter: import('../../../../src/services/sku-keyword-final-approval-execution-bullmq-queue-adapter.service').FinalApprovalExecutionBullmqQueueAdapter | null = null;
+
+    before(async () => {
+      // Docker Redis 연결 확인 (연결 불가 시 nested suite 전체 skip 대신 명확한 에러)
+      const Redis = (await import('ioredis')).default;
+      const probe = new Redis(BULLMQ_REDIS_URL, { maxRetriesPerRequest: 0, connectTimeout: 1500 });
+      try {
+        await probe.ping();
+      } catch {
+        throw new Error('Docker Redis tms-final-approval-test-redis is not reachable at redis://localhost:56379');
+      } finally {
+        probe.disconnect();
+      }
+    });
+
+    beforeEach(async () => {
+      // BullMQ Adapter 선택 조건 환경변수 설정
+      process.env.ENABLE_FINAL_APPROVAL_EXECUTION = 'true';
+      process.env.ENABLE_FINAL_APPROVAL_QUEUE_ENQUEUE = 'true';
+      process.env.FINAL_APPROVAL_EXECUTION_QUEUE_ADAPTER = 'bullmq';
+      process.env.REDIS_URL = BULLMQ_REDIS_URL;
+      // BullMQ 경로에서는 NODE_ENV와 Fake Queue flag는 사용하지 않음
+      process.env.ENABLE_FINAL_APPROVAL_FAKE_QUEUE_FOR_TEST_ONLY = 'false';
+      Object.defineProperty(process, 'env', {
+        value: { ...process.env, NODE_ENV: 'test' },
+        configurable: true
+      });
+
+      resetFakeQueueAdapterInstanceForTest();
+
+      // BullMQ adapter를 미리 생성하여 큐 초기화 후 재사용
+      const { createFinalApprovalExecutionBullmqQueueAdapter } = await import('../../../../src/services/sku-keyword-final-approval-execution-bullmq-queue-adapter.service');
+      bullmqAdapter = createFinalApprovalExecutionBullmqQueueAdapter(BULLMQ_REDIS_URL);
+      await bullmqAdapter.getQueue().obliterate({ force: true });
+
+      // DB 정리
+      await prisma.naverApiBatchJobItem.deleteMany();
+      await prisma.naverApiBatchFinalApproval.deleteMany();
+      await prisma.naverApiBatchJob.deleteMany();
+      await prisma.smartstore.deleteMany();
+    });
+
+    afterEach(async () => {
+      // BullMQ Queue 정리 및 연결 종료
+      if (bullmqAdapter) {
+        try {
+          await bullmqAdapter.getQueue().obliterate({ force: true });
+          await bullmqAdapter.close();
+        } catch {
+          // ignore
+        }
+        bullmqAdapter = null;
+      }
+
+      // 환경변수 복원
+      process.env.FINAL_APPROVAL_EXECUTION_QUEUE_ADAPTER = originalAdapterType;
+      process.env.REDIS_URL = undefined;
+      process.env.ENABLE_FINAL_APPROVAL_FAKE_QUEUE_FOR_TEST_ONLY = originalEnvFakeTest;
+      resetFakeQueueAdapterInstanceForTest();
+    });
+
+    it('13. BullMQ Adapter 경로 + DB Guard 통과 시 202 Accepted 반환', async () => {
+      const { approval } = await setupFixture('ACTIVE', 'APPROVED', 'READY');
+
+      const idempotencyKey = `idem-bullmq-route-${Date.now()}`;
+      const validBody = {
+        finalApprovalId: approval.id,
+        actorId: 'act-bullmq',
+        confirmExecutionOnly: true,
+        acknowledgement: true,
+        idempotencyKey
+      };
+      const req = createMockRequest(validBody);
+      const response = await POST(req);
+      const json = await response.json();
+
+      assert.equal(response.status, 202);
+      assert.equal(json.success, true);
+      assert.equal(json.jobName, 'sku-keyword-final-approval-execution');
+      assert.ok(json.jobId || json.idempotencyKey);
+    });
+
+    it('14. BullMQ Adapter 경로 + idempotencyKey가 jobId로 사용됨', async () => {
+      const { approval } = await setupFixture('ACTIVE', 'APPROVED', 'READY');
+
+      const idempotencyKey = `idem-bullmq-idem-${Date.now()}`;
+      const validBody = {
+        finalApprovalId: approval.id,
+        actorId: 'act-bullmq',
+        confirmExecutionOnly: true,
+        acknowledgement: true,
+        idempotencyKey
+      };
+      const req = createMockRequest(validBody);
+      const response = await POST(req);
+      const json = await response.json();
+
+      assert.equal(response.status, 202);
+      // jobId 또는 idempotencyKey 키가 idempotencyKey 값과 일치해야 함
+      const returnedId = json.jobId || json.idempotencyKey;
+      assert.equal(returnedId, idempotencyKey);
+    });
+
+    it('15. BullMQ Adapter 경로 + BullMQ Job이 Redis에 실제로 생성됨', async () => {
+      const { approval } = await setupFixture('ACTIVE', 'APPROVED', 'READY');
+
+      const idempotencyKey = `idem-bullmq-job-${Date.now()}`;
+      const validBody = {
+        finalApprovalId: approval.id,
+        actorId: 'act-bullmq',
+        confirmExecutionOnly: true,
+        acknowledgement: true,
+        idempotencyKey
+      };
+      const req = createMockRequest(validBody);
+      const response = await POST(req);
+
+      assert.equal(response.status, 202);
+
+      // Redis에 실제 Job이 생성되었는지 확인 (별도 adapter instance로 검증)
+      assert.ok(bullmqAdapter);
+      const job = await bullmqAdapter.getQueue().getJob(idempotencyKey);
+      assert.ok(job, 'BullMQ job should be created in Redis');
+      assert.equal(job.id, idempotencyKey);
+    });
+
+    it('16. BullMQ Adapter 경로 + Queue payload 최소 필드만 포함됨', async () => {
+      const { approval } = await setupFixture('ACTIVE', 'APPROVED', 'READY');
+
+      const idempotencyKey = `idem-bullmq-payload-${Date.now()}`;
+      const validBody = {
+        finalApprovalId: approval.id,
+        actorId: 'act-bullmq',
+        confirmExecutionOnly: true,
+        acknowledgement: true,
+        idempotencyKey
+      };
+      const req = createMockRequest(validBody);
+      await POST(req);
+
+      assert.ok(bullmqAdapter);
+      const job = await bullmqAdapter.getQueue().getJob(idempotencyKey);
+      assert.ok(job);
+
+      // 최소 필드만 포함되어야 함
+      const data = job.data;
+      assert.equal(data.finalApprovalId, approval.id);
+      assert.equal(data.actorId, 'act-bullmq');
+      assert.equal(data.idempotencyKey, idempotencyKey);
+      assert.equal(data.source, 'EXECUTION_API');
+      assert.ok(data.mode);
+      assert.ok(data.requestedAt);
+    });
+
+    it('17. BullMQ Adapter 경로 + DB write 없음 확인', async () => {
+      const { approval } = await setupFixture('ACTIVE', 'APPROVED', 'READY');
+      const prevItems = await prisma.naverApiBatchJobItem.findMany();
+
+      const idempotencyKey = `idem-bullmq-nowrite-${Date.now()}`;
+      const validBody = {
+        finalApprovalId: approval.id,
+        actorId: 'act-bullmq',
+        confirmExecutionOnly: true,
+        acknowledgement: true,
+        idempotencyKey
+      };
+      const req = createMockRequest(validBody);
+      await POST(req);
+
+      const currentItems = await prisma.naverApiBatchJobItem.findMany();
+      assert.equal(prevItems.length, currentItems.length);
+      assert.deepEqual(prevItems, currentItems);
+    });
+
+    it('18. BullMQ Adapter 경로 + REDIS_URL 없으면 503 안전 실패', async () => {
+      delete process.env.REDIS_URL;
+      const { approval } = await setupFixture('ACTIVE', 'APPROVED', 'READY');
+
+      const validBody = {
+        finalApprovalId: approval.id,
+        actorId: 'act-bullmq',
+        confirmExecutionOnly: true,
+        acknowledgement: true,
+        idempotencyKey: `idem-no-redis-${Date.now()}`
+      };
+      const req = createMockRequest(validBody);
+      const response = await POST(req);
+      const json = await response.json();
+
+      assert.equal(response.status, 503);
+      assert.equal(json.success, false);
+    });
+  });
 });
