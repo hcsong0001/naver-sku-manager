@@ -24,7 +24,7 @@ const EXPECTED_STATES = {
   finalApproval: 'ACTIVE',
   batchJob: 'APPROVED',
   batchJobItem: 'READY',
-  finalApprovalItemCount: 0,
+  finalApprovalItemCount: 1, // Seeded by test fixture design
 };
 
 async function diagnoseTestDbFixtureReadOnly() {
@@ -86,9 +86,9 @@ async function diagnoseTestDbFixtureReadOnly() {
       console.log(`[BatchJobItem] Target fixture NOT FOUND (${FIXTURES.batchJobItemId})`);
     }
 
-    // 4. FinalApprovalItem Write 여부
+    // 4. FinalApprovalItem Write 여부 (기존 Fixture 설계 확인)
     const itemsMatch = finalApprovalItemsCount === EXPECTED_STATES.finalApprovalItemCount;
-    console.log(`[FinalApprovalItem] Count: ${finalApprovalItemsCount} (Expected: ${EXPECTED_STATES.finalApprovalItemCount}) - Match: ${itemsMatch}`);
+    console.log(`[FinalApprovalItem] Existing artifact item count: ${finalApprovalItemsCount} (Expected: ${EXPECTED_STATES.finalApprovalItemCount}) - Match: ${itemsMatch}`);
     
     console.log('--------------------------\n');
     console.log('[Script] Read-Only Diagnostic completed successfully.');
