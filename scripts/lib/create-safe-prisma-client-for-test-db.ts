@@ -1,5 +1,5 @@
 import { PrismaClient } from '../../app/generated/prisma';
-import { Pool } from 'pg';
+
 import { PrismaPg } from '@prisma/adapter-pg';
 
 /**
@@ -35,9 +35,8 @@ export function createSafePrismaClientForTestDb(): PrismaClient {
     throw new Error('[Error] Failed to parse DATABASE_URL. Aborting.');
   }
 
-  // 안전 검증 통과 후 Pool 및 Adapter 초기화
-  const pool = new Pool({ connectionString: dbUrl });
-  const adapter = new PrismaPg(pool);
+  // 안전 검증 통과 후 Adapter 초기화
+  const adapter = new PrismaPg({ connectionString: dbUrl });
 
   // Prisma v7 환경에서는 생성 시 adapter를 명시적으로 주입
   return new PrismaClient({ adapter });

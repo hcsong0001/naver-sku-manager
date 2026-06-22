@@ -118,7 +118,7 @@ async function restoreTestDbFixture() {
 
   } catch (err) {
     console.error('[Script] Restore Failed:', err instanceof Error ? err.message : err);
-    process.exit(1);
+    process.exitCode = 1;
   } finally {
     await prisma.$disconnect();
   }

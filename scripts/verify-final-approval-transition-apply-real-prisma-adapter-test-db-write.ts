@@ -199,7 +199,7 @@ async function verifyTestDbWrite() {
     
   } catch (err: any) {
     console.error('[Script] ❌ VERIFICATION FAILED:', err.message);
-    process.exit(1);
+    process.exitCode = 1;
   } finally {
     await prisma.$disconnect();
     console.log('[Script] Prisma client disconnected. Exiting.');
