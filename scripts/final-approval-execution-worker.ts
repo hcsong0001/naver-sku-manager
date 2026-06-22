@@ -1,6 +1,8 @@
 import { createFinalApprovalExecutionWorkerRuntime } from '../src/services/sku-keyword-final-approval-execution-worker-runtime.service';
 import type { FinalApprovalExecutionWorkerStartupEnv } from '../src/types/sku-keyword-final-approval-execution-worker-startup-config.types';
 
+import { createFinalApprovalExecutionWorkerProcessor } from '../src/services/sku-keyword-final-approval-execution-worker-processor.service';
+
 // Safe Logger implementation
 const logger = {
   info: (msg: string) => {
@@ -37,14 +39,27 @@ async function bootstrap() {
     DATABASE_URL: process.env.DATABASE_URL,
   };
 
+  const processor = createFinalApprovalExecutionWorkerProcessor({
+    revalidationRepository: {
+      findSnapshotForWorkerJobRevalidation: async () => {
+        logger.info('Mock Revalidation Repository called in entrypoint');
+        return null; 
+      }
+    },
+    transitionApplyAdapter: {
+      transaction: async (fn: any) => {
+        logger.info('Mock Transition Apply Transaction called in entrypoint');
+        return fn({
+          updateBatchJobStatus: async () => ({ updated: true }),
+          updateBatchJobItemStatus: async () => ({ updated: true })
+        });
+      }
+    }
+  });
+
   const runtime = await createFinalApprovalExecutionWorkerRuntime({
     env: startupEnv,
-    processor: async (job) => {
-      // TODO: Inject actual Revalidation Repository, DB write logic, and external API logic here when approved.
-      // Currently, it acts as a no-op safety wrapper passing through the job payload.
-      logger.info(`Processing job ${job.id}`);
-      return { readyForExecution: false, executionPerformed: false, reason: 'Entrypoint processor stub' };
-    },
+    processor,
     logger
   });
 

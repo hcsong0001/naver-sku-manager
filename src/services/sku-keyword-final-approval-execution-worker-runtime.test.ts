@@ -125,4 +125,32 @@ describe('FinalApproval Execution BullMQ Worker Runtime Shell', () => {
     // Checked through static searches and logic review
     assert.ok(true);
   });
+
+  it('8. Worker Runtime이 실제 Processor Factory(processFinalApprovalExecutionWorkerJob)를 주입받아 동작할 수 있음', async () => {
+    const { createFinalApprovalExecutionWorkerProcessor } = await import('./sku-keyword-final-approval-execution-worker-processor.service');
+    
+    const processor = createFinalApprovalExecutionWorkerProcessor({
+      revalidationRepository: {
+        findSnapshotForWorkerJobRevalidation: async () => null // Mock
+      },
+      transitionApplyAdapter: {
+        transaction: async (fn: any) => fn({
+          updateBatchJobStatus: async () => ({ updated: true }),
+          updateBatchJobItemStatus: async () => ({ updated: true })
+        })
+      }
+    });
+
+    const env: FinalApprovalExecutionWorkerStartupEnv = {
+      ENABLE_FINAL_APPROVAL_EXECUTION_WORKER: 'false' // Don't actually start bullmq for wiring test
+    };
+    
+    const res = await createFinalApprovalExecutionWorkerRuntime({
+      env,
+      processor
+    });
+
+    assert.equal(res.started, false);
+    assert.equal(res.ok, true);
+  });
 });
