@@ -35,17 +35,46 @@ export async function createFinalApprovalExecutionWorkerRuntime(
     const worker = new Worker(
       queueName,
       async (job: Job) => {
+        const dataKeys = job.data ? Object.keys(job.data).join(', ') : 'none';
+        deps.logger?.info(`[Worker] Received Job - id: ${job.id}, name: ${job.name}, queue: ${queueName}`);
+        deps.logger?.info(`[Worker] Payload Fields: ${dataKeys}`);
+        deps.logger?.info(`[Worker] mode: ${job.data?.mode}, source: ${job.data?.source}, finalApprovalId: ${job.data?.finalApprovalId}`);
+
         const plainJob = {
           id: job.id,
           name: job.name,
           data: job.data
         };
-        const processorResult = await deps.processor(plainJob);
-        return processorResult;
+        try {
+          const processorResult: any = await deps.processor(plainJob);
+          deps.logger?.info(`[Worker] Processor Finished - id: ${job.id}, success: ${processorResult.success}, code: ${processorResult.code || 'N/A'}`);
+          if (!processorResult.success) {
+            // Throw error to trigger failed event in BullMQ
+            throw new Error(`Processor rejected: ${processorResult.code} - ${processorResult.message}`);
+          }
+          return processorResult;
+        } catch (error) {
+          const errMsg = error instanceof Error ? error.message : String(error);
+          deps.logger?.error(`[Worker] Processor Error - id: ${job.id}, err: ${errMsg}`);
+          throw error;
+        }
       },
       // @ts-expect-error ioredis version mismatch between bullmq and project
       { connection }
     );
+
+    worker.on('completed', (job) => {
+      deps.logger?.info(`[Worker Event] Job completed - id: ${job?.id}, name: ${job?.name}`);
+    });
+    worker.on('failed', (job, err) => {
+      deps.logger?.error(`[Worker Event] Job failed - id: ${job?.id}, name: ${job?.name}, err: ${err.message}`);
+    });
+    worker.on('error', (err) => {
+      deps.logger?.error(`[Worker Event] Queue Error - err: ${err.message}`);
+    });
+    worker.on('stalled', (jobId) => {
+      deps.logger?.error(`[Worker Event] Job stalled - id: ${jobId}`);
+    });
 
     result.started = true;
     result.close = async () => {
