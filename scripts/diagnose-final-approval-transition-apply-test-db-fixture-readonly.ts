@@ -55,7 +55,7 @@ async function diagnoseTestDbFixtureReadOnly() {
       where: { batchJobId: FIXTURES.batchJobId },
     });
     const finalApprovalItemsCount = await prisma.naverApiBatchFinalApprovalItem.count({
-      where: { naverApiBatchFinalApprovalId: FIXTURES.finalApprovalId },
+      where: { finalApprovalId: FIXTURES.finalApprovalId },
     });
 
     console.log('\n--- Diagnostic Results ---');
