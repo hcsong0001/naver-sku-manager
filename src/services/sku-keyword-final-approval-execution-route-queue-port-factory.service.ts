@@ -53,9 +53,26 @@ export function createFinalApprovalExecutionRouteQueuePort(): FinalApprovalExecu
   if (process.env.ENABLE_FINAL_APPROVAL_QUEUE_ENQUEUE !== 'true') {
     return null;
   }
-  
+
+  const adapterType = process.env.FINAL_APPROVAL_EXECUTION_QUEUE_ADAPTER;
+
+  // BullMQ Adapter 선택
+  if (adapterType === 'bullmq') {
+    const redisUrl = process.env.REDIS_URL;
+    if (!redisUrl) {
+      // REDIS_URL 누락 시 안전 실패 (REDIS_URL 원문 노출 없음)
+      return null;
+    }
+
+    // BullMQ import는 Factory 내부에서만 수행하여 route.ts 격리 유지
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { createFinalApprovalExecutionBullmqQueueAdapter } = require('./sku-keyword-final-approval-execution-bullmq-queue-adapter.service') as typeof import('./sku-keyword-final-approval-execution-bullmq-queue-adapter.service');
+    return createFinalApprovalExecutionBullmqQueueAdapter(redisUrl);
+  }
+
   // Fake Queue는 NODE_ENV === 'test' 환경에서만 허용
   if (
+    adapterType === 'fake-test-only' &&
     process.env.NODE_ENV === 'test' && 
     process.env.ENABLE_FINAL_APPROVAL_FAKE_QUEUE_FOR_TEST_ONLY === 'true'
   ) {
@@ -69,7 +86,7 @@ export function createFinalApprovalExecutionRouteQueuePort(): FinalApprovalExecu
     return fakeQueueAdapterInstance;
   }
 
-  // 실제 BullMQ Adapter는 아직 구현되지 않음 (테스트 외 환경에서는 방어)
+  // adapter 미설정, disabled, 또는 조건 미충족 시 안전 실패
   return null;
 }
 

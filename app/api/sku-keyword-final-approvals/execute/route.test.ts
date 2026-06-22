@@ -11,6 +11,7 @@ describe('POST /api/sku-keyword-final-approvals/execute', () => {
   let originalEnvFakeTest: string | undefined;
   let originalNodeEnv: string | undefined;
   let originalFakeFailMode: string | undefined;
+  let originalAdapterType: string | undefined;
 
   before(async () => {
     const currentDbUrl = process.env.DATABASE_URL;
@@ -40,11 +41,13 @@ describe('POST /api/sku-keyword-final-approvals/execute', () => {
     originalEnvFakeTest = process.env.ENABLE_FINAL_APPROVAL_FAKE_QUEUE_FOR_TEST_ONLY;
     originalNodeEnv = process.env.NODE_ENV;
     originalFakeFailMode = process.env.FAKE_QUEUE_FAIL_MODE;
+    originalAdapterType = process.env.FINAL_APPROVAL_EXECUTION_QUEUE_ADAPTER;
 
     // 기본적으로 테스트 통과를 위해 플래그 설정
     process.env.ENABLE_FINAL_APPROVAL_EXECUTION = 'true';
     process.env.ENABLE_FINAL_APPROVAL_QUEUE_ENQUEUE = 'true';
     process.env.ENABLE_FINAL_APPROVAL_FAKE_QUEUE_FOR_TEST_ONLY = 'true';
+    process.env.FINAL_APPROVAL_EXECUTION_QUEUE_ADAPTER = 'fake-test-only';
     Object.defineProperty(process, 'env', {
       value: { ...process.env, NODE_ENV: 'test' },
       configurable: true
@@ -63,6 +66,7 @@ describe('POST /api/sku-keyword-final-approvals/execute', () => {
     process.env.ENABLE_FINAL_APPROVAL_EXECUTION = originalEnvExecution;
     process.env.ENABLE_FINAL_APPROVAL_QUEUE_ENQUEUE = originalEnvQueue;
     process.env.ENABLE_FINAL_APPROVAL_FAKE_QUEUE_FOR_TEST_ONLY = originalEnvFakeTest;
+    process.env.FINAL_APPROVAL_EXECUTION_QUEUE_ADAPTER = originalAdapterType;
     Object.defineProperty(process, 'env', {
       value: { ...process.env, NODE_ENV: originalNodeEnv },
       configurable: true
