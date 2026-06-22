@@ -15,7 +15,7 @@
  * 8. 트랜잭션 후 Post-condition 검증
  */
 
-import { PrismaClient } from '../app/generated/prisma';
+import { createSafePrismaClientForTestDb } from './lib/create-safe-prisma-client-for-test-db';
 
 const FIXTURES = {
   finalApprovalId: 'test-db-revalidation-final-approval-001',
@@ -32,38 +32,9 @@ async function restoreTestDbFixture() {
     process.exit(1);
   }
 
-  // 2. DATABASE_URL 검사
-  const dbUrl = process.env.DATABASE_URL;
-  if (!dbUrl) {
-    console.error('[Error] process.env.DATABASE_URL is not set. Aborting.');
-    process.exit(1);
-  }
-
-  try {
-    const parsedUrl = new URL(dbUrl);
-    const host = parsedUrl.hostname;
-    const port = parsedUrl.port;
-    const dbName = parsedUrl.pathname;
-
-    if (host !== 'localhost' && host !== '127.0.0.1') {
-      console.error('[Error] DATABASE_URL host is not localhost or 127.0.0.1. Aborting to protect non-local DB.');
-      process.exit(1);
-    }
-    if (port !== '55432') {
-      console.error('[Error] DATABASE_URL port is not 55432. Aborting to protect unknown DB.');
-      process.exit(1);
-    }
-    if (!dbName.includes('test')) {
-      console.error('[Error] DATABASE_URL database name does not contain "test". Aborting.');
-      process.exit(1);
-    }
-  } catch (e) {
-    console.error('[Error] Failed to parse DATABASE_URL. Aborting.');
-    process.exit(1);
-  }
-
+  // 2. DATABASE_URL 검사 및 PrismaClient 초기화는 helper에서 수행
   console.log('[Script] Safety guards passed. Initializing Prisma Client...');
-  const prisma = new PrismaClient();
+  const prisma = createSafePrismaClientForTestDb();
 
   try {
     // 3. 사전 상태 (Pre-condition) 확인

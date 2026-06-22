@@ -16,7 +16,7 @@
  * 9. 검증 완료 후 자동 복구는 수행하지 않음 (별도 승인 후 복구)
  */
 
-import { PrismaClient } from '../app/generated/prisma';
+import { createSafePrismaClientForTestDb } from './lib/create-safe-prisma-client-for-test-db';
 import { runFinalApprovalExecutionWorkerJobOrchestration } from '../src/services/sku-keyword-final-approval-execution-worker-job-orchestration.service';
 import { buildFinalApprovalExecutionTransitionApplyPlan } from '../src/services/sku-keyword-final-approval-execution-transition-apply.service';
 import { createFinalApprovalExecutionTransitionApplyPrismaAdapterPort } from '../src/services/sku-keyword-final-approval-execution-transition-apply-real-prisma-adapter.service';
@@ -42,38 +42,9 @@ async function verifyTestDbWrite() {
     process.exit(1);
   }
 
-  // 2. DATABASE_URL 검사
-  const dbUrl = process.env.DATABASE_URL;
-  if (!dbUrl) {
-    console.error('[Error] process.env.DATABASE_URL is not set. Aborting.');
-    process.exit(1);
-  }
-
-  try {
-    const parsedUrl = new URL(dbUrl);
-    const host = parsedUrl.hostname;
-    const port = parsedUrl.port;
-    const dbName = parsedUrl.pathname;
-
-    if (host !== 'localhost' && host !== '127.0.0.1') {
-      console.error('[Error] DATABASE_URL host is not localhost or 127.0.0.1. Aborting to protect non-local DB.');
-      process.exit(1);
-    }
-    if (port !== '55432') {
-      console.error('[Error] DATABASE_URL port is not 55432. Aborting to protect unknown DB.');
-      process.exit(1);
-    }
-    if (!dbName.includes('test')) {
-      console.error('[Error] DATABASE_URL database name does not contain "test". Aborting.');
-      process.exit(1);
-    }
-  } catch (e) {
-    console.error('[Error] Failed to parse DATABASE_URL. Aborting.');
-    process.exit(1);
-  }
-
+  // 2. DATABASE_URL 검사 및 PrismaClient 초기화는 helper에서 수행
   console.log('[Script] Safety guards passed. Initializing Prisma Client...');
-  const prisma = new PrismaClient();
+  const prisma = createSafePrismaClientForTestDb();
 
   try {
     // 3. 사전 상태 (Pre-condition) 확인
