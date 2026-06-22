@@ -1,6 +1,6 @@
-export type FinalApprovalExecutionWorkerJobOrchestrationFailureStage = 'PAYLOAD_VALIDATION' | 'DB_REVALIDATION' | 'ORCHESTRATION';
+export type FinalApprovalExecutionWorkerJobOrchestrationFailureStage = 'PAYLOAD_VALIDATION' | 'DB_REVALIDATION' | 'TRANSITION_GUARD' | 'ORCHESTRATION';
 
-export type FinalApprovalExecutionWorkerJobOrchestrationErrorCode = 'PAYLOAD_VALIDATION_FAILED' | 'DB_REVALIDATION_FAILED' | 'UNEXPECTED_ORCHESTRATION_ERROR';
+export type FinalApprovalExecutionWorkerJobOrchestrationErrorCode = 'PAYLOAD_VALIDATION_FAILED' | 'DB_REVALIDATION_FAILED' | 'TRANSITION_GUARD_BLOCKED' | 'UNEXPECTED_ORCHESTRATION_ERROR';
 
 export interface FinalApprovalExecutionWorkerJobOrchestrationSuccess {
   success: true;
