@@ -23,7 +23,7 @@ async function run() {
   const payload = {
     finalApprovalId: 'test-db-revalidation-final-approval-001',
     actorId: 'test-runner',
-    idempotencyKey: 'final-approval-worker-limited-dry-run-evidence-001',
+    idempotencyKey: 'final-approval-worker-limited-dry-run-evidence-003',
     requestedAt: new Date().toISOString(),
     source: 'EXECUTION_API' as const,
     mode: 'MOCK' as const
