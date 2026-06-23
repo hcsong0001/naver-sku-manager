@@ -5,6 +5,7 @@ import type { FinalApprovalExecutionQueueProcessorInputJob } from '../types/sku-
 import type { FinalApprovalExecutionWorkerProcessorDependencies } from './sku-keyword-final-approval-execution-worker-processor.service';
 import type { FinalApprovalExecutionWorkerJobDbRevalidationSnapshot } from '../types/sku-keyword-final-approval-execution-worker-job-db-revalidation.types';
 import type { FinalApprovalExecutionTransitionApplyPlan } from '../types/sku-keyword-final-approval-execution-transition-apply.types';
+import type { ResultRecordingAdapterPort, ExecutionResultPlan } from '../types/sku-keyword-final-approval-execution-result-recording.types';
 
 describe('FinalApproval Execution Worker Processor Actual Connection', () => {
   const validSnapshot: FinalApprovalExecutionWorkerJobDbRevalidationSnapshot = {
@@ -117,5 +118,139 @@ describe('FinalApproval Execution Worker Processor Actual Connection', () => {
 
     assert.strictEqual(result.success, false);
     assert.strictEqual(result.code, 'TRANSITION_APPLY_FAILED');
+  });
+
+  // ── Result Recording wiring tests ──────────────────────────────────────────
+
+  it('6. resultRecordingAdapter.applyExecutionResultPlan이 성공 flow에서 정확히 1회 호출됨', async () => {
+    let callCount = 0;
+    let capturedPlan: ExecutionResultPlan | null = null;
+
+    const mockRecordingAdapter: ResultRecordingAdapterPort = {
+      applyExecutionResultPlan: async (plan) => {
+        callCount++;
+        capturedPlan = plan;
+        return { applied: false, skippedReason: 'mock' };
+      },
+    };
+
+    const deps: FinalApprovalExecutionWorkerProcessorDependencies = {
+      ...createMockDeps(),
+      resultRecordingAdapter: mockRecordingAdapter,
+    };
+    const job = createValidJob();
+    const result = await processFinalApprovalExecutionWorkerJob(job, deps);
+
+    assert.strictEqual(result.success, true);
+    assert.strictEqual(result.executionPerformed, true);
+    assert.strictEqual(callCount, 1, 'recording adapter must be called exactly once');
+    assert.ok(capturedPlan !== null, 'plan must be passed to the adapter');
+  });
+
+  it('7. resultRecordingAdapter가 없으면 no-op 기본 동작으로 Worker 성공 반환', async () => {
+    const deps = createMockDeps(); // no resultRecordingAdapter
+    const job = createValidJob();
+    const result = await processFinalApprovalExecutionWorkerJob(job, deps);
+
+    assert.strictEqual(result.success, true);
+    assert.strictEqual(result.executionPerformed, true);
+  });
+
+  it('8. resultRecordingAdapter가 throw하면 RESULT_RECORDING_FAILED 반환', async () => {
+    const failingAdapter: ResultRecordingAdapterPort = {
+      applyExecutionResultPlan: async () => {
+        throw new Error('recording DB unavailable');
+      },
+    };
+
+    const deps: FinalApprovalExecutionWorkerProcessorDependencies = {
+      ...createMockDeps(),
+      resultRecordingAdapter: failingAdapter,
+    };
+    const job = createValidJob();
+    const result = await processFinalApprovalExecutionWorkerJob(job, deps);
+
+    assert.strictEqual(result.success, false);
+    assert.strictEqual(result.code, 'RESULT_RECORDING_FAILED');
+    // transition was applied before recording failed
+    assert.strictEqual(result.executionPerformed, true);
+  });
+
+  it('9. Transition Apply 실패 시 recordingAdapter는 호출되지 않음', async () => {
+    let recordingCalled = false;
+    const mockRecordingAdapter: ResultRecordingAdapterPort = {
+      applyExecutionResultPlan: async () => {
+        recordingCalled = true;
+        return { applied: false };
+      },
+    };
+
+    const deps: FinalApprovalExecutionWorkerProcessorDependencies = {
+      ...createMockDeps(),
+      resultRecordingAdapter: mockRecordingAdapter,
+    };
+    deps.transitionApplyAdapter.transaction = async () => {
+      throw new Error('transition failed');
+    };
+
+    const job = createValidJob();
+    const result = await processFinalApprovalExecutionWorkerJob(job, deps);
+
+    assert.strictEqual(result.success, false);
+    assert.strictEqual(result.code, 'TRANSITION_APPLY_FAILED');
+    assert.strictEqual(recordingCalled, false, 'recording must not be called after transition failure');
+  });
+
+  it('10. recording adapter에 전달되는 plan은 TRANSITION_ONLY (itemResults 없음)', async () => {
+    let capturedPlan: ExecutionResultPlan | null = null;
+
+    const mockAdapter: ResultRecordingAdapterPort = {
+      applyExecutionResultPlan: async (plan) => {
+        capturedPlan = plan;
+        return { applied: false };
+      },
+    };
+
+    const deps: FinalApprovalExecutionWorkerProcessorDependencies = {
+      ...createMockDeps(),
+      resultRecordingAdapter: mockAdapter,
+    };
+    const job = createValidJob();
+    await processFinalApprovalExecutionWorkerJob(job, deps);
+
+    assert.ok(capturedPlan !== null);
+    const plan = capturedPlan as ExecutionResultPlan;
+    assert.strictEqual(plan.applicable, false);
+    assert.strictEqual(plan.itemUpdates.length, 0,
+      'no item results yet — Naver API execution has not occurred');
+  });
+
+  it('11. recording adapter { applied: false } 반환도 Worker 성공으로 처리됨 (정상 no-op 경로)', async () => {
+    const mockAdapter: ResultRecordingAdapterPort = {
+      applyExecutionResultPlan: async () => ({ applied: false, skippedReason: 'TRANSITION_ONLY' }),
+    };
+
+    const deps: FinalApprovalExecutionWorkerProcessorDependencies = {
+      ...createMockDeps(),
+      resultRecordingAdapter: mockAdapter,
+    };
+    const result = await processFinalApprovalExecutionWorkerJob(createValidJob(), deps);
+
+    assert.strictEqual(result.success, true);
+  });
+
+  it('12. recording adapter { applied: true } 반환도 Worker 성공으로 처리됨 (실제 기록 경로)', async () => {
+    const mockAdapter: ResultRecordingAdapterPort = {
+      applyExecutionResultPlan: async () => ({ applied: true, jobUpdated: true, itemsUpdated: 0 }),
+    };
+
+    const deps: FinalApprovalExecutionWorkerProcessorDependencies = {
+      ...createMockDeps(),
+      resultRecordingAdapter: mockAdapter,
+    };
+    const result = await processFinalApprovalExecutionWorkerJob(createValidJob(), deps);
+
+    assert.strictEqual(result.success, true);
+    assert.strictEqual(result.executionPerformed, true);
   });
 });

@@ -5,10 +5,19 @@ import { buildFinalApprovalExecutionTransitionApplyPlan } from './sku-keyword-fi
 import { applyFinalApprovalExecutionTransitionPlanWithPrismaAdapter } from './sku-keyword-final-approval-execution-transition-apply-prisma-adapter.service';
 import type { FinalApprovalExecutionWorkerJobDbRevalidationRepository } from '../types/sku-keyword-final-approval-execution-worker-job-db-revalidation.types';
 import type { TransitionApplyPrismaAdapterPort } from '../types/sku-keyword-final-approval-execution-transition-apply-prisma-adapter.types';
+import type { ResultRecordingAdapterPort } from '../types/sku-keyword-final-approval-execution-result-recording.types';
+import { buildExecutionResultPlan } from './sku-keyword-final-approval-execution-result-recording.service';
+import { createNoOpResultRecordingAdapter } from './sku-keyword-final-approval-execution-result-recording-adapter-factory.service';
 
 export interface FinalApprovalExecutionWorkerProcessorDependencies {
   revalidationRepository: FinalApprovalExecutionWorkerJobDbRevalidationRepository;
   transitionApplyAdapter: TransitionApplyPrismaAdapterPort;
+  /**
+   * Result recording adapter.
+   * Defaults to no-op when omitted — plan is built and passed to the adapter
+   * but no DB write occurs until the Naver API execution phase provides itemResults.
+   */
+  resultRecordingAdapter?: ResultRecordingAdapterPort;
 }
 
 export interface FinalApprovalExecutionWorkerProcessorResult {
@@ -140,7 +149,42 @@ export async function processFinalApprovalExecutionWorkerJob(
     };
   }
 
-  // 6. Success
+  // 6. Build execution result plan
+  //    itemResults is empty at this stage — no Naver API calls have been made yet.
+  //    The plan will resolve to TRANSITION_ONLY (applicable=false) and no DB write occurs.
+  //    In a future phase, itemResults will be populated from Naver API execution results.
+  const executionEndedAt = new Date().toISOString();
+  const recordingPlan = buildExecutionResultPlan({
+    jobId: snapshot.jobId,
+    finalApprovalId,
+    idempotencyKey,
+    actorId,
+    // dry-run: plan is computed but applicable=false → recording adapter will no-op.
+    // Future: change to 'restricted-db' once Naver API itemResults are provided.
+    mode: 'dry-run',
+    itemResults: [],
+    startedAt: now.toISOString(),
+    endedAt: executionEndedAt,
+  });
+
+  // 7. Apply result recording
+  //    Default adapter is no-op; explicit adapter wired via deps.resultRecordingAdapter.
+  //    Execution order:
+  //      1→2→3→4→5  (payload → revalidation → guard → transition apply → recording)
+  const recordingAdapter = deps.resultRecordingAdapter ?? createNoOpResultRecordingAdapter();
+  try {
+    await recordingAdapter.applyExecutionResultPlan(recordingPlan);
+  } catch (err) {
+    return {
+      success: false,
+      message: err instanceof Error ? err.message : 'Result recording failed',
+      code: 'RESULT_RECORDING_FAILED',
+      finalApprovalId,
+      executionPerformed: true,
+    };
+  }
+
+  // 8. Success
   return {
     success: true,
     message: 'Job processed successfully',

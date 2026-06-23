@@ -106,3 +106,16 @@ export interface ExecutionResultSummary {
   outcome: JobExecutionOutcome;
   mode: ExecutionMode;
 }
+
+// ── Adapter port (structural interface for the Worker Processor) ──────────────
+
+export interface ResultRecordingAdapterResult {
+  applied: boolean;
+  skippedReason?: string;
+  jobUpdated?: boolean;
+  itemsUpdated?: number;
+}
+
+export interface ResultRecordingAdapterPort {
+  applyExecutionResultPlan(plan: ExecutionResultPlan): Promise<ResultRecordingAdapterResult>;
+}
