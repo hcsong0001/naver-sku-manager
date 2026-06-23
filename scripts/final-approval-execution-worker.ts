@@ -3,7 +3,9 @@ import type { FinalApprovalExecutionWorkerStartupEnv } from '../src/types/sku-ke
 import { createFinalApprovalExecutionWorkerProcessor } from '../src/services/sku-keyword-final-approval-execution-worker-processor.service';
 import { createWorkerRevalidationRepository } from '../src/services/sku-keyword-final-approval-execution-worker-revalidation-repository-factory.service';
 import { createWorkerTransitionApplyAdapter } from '../src/services/sku-keyword-final-approval-execution-worker-transition-apply-adapter-factory.service';
+import { createWorkerResultRecordingAdapter } from '../src/services/sku-keyword-final-approval-execution-result-recording-adapter-factory.service';
 import type { RevalidationPrismaClientPort } from '../src/services/sku-keyword-final-approval-execution-restricted-db-revalidation-prisma-adapter.service';
+import type { ResultRecordingPrismaClientPort } from '../src/services/sku-keyword-final-approval-execution-result-recording-prisma-adapter.service';
 import type { PrismaLikeClient } from '../src/types/sku-keyword-final-approval-execution-transition-apply-real-prisma-adapter.types';
 // Imported for restricted-db mode only — does NOT create a PrismaClient on import.
 import { createSafePrismaClientForTestDb } from './lib/create-safe-prisma-client-for-test-db';
@@ -33,17 +35,20 @@ async function bootstrap() {
 
   const revalidationAdapterModeEnv = process.env.FINAL_APPROVAL_EXECUTION_REVALIDATION_ADAPTER;
   const transitionApplyAdapterModeEnv = process.env.FINAL_APPROVAL_EXECUTION_TRANSITION_APPLY_ADAPTER;
+  const resultRecordingAdapterModeEnv = process.env.FINAL_APPROVAL_EXECUTION_RESULT_RECORDING_ADAPTER;
   logger.info(`Revalidation adapter mode: ${revalidationAdapterModeEnv ?? '(default/mock)'}`);
   logger.info(`Transition apply adapter mode: ${transitionApplyAdapterModeEnv ?? '(default/mock)'}`);
+  logger.info(`Result recording adapter mode: ${resultRecordingAdapterModeEnv ?? '(default/no-op)'}`);
 
   // ── Create shared PrismaClient (test DB only) ───────────────────────────────
-  // ONE PrismaClient instance is shared between both adapters when restricted-db
-  // mode is requested by either adapter. Creating two separate clients would waste
-  // connection pool resources pointing at the same test DB.
+  // ONE PrismaClient instance is shared between all three adapters when restricted-db
+  // mode is requested by any adapter. Creating separate clients wastes connection
+  // pool resources pointing at the same test DB.
   // PrismaClient is created ONLY when at least one restricted-db mode is active.
   const needsRestrictedDb =
     revalidationAdapterModeEnv === 'restricted-db' ||
-    transitionApplyAdapterModeEnv === 'restricted-db';
+    transitionApplyAdapterModeEnv === 'restricted-db' ||
+    resultRecordingAdapterModeEnv === 'restricted-db';
 
   let rawPrismaClient: unknown;
   if (needsRestrictedDb) {
@@ -60,9 +65,10 @@ async function bootstrap() {
   }
 
   // Cast the shared PrismaClient to each adapter's structural interface.
-  // Both interfaces are structurally satisfied by the generated PrismaClient.
+  // All three interfaces are structurally satisfied by the generated PrismaClient.
   const revalidationPrismaClient = rawPrismaClient as RevalidationPrismaClientPort | undefined;
   const transitionApplyPrismaClient = rawPrismaClient as PrismaLikeClient | undefined;
+  const resultRecordingPrismaClient = rawPrismaClient as ResultRecordingPrismaClientPort | undefined;
 
   // ── Select revalidation repository ─────────────────────────────────────────
   let revalidationRepository;
@@ -98,10 +104,28 @@ async function bootstrap() {
     process.exit(1);
   }
 
+  // ── Select result recording adapter ────────────────────────────────────────
+  let resultRecordingAdapter;
+  try {
+    resultRecordingAdapter = createWorkerResultRecordingAdapter({
+      adapterModeEnvValue: resultRecordingAdapterModeEnv,
+      nodeEnv: process.env.NODE_ENV,
+      databaseUrl: process.env.DATABASE_URL,
+      prismaClient: resultRecordingPrismaClient,
+    });
+  } catch (err) {
+    const safeMsg = (err instanceof Error ? err.message : String(err))
+      .replace(/postgresql?:\/\/[^\s]*/gi, '[REDACTED]')
+      .replace(/redis:\/\/[^\s]*/gi, '[REDACTED]');
+    logger.error(`Failed to initialize result recording adapter: ${safeMsg}`);
+    process.exit(1);
+  }
+
   // ── Build processor ─────────────────────────────────────────────────────────
   const processor = createFinalApprovalExecutionWorkerProcessor({
     revalidationRepository,
     transitionApplyAdapter,
+    resultRecordingAdapter,
   });
 
   const startupEnv: FinalApprovalExecutionWorkerStartupEnv = {

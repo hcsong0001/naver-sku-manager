@@ -1,7 +1,26 @@
 import { describe, it } from 'node:test';
 import * as assert from 'node:assert';
-import { createNoOpResultRecordingAdapter } from './sku-keyword-final-approval-execution-result-recording-adapter-factory.service';
+import {
+  createNoOpResultRecordingAdapter,
+  createWorkerResultRecordingAdapter,
+} from './sku-keyword-final-approval-execution-result-recording-adapter-factory.service';
+import type { ResultRecordingPrismaClientPort } from './sku-keyword-final-approval-execution-result-recording-prisma-adapter.service';
 import type { ExecutionResultPlan } from '../types/sku-keyword-final-approval-execution-result-recording.types';
+
+const VALID_TEST_DB_URL = 'postgresql://testuser:testpass@localhost:55432/naver_sku_manager_test';
+const VALID_NODE_ENV = 'test';
+
+// Minimal structural mock for ResultRecordingPrismaClientPort
+const NULL_RECORDING_PRISMA: ResultRecordingPrismaClientPort = {
+  naverApiBatchJob: {
+    findUnique: async () => null,
+  },
+  $transaction: async (fn) =>
+    fn({
+      naverApiBatchJob: { updateMany: async () => ({ count: 0 }) },
+      naverApiBatchJobItem: { updateMany: async () => ({ count: 0 }) },
+    }),
+};
 
 // ── Plan helpers ──────────────────────────────────────────────────────────────
 
@@ -124,5 +143,179 @@ describe('ResultRecordingAdapterFactory', () => {
     // This test passes by virtue of the module loading without error.
     // If Prisma/BullMQ were imported, they would throw or require env vars at load time.
     assert.ok(true, 'module loaded without DB/Redis connection side effects');
+  });
+
+  // ── createWorkerResultRecordingAdapter — default / mock paths ──────────────
+
+  it('10. undefined adapterMode returns no-op adapter (applied=false)', async () => {
+    const adapter = createWorkerResultRecordingAdapter({ adapterModeEnvValue: undefined });
+    assert.ok(typeof adapter.applyExecutionResultPlan === 'function');
+    const result = await adapter.applyExecutionResultPlan(makeApplicablePlan());
+    assert.strictEqual(result.applied, false);
+  });
+
+  it('11. empty string adapterMode returns no-op adapter', async () => {
+    const adapter = createWorkerResultRecordingAdapter({ adapterModeEnvValue: '' });
+    const result = await adapter.applyExecutionResultPlan(makeApplicablePlan());
+    assert.strictEqual(result.applied, false);
+  });
+
+  it('12. "mock" adapterMode returns no-op adapter', async () => {
+    const adapter = createWorkerResultRecordingAdapter({ adapterModeEnvValue: 'mock' });
+    const result = await adapter.applyExecutionResultPlan(makeNonApplicablePlan('dry-run'));
+    assert.strictEqual(result.applied, false);
+  });
+
+  it('13. unknown adapterMode string returns no-op adapter (safe fallback)', async () => {
+    const adapter = createWorkerResultRecordingAdapter({ adapterModeEnvValue: 'some-unknown-mode' });
+    const result = await adapter.applyExecutionResultPlan(makeApplicablePlan());
+    assert.strictEqual(result.applied, false);
+  });
+
+  // ── createWorkerResultRecordingAdapter — blocked modes ─────────────────────
+
+  it('14. "live" adapterMode throws immediately', () => {
+    assert.throws(
+      () => createWorkerResultRecordingAdapter({ adapterModeEnvValue: 'live' }),
+      /not allowed/
+    );
+  });
+
+  it('15. "production" adapterMode throws immediately', () => {
+    assert.throws(
+      () => createWorkerResultRecordingAdapter({ adapterModeEnvValue: 'production' }),
+      /not allowed/
+    );
+  });
+
+  it('16. "prod" adapterMode throws immediately', () => {
+    assert.throws(
+      () => createWorkerResultRecordingAdapter({ adapterModeEnvValue: 'prod' }),
+      /not allowed/
+    );
+  });
+
+  it('17. "operating" adapterMode throws immediately', () => {
+    assert.throws(
+      () => createWorkerResultRecordingAdapter({ adapterModeEnvValue: 'operating' }),
+      /not allowed/
+    );
+  });
+
+  it('18. blocked mode error does not reveal DATABASE_URL value', () => {
+    let thrown: Error | null = null;
+    try {
+      createWorkerResultRecordingAdapter({
+        adapterModeEnvValue: 'live',
+        databaseUrl: 'postgresql://secretuser:secretpass@localhost:55432/testdb',
+      });
+    } catch (e) {
+      thrown = e instanceof Error ? e : new Error(String(e));
+    }
+    assert.ok(thrown !== null);
+    assert.ok(!thrown!.message.includes('secretpass'), 'must not leak DB password');
+    assert.ok(!thrown!.message.includes('postgresql://'), 'must not leak URL');
+  });
+
+  // ── createWorkerResultRecordingAdapter — restricted-db mode ────────────────
+
+  it('19. restricted-db + NODE_ENV=production throws (safety guard)', () => {
+    assert.throws(
+      () =>
+        createWorkerResultRecordingAdapter({
+          adapterModeEnvValue: 'restricted-db',
+          nodeEnv: 'production',
+          databaseUrl: VALID_TEST_DB_URL,
+          prismaClient: NULL_RECORDING_PRISMA,
+        }),
+      (err: Error) => err.message.includes('safety guard') || err.message.includes('NODE_ENV')
+    );
+  });
+
+  it('20. restricted-db + missing DATABASE_URL throws (safety guard)', () => {
+    assert.throws(
+      () =>
+        createWorkerResultRecordingAdapter({
+          adapterModeEnvValue: 'restricted-db',
+          nodeEnv: VALID_NODE_ENV,
+          databaseUrl: undefined,
+          prismaClient: NULL_RECORDING_PRISMA,
+        }),
+      (err: Error) => err.message.length > 0
+    );
+  });
+
+  it('21. restricted-db + production RDS host throws (safety guard)', () => {
+    assert.throws(
+      () =>
+        createWorkerResultRecordingAdapter({
+          adapterModeEnvValue: 'restricted-db',
+          nodeEnv: VALID_NODE_ENV,
+          databaseUrl: 'postgresql://user:pass@prod.rds.amazonaws.com:55432/testdb',
+          prismaClient: NULL_RECORDING_PRISMA,
+        }),
+      (err: Error) => err.message.length > 0
+    );
+  });
+
+  it('22. restricted-db + wrong port (5432) throws (safety guard)', () => {
+    assert.throws(
+      () =>
+        createWorkerResultRecordingAdapter({
+          adapterModeEnvValue: 'restricted-db',
+          nodeEnv: VALID_NODE_ENV,
+          databaseUrl: 'postgresql://user:pass@localhost:5432/testdb',
+          prismaClient: NULL_RECORDING_PRISMA,
+        }),
+      (err: Error) => err.message.length > 0
+    );
+  });
+
+  it('23. restricted-db + production db name throws (safety guard)', () => {
+    assert.throws(
+      () =>
+        createWorkerResultRecordingAdapter({
+          adapterModeEnvValue: 'restricted-db',
+          nodeEnv: VALID_NODE_ENV,
+          databaseUrl: 'postgresql://user:pass@localhost:55432/naver_sku_manager',
+          prismaClient: NULL_RECORDING_PRISMA,
+        }),
+      (err: Error) => err.message.length > 0
+    );
+  });
+
+  it('24. restricted-db + safety pass + no prismaClient throws', () => {
+    assert.throws(
+      () =>
+        createWorkerResultRecordingAdapter({
+          adapterModeEnvValue: 'restricted-db',
+          nodeEnv: VALID_NODE_ENV,
+          databaseUrl: VALID_TEST_DB_URL,
+          prismaClient: undefined,
+        }),
+      /prismaClient/
+    );
+  });
+
+  it('25. restricted-db + valid options returns adapter object', () => {
+    const adapter = createWorkerResultRecordingAdapter({
+      adapterModeEnvValue: 'restricted-db',
+      nodeEnv: VALID_NODE_ENV,
+      databaseUrl: VALID_TEST_DB_URL,
+      prismaClient: NULL_RECORDING_PRISMA,
+    });
+    assert.ok(typeof adapter === 'object');
+    assert.ok(typeof adapter.applyExecutionResultPlan === 'function');
+  });
+
+  it('26. restricted-db adapter returns applied=false for non-applicable plan (no DB call)', async () => {
+    const adapter = createWorkerResultRecordingAdapter({
+      adapterModeEnvValue: 'restricted-db',
+      nodeEnv: VALID_NODE_ENV,
+      databaseUrl: VALID_TEST_DB_URL,
+      prismaClient: NULL_RECORDING_PRISMA,
+    });
+    const result = await adapter.applyExecutionResultPlan(makeNonApplicablePlan('TRANSITION_ONLY'));
+    assert.strictEqual(result.applied, false);
   });
 });
