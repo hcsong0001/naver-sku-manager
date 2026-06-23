@@ -405,12 +405,22 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
     && !hasVisibleHardBlockers
     && !approving;
 
+  const TERMINAL_JOB_STATUSES_UI = ['EXECUTED', 'PARTIAL_SUCCESS', 'FAILED', 'CANCELLED'];
   const finalApprovalBlockingReasons: string[] = [];
-  if (!job || job.status !== 'APPROVED') {
+  if (!job) {
+    finalApprovalBlockingReasons.push("Batch 정보를 불러오는 중입니다.");
+  } else if (TERMINAL_JOB_STATUSES_UI.includes(job.status)) {
+    finalApprovalBlockingReasons.push(
+      `이미 실행 기록이 있는 BatchJob입니다 (상태: ${job.status}). 안전을 위해 재실행은 별도 승인 흐름에서만 가능합니다.`
+    );
+  } else if (job.status === 'EXECUTING') {
+    finalApprovalBlockingReasons.push("BatchJob이 현재 실행 중입니다. 동시 실행은 허용되지 않습니다.");
+  } else if (job.status !== 'APPROVED') {
     finalApprovalBlockingReasons.push("Batch 상태가 APPROVED가 아닙니다.");
   }
   const allItemsReady = job?.items.every(item => item.status === 'READY') ?? false;
-  if (job && !allItemsReady) {
+  const isTerminalJobStatus = job ? TERMINAL_JOB_STATUSES_UI.includes(job.status) || job.status === 'EXECUTING' : false;
+  if (job && !allItemsReady && !isTerminalJobStatus) {
     finalApprovalBlockingReasons.push("READY가 아닌 Item이 있습니다.");
   }
   if (finalApprovalsLoading) {
@@ -716,6 +726,63 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
           </ul>
         </div>
 
+        {/* 재실행 차단 안내 */}
+        {job && TERMINAL_JOB_STATUSES_UI.includes(job.status) && (
+          <div className="mb-4 rounded-md border border-red-500/30 bg-red-500/10 p-3 text-sm">
+            <p className="mb-1 flex items-center gap-1.5 font-semibold text-red-300">
+              <AlertTriangle className="h-4 w-4 shrink-0" />
+              재실행 차단됨
+            </p>
+            <p className="text-xs text-red-200">
+              이 BatchJob은 이미 실행 기록이 있습니다. 안전을 위해 재실행은 별도 승인 흐름에서만 가능합니다.
+            </p>
+            <div className="mt-2 grid grid-cols-2 gap-x-4 gap-y-0.5 text-xs text-red-300">
+              <div>
+                <span className="text-red-400">실행 상태: </span>
+                <span className={`rounded-full border px-1.5 py-0.5 text-xs font-semibold ${getStatusBadgeStyle(job.status)}`}>
+                  {job.status}
+                </span>
+              </div>
+              {job.executedAt && (
+                <div>
+                  <span className="text-red-400">실행 완료 시각: </span>
+                  <span>{new Date(job.executedAt).toLocaleString()}</span>
+                </div>
+              )}
+              {job.executionMetadata?.actorId && (
+                <div className="col-span-2">
+                  <span className="text-red-400">실행 Actor: </span>
+                  <span className="font-mono">{job.executionMetadata.actorId}</span>
+                </div>
+              )}
+              {job.executionMetadata?.executionMode && (
+                <div>
+                  <span className="text-red-400">실행 모드: </span>
+                  <span className="font-mono">{job.executionMetadata.executionMode}</span>
+                </div>
+              )}
+              {job.executionMetadata?.finalApprovalId && (
+                <div className="col-span-2">
+                  <span className="text-red-400">FinalApproval ID: </span>
+                  <span className="font-mono">{job.executionMetadata.finalApprovalId}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {job && job.status === 'EXECUTING' && (
+          <div className="mb-4 rounded-md border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-200">
+            <p className="flex items-center gap-1.5 font-semibold text-amber-300">
+              <Loader2 className="h-4 w-4 shrink-0 animate-spin" />
+              실행 중 — 동시 실행 차단됨
+            </p>
+            <p className="mt-1 text-xs">
+              현재 Worker가 이 BatchJob을 실행 중입니다. 완료 후 결과를 확인하세요.
+            </p>
+          </div>
+        )}
+
         {finalApprovalCreateSuccess && (
           <div className="mb-4 rounded-md border border-emerald-500/20 bg-emerald-500/10 p-3 text-sm text-emerald-300">
             {finalApprovalCreateSuccess}
@@ -871,34 +938,79 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             </span>
           </h2>
 
-          {/* Naver API 미호출 안내 */}
-          <div className="mb-4 rounded-md border border-blue-500/20 bg-blue-500/10 p-3 text-xs text-blue-200">
-            <p className="mb-1 font-semibold text-blue-300">실행 안전성 확인</p>
-            <ul className="space-y-0.5">
-              <li>이 실행에서 실제 Naver API는 호출되지 않았습니다.</li>
-              <li>실제 스마트스토어 상품 정보는 변경되지 않았습니다.</li>
-              {job.executionMetadata?.executionMode && (
-                <li>실행 모드: <span className="font-mono text-blue-100">{job.executionMetadata.executionMode}</span></li>
-              )}
-            </ul>
-          </div>
+          {/* 실행 감사 정보 (Audit Trail) */}
+          {(() => {
+            const execMode = job.executionMetadata?.executionMode ?? null;
+            const naverApiCalled = execMode === 'live';
+            return (
+              <div className="mb-4 rounded-md border border-blue-500/20 bg-blue-500/10 p-3 text-xs text-blue-200">
+                <p className="mb-2 font-semibold text-blue-300">실행 감사 정보 (Audit Trail)</p>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1 sm:grid-cols-3">
+                  <div>
+                    <span className="text-blue-400">BatchJob ID: </span>
+                    <span className="font-mono text-blue-100">{job.id.substring(0, 12)}…</span>
+                  </div>
+                  {job.executionMetadata?.finalApprovalId && (
+                    <div>
+                      <span className="text-blue-400">FinalApproval ID: </span>
+                      <span className="font-mono text-blue-100">
+                        {job.executionMetadata.finalApprovalId.substring(0, 12)}…
+                      </span>
+                    </div>
+                  )}
+                  {job.executionMetadata?.actorId && (
+                    <div>
+                      <span className="text-blue-400">Actor ID: </span>
+                      <span className="font-mono text-blue-100">{job.executionMetadata.actorId}</span>
+                    </div>
+                  )}
+                  {execMode && (
+                    <div>
+                      <span className="text-blue-400">실행 모드 (adapterMode): </span>
+                      <span className="font-mono text-blue-100">{execMode}</span>
+                    </div>
+                  )}
+                  <div>
+                    <span className="text-blue-400">Naver API 호출: </span>
+                    <span className={`font-semibold ${naverApiCalled ? 'text-red-300' : 'text-emerald-300'}`}>
+                      {naverApiCalled ? '예 (실제 호출)' : '아니오 (차단됨)'}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-blue-400">스마트스토어 변경: </span>
+                    <span className={`font-semibold ${naverApiCalled ? 'text-red-300' : 'text-emerald-300'}`}>
+                      {naverApiCalled ? '예 (실제 변경)' : '아니오'}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-blue-400">전체 항목 (totalItems): </span>
+                    <span className="text-blue-100">{job.itemCount}건</span>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
 
           {/* 기본 실행 정보 */}
           <div className="mb-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
             <div>
-              <p className="mb-1 text-xs text-gray-500">BatchJob ID</p>
-              <p className="truncate font-mono text-xs text-gray-400">{job.id}</p>
-            </div>
-            <div>
-              <p className="mb-1 text-xs text-gray-500">실행 완료 시각</p>
+              <p className="mb-1 text-xs text-gray-500">실행 완료 시각 (executedAt)</p>
               <p className="text-sm text-gray-200">
                 {job.executedAt ? new Date(job.executedAt).toLocaleString() : '-'}
               </p>
             </div>
-            <div>
-              <p className="mb-1 text-xs text-gray-500">전체 항목</p>
-              <p className="text-sm font-semibold text-white">{job.itemCount}건</p>
-            </div>
+            {job.executionMetadata?.startedAt && (
+              <div>
+                <p className="mb-1 text-xs text-gray-500">실행 시작 (startedAt)</p>
+                <p className="text-sm text-gray-300">{new Date(job.executionMetadata.startedAt).toLocaleString()}</p>
+              </div>
+            )}
+            {job.executionMetadata?.endedAt && (
+              <div>
+                <p className="mb-1 text-xs text-gray-500">실행 종료 (finishedAt)</p>
+                <p className="text-sm text-gray-300">{new Date(job.executionMetadata.endedAt).toLocaleString()}</p>
+              </div>
+            )}
             {job.executionMetadata?.durationMs !== undefined && (
               <div>
                 <p className="mb-1 text-xs text-gray-500">처리 시간</p>
@@ -942,44 +1054,20 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             </div>
           )}
 
-          {/* 실행 메타데이터 */}
+          {/* 실행 메타데이터 (recordedAt 중심) */}
           {job.executionMetadata && (
-            <div className="rounded-md border border-[#262629] bg-[#18181b] p-3">
-              <p className="mb-2 text-xs font-semibold text-gray-400">실행 메타데이터</p>
-              <div className="space-y-1 text-xs">
-                {job.executionMetadata.finalApprovalId && (
-                  <div>
-                    <span className="text-gray-500">FinalApproval ID: </span>
-                    <span className="font-mono text-gray-300">{job.executionMetadata.finalApprovalId}</span>
-                  </div>
-                )}
-                {job.executionMetadata.actorId && (
-                  <div>
-                    <span className="text-gray-500">Actor ID: </span>
-                    <span className="font-mono text-gray-300">{job.executionMetadata.actorId}</span>
-                  </div>
-                )}
-                {job.executionMetadata.startedAt && (
-                  <div>
-                    <span className="text-gray-500">실행 시작: </span>
-                    <span className="text-gray-300">{new Date(job.executionMetadata.startedAt).toLocaleString()}</span>
-                  </div>
-                )}
-                {job.executionMetadata.endedAt && (
-                  <div>
-                    <span className="text-gray-500">실행 종료: </span>
-                    <span className="text-gray-300">{new Date(job.executionMetadata.endedAt).toLocaleString()}</span>
-                  </div>
-                )}
+            <div className="mb-4 rounded-md border border-[#262629] bg-[#18181b] p-3">
+              <p className="mb-2 text-xs font-semibold text-gray-400">실행 메타데이터 (결과 기록)</p>
+              <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs sm:grid-cols-3">
                 {job.executionMetadata.recordedAt && (
                   <div>
-                    <span className="text-gray-500">기록 시각: </span>
+                    <span className="text-gray-500">기록 시각 (recordedAt): </span>
                     <span className="text-gray-300">{new Date(job.executionMetadata.recordedAt).toLocaleString()}</span>
                   </div>
                 )}
                 {job.executionMetadata.resultSummary && (
-                  <div>
-                    <span className="text-gray-500">메타 집계: </span>
+                  <div className="sm:col-span-2">
+                    <span className="text-gray-500">결과 집계 (resultSummary): </span>
                     <span className="text-gray-300">
                       성공 {job.executionMetadata.resultSummary.successCount} /
                       실패 {job.executionMetadata.resultSummary.failedCount} /
@@ -990,6 +1078,18 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
             </div>
           )}
+
+          {/* 재실행 차단 요약 (실행 결과 섹션 하단) */}
+          <div className="rounded-md border border-red-500/20 bg-red-500/10 p-3 text-xs text-red-200">
+            <p className="mb-1 flex items-center gap-1.5 font-semibold text-red-300">
+              <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+              재실행 차단 — 이미 실행 기록이 있는 BatchJob입니다
+            </p>
+            <p>안전을 위해 재실행은 별도 승인 흐름에서만 가능합니다. Mock 실행 결과라도 재실행은 기본 차단입니다.</p>
+            <p className="mt-1 font-mono text-red-300">
+              서버 차단 코드: BATCH_JOB_ALREADY_EXECUTED / BATCH_JOB_ALREADY_EXECUTING
+            </p>
+          </div>
         </div>
       )}
 

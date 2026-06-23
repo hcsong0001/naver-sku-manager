@@ -98,11 +98,25 @@ describe('runFinalApprovalExecutionDbReadGuard', () => {
     }
   });
 
-  it('5. Job status가 APPROVED가 아니면 409 성격 실패', async () => {
+  it('5. Job status가 EXECUTING이면 BATCH_JOB_ALREADY_EXECUTING 반환', async () => {
     const invalidSnapshot = JSON.parse(JSON.stringify(validSnapshot));
     invalidSnapshot.job.status = 'EXECUTING';
     const repo = createFakeRepository(invalidSnapshot);
-    
+
+    const result = await runFinalApprovalExecutionDbReadGuard(defaultInput, repo);
+
+    assert.equal(result.success, false);
+    if (!result.success) {
+      assert.equal(result.statusCode, 409);
+      assert.equal(result.guardCode, 'BATCH_JOB_ALREADY_EXECUTING');
+    }
+  });
+
+  it('5b. Job status가 DRAFT이면 JOB_NOT_APPROVED 반환', async () => {
+    const invalidSnapshot = JSON.parse(JSON.stringify(validSnapshot));
+    invalidSnapshot.job.status = 'DRAFT';
+    const repo = createFakeRepository(invalidSnapshot);
+
     const result = await runFinalApprovalExecutionDbReadGuard(defaultInput, repo);
 
     assert.equal(result.success, false);
@@ -135,6 +149,63 @@ describe('runFinalApprovalExecutionDbReadGuard', () => {
     if (!result.success) {
       assert.equal(result.statusCode, 500);
       assert.equal(result.guardCode, 'INTERNAL_ERROR');
+    }
+  });
+
+  it('9. Job status가 EXECUTED이면 BATCH_JOB_ALREADY_EXECUTED 반환', async () => {
+    const invalidSnapshot = JSON.parse(JSON.stringify(validSnapshot));
+    invalidSnapshot.job.status = 'EXECUTED';
+    const repo = createFakeRepository(invalidSnapshot);
+
+    const result = await runFinalApprovalExecutionDbReadGuard(defaultInput, repo);
+
+    assert.equal(result.success, false);
+    if (!result.success) {
+      assert.equal(result.statusCode, 409);
+      assert.equal(result.guardCode, 'BATCH_JOB_ALREADY_EXECUTED');
+    }
+  });
+
+  it('10. Job status가 PARTIAL_SUCCESS이면 BATCH_JOB_ALREADY_EXECUTED 반환', async () => {
+    const invalidSnapshot = JSON.parse(JSON.stringify(validSnapshot));
+    invalidSnapshot.job.status = 'PARTIAL_SUCCESS';
+    const repo = createFakeRepository(invalidSnapshot);
+
+    const result = await runFinalApprovalExecutionDbReadGuard(defaultInput, repo);
+
+    assert.equal(result.success, false);
+    if (!result.success) {
+      assert.equal(result.statusCode, 409);
+      assert.equal(result.guardCode, 'BATCH_JOB_ALREADY_EXECUTED');
+    }
+  });
+
+  it('11. Job status가 FAILED이면 BATCH_JOB_ALREADY_EXECUTED 반환', async () => {
+    const invalidSnapshot = JSON.parse(JSON.stringify(validSnapshot));
+    invalidSnapshot.job.status = 'FAILED';
+    const repo = createFakeRepository(invalidSnapshot);
+
+    const result = await runFinalApprovalExecutionDbReadGuard(defaultInput, repo);
+
+    assert.equal(result.success, false);
+    if (!result.success) {
+      assert.equal(result.statusCode, 409);
+      assert.equal(result.guardCode, 'BATCH_JOB_ALREADY_EXECUTED');
+    }
+  });
+
+  it('12. BATCH_JOB_ALREADY_EXECUTED 메시지에 민감 정보 포함 안 됨', async () => {
+    const invalidSnapshot = JSON.parse(JSON.stringify(validSnapshot));
+    invalidSnapshot.job.status = 'EXECUTED';
+    const repo = createFakeRepository(invalidSnapshot);
+
+    const result = await runFinalApprovalExecutionDbReadGuard(defaultInput, repo);
+
+    assert.equal(result.success, false);
+    if (!result.success) {
+      assert.ok(!result.message.includes('https://api'), 'must not leak API endpoint');
+      assert.ok(!result.message.toLowerCase().includes('secret'), 'must not leak secret');
+      assert.ok(!result.message.includes('token'), 'must not leak token');
     }
   });
 

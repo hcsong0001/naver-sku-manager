@@ -1,8 +1,12 @@
-import type { 
+import type {
   FinalApprovalExecutionDbReadGuardInput,
   FinalApprovalExecutionDbReadGuardRepository,
   FinalApprovalExecutionDbReadGuardResult
 } from '../types/sku-keyword-final-approval-execution-db-read-guard.types';
+
+const TERMINAL_BATCH_JOB_STATUSES = new Set([
+  'EXECUTED', 'PARTIAL_SUCCESS', 'FAILED', 'CANCELLED',
+]);
 
 export async function runFinalApprovalExecutionDbReadGuard(
   input: FinalApprovalExecutionDbReadGuardInput,
@@ -39,6 +43,24 @@ export async function runFinalApprovalExecutionDbReadGuard(
           message: 'The validation snapshot for this FinalApproval has expired.'
         };
       }
+    }
+
+    if (snapshot.job && TERMINAL_BATCH_JOB_STATUSES.has(snapshot.job.status)) {
+      return {
+        success: false,
+        statusCode: 409,
+        guardCode: 'BATCH_JOB_ALREADY_EXECUTED',
+        message: `BatchJob has already been executed and cannot be re-executed. Current status: ${snapshot.job.status}`,
+      };
+    }
+
+    if (snapshot.job && snapshot.job.status === 'EXECUTING') {
+      return {
+        success: false,
+        statusCode: 409,
+        guardCode: 'BATCH_JOB_ALREADY_EXECUTING',
+        message: 'BatchJob is currently executing. Concurrent execution is not allowed.',
+      };
     }
 
     if (!snapshot.job || snapshot.job.status !== 'APPROVED') {

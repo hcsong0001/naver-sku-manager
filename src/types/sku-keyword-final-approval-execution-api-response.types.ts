@@ -18,13 +18,15 @@ export type FinalApprovalExecutionApiValidationErrorResponse = {
   errors: ExecutionCommandValidationError[];
 };
 
-export type FinalApprovalExecutionGuardCode = 
+export type FinalApprovalExecutionGuardCode =
   | 'JOB_NOT_APPROVED'
   | 'FINAL_APPROVAL_NOT_ACTIVE'
   | 'VALIDATION_EXPIRED'
   | 'HASH_MISMATCH'
   | 'NO_READY_ITEMS'
-  | 'UNAUTHORIZED_ACTOR';
+  | 'UNAUTHORIZED_ACTOR'
+  | 'BATCH_JOB_ALREADY_EXECUTED'
+  | 'BATCH_JOB_ALREADY_EXECUTING';
 
 export type FinalApprovalExecutionApiGuardFailureResponse = {
   success: false;
