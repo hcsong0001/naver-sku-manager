@@ -163,6 +163,56 @@ type EnvironmentSafetyResult = {
   sanitized: true;
 };
 
+type AuditHistoryItemStatus = 'RECORDED_BUT_NOT_EXECUTABLE' | 'UNKNOWN';
+
+type LiveSingleTestAuditHistoryItem = {
+  id: string;
+  batchJobId: string;
+  finalApprovalId: string | null;
+  auditCode: string;
+  status: AuditHistoryItemStatus;
+  recordedAt: string | null;
+  actorId: string | null;
+  acknowledgedItems: string[];
+  missingAcknowledgements: string[];
+  targetProductSummary: Record<string, unknown> | null;
+  safePayloadSummary: Record<string, unknown> | null;
+  naverApiCallAllowed: false;
+  liveExecutionEnabled: false;
+  queueAllowed: false;
+  workerAllowed: false;
+  sanitized: true;
+};
+
+type LiveSingleTestAuditHistorySummary = {
+  totalRecords: number;
+  hasAuditRecord: boolean;
+  latestAuditCode: string | null;
+  latestRecordedAt: string | null;
+  latestActorId: string | null;
+  latestStatus: AuditHistoryItemStatus | null;
+  naverApiCallAllowed: false;
+  liveExecutionEnabled: false;
+  operatingDbWriteAllowed: false;
+  queueAllowed: false;
+  workerAllowed: false;
+};
+
+type LiveSingleTestAuditHistoryResult = {
+  exists: boolean;
+  latestAudit: LiveSingleTestAuditHistoryItem | null;
+  summary: LiveSingleTestAuditHistorySummary;
+  blockingReasons: string[];
+  warnings: string[];
+  naverApiCallAllowed: false;
+  liveExecutionEnabled: false;
+  operatingDbWriteAllowed: false;
+  queueAllowed: false;
+  workerAllowed: false;
+  sanitized: true;
+  maxAllowedState: string;
+};
+
 type LiveSingleTestApprovalAuditTargetSummary = {
   itemId?: string | null;
   targetType?: string | null;
@@ -211,6 +261,7 @@ type DraftBatchJob = {
   livePreflight?: LivePreflightResult | null;
   liveSingleTestApproval?: LiveSingleTestApprovalResult | null;
   liveSingleTestApprovalAudit?: LiveSingleTestApprovalAuditRecord | null;
+  liveSingleTestAuditHistory?: LiveSingleTestAuditHistoryResult | null;
   environmentSafety?: EnvironmentSafetyResult | null;
 };
 
@@ -1806,6 +1857,195 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <span className="font-mono text-gray-300">{env.environmentCode}</span>
               <span className="mx-2 text-gray-600">|</span>
               <span>{env.environmentMessage}</span>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Live 단일 테스트 승인 감사 이력 ─────────────────────────────────── */}
+      {job.liveSingleTestAuditHistory && (() => {
+        const hist = job.liveSingleTestAuditHistory!;
+        const latest = hist.latestAudit;
+        return (
+          <div className="mb-6 rounded-lg border border-[#262629] bg-[#121214] p-4">
+            <h2 className="mb-3 flex items-center gap-2 text-base font-semibold text-white">
+              <FileJson className="h-5 w-5 text-indigo-400" />
+              Live 단일 테스트 승인 감사 이력
+              <span className={`ml-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold ${
+                hist.exists
+                  ? 'border-indigo-500/30 bg-indigo-500/10 text-indigo-300'
+                  : 'border-gray-600/30 bg-gray-600/10 text-gray-500'
+              }`}>
+                {hist.exists ? `기록 ${hist.summary.totalRecords}건` : '기록 없음'}
+              </span>
+            </h2>
+
+            {/* 안내 문구 */}
+            <div className="mb-4 rounded-md border border-indigo-500/20 bg-indigo-500/10 p-3 text-xs text-indigo-200">
+              <p className="mb-1">이 감사 기록은 승인 확인 이력일 뿐이며 실제 Naver API 호출을 실행하지 않습니다.</p>
+              <p className="text-indigo-300/70">Live 실행은 별도 단계에서 추가 Safety Gate와 명시 승인 후에만 검토합니다.</p>
+            </div>
+
+            {/* 안전 상태 배지 */}
+            <div className="mb-4 flex flex-wrap gap-2">
+              <div className="inline-flex items-center rounded-md border border-red-500/30 bg-red-500/10 px-2.5 py-1 text-[10px] font-semibold text-red-300">
+                <X className="mr-1 h-3 w-3" /> Naver API 호출 비활성화
+              </div>
+              <div className="inline-flex items-center rounded-md border border-red-500/30 bg-red-500/10 px-2.5 py-1 text-[10px] font-semibold text-red-300">
+                <X className="mr-1 h-3 w-3" /> Live 실행 비활성화
+              </div>
+              <div className="inline-flex items-center rounded-md border border-red-500/30 bg-red-500/10 px-2.5 py-1 text-[10px] font-semibold text-red-300">
+                <X className="mr-1 h-3 w-3" /> 운영 DB write 차단
+              </div>
+              <div className="inline-flex items-center rounded-md border border-red-500/30 bg-red-500/10 px-2.5 py-1 text-[10px] font-semibold text-red-300">
+                <X className="mr-1 h-3 w-3" /> Queue 비활성화
+              </div>
+              <div className="inline-flex items-center rounded-md border border-red-500/30 bg-red-500/10 px-2.5 py-1 text-[10px] font-semibold text-red-300">
+                <X className="mr-1 h-3 w-3" /> Worker 비활성화
+              </div>
+              <div className="inline-flex items-center rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-[10px] font-semibold text-emerald-300">
+                <CheckCircle2 className="mr-1 h-3 w-3" /> Secret 비노출 (조회 전용)
+              </div>
+            </div>
+
+            {/* 기록 없음 */}
+            {!hist.exists && (
+              <div className="rounded-md border border-gray-600/20 bg-gray-600/5 p-3 text-xs text-gray-400">
+                <p className="font-semibold text-gray-300">승인 감사 기록이 없습니다.</p>
+                <p className="mt-1">Live 단일 테스트 승인 기록 저장 섹션에서 먼저 필수 확인 항목을 체크하고 기록을 저장하세요.</p>
+              </div>
+            )}
+
+            {/* 최신 감사 기록 */}
+            {latest && (
+              <div className="mb-4 rounded-md border border-indigo-500/20 bg-indigo-500/5 p-4 text-xs">
+                <p className="mb-3 text-xs font-semibold text-indigo-300">최신 감사 기록</p>
+
+                {/* 기본 정보 */}
+                <div className="mb-3 grid grid-cols-1 gap-y-1.5 sm:grid-cols-2">
+                  <div>
+                    <span className="text-gray-500">승인 코드: </span>
+                    <span className="font-mono text-indigo-300">{latest.auditCode}</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-500">상태: </span>
+                    <span className={`font-semibold ${
+                      latest.status === 'RECORDED_BUT_NOT_EXECUTABLE'
+                        ? 'text-emerald-400'
+                        : 'text-gray-400'
+                    }`}>
+                      {latest.status === 'RECORDED_BUT_NOT_EXECUTABLE'
+                        ? '기록 완료 (실행 불가)'
+                        : latest.status}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-gray-500">기록 시각: </span>
+                    <span className="text-gray-200">
+                      {latest.recordedAt ? new Date(latest.recordedAt).toLocaleString() : '-'}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-gray-500">승인자: </span>
+                    <span className="font-mono text-gray-200">{latest.actorId ?? '-'}</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-500">BatchJob ID: </span>
+                    <span className="font-mono text-gray-400">
+                      {latest.batchJobId ? `${latest.batchJobId.substring(0, 16)}…` : '-'}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-gray-500">FinalApproval ID: </span>
+                    <span className="font-mono text-gray-400">
+                      {latest.finalApprovalId
+                        ? `${latest.finalApprovalId.substring(0, 16)}…`
+                        : '-'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* 대상 상품 정보 */}
+                {latest.targetProductSummary && (
+                  <div className="mb-3 rounded-md border border-gray-600/20 bg-gray-600/5 p-2.5">
+                    <p className="mb-1.5 text-[10px] font-semibold text-gray-400">대상 상품 정보</p>
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+                      {Object.entries(latest.targetProductSummary).map(([k, v]) =>
+                        v !== null && v !== undefined ? (
+                          <div key={k}>
+                            <span className="text-gray-500">{k}: </span>
+                            <span className="text-gray-200">{String(v)}</span>
+                          </div>
+                        ) : null
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* acknowledgement 목록 */}
+                <div className="mb-3">
+                  <p className="mb-1.5 text-[10px] font-semibold text-gray-400">
+                    확인 항목 ({latest.acknowledgedItems.length}건 완료
+                    {latest.missingAcknowledgements.length > 0
+                      ? ` / ${latest.missingAcknowledgements.length}건 누락`
+                      : ''})
+                  </p>
+                  <ul className="space-y-1">
+                    {latest.acknowledgedItems.map(ack => (
+                      <li key={ack} className="flex items-center gap-1.5 text-emerald-300">
+                        <CheckCircle2 className="h-3 w-3 shrink-0" />
+                        <span className="font-mono text-[10px]">{ack}</span>
+                      </li>
+                    ))}
+                    {latest.missingAcknowledgements.map(ack => (
+                      <li key={ack} className="flex items-center gap-1.5 text-amber-400">
+                        <AlertTriangle className="h-3 w-3 shrink-0" />
+                        <span className="font-mono text-[10px]">{ack} (누락)</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                {/* 실행 불가 배지 */}
+                <div className="mt-2 flex flex-wrap gap-2">
+                  <span className="inline-flex items-center rounded border border-red-500/30 bg-red-500/10 px-2 py-0.5 text-[10px] font-semibold text-red-300">
+                    naverApiCallAllowed: false
+                  </span>
+                  <span className="inline-flex items-center rounded border border-red-500/30 bg-red-500/10 px-2 py-0.5 text-[10px] font-semibold text-red-300">
+                    liveExecutionEnabled: false
+                  </span>
+                  <span className="inline-flex items-center rounded border border-gray-600/30 bg-gray-600/10 px-2 py-0.5 text-[10px] text-gray-400">
+                    operatingDbWriteAllowed: false
+                  </span>
+                  <span className="inline-flex items-center rounded border border-gray-600/30 bg-gray-600/10 px-2 py-0.5 text-[10px] text-gray-400">
+                    queueAllowed: false
+                  </span>
+                  <span className="inline-flex items-center rounded border border-gray-600/30 bg-gray-600/10 px-2 py-0.5 text-[10px] text-gray-400">
+                    workerAllowed: false
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* 경고 */}
+            {hist.warnings.length > 0 && (
+              <div className="mt-2 rounded-md border border-amber-500/20 bg-amber-500/10 p-2.5 text-xs">
+                <p className="mb-1 flex items-center gap-1 font-semibold text-amber-300">
+                  <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                  경고 ({hist.warnings.length}건)
+                </p>
+                <ul className="space-y-0.5">
+                  {hist.warnings.map((w, idx) => (
+                    <li key={idx} className="text-amber-200">- {w}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* maxAllowedState */}
+            <div className="mt-3 rounded-md border border-gray-600/20 bg-gray-600/5 p-2 text-xs text-gray-400">
+              <span className="text-gray-500">최대 허용 상태: </span>
+              <span className="font-mono text-gray-300">{hist.maxAllowedState}</span>
             </div>
           </div>
         );

@@ -11,6 +11,9 @@ import {
 import {
   evaluateExecutionEnvironmentSafetyGuard,
 } from '@/src/services/sku-keyword-final-approval-execution-environment-safety-guard.service';
+import {
+  buildLiveSingleTestAuditHistoryItem,
+} from '@/src/services/sku-keyword-final-approval-execution-live-single-test-audit-history.service';
 
 // Compute safe DB environment hint from DATABASE_URL without exposing the original value.
 // Returns a classification key, never the actual URL.
@@ -269,6 +272,12 @@ export async function GET(
       rawMetadata?.liveSingleTestApprovalAudit
     );
 
+    // Build audit history (read-only summary from metadata)
+    const auditHistory = buildLiveSingleTestAuditHistoryItem({
+      batchJobId: job.id,
+      metadata: job.metadata,
+    });
+
     // Evaluate execution environment safety (safe hints only — no raw URLs or secrets exposed)
     const envSafetyResult = evaluateExecutionEnvironmentSafetyGuard({
       nodeEnv: process.env.NODE_ENV ?? null,
@@ -322,6 +331,20 @@ export async function GET(
         targetProductSummary,
       },
       liveSingleTestApprovalAudit,
+      liveSingleTestAuditHistory: {
+        exists: auditHistory.exists,
+        latestAudit: auditHistory.latestAudit,
+        summary: auditHistory.summary,
+        blockingReasons: auditHistory.blockingReasons,
+        warnings: auditHistory.warnings,
+        naverApiCallAllowed: false as const,
+        liveExecutionEnabled: false as const,
+        operatingDbWriteAllowed: false as const,
+        queueAllowed: false as const,
+        workerAllowed: false as const,
+        sanitized: true as const,
+        maxAllowedState: 'LIVE_SINGLE_TEST_AUDIT_HISTORY_READ_ONLY_READY' as const,
+      },
       environmentSafety: {
         allowed: envSafetyResult.allowed,
         environmentCode: envSafetyResult.environmentCode,
