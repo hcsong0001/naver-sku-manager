@@ -47,12 +47,32 @@ type DraftBatchItem = {
   };
 };
 
+type ExecutionMetadata = {
+  executionMode?: string;
+  actorId?: string;
+  durationMs?: number;
+  startedAt?: string;
+  endedAt?: string;
+  finalApprovalId?: string;
+  recordedAt?: string;
+  resultSummary?: {
+    successCount: number;
+    failedCount: number;
+    skippedCount: number;
+  };
+};
+
 type DraftBatchJob = {
   id: string;
   status: string;
   createdAt: string;
   updatedAt: string;
   itemCount: number;
+  successItems: number;
+  failedItems: number;
+  skippedItems: number;
+  executedAt: string | null;
+  executionMetadata: ExecutionMetadata | null;
   items: DraftBatchItem[];
 };
 
@@ -113,6 +133,33 @@ function asStringArray(value: unknown): string[] {
     .filter((entry): entry is string => typeof entry === 'string')
     .map((entry) => entry.trim())
     .filter(Boolean);
+}
+
+function getStatusBadgeStyle(status: string): string {
+  switch (status.toUpperCase()) {
+    case 'EXECUTED':
+    case 'SUCCESS':
+    case 'ACTIVE':
+      return 'border-emerald-500/30 bg-emerald-500/20 text-emerald-300';
+    case 'PARTIAL_SUCCESS':
+      return 'border-orange-500/30 bg-orange-500/20 text-orange-300';
+    case 'FAILED':
+    case 'INVALIDATED':
+      return 'border-red-500/30 bg-red-500/20 text-red-300';
+    case 'EXECUTING':
+      return 'border-amber-500/30 bg-amber-500/20 text-amber-300';
+    case 'APPROVED':
+      return 'border-indigo-500/30 bg-indigo-500/20 text-indigo-300';
+    case 'READY':
+      return 'border-teal-500/30 bg-teal-500/20 text-teal-300';
+    case 'SKIPPED':
+    case 'CANCELLED':
+    case 'SUPERSEDED':
+      return 'border-gray-500/30 bg-gray-500/20 text-gray-400';
+    case 'DRAFT':
+    default:
+      return 'border-slate-500/30 bg-slate-500/20 text-slate-300';
+  }
 }
 
 function formatWarningCode(code: string): string {
@@ -512,6 +559,26 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             <CheckCircle2 className="mr-2 inline-block h-4 w-4" />
             이 Batch는 APPROVED 상태입니다. 각 item은 READY 상태로 승인되었습니다. 아직 네이버 API 호출이나 스마트스토어 가격/재고 변경은 수행되지 않았습니다. 실제 실행 기능은 별도 단계에서만 구현됩니다.
           </div>
+        ) : job.status === 'EXECUTED' ? (
+          <div className="mt-2 rounded-md border border-emerald-500/20 bg-emerald-500/10 p-3 text-sm text-emerald-200">
+            <CheckCircle2 className="mr-2 inline-block h-4 w-4" />
+            이 Batch는 <strong className="text-white">EXECUTED</strong> 상태입니다. Worker 실행이 완료됐습니다. 실제 Naver API는 호출되지 않았습니다.
+          </div>
+        ) : job.status === 'PARTIAL_SUCCESS' ? (
+          <div className="mt-2 rounded-md border border-orange-500/20 bg-orange-500/10 p-3 text-sm text-orange-200">
+            <AlertTriangle className="mr-2 inline-block h-4 w-4" />
+            이 Batch는 <strong className="text-white">PARTIAL_SUCCESS</strong> 상태입니다. 일부 항목만 성공했습니다. 하단 실행 결과를 확인하세요.
+          </div>
+        ) : job.status === 'FAILED' ? (
+          <div className="mt-2 rounded-md border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-200">
+            <AlertTriangle className="mr-2 inline-block h-4 w-4" />
+            이 Batch는 <strong className="text-white">FAILED</strong> 상태입니다. 하단 실행 결과를 확인하세요.
+          </div>
+        ) : job.status === 'EXECUTING' ? (
+          <div className="mt-2 rounded-md border border-amber-500/20 bg-amber-500/10 p-3 text-sm text-amber-200">
+            <Loader2 className="mr-2 inline-block h-4 w-4 animate-spin" />
+            이 Batch는 <strong className="text-white">EXECUTING</strong> 상태입니다. Worker가 실행 중입니다.
+          </div>
         ) : (
           <div className="mt-2 rounded-md border border-emerald-500/20 bg-emerald-500/10 p-3 text-sm text-emerald-200">
             <CheckCircle2 className="mr-2 inline-block h-4 w-4" />
@@ -527,7 +594,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         </div>
         <div>
           <p className="mb-1 text-xs text-gray-500">상태</p>
-          <span className="rounded-full border border-slate-500/30 bg-slate-500/20 px-2 py-0.5 text-xs font-semibold text-slate-300">
+          <span className={`rounded-full border px-2 py-0.5 text-xs font-semibold ${getStatusBadgeStyle(job.status)}`}>
             {job.status}
           </span>
         </div>
@@ -793,6 +860,139 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         )}
       </div>
 
+      {/* ── BatchJob 실행 결과 ────────────────────────────────────────────────── */}
+      {['EXECUTED', 'PARTIAL_SUCCESS', 'FAILED', 'EXECUTING'].includes(job.status) && (
+        <div className="mb-6 rounded-lg border border-[#262629] bg-[#121214] p-4">
+          <h2 className="mb-4 flex items-center gap-2 text-base font-semibold text-white">
+            <CheckCircle2 className={`h-5 w-5 ${job.status === 'FAILED' ? 'text-red-400' : job.status === 'PARTIAL_SUCCESS' ? 'text-orange-400' : 'text-emerald-400'}`} />
+            BatchJob 실행 결과
+            <span className={`ml-1 rounded-full border px-2 py-0.5 text-xs ${getStatusBadgeStyle(job.status)}`}>
+              {job.status}
+            </span>
+          </h2>
+
+          {/* Naver API 미호출 안내 */}
+          <div className="mb-4 rounded-md border border-blue-500/20 bg-blue-500/10 p-3 text-xs text-blue-200">
+            <p className="mb-1 font-semibold text-blue-300">실행 안전성 확인</p>
+            <ul className="space-y-0.5">
+              <li>이 실행에서 실제 Naver API는 호출되지 않았습니다.</li>
+              <li>실제 스마트스토어 상품 정보는 변경되지 않았습니다.</li>
+              {job.executionMetadata?.executionMode && (
+                <li>실행 모드: <span className="font-mono text-blue-100">{job.executionMetadata.executionMode}</span></li>
+              )}
+            </ul>
+          </div>
+
+          {/* 기본 실행 정보 */}
+          <div className="mb-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
+            <div>
+              <p className="mb-1 text-xs text-gray-500">BatchJob ID</p>
+              <p className="truncate font-mono text-xs text-gray-400">{job.id}</p>
+            </div>
+            <div>
+              <p className="mb-1 text-xs text-gray-500">실행 완료 시각</p>
+              <p className="text-sm text-gray-200">
+                {job.executedAt ? new Date(job.executedAt).toLocaleString() : '-'}
+              </p>
+            </div>
+            <div>
+              <p className="mb-1 text-xs text-gray-500">전체 항목</p>
+              <p className="text-sm font-semibold text-white">{job.itemCount}건</p>
+            </div>
+            {job.executionMetadata?.durationMs !== undefined && (
+              <div>
+                <p className="mb-1 text-xs text-gray-500">처리 시간</p>
+                <p className="text-sm text-gray-300">{job.executionMetadata.durationMs}ms</p>
+              </div>
+            )}
+          </div>
+
+          {/* 성공/실패/스킵 카운트 */}
+          <div className="mb-4 grid grid-cols-3 gap-3">
+            <div className="rounded-md border border-emerald-500/20 bg-emerald-500/10 p-3 text-center">
+              <p className="text-2xl font-bold text-emerald-400">{job.successItems}</p>
+              <p className="text-xs text-gray-400">성공</p>
+            </div>
+            <div className="rounded-md border border-red-500/20 bg-red-500/10 p-3 text-center">
+              <p className="text-2xl font-bold text-red-400">{job.failedItems}</p>
+              <p className="text-xs text-gray-400">실패</p>
+            </div>
+            <div className="rounded-md border border-gray-500/20 bg-gray-500/10 p-3 text-center">
+              <p className="text-2xl font-bold text-gray-400">{job.skippedItems}</p>
+              <p className="text-xs text-gray-400">스킵</p>
+            </div>
+          </div>
+
+          {/* 항목별 상태 분포 */}
+          {job.items.length > 0 && (
+            <div className="mb-4">
+              <p className="mb-2 text-xs font-semibold text-gray-400">항목별 상태 분포</p>
+              <div className="flex flex-wrap gap-2">
+                {Object.entries(
+                  job.items.reduce<Record<string, number>>((acc, item) => {
+                    acc[item.status] = (acc[item.status] ?? 0) + 1;
+                    return acc;
+                  }, {})
+                ).map(([st, count]) => (
+                  <span key={st} className={`rounded-full border px-2 py-0.5 text-xs font-semibold ${getStatusBadgeStyle(st)}`}>
+                    {st}: {count}건
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* 실행 메타데이터 */}
+          {job.executionMetadata && (
+            <div className="rounded-md border border-[#262629] bg-[#18181b] p-3">
+              <p className="mb-2 text-xs font-semibold text-gray-400">실행 메타데이터</p>
+              <div className="space-y-1 text-xs">
+                {job.executionMetadata.finalApprovalId && (
+                  <div>
+                    <span className="text-gray-500">FinalApproval ID: </span>
+                    <span className="font-mono text-gray-300">{job.executionMetadata.finalApprovalId}</span>
+                  </div>
+                )}
+                {job.executionMetadata.actorId && (
+                  <div>
+                    <span className="text-gray-500">Actor ID: </span>
+                    <span className="font-mono text-gray-300">{job.executionMetadata.actorId}</span>
+                  </div>
+                )}
+                {job.executionMetadata.startedAt && (
+                  <div>
+                    <span className="text-gray-500">실행 시작: </span>
+                    <span className="text-gray-300">{new Date(job.executionMetadata.startedAt).toLocaleString()}</span>
+                  </div>
+                )}
+                {job.executionMetadata.endedAt && (
+                  <div>
+                    <span className="text-gray-500">실행 종료: </span>
+                    <span className="text-gray-300">{new Date(job.executionMetadata.endedAt).toLocaleString()}</span>
+                  </div>
+                )}
+                {job.executionMetadata.recordedAt && (
+                  <div>
+                    <span className="text-gray-500">기록 시각: </span>
+                    <span className="text-gray-300">{new Date(job.executionMetadata.recordedAt).toLocaleString()}</span>
+                  </div>
+                )}
+                {job.executionMetadata.resultSummary && (
+                  <div>
+                    <span className="text-gray-500">메타 집계: </span>
+                    <span className="text-gray-300">
+                      성공 {job.executionMetadata.resultSummary.successCount} /
+                      실패 {job.executionMetadata.resultSummary.failedCount} /
+                      스킵 {job.executionMetadata.resultSummary.skippedCount}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       <div className="flex-1 space-y-4">
         <h2 className="text-lg font-semibold text-gray-200">항목 목록 ({job.items.length}건)</h2>
         {job.items.map((item, index) => (
@@ -805,8 +1005,8 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                     {item.targetType}
                   </span>
                   <span className="text-sm font-mono text-gray-300">{item.targetId}</span>
-                  <span className="rounded border border-slate-500/30 bg-slate-500/20 px-2 py-0.5 text-xs text-slate-200">
-                    item.status={item.status}
+                  <span className={`rounded border px-2 py-0.5 text-xs font-semibold ${getStatusBadgeStyle(item.status)}`}>
+                    {item.status}
                   </span>
                   {item.calculationType && (
                     <span className="rounded bg-blue-500/20 px-2 py-0.5 text-xs text-blue-300">

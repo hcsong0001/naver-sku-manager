@@ -1,6 +1,28 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
+function extractSafeMetadata(raw: unknown): Record<string, unknown> | null {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
+  const m = raw as Record<string, unknown>;
+  const out: Record<string, unknown> = {};
+  if (typeof m.executionMode === 'string') out.executionMode = m.executionMode;
+  if (typeof m.actorId === 'string') out.actorId = m.actorId;
+  if (typeof m.durationMs === 'number') out.durationMs = m.durationMs;
+  if (typeof m.startedAt === 'string') out.startedAt = m.startedAt;
+  if (typeof m.endedAt === 'string') out.endedAt = m.endedAt;
+  if (typeof m.finalApprovalId === 'string') out.finalApprovalId = m.finalApprovalId;
+  if (typeof m.recordedAt === 'string') out.recordedAt = m.recordedAt;
+  if (m.resultSummary && typeof m.resultSummary === 'object' && !Array.isArray(m.resultSummary)) {
+    const rs = m.resultSummary as Record<string, unknown>;
+    out.resultSummary = {
+      successCount: typeof rs.successCount === 'number' ? rs.successCount : 0,
+      failedCount: typeof rs.failedCount === 'number' ? rs.failedCount : 0,
+      skippedCount: typeof rs.skippedCount === 'number' ? rs.skippedCount : 0,
+    };
+  }
+  return Object.keys(out).length > 0 ? out : null;
+}
+
 export async function GET(
   request: Request,
   context: { params: Promise<{ jobId: string }> }
@@ -56,6 +78,11 @@ export async function GET(
       createdAt: job.createdAt.toISOString(),
       updatedAt: job.updatedAt.toISOString(),
       itemCount: job.totalItems,
+      successItems: job.successItems,
+      failedItems: job.failedItems,
+      skippedItems: job.skippedItems,
+      executedAt: job.executedAt?.toISOString() ?? null,
+      executionMetadata: extractSafeMetadata(job.metadata),
       items,
     };
 
