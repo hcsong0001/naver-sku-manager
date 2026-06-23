@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { evaluateNaverApiAuthConfigSafeReader } from '@/src/services/sku-keyword-final-approval-execution-naver-api-auth-config-safe-reader.service';
 
 function extractSafeMetadata(raw: unknown): Record<string, unknown> | null {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
@@ -72,6 +73,17 @@ export async function GET(
       };
     });
 
+    const naverAuthConfigSafety = evaluateNaverApiAuthConfigSafeReader({
+      envLike: {
+        NAVER_API_CLIENT_ID: process.env.NAVER_API_CLIENT_ID,
+        NAVER_API_CLIENT_SECRET: process.env.NAVER_API_CLIENT_SECRET,
+      },
+      requiredConfigKeys: ['NAVER_API_CLIENT_ID', 'NAVER_API_CLIENT_SECRET'],
+      allowCredentialUse: false,
+      allowTokenRequest: false,
+      allowEndpointCall: false,
+    });
+
     const responseJob = {
       id: job.id,
       status: job.status,
@@ -84,6 +96,27 @@ export async function GET(
       executedAt: job.executedAt?.toISOString() ?? null,
       executionMetadata: extractSafeMetadata(job.metadata),
       items,
+      naverAuthConfigSafety: {
+        credentialConfigured: naverAuthConfigSafety.credentialConfigured,
+        authConfigUsable: naverAuthConfigSafety.authConfigUsable,
+        authConfigStatus: naverAuthConfigSafety.authConfigStatus,
+        clientIdStatus: naverAuthConfigSafety.clientIdStatus,
+        clientSecretStatus: naverAuthConfigSafety.clientSecretStatus,
+        tokenStatus: naverAuthConfigSafety.tokenStatus,
+        naverApiCallAllowed: naverAuthConfigSafety.naverApiCallAllowed,
+        liveExecutionEnabled: naverAuthConfigSafety.liveExecutionEnabled,
+        accessTokenRequested: naverAuthConfigSafety.accessTokenRequested,
+        credentialsUsed: naverAuthConfigSafety.credentialsUsed,
+        tokenIssued: naverAuthConfigSafety.tokenIssued,
+        authorizationHeaderCreated: naverAuthConfigSafety.authorizationHeaderCreated,
+        endpointCalled: naverAuthConfigSafety.endpointCalled,
+        secretVisible: naverAuthConfigSafety.secretVisible,
+        sanitized: naverAuthConfigSafety.sanitized,
+        checklistItems: naverAuthConfigSafety.checklistItems,
+        blockingReasons: naverAuthConfigSafety.blockingReasons,
+        warnings: naverAuthConfigSafety.warnings,
+        maxAllowedState: naverAuthConfigSafety.maxAllowedState,
+      },
     };
 
     return NextResponse.json({ ok: true, job: responseJob });

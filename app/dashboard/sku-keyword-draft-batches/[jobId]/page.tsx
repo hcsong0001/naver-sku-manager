@@ -62,6 +62,35 @@ type ExecutionMetadata = {
   };
 };
 
+type NaverAuthConfigChecklistItem = {
+  key: string;
+  label: string;
+  status: 'PASS' | 'WARN' | 'BLOCKED' | 'NEEDS_REVIEW';
+  message: string;
+};
+
+type NaverAuthConfigSafety = {
+  credentialConfigured: boolean;
+  authConfigUsable: false;
+  authConfigStatus: 'CONFIGURED_BUT_BLOCKED' | 'MISSING' | 'PARTIAL' | 'BLOCKED' | 'UNKNOWN';
+  clientIdStatus: 'configured' | 'missing' | 'blocked' | 'unknown';
+  clientSecretStatus: 'configured' | 'missing' | 'blocked' | 'unknown';
+  tokenStatus: 'disabled';
+  naverApiCallAllowed: false;
+  liveExecutionEnabled: false;
+  accessTokenRequested: false;
+  credentialsUsed: false;
+  tokenIssued: false;
+  authorizationHeaderCreated: false;
+  endpointCalled: false;
+  secretVisible: false;
+  sanitized: true;
+  checklistItems: NaverAuthConfigChecklistItem[];
+  blockingReasons: string[];
+  warnings: string[];
+  maxAllowedState: 'NAVER_AUTH_CONFIG_SAFE_READER_REGISTERED_BUT_SECRET_BLOCKED';
+};
+
 type DraftBatchJob = {
   id: string;
   status: string;
@@ -74,6 +103,7 @@ type DraftBatchJob = {
   executedAt: string | null;
   executionMetadata: ExecutionMetadata | null;
   items: DraftBatchItem[];
+  naverAuthConfigSafety?: NaverAuthConfigSafety;
 };
 
 type DraftBatchDetailResponse =
@@ -924,6 +954,124 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
             );
           })()
+        )}
+      </div>
+
+      {/* ── Naver API 인증정보 안전 확인 ────────────────────────────────────── */}
+      <div className="mb-6 rounded-lg border border-[#262629] bg-[#121214] p-4">
+        <h2 className="mb-3 flex items-center gap-2 text-base font-semibold text-white">
+          <ShieldAlert className="h-5 w-5 text-slate-400" />
+          Naver API 인증정보 안전 확인
+        </h2>
+
+        <div className="mb-3 rounded-md border border-slate-500/20 bg-slate-500/10 p-3 text-xs text-slate-300">
+          이 섹션은 인증정보의 존재 여부만 안전한 상태값으로 표시합니다. secret, token, authorization header, endpoint URL은 표시하지 않으며, token 발급이나 Naver API 호출도 수행하지 않습니다.
+        </div>
+
+        {job.naverAuthConfigSafety ? (
+          <div className="space-y-4">
+            {/* 인증정보 상태 요약 */}
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-gray-400">인증정보 상태:</span>
+              <span className={`rounded-full border px-2 py-0.5 text-xs font-semibold ${
+                job.naverAuthConfigSafety.authConfigStatus === 'CONFIGURED_BUT_BLOCKED'
+                  ? 'border-amber-500/30 bg-amber-500/20 text-amber-300'
+                  : job.naverAuthConfigSafety.authConfigStatus === 'MISSING'
+                    ? 'border-red-500/30 bg-red-500/20 text-red-300'
+                    : job.naverAuthConfigSafety.authConfigStatus === 'PARTIAL'
+                      ? 'border-orange-500/30 bg-orange-500/20 text-orange-300'
+                      : 'border-slate-500/30 bg-slate-500/20 text-slate-300'
+              }`}>
+                {job.naverAuthConfigSafety.authConfigStatus}
+              </span>
+            </div>
+
+            {/* 안전 배지 */}
+            <div>
+              <p className="mb-2 text-xs font-semibold text-gray-400">안전 배지 (모두 비활성화됨)</p>
+              <div className="flex flex-wrap gap-2">
+                {[
+                  { label: 'Secret 원문 비노출', ok: !job.naverAuthConfigSafety.secretVisible },
+                  { label: 'Token 발급 비활성화', ok: !job.naverAuthConfigSafety.tokenIssued },
+                  { label: '인증정보 사용 안 함', ok: !job.naverAuthConfigSafety.credentialsUsed },
+                  { label: 'Authorization header 없음', ok: !job.naverAuthConfigSafety.authorizationHeaderCreated },
+                  { label: 'Endpoint 호출 없음', ok: !job.naverAuthConfigSafety.endpointCalled },
+                  { label: 'Naver API 호출 비활성화', ok: !job.naverAuthConfigSafety.naverApiCallAllowed },
+                ].map(({ label, ok }) => (
+                  <span
+                    key={label}
+                    className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-semibold ${
+                      ok
+                        ? 'border-emerald-500/30 bg-emerald-500/20 text-emerald-300'
+                        : 'border-red-500/30 bg-red-500/20 text-red-300'
+                    }`}
+                  >
+                    {ok ? <CheckCircle2 className="h-3 w-3" /> : <AlertTriangle className="h-3 w-3" />}
+                    {label}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {/* 상태 카드 */}
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {[
+                { label: 'credentialConfigured', value: String(job.naverAuthConfigSafety.credentialConfigured) },
+                { label: 'authConfigUsable', value: String(job.naverAuthConfigSafety.authConfigUsable) },
+                { label: 'clientIdStatus', value: job.naverAuthConfigSafety.clientIdStatus },
+                { label: 'clientSecretStatus', value: job.naverAuthConfigSafety.clientSecretStatus },
+                { label: 'tokenStatus', value: job.naverAuthConfigSafety.tokenStatus },
+                { label: 'accessTokenRequested', value: String(job.naverAuthConfigSafety.accessTokenRequested) },
+                { label: 'credentialsUsed', value: String(job.naverAuthConfigSafety.credentialsUsed) },
+                { label: 'tokenIssued', value: String(job.naverAuthConfigSafety.tokenIssued) },
+              ].map(({ label, value }) => (
+                <div key={label} className="rounded-md border border-[#262629] bg-[#18181b] p-2">
+                  <p className="mb-0.5 text-[10px] text-gray-500">{label}</p>
+                  <p className={`font-mono text-xs font-semibold ${
+                    value === 'false' || value === 'disabled' || value === 'missing'
+                      ? 'text-slate-400'
+                      : value === 'true' || value === 'configured'
+                        ? 'text-amber-300'
+                        : 'text-gray-300'
+                  }`}>
+                    {value}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            {/* 차단 사유 */}
+            {job.naverAuthConfigSafety.blockingReasons.length > 0 && (
+              <div className="rounded-md border border-red-500/20 bg-red-500/10 p-3">
+                <p className="mb-1 text-xs font-semibold text-red-300">차단 사유</p>
+                <ul className="space-y-0.5 text-xs text-red-200">
+                  {job.naverAuthConfigSafety.blockingReasons.map((reason, i) => (
+                    <li key={i}>- {reason}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* 경고 */}
+            {job.naverAuthConfigSafety.warnings.length > 0 && (
+              <div className="rounded-md border border-amber-500/20 bg-amber-500/10 p-3">
+                <p className="mb-1 text-xs font-semibold text-amber-300">경고</p>
+                <ul className="space-y-0.5 text-xs text-amber-200">
+                  {job.naverAuthConfigSafety.warnings.map((w, i) => (
+                    <li key={i}>- {w}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* maxAllowedState */}
+            <div className="rounded-md border border-slate-500/20 bg-slate-500/10 p-2">
+              <p className="text-[10px] text-gray-500">maxAllowedState</p>
+              <p className="font-mono text-xs text-slate-300">{job.naverAuthConfigSafety.maxAllowedState}</p>
+            </div>
+          </div>
+        ) : (
+          <div className="text-sm text-gray-400">인증정보 안전 확인 정보를 불러오는 중입니다...</div>
         )}
       </div>
 
