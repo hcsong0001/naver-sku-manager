@@ -140,6 +140,29 @@ type LiveSingleTestApprovalResult = {
   targetProductSummary?: TargetProductSummary | null;
 };
 
+type EnvironmentSafetyChecklistItem = {
+  key: string;
+  label: string;
+  status: 'PASS' | 'WARN' | 'BLOCKED' | 'NEEDS_REVIEW';
+  message: string;
+};
+
+type EnvironmentSafetyResult = {
+  allowed: boolean;
+  environmentCode: string;
+  environmentMessage: string;
+  databaseEnvironment: 'local' | 'test' | 'unknown' | 'operating_blocked';
+  redisEnvironment: 'local' | 'test' | 'unknown' | 'operating_blocked';
+  naverApiCallAllowed: false;
+  operatingDbWriteAllowed: false;
+  queueAllowed: false;
+  workerAllowed: false;
+  checklistItems: EnvironmentSafetyChecklistItem[];
+  blockingReasons: string[];
+  warnings: string[];
+  sanitized: true;
+};
+
 type LiveSingleTestApprovalAuditTargetSummary = {
   itemId?: string | null;
   targetType?: string | null;
@@ -188,6 +211,7 @@ type DraftBatchJob = {
   livePreflight?: LivePreflightResult | null;
   liveSingleTestApproval?: LiveSingleTestApprovalResult | null;
   liveSingleTestApprovalAudit?: LiveSingleTestApprovalAuditRecord | null;
+  environmentSafety?: EnvironmentSafetyResult | null;
 };
 
 type DraftBatchDetailResponse =
@@ -1510,14 +1534,20 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                         <span className="text-gray-500">확인 항목: </span>
                         <span>{audit.acknowledgedItems.length}건 완료</span>
                       </div>
-                      <div className="mt-2 flex gap-3">
+                        <div className="mt-2 flex flex-wrap gap-2">
                         <span className="inline-flex items-center rounded border border-red-500/30 bg-red-500/10 px-2 py-0.5 text-[10px] font-semibold text-red-300">
                           Naver API 호출 비활성화됨
                         </span>
                         <span className="inline-flex items-center rounded border border-red-500/30 bg-red-500/10 px-2 py-0.5 text-[10px] font-semibold text-red-300">
                           Live 실행 비활성화됨
                         </span>
+                        <span className="inline-flex items-center rounded border border-gray-600/30 bg-gray-600/10 px-2 py-0.5 text-[10px] text-gray-400">
+                          승인 기록 전용 — 실행 상태 미전환
+                        </span>
                       </div>
+                      <p className="mt-2 text-[10px] text-gray-500">
+                        이 기록은 Live 단일 테스트 전 확인 항목에 대한 감사 기록입니다. 이 기록만으로 실제 Naver API 호출은 실행되지 않습니다.
+                      </p>
                     </div>
                   );
                 })()}
@@ -1624,6 +1654,159 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 )}
               </>
             )}
+          </div>
+        );
+      })()}
+
+      {/* ── 환경 / DB 안전 확인 ─────────────────────────────────────────────── */}
+      {job.environmentSafety && (() => {
+        const env = job.environmentSafety!;
+        const dbEnvColor: Record<string, string> = {
+          local: 'text-emerald-400',
+          test: 'text-teal-400',
+          unknown: 'text-amber-400',
+          operating_blocked: 'text-red-400',
+        };
+        return (
+          <div className="mb-6 rounded-lg border border-[#262629] bg-[#121214] p-4">
+            <h2 className="mb-3 flex items-center gap-2 text-base font-semibold text-white">
+              <ShieldAlert className="h-5 w-5 text-cyan-400" />
+              Live 실행 전 환경 안전 점검
+              <span className={`ml-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold ${
+                env.allowed
+                  ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300'
+                  : 'border-red-500/30 bg-red-500/10 text-red-300'
+              }`}>
+                {env.allowed ? '안전 조건 충족' : '차단 항목 있음'}
+              </span>
+            </h2>
+
+            {/* 안내 문구 */}
+            <div className="mb-4 rounded-md border border-cyan-500/20 bg-cyan-500/10 p-3 text-xs text-cyan-200">
+              <p className="mb-1 font-semibold text-cyan-300">환경 점검 안내</p>
+              <p className="mb-1">현재 화면은 Live 실행 전 환경 안전 점검용입니다. 이 단계에서는 실제 Naver API 호출, Queue enqueue, Worker 실행, 운영 DB write가 모두 비활성화되어야 합니다.</p>
+              <p className="text-cyan-300/70">환경 정보는 보안상 원문 URL이나 secret을 표시하지 않고 안전한 분류값만 표시합니다.</p>
+            </div>
+
+            {/* 환경 상태 요약 */}
+            <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <div className="rounded-md border border-[#262629] bg-[#18181b] p-2.5 text-center text-xs">
+                <p className="mb-1 text-gray-500">DB 환경</p>
+                <p className={`font-semibold font-mono ${dbEnvColor[env.databaseEnvironment] ?? 'text-gray-300'}`}>
+                  {env.databaseEnvironment}
+                </p>
+              </div>
+              <div className="rounded-md border border-[#262629] bg-[#18181b] p-2.5 text-center text-xs">
+                <p className="mb-1 text-gray-500">Redis 환경</p>
+                <p className={`font-semibold font-mono ${dbEnvColor[env.redisEnvironment] ?? 'text-gray-300'}`}>
+                  {env.redisEnvironment}
+                </p>
+              </div>
+              <div className="rounded-md border border-[#262629] bg-[#18181b] p-2.5 text-center text-xs">
+                <p className="mb-1 text-gray-500">차단 항목</p>
+                <p className={`font-semibold ${env.blockingReasons.length > 0 ? 'text-red-400' : 'text-emerald-400'}`}>
+                  {env.blockingReasons.length}건
+                </p>
+              </div>
+              <div className="rounded-md border border-[#262629] bg-[#18181b] p-2.5 text-center text-xs">
+                <p className="mb-1 text-gray-500">경고 항목</p>
+                <p className={`font-semibold ${env.warnings.length > 0 ? 'text-amber-400' : 'text-gray-400'}`}>
+                  {env.warnings.length}건
+                </p>
+              </div>
+            </div>
+
+            {/* 항상 false 강제 배지 */}
+            <div className="mb-4 flex flex-wrap gap-2">
+              <div className="inline-flex items-center rounded-md border border-red-500/30 bg-red-500/10 px-2.5 py-1 text-[10px] font-semibold text-red-300">
+                <X className="mr-1 h-3 w-3" /> Naver API 호출 비활성화
+              </div>
+              <div className="inline-flex items-center rounded-md border border-red-500/30 bg-red-500/10 px-2.5 py-1 text-[10px] font-semibold text-red-300">
+                <X className="mr-1 h-3 w-3" /> 운영 DB write 차단
+              </div>
+              <div className="inline-flex items-center rounded-md border border-red-500/30 bg-red-500/10 px-2.5 py-1 text-[10px] font-semibold text-red-300">
+                <X className="mr-1 h-3 w-3" /> Queue 비활성화
+              </div>
+              <div className="inline-flex items-center rounded-md border border-red-500/30 bg-red-500/10 px-2.5 py-1 text-[10px] font-semibold text-red-300">
+                <X className="mr-1 h-3 w-3" /> Worker 비활성화
+              </div>
+              <div className="inline-flex items-center rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-[10px] font-semibold text-emerald-300">
+                <CheckCircle2 className="mr-1 h-3 w-3" /> Secret 비노출
+              </div>
+            </div>
+
+            {/* 차단 사유 */}
+            {env.blockingReasons.length > 0 && (
+              <div className="mb-4 rounded-md border border-red-500/20 bg-red-500/10 p-3 text-xs">
+                <p className="mb-2 flex items-center gap-1.5 font-semibold text-red-300">
+                  <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                  차단 사유 ({env.blockingReasons.length}건)
+                </p>
+                <ul className="space-y-1">
+                  {env.blockingReasons.map((reason, idx) => (
+                    <li key={idx} className="text-red-200">- {reason}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* 경고 */}
+            {env.warnings.length > 0 && (
+              <div className="mb-4 rounded-md border border-amber-500/20 bg-amber-500/10 p-3 text-xs">
+                <p className="mb-2 flex items-center gap-1.5 font-semibold text-amber-300">
+                  <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                  경고 ({env.warnings.length}건)
+                </p>
+                <ul className="space-y-1">
+                  {env.warnings.map((w, idx) => (
+                    <li key={idx} className="text-amber-200">- {w}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* 체크리스트 */}
+            <div className="space-y-1.5">
+              <p className="mb-2 text-xs font-semibold text-gray-400">환경 안전 체크리스트</p>
+              {env.checklistItems.map(item => (
+                <div
+                  key={item.key}
+                  className={`flex items-start gap-3 rounded-md border p-2 text-xs ${
+                    item.status === 'PASS'
+                      ? 'border-emerald-500/20 bg-emerald-500/10'
+                      : item.status === 'BLOCKED'
+                        ? 'border-red-500/20 bg-red-500/10'
+                        : item.status === 'WARN'
+                          ? 'border-amber-500/20 bg-amber-500/10'
+                          : 'border-blue-500/20 bg-blue-500/10'
+                  }`}
+                >
+                  <span className={`mt-0.5 shrink-0 font-mono text-[9px] font-bold leading-4 ${
+                    item.status === 'PASS' ? 'text-emerald-400'
+                      : item.status === 'BLOCKED' ? 'text-red-400'
+                      : item.status === 'WARN' ? 'text-amber-400'
+                      : 'text-blue-400'
+                  }`}>
+                    {item.status === 'PASS' ? 'PASS'
+                      : item.status === 'BLOCKED' ? 'BLOCKED'
+                      : item.status === 'WARN' ? 'WARN'
+                      : 'REVIEW'}
+                  </span>
+                  <div>
+                    <p className="font-semibold text-gray-200">{item.label}</p>
+                    <p className="text-gray-400">{item.message}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* 환경 코드 */}
+            <div className="mt-3 rounded-md border border-gray-500/20 bg-gray-500/5 p-2 text-xs text-gray-400">
+              <span className="text-gray-500">환경 코드: </span>
+              <span className="font-mono text-gray-300">{env.environmentCode}</span>
+              <span className="mx-2 text-gray-600">|</span>
+              <span>{env.environmentMessage}</span>
+            </div>
           </div>
         );
       })()}

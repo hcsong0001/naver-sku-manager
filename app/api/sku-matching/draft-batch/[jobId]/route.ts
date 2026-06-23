@@ -8,6 +8,31 @@ import {
   evaluateLiveSingleTestApprovalGuard,
   summarizeLiveSingleTestApprovalReadiness,
 } from '@/src/services/sku-keyword-final-approval-execution-live-single-test-approval-guard.service';
+import {
+  evaluateExecutionEnvironmentSafetyGuard,
+} from '@/src/services/sku-keyword-final-approval-execution-environment-safety-guard.service';
+
+// Compute safe DB environment hint from DATABASE_URL without exposing the original value.
+// Returns a classification key, never the actual URL.
+function getDatabaseUrlSafeHint(): string | null {
+  const url = process.env.DATABASE_URL;
+  if (!url) return null;
+  const lower = url.toLowerCase();
+  if (lower.includes('localhost') || lower.includes('127.0.0.1') || lower.includes('::1')) return 'local_host';
+  if (lower.includes('test') || lower.includes('dev') || lower.includes('staging')) return 'test_or_dev';
+  if (lower.includes('prod') || lower.includes('production') || lower.includes('operating') || lower.includes('live')) return 'possible_prod';
+  return 'unknown_host';
+}
+
+function getRedisUrlSafeHint(): string | null {
+  const url = process.env.REDIS_URL;
+  if (!url) return null;
+  const lower = url.toLowerCase();
+  if (lower.includes('localhost') || lower.includes('127.0.0.1')) return 'local_host';
+  if (lower.includes('test') || lower.includes('dev') || lower.includes('staging')) return 'test_or_dev';
+  if (lower.includes('prod') || lower.includes('production') || lower.includes('operating')) return 'possible_prod';
+  return 'unknown_host';
+}
 
 function extractSafeMetadata(raw: unknown): Record<string, unknown> | null {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
@@ -244,6 +269,19 @@ export async function GET(
       rawMetadata?.liveSingleTestApprovalAudit
     );
 
+    // Evaluate execution environment safety (safe hints only — no raw URLs or secrets exposed)
+    const envSafetyResult = evaluateExecutionEnvironmentSafetyGuard({
+      nodeEnv: process.env.NODE_ENV ?? null,
+      appEnv: process.env.APP_ENV ?? null,
+      executionMode: process.env.EXECUTION_MODE ?? null,
+      adapterMode,
+      databaseUrlPresent: !!process.env.DATABASE_URL,
+      databaseUrlSafeHint: getDatabaseUrlSafeHint(),
+      redisUrlPresent: !!process.env.REDIS_URL,
+      redisUrlSafeHint: getRedisUrlSafeHint(),
+      requestedAction: 'approval-audit-record-only',
+    });
+
     const responseJob = {
       id: job.id,
       status: job.status,
@@ -284,6 +322,21 @@ export async function GET(
         targetProductSummary,
       },
       liveSingleTestApprovalAudit,
+      environmentSafety: {
+        allowed: envSafetyResult.allowed,
+        environmentCode: envSafetyResult.environmentCode,
+        environmentMessage: envSafetyResult.environmentMessage,
+        databaseEnvironment: envSafetyResult.databaseEnvironment,
+        redisEnvironment: envSafetyResult.redisEnvironment,
+        naverApiCallAllowed: false as const,
+        operatingDbWriteAllowed: false as const,
+        queueAllowed: false as const,
+        workerAllowed: false as const,
+        checklistItems: envSafetyResult.checklistItems,
+        blockingReasons: envSafetyResult.blockingReasons,
+        warnings: envSafetyResult.warnings,
+        sanitized: true as const,
+      },
     };
 
     return NextResponse.json({ ok: true, job: responseJob });
