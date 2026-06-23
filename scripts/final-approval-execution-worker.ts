@@ -4,6 +4,7 @@ import { createFinalApprovalExecutionWorkerProcessor } from '../src/services/sku
 import { createWorkerRevalidationRepository } from '../src/services/sku-keyword-final-approval-execution-worker-revalidation-repository-factory.service';
 import { createWorkerTransitionApplyAdapter } from '../src/services/sku-keyword-final-approval-execution-worker-transition-apply-adapter-factory.service';
 import { createWorkerResultRecordingAdapter } from '../src/services/sku-keyword-final-approval-execution-result-recording-adapter-factory.service';
+import { createNaverApiAdapter } from '../src/services/sku-keyword-final-approval-execution-naver-api-adapter-factory.service';
 import type { RevalidationPrismaClientPort } from '../src/services/sku-keyword-final-approval-execution-restricted-db-revalidation-prisma-adapter.service';
 import type { ResultRecordingPrismaClientPort } from '../src/services/sku-keyword-final-approval-execution-result-recording-prisma-adapter.service';
 import type { PrismaLikeClient } from '../src/types/sku-keyword-final-approval-execution-transition-apply-real-prisma-adapter.types';
@@ -36,9 +37,11 @@ async function bootstrap() {
   const revalidationAdapterModeEnv = process.env.FINAL_APPROVAL_EXECUTION_REVALIDATION_ADAPTER;
   const transitionApplyAdapterModeEnv = process.env.FINAL_APPROVAL_EXECUTION_TRANSITION_APPLY_ADAPTER;
   const resultRecordingAdapterModeEnv = process.env.FINAL_APPROVAL_EXECUTION_RESULT_RECORDING_ADAPTER;
+  const naverApiAdapterModeEnv = process.env.FINAL_APPROVAL_EXECUTION_NAVER_API_ADAPTER;
   logger.info(`Revalidation adapter mode: ${revalidationAdapterModeEnv ?? '(default/mock)'}`);
   logger.info(`Transition apply adapter mode: ${transitionApplyAdapterModeEnv ?? '(default/mock)'}`);
   logger.info(`Result recording adapter mode: ${resultRecordingAdapterModeEnv ?? '(default/no-op)'}`);
+  logger.info(`Naver API adapter mode: ${naverApiAdapterModeEnv ?? '(default/disabled)'}`);
 
   // ── Create shared PrismaClient (test DB only) ───────────────────────────────
   // ONE PrismaClient instance is shared between all three adapters when restricted-db
@@ -121,11 +124,26 @@ async function bootstrap() {
     process.exit(1);
   }
 
+  // ── Select Naver API adapter ────────────────────────────────────────────────
+  let naverApiAdapter;
+  try {
+    naverApiAdapter = createNaverApiAdapter({
+      adapterModeEnvValue: naverApiAdapterModeEnv,
+    });
+  } catch (err) {
+    const safeMsg = (err instanceof Error ? err.message : String(err))
+      .replace(/postgresql?:\/\/[^\s]*/gi, '[REDACTED]')
+      .replace(/redis:\/\/[^\s]*/gi, '[REDACTED]');
+    logger.error(`Failed to initialize Naver API adapter: ${safeMsg}`);
+    process.exit(1);
+  }
+
   // ── Build processor ─────────────────────────────────────────────────────────
   const processor = createFinalApprovalExecutionWorkerProcessor({
     revalidationRepository,
     transitionApplyAdapter,
     resultRecordingAdapter,
+    naverApiAdapter,
   });
 
   const startupEnv: FinalApprovalExecutionWorkerStartupEnv = {

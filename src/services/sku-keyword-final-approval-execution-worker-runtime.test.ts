@@ -233,4 +233,138 @@ describe('FinalApproval Execution BullMQ Worker Runtime Shell', () => {
     assert.ok(!msg.includes('secretuser'), 'error must not contain DB username');
     assert.ok(!msg.includes('postgresql://'), 'error must not contain full URL');
   });
+
+  // ── Naver API adapter wiring tests ─────────────────────────────────────────
+
+  it('14. mock Naver API adapter가 Worker Processor에 주입되면 SUCCESS itemResult 생성', async () => {
+    const { createFinalApprovalExecutionWorkerProcessor } = await import('./sku-keyword-final-approval-execution-worker-processor.service');
+    const { createNaverApiAdapter } = await import('./sku-keyword-final-approval-execution-naver-api-adapter-factory.service');
+
+    const naverApiAdapter = createNaverApiAdapter({ adapterModeEnvValue: 'mock' });
+
+    let capturedItemUpdates: { newStatus: string }[] = [];
+    const processor = createFinalApprovalExecutionWorkerProcessor({
+      revalidationRepository: {
+        findSnapshotForWorkerJobRevalidation: async (id, key) =>
+          id === 'fa-001' && key === 'idem-1'
+            ? {
+                finalApprovalId: 'fa-001',
+                finalApprovalStatus: 'ACTIVE',
+                finalApprovalExpiresAt: new Date(Date.now() + 100000).toISOString(),
+                jobId: 'job-001',
+                jobStatus: 'APPROVED',
+                readyItemCount: 1,
+                payloadHash: 'hash',
+                validationSnapshotHash: 'vshash',
+                expectedPayloadHash: 'hash',
+                expectedValidationSnapshotHash: 'vshash',
+                idempotencyKey: 'idem-1',
+                idempotencyKeyAlreadyUsed: false,
+              }
+            : null,
+      },
+      transitionApplyAdapter: {
+        transaction: async (fn: any) =>
+          fn({
+            updateBatchJobStatus: async () => ({ updated: true }),
+            updateBatchJobItemStatus: async () => ({ updated: true }),
+          }),
+      },
+      resultRecordingAdapter: {
+        applyExecutionResultPlan: async (plan) => {
+          capturedItemUpdates = plan.itemUpdates.map((u) => ({ newStatus: u.newStatus }));
+          return { applied: false };
+        },
+      },
+      naverApiAdapter,
+    });
+
+    const result = await processor({
+      id: 'job-123',
+      name: 'sku-keyword-final-approval-execution',
+      data: {
+        finalApprovalId: 'fa-001',
+        idempotencyKey: 'idem-1',
+        actorId: 'actor',
+        mode: 'MOCK',
+        source: 'EXECUTION_API',
+        requestedAt: new Date().toISOString(),
+      },
+    });
+
+    assert.equal((result as any).success, true, 'processor should succeed');
+    assert.ok(capturedItemUpdates.length >= 1, 'at least one item result expected');
+    assert.equal(capturedItemUpdates[0].newStatus, 'SUCCESS', 'mock adapter produces SUCCESS');
+  });
+
+  it('15. disabled Naver API adapter (기본값)가 주입되면 itemResults가 SKIPPED → TRANSITION_ONLY plan', async () => {
+    const { createFinalApprovalExecutionWorkerProcessor } = await import('./sku-keyword-final-approval-execution-worker-processor.service');
+    const { createNaverApiAdapter } = await import('./sku-keyword-final-approval-execution-naver-api-adapter-factory.service');
+
+    // undefined → disabled adapter
+    const naverApiAdapter = createNaverApiAdapter({ adapterModeEnvValue: undefined });
+
+    let capturedPlanApplicable: boolean | null = null;
+    const processor = createFinalApprovalExecutionWorkerProcessor({
+      revalidationRepository: {
+        findSnapshotForWorkerJobRevalidation: async (id, key) =>
+          id === 'fa-001' && key === 'idem-1'
+            ? {
+                finalApprovalId: 'fa-001',
+                finalApprovalStatus: 'ACTIVE',
+                finalApprovalExpiresAt: new Date(Date.now() + 100000).toISOString(),
+                jobId: 'job-001',
+                jobStatus: 'APPROVED',
+                readyItemCount: 1,
+                payloadHash: 'hash',
+                validationSnapshotHash: 'vshash',
+                expectedPayloadHash: 'hash',
+                expectedValidationSnapshotHash: 'vshash',
+                idempotencyKey: 'idem-1',
+                idempotencyKeyAlreadyUsed: false,
+              }
+            : null,
+      },
+      transitionApplyAdapter: {
+        transaction: async (fn: any) =>
+          fn({
+            updateBatchJobStatus: async () => ({ updated: true }),
+            updateBatchJobItemStatus: async () => ({ updated: true }),
+          }),
+      },
+      resultRecordingAdapter: {
+        applyExecutionResultPlan: async (plan) => {
+          capturedPlanApplicable = plan.applicable;
+          return { applied: false };
+        },
+      },
+      naverApiAdapter,
+    });
+
+    const result = await processor({
+      id: 'job-456',
+      name: 'sku-keyword-final-approval-execution',
+      data: {
+        finalApprovalId: 'fa-001',
+        idempotencyKey: 'idem-1',
+        actorId: 'actor',
+        mode: 'MOCK',
+        source: 'EXECUTION_API',
+        requestedAt: new Date().toISOString(),
+      },
+    });
+
+    assert.equal((result as any).success, true);
+    // disabled adapter returns SKIPPED → hasNonSkippedResults=false → mode=dry-run → applicable=false
+    assert.equal(capturedPlanApplicable, false, 'disabled adapter must produce non-applicable plan');
+  });
+
+  it('16. live/prod/production/operating Naver API adapter mode는 Worker 시작 전 throw (entrypoint 수준 차단)', async () => {
+    const { createNaverApiAdapter } = await import('./sku-keyword-final-approval-execution-naver-api-adapter-factory.service');
+
+    assert.throws(() => createNaverApiAdapter({ adapterModeEnvValue: 'live' }), /not allowed/);
+    assert.throws(() => createNaverApiAdapter({ adapterModeEnvValue: 'prod' }), /not allowed/);
+    assert.throws(() => createNaverApiAdapter({ adapterModeEnvValue: 'production' }), /not allowed/);
+    assert.throws(() => createNaverApiAdapter({ adapterModeEnvValue: 'operating' }), /not allowed/);
+  });
 });
