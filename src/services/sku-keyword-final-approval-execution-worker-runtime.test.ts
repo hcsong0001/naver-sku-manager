@@ -128,7 +128,7 @@ describe('FinalApproval Execution BullMQ Worker Runtime Shell', () => {
 
   it('8. Worker Runtime이 실제 Processor Factory(processFinalApprovalExecutionWorkerJob)를 주입받아 동작할 수 있음', async () => {
     const { createFinalApprovalExecutionWorkerProcessor } = await import('./sku-keyword-final-approval-execution-worker-processor.service');
-    
+
     const processor = createFinalApprovalExecutionWorkerProcessor({
       revalidationRepository: {
         findSnapshotForWorkerJobRevalidation: async () => null // Mock
@@ -144,7 +144,7 @@ describe('FinalApproval Execution BullMQ Worker Runtime Shell', () => {
     const env: FinalApprovalExecutionWorkerStartupEnv = {
       ENABLE_FINAL_APPROVAL_EXECUTION_WORKER: 'false' // Don't actually start bullmq for wiring test
     };
-    
+
     const res = await createFinalApprovalExecutionWorkerRuntime({
       env,
       processor
@@ -152,5 +152,85 @@ describe('FinalApproval Execution BullMQ Worker Runtime Shell', () => {
 
     assert.equal(res.started, false);
     assert.equal(res.ok, true);
+  });
+
+  // ── Revalidation repository factory integration ───────────────────────────
+
+  it('9. default adapter mode (undefined) returns mock repository — findSnapshot returns null, no DB connection', async () => {
+    const { createWorkerRevalidationRepository } = await import('./sku-keyword-final-approval-execution-worker-revalidation-repository-factory.service');
+
+    const repo = createWorkerRevalidationRepository({ adapterModeEnvValue: undefined });
+    const result = await repo.findSnapshotForWorkerJobRevalidation('any-id', 'any-key');
+
+    assert.strictEqual(result, null, 'default mock must return null');
+  });
+
+  it('10. blocked adapter modes throw before any Worker startup', async () => {
+    const { createWorkerRevalidationRepository } = await import('./sku-keyword-final-approval-execution-worker-revalidation-repository-factory.service');
+
+    assert.throws(() => createWorkerRevalidationRepository({ adapterModeEnvValue: 'live' }), /not allowed/);
+    assert.throws(() => createWorkerRevalidationRepository({ adapterModeEnvValue: 'production' }), /not allowed/);
+    assert.throws(() => createWorkerRevalidationRepository({ adapterModeEnvValue: 'prod' }), /not allowed/);
+    assert.throws(() => createWorkerRevalidationRepository({ adapterModeEnvValue: 'operating' }), /not allowed/);
+  });
+
+  it('11. restricted-db mode + NODE_ENV != test → factory throws (prevents Worker startup)', async () => {
+    const { createWorkerRevalidationRepository } = await import('./sku-keyword-final-approval-execution-worker-revalidation-repository-factory.service');
+
+    const mockPrisma = { naverApiBatchFinalApproval: { findUnique: async () => null } };
+    assert.throws(
+      () => createWorkerRevalidationRepository({
+        adapterModeEnvValue: 'restricted-db',
+        nodeEnv: 'production',
+        databaseUrl: 'postgresql://u:p@localhost:55432/testdb',
+        prismaClient: mockPrisma,
+      }),
+      /safety guard failed/,
+      'must block non-test NODE_ENV'
+    );
+  });
+
+  it('12. restricted-db mode + valid env + mock prismaClient → adapter calls findUnique on DB query', async () => {
+    const { createWorkerRevalidationRepository } = await import('./sku-keyword-final-approval-execution-worker-revalidation-repository-factory.service');
+
+    let findUniqueCalled = false;
+    const mockPrisma = {
+      naverApiBatchFinalApproval: {
+        findUnique: async () => { findUniqueCalled = true; return null; }
+      }
+    };
+
+    const repo = createWorkerRevalidationRepository({
+      adapterModeEnvValue: 'restricted-db',
+      nodeEnv: 'test',
+      databaseUrl: 'postgresql://u:p@localhost:55432/naver_sku_manager_test',
+      prismaClient: mockPrisma,
+    });
+
+    await repo.findSnapshotForWorkerJobRevalidation('test-db-revalidation-final-approval-001', 'idem-key');
+    assert.equal(findUniqueCalled, true, 'Prisma adapter must call findUnique when queried');
+  });
+
+  it('13. factory error messages do not expose DATABASE_URL secret', async () => {
+    const { createWorkerRevalidationRepository } = await import('./sku-keyword-final-approval-execution-worker-revalidation-repository-factory.service');
+
+    const secretUrl = 'postgresql://secretuser:secretpass@localhost:55432/naver_sku_manager';
+    let thrown: Error | null = null;
+    try {
+      createWorkerRevalidationRepository({
+        adapterModeEnvValue: 'restricted-db',
+        nodeEnv: 'test',
+        databaseUrl: secretUrl,
+        prismaClient: { naverApiBatchFinalApproval: { findUnique: async () => null } },
+      });
+    } catch (e) {
+      thrown = e instanceof Error ? e : new Error(String(e));
+    }
+
+    assert.ok(thrown !== null, 'should have thrown for prod db name');
+    const msg = thrown!.message;
+    assert.ok(!msg.includes('secretpass'), 'error must not contain DB password');
+    assert.ok(!msg.includes('secretuser'), 'error must not contain DB username');
+    assert.ok(!msg.includes('postgresql://'), 'error must not contain full URL');
   });
 });
