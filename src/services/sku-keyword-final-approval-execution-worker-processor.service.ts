@@ -5,7 +5,8 @@ import { buildFinalApprovalExecutionTransitionApplyPlan } from './sku-keyword-fi
 import { applyFinalApprovalExecutionTransitionPlanWithPrismaAdapter } from './sku-keyword-final-approval-execution-transition-apply-prisma-adapter.service';
 import type { FinalApprovalExecutionWorkerJobDbRevalidationRepository } from '../types/sku-keyword-final-approval-execution-worker-job-db-revalidation.types';
 import type { TransitionApplyPrismaAdapterPort } from '../types/sku-keyword-final-approval-execution-transition-apply-prisma-adapter.types';
-import type { ResultRecordingAdapterPort } from '../types/sku-keyword-final-approval-execution-result-recording.types';
+import type { ResultRecordingAdapterPort, ItemExecutionResult } from '../types/sku-keyword-final-approval-execution-result-recording.types';
+import type { NaverApiAdapterPort } from '../types/sku-keyword-final-approval-execution-naver-api.types';
 import { buildExecutionResultPlan } from './sku-keyword-final-approval-execution-result-recording.service';
 import { createNoOpResultRecordingAdapter } from './sku-keyword-final-approval-execution-result-recording-adapter-factory.service';
 
@@ -18,6 +19,13 @@ export interface FinalApprovalExecutionWorkerProcessorDependencies {
    * but no DB write occurs until the Naver API execution phase provides itemResults.
    */
   resultRecordingAdapter?: ResultRecordingAdapterPort;
+  /**
+   * Naver API adapter.
+   * When provided, each READY item is executed through this adapter after
+   * the transition apply step. Results feed into the execution result plan.
+   * When omitted, no API execution occurs and the plan stays TRANSITION_ONLY.
+   */
+  naverApiAdapter?: NaverApiAdapterPort;
 }
 
 export interface FinalApprovalExecutionWorkerProcessorResult {
@@ -149,20 +157,30 @@ export async function processFinalApprovalExecutionWorkerJob(
     };
   }
 
+  // 5.5. Execute Naver API items (if adapter is provided)
+  //   - SKIPPED results (disabled adapter) are treated as "no execution" → mode stays dry-run
+  //   - SUCCESS / FAILED results (mock or future live adapter) → mode = 'restricted-db'
+  let naverItemResults: ItemExecutionResult[] = [];
+  if (deps.naverApiAdapter) {
+    naverItemResults = await executeNaverApiItems(
+      batchJobItems,
+      deps.naverApiAdapter,
+      finalApprovalId
+    );
+  }
+
   // 6. Build execution result plan
-  //    itemResults is empty at this stage — no Naver API calls have been made yet.
-  //    The plan will resolve to TRANSITION_ONLY (applicable=false) and no DB write occurs.
-  //    In a future phase, itemResults will be populated from Naver API execution results.
+  //    mode is 'restricted-db' when non-skipped item results exist (applicable=true),
+  //    or 'dry-run' when all items were skipped or no adapter was provided (applicable=false).
   const executionEndedAt = new Date().toISOString();
+  const hasNonSkippedResults = naverItemResults.some((r) => r.status !== 'SKIPPED');
   const recordingPlan = buildExecutionResultPlan({
     jobId: snapshot.jobId,
     finalApprovalId,
     idempotencyKey,
     actorId,
-    // dry-run: plan is computed but applicable=false → recording adapter will no-op.
-    // Future: change to 'restricted-db' once Naver API itemResults are provided.
-    mode: 'dry-run',
-    itemResults: [],
+    mode: hasNonSkippedResults ? 'restricted-db' : 'dry-run',
+    itemResults: naverItemResults,
     startedAt: now.toISOString(),
     endedAt: executionEndedAt,
   });
@@ -199,4 +217,25 @@ export function createFinalApprovalExecutionWorkerProcessor(
   return async (job: FinalApprovalExecutionQueueProcessorInputJob) => {
     return processFinalApprovalExecutionWorkerJob(job, deps);
   };
+}
+
+// ── Internal helpers ──────────────────────────────────────────────────────────
+
+async function executeNaverApiItems(
+  items: Array<{ id: string; status: string }>,
+  adapter: NaverApiAdapterPort,
+  finalApprovalId: string
+): Promise<ItemExecutionResult[]> {
+  return Promise.all(
+    items.map(async (item) => {
+      const result = await adapter.executeItem({ itemId: item.id, finalApprovalId });
+      return {
+        itemId: result.itemId,
+        status: result.status,
+        errorCode: result.errorCode,
+        errorMessage: result.errorMessage,
+        apiCallAttempted: result.naverApiCalled,
+      };
+    })
+  );
 }

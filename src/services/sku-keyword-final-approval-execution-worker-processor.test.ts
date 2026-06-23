@@ -6,6 +6,7 @@ import type { FinalApprovalExecutionWorkerProcessorDependencies } from './sku-ke
 import type { FinalApprovalExecutionWorkerJobDbRevalidationSnapshot } from '../types/sku-keyword-final-approval-execution-worker-job-db-revalidation.types';
 import type { FinalApprovalExecutionTransitionApplyPlan } from '../types/sku-keyword-final-approval-execution-transition-apply.types';
 import type { ResultRecordingAdapterPort, ExecutionResultPlan } from '../types/sku-keyword-final-approval-execution-result-recording.types';
+import type { NaverApiAdapterPort } from '../types/sku-keyword-final-approval-execution-naver-api.types';
 
 describe('FinalApproval Execution Worker Processor Actual Connection', () => {
   const validSnapshot: FinalApprovalExecutionWorkerJobDbRevalidationSnapshot = {
@@ -252,5 +253,143 @@ describe('FinalApproval Execution Worker Processor Actual Connection', () => {
 
     assert.strictEqual(result.success, true);
     assert.strictEqual(result.executionPerformed, true);
+  });
+
+  // ── Naver API adapter wiring tests ─────────────────────────────────────────
+
+  it('13. naverApiAdapter 제공 시 Transition Apply 성공 후 executeItem 호출됨', async () => {
+    let naverApiCallCount = 0;
+
+    const mockNaverAdapter: NaverApiAdapterPort = {
+      executeItem: async (command) => {
+        naverApiCallCount++;
+        return { itemId: command.itemId, status: 'SUCCESS', naverApiCalled: false, mock: true };
+      },
+    };
+
+    const deps: FinalApprovalExecutionWorkerProcessorDependencies = {
+      ...createMockDeps(),
+      naverApiAdapter: mockNaverAdapter,
+    };
+    const result = await processFinalApprovalExecutionWorkerJob(createValidJob(), deps);
+
+    assert.strictEqual(result.success, true);
+    assert.ok(naverApiCallCount >= 1, 'Naver API adapter must be called at least once');
+  });
+
+  it('14. naverApiAdapter SUCCESS 시 recording plan이 applicable=true, outcome=EXECUTED', async () => {
+    const mockNaverAdapter: NaverApiAdapterPort = {
+      executeItem: async (command) => ({
+        itemId: command.itemId,
+        status: 'SUCCESS',
+        naverApiCalled: false,
+        mock: true,
+      }),
+    };
+
+    let capturedPlan: ExecutionResultPlan | null = null;
+    const mockRecordingAdapter: ResultRecordingAdapterPort = {
+      applyExecutionResultPlan: async (plan) => {
+        capturedPlan = plan;
+        return { applied: false };
+      },
+    };
+
+    const deps: FinalApprovalExecutionWorkerProcessorDependencies = {
+      ...createMockDeps(),
+      naverApiAdapter: mockNaverAdapter,
+      resultRecordingAdapter: mockRecordingAdapter,
+    };
+    const result = await processFinalApprovalExecutionWorkerJob(createValidJob(), deps);
+
+    assert.strictEqual(result.success, true);
+    assert.ok(capturedPlan !== null);
+    const plan = capturedPlan as ExecutionResultPlan;
+    assert.strictEqual(plan.applicable, true, 'plan must be applicable with SUCCESS itemResults');
+    assert.strictEqual(plan.outcome, 'EXECUTED');
+    assert.strictEqual(plan.itemUpdates.length, 1, 'one item update per item');
+    assert.strictEqual(plan.itemUpdates[0].newStatus, 'SUCCESS');
+  });
+
+  it('15. naverApiAdapter FAILED 주입 시 recording plan에 FAILED itemResult 반영', async () => {
+    const mockNaverAdapter: NaverApiAdapterPort = {
+      executeItem: async (command) => ({
+        itemId: command.itemId,
+        status: 'FAILED',
+        errorCode: 'MOCK_ERROR_CODE',
+        errorMessage: 'injected mock failure',
+        naverApiCalled: false,
+        mock: true,
+      }),
+    };
+
+    let capturedPlan: ExecutionResultPlan | null = null;
+    const mockRecordingAdapter: ResultRecordingAdapterPort = {
+      applyExecutionResultPlan: async (plan) => {
+        capturedPlan = plan;
+        return { applied: false };
+      },
+    };
+
+    const deps: FinalApprovalExecutionWorkerProcessorDependencies = {
+      ...createMockDeps(),
+      naverApiAdapter: mockNaverAdapter,
+      resultRecordingAdapter: mockRecordingAdapter,
+    };
+    const result = await processFinalApprovalExecutionWorkerJob(createValidJob(), deps);
+
+    assert.strictEqual(result.success, true, 'Worker job succeeds even when items fail');
+    assert.ok(capturedPlan !== null);
+    const plan = capturedPlan as ExecutionResultPlan;
+    assert.strictEqual(plan.itemUpdates[0].newStatus, 'FAILED');
+    assert.strictEqual(plan.itemUpdates[0].errorCode, 'MOCK_ERROR_CODE');
+    assert.strictEqual(plan.itemUpdates[0].errorMessage, 'injected mock failure');
+  });
+
+  it('16. Transition Apply 실패 시 naverApiAdapter는 호출되지 않음', async () => {
+    let naverApiCalled = false;
+    const mockNaverAdapter: NaverApiAdapterPort = {
+      executeItem: async () => {
+        naverApiCalled = true;
+        return { itemId: 'x', status: 'SUCCESS', naverApiCalled: false };
+      },
+    };
+
+    const deps: FinalApprovalExecutionWorkerProcessorDependencies = {
+      ...createMockDeps(),
+      naverApiAdapter: mockNaverAdapter,
+    };
+    deps.transitionApplyAdapter.transaction = async () => {
+      throw new Error('transition failed');
+    };
+
+    const result = await processFinalApprovalExecutionWorkerJob(createValidJob(), deps);
+
+    assert.strictEqual(result.success, false);
+    assert.strictEqual(result.code, 'TRANSITION_APPLY_FAILED');
+    assert.strictEqual(naverApiCalled, false, 'Naver API must not be called after transition failure');
+  });
+
+  it('17. naverApiAdapter 없을 때 TRANSITION_ONLY plan 유지 (기존 동작 보장)', async () => {
+    let capturedPlan: ExecutionResultPlan | null = null;
+    const mockRecordingAdapter: ResultRecordingAdapterPort = {
+      applyExecutionResultPlan: async (plan) => {
+        capturedPlan = plan;
+        return { applied: false };
+      },
+    };
+
+    const deps: FinalApprovalExecutionWorkerProcessorDependencies = {
+      ...createMockDeps(),
+      resultRecordingAdapter: mockRecordingAdapter,
+      // no naverApiAdapter
+    };
+    await processFinalApprovalExecutionWorkerJob(createValidJob(), deps);
+
+    assert.ok(capturedPlan !== null);
+    const plan = capturedPlan as ExecutionResultPlan;
+    assert.strictEqual(plan.applicable, false);
+    assert.strictEqual(plan.outcome, 'TRANSITION_ONLY');
+    assert.strictEqual(plan.itemUpdates.length, 0);
   });
 });
