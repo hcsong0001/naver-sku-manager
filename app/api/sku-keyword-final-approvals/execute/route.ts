@@ -18,7 +18,21 @@ export async function POST(request: Request) {
     return NextResponse.json(guardResponse, { status: 403 });
   }
 
-  // 2. JSON parse
+  // 2. Naver API live 모드 차단 — 실제 Naver API 호출 어댑터가 설정된 경우 요청 거부
+  const naverAdapterMode = (process.env.FINAL_APPROVAL_EXECUTION_NAVER_API_ADAPTER ?? '').toLowerCase().trim();
+  const LIVE_NAVER_ADAPTER_MODES = new Set(['live', 'prod', 'production', 'operating', 'bulk', 'mass']);
+  if (LIVE_NAVER_ADAPTER_MODES.has(naverAdapterMode)) {
+    return NextResponse.json(
+      {
+        ok: false,
+        code: 'LIVE_NAVER_API_DISABLED',
+        message: 'Live Naver API execution is disabled. Use mock mode or request explicit approval.',
+      },
+      { status: 403 }
+    );
+  }
+
+  // 3. JSON parse
   let body: unknown;
   try {
     body = await request.json();
@@ -34,7 +48,7 @@ export async function POST(request: Request) {
     );
   }
 
-  // 3. Command validation
+  // 4. Command validation
   const validationResult = parseFinalApprovalExecutionCommand(body);
 
   if (!validationResult.success) {
@@ -49,7 +63,7 @@ export async function POST(request: Request) {
     );
   }
 
-  // 4. DB Read Guard
+  // 5. DB Read Guard
   const guardAdapter = createFinalApprovalExecutionDbReadGuardPrismaAdapter(prisma);
   const guardResult = await runFinalApprovalExecutionDbReadGuard(
     {
@@ -72,7 +86,7 @@ export async function POST(request: Request) {
     );
   }
 
-  // 5. ENABLE_FINAL_APPROVAL_QUEUE_ENQUEUE 확인
+  // 6. ENABLE_FINAL_APPROVAL_QUEUE_ENQUEUE 확인
   if (process.env.ENABLE_FINAL_APPROVAL_QUEUE_ENQUEUE !== 'true') {
     return NextResponse.json(
       {
@@ -84,7 +98,7 @@ export async function POST(request: Request) {
     );
   }
 
-  // 6. Queue Port 준비
+  // 7. Queue Port 준비
   const queuePort = createFinalApprovalExecutionRouteQueuePort();
   if (!queuePort) {
     return NextResponse.json(
@@ -97,9 +111,9 @@ export async function POST(request: Request) {
     );
   }
 
-  // 7. API Queue Enqueue Orchestration 호출
+  // 8. API Queue Enqueue Orchestration 호출
   const result = await runFinalApprovalExecutionApiQueueEnqueueOrchestration(body, queuePort);
 
-  // 8 & 9. 성공/실패 응답
+  // 9. 성공/실패 응답
   return NextResponse.json(result, { status: result.statusCode });
 }

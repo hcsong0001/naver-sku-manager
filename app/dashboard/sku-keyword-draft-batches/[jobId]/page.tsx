@@ -640,6 +640,15 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
           최종 승인 Artifact
         </h2>
 
+        <div className="mb-4 rounded-md border border-blue-500/20 bg-blue-500/10 p-3 text-xs text-blue-200">
+          <p className="mb-1 font-semibold text-blue-300">실행 모드 안내</p>
+          <ul className="space-y-0.5">
+            <li>현재 실행은 Mock 모드입니다.</li>
+            <li>실제 Naver API는 호출되지 않습니다.</li>
+            <li>가격/재고/상품 정보는 실제로 변경되지 않습니다.</li>
+          </ul>
+        </div>
+
         {finalApprovalCreateSuccess && (
           <div className="mb-4 rounded-md border border-emerald-500/20 bg-emerald-500/10 p-3 text-sm text-emerald-300">
             {finalApprovalCreateSuccess}

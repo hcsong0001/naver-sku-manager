@@ -131,4 +131,25 @@ describe('NaverApiAdapterFactory', () => {
     // Module loaded at the top of this file — no error means no side effects.
     assert.ok(true, 'no side effects on import');
   });
+
+  it('18. "bulk" adapterMode throws immediately', () => {
+    assert.throws(
+      () => createNaverApiAdapter({ adapterModeEnvValue: 'bulk' }),
+      /not allowed/
+    );
+  });
+
+  it('19. "mass" adapterMode throws immediately', () => {
+    assert.throws(
+      () => createNaverApiAdapter({ adapterModeEnvValue: 'mass' }),
+      /not allowed/
+    );
+  });
+
+  it('20. "BULK" uppercase adapterMode is also blocked (case-insensitive check)', () => {
+    assert.throws(
+      () => createNaverApiAdapter({ adapterModeEnvValue: 'BULK' }),
+      /not allowed/
+    );
+  });
 });
