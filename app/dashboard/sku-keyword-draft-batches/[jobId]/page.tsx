@@ -91,6 +91,55 @@ type LivePreflightResult = {
   summary: LivePreflightSummary;
 };
 
+type LiveSingleTestApprovalChecklistItem = {
+  key: string;
+  label: string;
+  status: 'PASS' | 'WARN' | 'BLOCKED' | 'NEEDS_REVIEW';
+  message: string;
+};
+
+type LiveSingleTestApprovalSummary = {
+  statusLabel: string;
+  approvalCode: string;
+  naverApiCallAllowed: false;
+  liveExecutionEnabled: false;
+  blockingCount: number;
+  warningCount: number;
+  passCount: number;
+  acknowledgedCount: number;
+  totalRequiredAcknowledgements: number;
+  missingAcknowledgements: string[];
+};
+
+type TargetProductSummary = {
+  itemId: string;
+  targetType?: string | null;
+  targetId?: string | null;
+  channelProductNo?: string | null;
+  productName?: string | null;
+  skuCode?: string | null;
+  changeType?: string | null;
+  priceChange?: { before: unknown; after: unknown } | null;
+  stockChange?: { before: unknown; after: unknown } | null;
+};
+
+type LiveSingleTestApprovalResult = {
+  approvalReady: boolean;
+  approvalCode: string;
+  approvalMessage: string;
+  checklistItems: LiveSingleTestApprovalChecklistItem[];
+  blockingReasons: string[];
+  warnings: string[];
+  requiredAcknowledgements: string[];
+  acknowledgedCount: number;
+  missingAcknowledgements: string[];
+  naverApiCallAllowed: false;
+  liveExecutionEnabled: false;
+  maxAllowedState: string;
+  summary: LiveSingleTestApprovalSummary;
+  targetProductSummary?: TargetProductSummary | null;
+};
+
 type DraftBatchJob = {
   id: string;
   status: string;
@@ -104,6 +153,7 @@ type DraftBatchJob = {
   executionMetadata: ExecutionMetadata | null;
   items: DraftBatchItem[];
   livePreflight?: LivePreflightResult | null;
+  liveSingleTestApproval?: LiveSingleTestApprovalResult | null;
 };
 
 type DraftBatchDetailResponse =
@@ -1072,6 +1122,212 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             <p>
               Live 단일 테스트는 별도 승인 흐름과 단일 테스트 상품 1건 제한 조건이 준비된
               이후에만 진행할 수 있습니다.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* ── Live 단일 테스트 승인 준비 ────────────────────────────────────────── */}
+      {job.liveSingleTestApproval && (
+        <div className="mb-6 rounded-lg border border-[#262629] bg-[#121214] p-4">
+          <h2 className="mb-4 flex items-center gap-2 text-base font-semibold text-white">
+            <ShieldAlert className="h-5 w-5 text-indigo-400" />
+            Live 단일 테스트 승인 준비
+          </h2>
+
+          {/* 안내 문구 */}
+          <div className="mb-4 rounded-md border border-indigo-500/20 bg-indigo-500/10 p-3 text-xs text-indigo-200">
+            <p className="mb-1 font-semibold text-indigo-300">승인 준비 단계 안내</p>
+            <ul className="space-y-0.5">
+              <li>이 단계는 실제 Naver API 호출 전 승인 준비 단계입니다.</li>
+              <li>현재 승인해도 실제 네이버 상품은 변경되지 않습니다.</li>
+              <li>Live 실행은 별도 승인과 추가 Safety Gate가 준비된 이후에만 진행합니다.</li>
+              <li>운영 DB / 운영 Redis / 실제 Naver API 호출은 아직 비활성화되어 있습니다.</li>
+            </ul>
+          </div>
+
+          {/* 승인 준비 상태 요약 카드 */}
+          <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <div className="rounded-md border border-[#262629] bg-[#18181b] p-3">
+              <p className="mb-1 text-xs text-gray-500">승인 준비 상태</p>
+              <p className={`text-xs font-semibold ${job.liveSingleTestApproval.approvalReady ? 'text-emerald-400' : 'text-amber-400'}`}>
+                {job.liveSingleTestApproval.approvalReady ? '준비 완료' : '준비 미완료'}
+              </p>
+            </div>
+            <div className="rounded-md border border-[#262629] bg-[#18181b] p-3">
+              <p className="mb-1 text-xs text-gray-500">Naver API 호출</p>
+              <p className="text-xs font-semibold text-red-400">비활성화 (항상 차단)</p>
+            </div>
+            <div className="rounded-md border border-[#262629] bg-[#18181b] p-3">
+              <p className="mb-1 text-xs text-gray-500">Live 실행 가능 여부</p>
+              <p className="text-xs font-semibold text-red-400">비활성화 (항상 차단)</p>
+            </div>
+            <div className="rounded-md border border-[#262629] bg-[#18181b] p-3">
+              <p className="mb-1 text-xs text-gray-500">점검 현황</p>
+              <p className="text-xs">
+                <span className={job.liveSingleTestApproval.summary.blockingCount > 0 ? 'text-red-400 font-semibold' : 'text-gray-400'}>
+                  차단 {job.liveSingleTestApproval.summary.blockingCount}건
+                </span>
+                {' · '}
+                <span className="text-emerald-400">통과 {job.liveSingleTestApproval.summary.passCount}건</span>
+              </p>
+            </div>
+          </div>
+
+          {/* 대상 정보 카드 */}
+          {job.liveSingleTestApproval.targetProductSummary && (
+            <div className="mb-4 rounded-md border border-[#262629] bg-[#18181b] p-3 text-xs">
+              <p className="mb-2 font-semibold text-gray-300">대상 item 정보</p>
+              <div className="grid grid-cols-2 gap-x-4 gap-y-1 sm:grid-cols-3">
+                {job.liveSingleTestApproval.targetProductSummary.productName && (
+                  <div className="col-span-2 sm:col-span-3">
+                    <span className="text-gray-500">상품명: </span>
+                    <span className="text-gray-200">{job.liveSingleTestApproval.targetProductSummary.productName}</span>
+                  </div>
+                )}
+                {job.liveSingleTestApproval.targetProductSummary.channelProductNo && (
+                  <div>
+                    <span className="text-gray-500">채널 상품번호: </span>
+                    <span className="font-mono text-gray-300">{job.liveSingleTestApproval.targetProductSummary.channelProductNo}</span>
+                  </div>
+                )}
+                {job.liveSingleTestApproval.targetProductSummary.targetType && (
+                  <div>
+                    <span className="text-gray-500">대상 유형: </span>
+                    <span className="text-gray-300">{job.liveSingleTestApproval.targetProductSummary.targetType}</span>
+                  </div>
+                )}
+                {job.liveSingleTestApproval.targetProductSummary.changeType && (
+                  <div>
+                    <span className="text-gray-500">변경 유형: </span>
+                    <span className="font-semibold text-emerald-400">{job.liveSingleTestApproval.targetProductSummary.changeType}</span>
+                  </div>
+                )}
+                {job.liveSingleTestApproval.targetProductSummary.skuCode && (
+                  <div>
+                    <span className="text-gray-500">SKU: </span>
+                    <span className="font-mono text-gray-300">{job.liveSingleTestApproval.targetProductSummary.skuCode}</span>
+                  </div>
+                )}
+                {job.liveSingleTestApproval.targetProductSummary.priceChange && (
+                  <div>
+                    <span className="text-gray-500">가격 변경 예정: </span>
+                    <span className="text-gray-400 line-through">
+                      {String(job.liveSingleTestApproval.targetProductSummary.priceChange.before ?? '-')}
+                    </span>
+                    {' → '}
+                    <span className="font-semibold text-white">
+                      {String(job.liveSingleTestApproval.targetProductSummary.priceChange.after ?? '-')}
+                    </span>
+                  </div>
+                )}
+                {job.liveSingleTestApproval.targetProductSummary.stockChange && (
+                  <div>
+                    <span className="text-gray-500">재고 변경 예정: </span>
+                    <span className="text-gray-400 line-through">
+                      {String(job.liveSingleTestApproval.targetProductSummary.stockChange.before ?? '-')}
+                    </span>
+                    {' → '}
+                    <span className="font-semibold text-white">
+                      {String(job.liveSingleTestApproval.targetProductSummary.stockChange.after ?? '-')}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* 차단 사유 */}
+          {job.liveSingleTestApproval.blockingReasons.length > 0 && (
+            <div className="mb-4 rounded-md border border-red-500/20 bg-red-500/10 p-3 text-xs">
+              <p className="mb-2 flex items-center gap-1.5 font-semibold text-red-300">
+                <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                차단 사유 ({job.liveSingleTestApproval.blockingReasons.length}건)
+              </p>
+              <ul className="space-y-1">
+                {job.liveSingleTestApproval.blockingReasons.map((reason, idx) => (
+                  <li key={idx} className="text-red-200">- {reason}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* 항목별 점검 결과 */}
+          <div className="mb-4 space-y-1.5">
+            <p className="mb-2 text-xs font-semibold text-gray-400">항목별 점검 결과</p>
+            {job.liveSingleTestApproval.checklistItems.map(item => (
+              <div
+                key={item.key}
+                className={`flex items-start gap-3 rounded-md border p-2 text-xs ${
+                  item.status === 'PASS'
+                    ? 'border-emerald-500/20 bg-emerald-500/10'
+                    : item.status === 'BLOCKED'
+                      ? 'border-red-500/20 bg-red-500/10'
+                      : item.status === 'WARN'
+                        ? 'border-amber-500/20 bg-amber-500/10'
+                        : 'border-blue-500/20 bg-blue-500/10'
+                }`}
+              >
+                <span className={`mt-0.5 shrink-0 font-mono text-[9px] font-bold leading-4 ${
+                  item.status === 'PASS' ? 'text-emerald-400'
+                    : item.status === 'BLOCKED' ? 'text-red-400'
+                    : item.status === 'WARN' ? 'text-amber-400'
+                    : 'text-blue-400'
+                }`}>
+                  {item.status === 'PASS' ? 'PASS'
+                    : item.status === 'BLOCKED' ? 'BLOCKED'
+                    : item.status === 'WARN' ? 'WARN'
+                    : 'REVIEW'}
+                </span>
+                <div>
+                  <p className="font-semibold text-gray-200">{item.label}</p>
+                  <p className="text-gray-400">{item.message}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* 필수 확인 문구 (requiredAcknowledgements) */}
+          {job.liveSingleTestApproval.requiredAcknowledgements.length > 0 && (
+            <div className="mb-4 rounded-md border border-amber-500/20 bg-amber-500/10 p-3 text-xs">
+              <p className="mb-2 font-semibold text-amber-300">
+                필수 확인 항목 ({job.liveSingleTestApproval.requiredAcknowledgements.length}건 — 실제 Live 테스트 단계 전 확인 필요)
+              </p>
+              <ul className="space-y-1.5 text-amber-100">
+                {job.liveSingleTestApproval.requiredAcknowledgements.map(ack => (
+                  <li key={ack} className="flex items-start gap-2">
+                    <span className="mt-0.5 shrink-0 font-mono text-[9px] text-amber-400">[확인 필요]</span>
+                    <span>
+                      {ack === 'CONFIRM_SINGLE_ITEM_ONLY' && '실제 Live 테스트는 단일 상품 1건으로만 제한됩니다.'}
+                      {ack === 'CONFIRM_TARGET_PRODUCT_REVIEWED' && '대상 상품번호, 스마트스토어, 변경 예정 payload를 직접 확인해야 합니다.'}
+                      {ack === 'CONFIRM_PAYLOAD_REVIEWED' && '실제 변경될 가격/재고/키워드 값을 직접 검토했습니다.'}
+                      {ack === 'CONFIRM_NAVER_API_STILL_DISABLED' && '운영 DB / 운영 Redis / 실제 Naver API 호출은 아직 비활성화되어 있습니다.'}
+                      {ack === 'CONFIRM_LIVE_CAN_CHANGE_PRODUCT_LATER' && '실제 Live 테스트 단계에서는 네이버 스마트스토어 상품 정보가 변경될 수 있습니다.'}
+                      {ack === 'CONFIRM_NO_REPLAY_ALLOWED' && 'Live 실행은 별도 승인과 추가 Safety Gate가 준비된 이후에만 진행합니다.'}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Live 실행 비활성화 배지 */}
+          <div className="mb-4 flex items-center gap-3">
+            <div className="inline-flex items-center rounded-md border border-red-500/30 bg-red-500/10 px-3 py-1.5 text-xs font-semibold text-red-300">
+              <AlertTriangle className="mr-1.5 h-3.5 w-3.5" />
+              Live 실행 비활성화됨
+            </div>
+            <div className="inline-flex items-center rounded-md border border-gray-500/30 bg-gray-500/10 px-3 py-1.5 text-xs text-gray-400">
+              승인 준비만 가능 — 실제 Naver API 호출 불가
+            </div>
+          </div>
+
+          {/* 다음 단계 안내 */}
+          <div className="rounded-md border border-gray-500/20 bg-gray-500/5 p-3 text-xs text-gray-400">
+            <p className="mb-1 font-semibold text-gray-300">다음 단계 안내</p>
+            <p>
+              현재 단계에서는 실제 Live 실행이 불가능합니다. 다음 단계에서 별도 승인 흐름과
+              단일 테스트 실행 제한을 다시 확인한 뒤 Live Adapter 구현 여부를 결정하세요.
             </p>
           </div>
         </div>

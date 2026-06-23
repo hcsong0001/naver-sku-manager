@@ -4,6 +4,10 @@ import {
   evaluateFinalApprovalLivePreflightCheck,
   summarizeLivePreflightReadiness,
 } from '@/src/services/sku-keyword-final-approval-execution-live-preflight-check.service';
+import {
+  evaluateLiveSingleTestApprovalGuard,
+  summarizeLiveSingleTestApprovalReadiness,
+} from '@/src/services/sku-keyword-final-approval-execution-live-single-test-approval-guard.service';
 
 function extractSafeMetadata(raw: unknown): Record<string, unknown> | null {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
@@ -114,6 +118,75 @@ export async function GET(
     const preflightResult = evaluateFinalApprovalLivePreflightCheck(preflightInput);
     const preflightSummary = summarizeLivePreflightReadiness(preflightResult);
 
+    // Safe payload summary (no secrets, endpoints, or tokens)
+    const firstItem = job.items[0] ?? null;
+    const firstItemPayload = firstItem?.requestPayload as Record<string, unknown> | null;
+    const firstCandidate = firstItemPayload?.candidate as Record<string, unknown> | undefined;
+    const firstDryRunItem = firstItemPayload?.dryRunItem as Record<string, unknown> | undefined;
+    const targetProductSummary = firstItem
+      ? {
+          itemId: firstItem.id,
+          targetType: firstItem.targetType,
+          targetId: firstItem.targetId,
+          channelProductNo: firstItem.channelProductNo ?? null,
+          productName: typeof firstCandidate?.productName === 'string'
+            ? firstCandidate.productName
+            : null,
+          skuCode: typeof firstCandidate?.skuCode === 'string'
+            ? firstCandidate.skuCode
+            : null,
+          changeType: typeof firstDryRunItem?.changeType === 'string'
+            ? firstDryRunItem.changeType
+            : null,
+          priceChange: firstDryRunItem?.before && firstDryRunItem?.after
+            ? {
+                before: (firstDryRunItem.before as Record<string, unknown>).price ?? null,
+                after: (firstDryRunItem.after as Record<string, unknown>).price ?? null,
+              }
+            : null,
+          stockChange: firstDryRunItem?.before && firstDryRunItem?.after
+            ? {
+                before: (firstDryRunItem.before as Record<string, unknown>).stock ?? null,
+                after: (firstDryRunItem.after as Record<string, unknown>).stock ?? null,
+              }
+            : null,
+        }
+      : null;
+
+    const approvalGuardInput = {
+      finalApprovalId: activeFinalApproval?.id ?? null,
+      finalApprovalStatus: activeFinalApproval?.status
+        ? String(activeFinalApproval.status)
+        : null,
+      batchJobId: job.id,
+      batchJobStatus: String(job.status),
+      itemStatuses: job.items.map(item => String(item.status)),
+      totalItems: job.totalItems,
+      successItems: job.successItems,
+      failedItems: job.failedItems,
+      executedAt: job.executedAt?.toISOString() ?? null,
+      executionMetadata: safeMetadata
+        ? {
+            executionMode:
+              typeof safeMetadata.executionMode === 'string'
+                ? safeMetadata.executionMode
+                : null,
+            actorId:
+              typeof safeMetadata.actorId === 'string' ? safeMetadata.actorId : null,
+          }
+        : null,
+      adapterMode,
+      naverApiCalled,
+      livePreflightResult: {
+        ready: preflightResult.ready,
+        blockingReasons: preflightResult.blockingReasons,
+      },
+      acknowledgedItems: [], // No DB storage — acknowledgements are UI-only state
+    };
+
+    const approvalGuardResult = evaluateLiveSingleTestApprovalGuard(approvalGuardInput);
+    const approvalGuardSummary = summarizeLiveSingleTestApprovalReadiness(approvalGuardResult);
+
     const responseJob = {
       id: job.id,
       status: job.status,
@@ -136,6 +209,22 @@ export async function GET(
         naverApiCallAllowed: preflightResult.naverApiCallAllowed,
         naverApiCalled: preflightResult.naverApiCalled,
         summary: preflightSummary,
+      },
+      liveSingleTestApproval: {
+        approvalReady: approvalGuardResult.approvalReady,
+        approvalCode: approvalGuardResult.approvalCode,
+        approvalMessage: approvalGuardResult.approvalMessage,
+        checklistItems: approvalGuardResult.checklistItems,
+        blockingReasons: approvalGuardResult.blockingReasons,
+        warnings: approvalGuardResult.warnings,
+        requiredAcknowledgements: approvalGuardResult.requiredAcknowledgements,
+        acknowledgedCount: approvalGuardResult.acknowledgedCount,
+        missingAcknowledgements: approvalGuardResult.missingAcknowledgements,
+        naverApiCallAllowed: approvalGuardResult.naverApiCallAllowed,
+        liveExecutionEnabled: approvalGuardResult.liveExecutionEnabled,
+        maxAllowedState: approvalGuardResult.maxAllowedState,
+        summary: approvalGuardSummary,
+        targetProductSummary,
       },
     };
 
