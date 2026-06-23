@@ -296,6 +296,38 @@ type NaverAuthConfigSafety = {
   maxAllowedState: 'NAVER_AUTH_CONFIG_SAFE_READER_REGISTERED_BUT_SECRET_BLOCKED';
 };
 
+type NaverAuthTokenProviderChecklistItem = {
+  key: string;
+  label: string;
+  status: 'PASS' | 'WARN' | 'BLOCKED' | 'NEEDS_REVIEW';
+  message: string;
+};
+
+type NaverAuthTokenProviderStatus = {
+  status: 'DISABLED';
+  resultCode: 'NAVER_AUTH_TOKEN_REQUEST_DISABLED';
+  resultMessage: string;
+  tokenStatus: 'disabled';
+  authConfigUsable: false;
+  accessTokenRequested: false;
+  refreshTokenRequested: false;
+  credentialsUsed: false;
+  tokenIssued: false;
+  tokenStored: false;
+  authorizationHeaderCreated: false;
+  httpRequestCreated: false;
+  endpointCalled: false;
+  naverApiCallAllowed: false;
+  liveExecutionEnabled: false;
+  secretVisible: false;
+  tokenVisible: false;
+  sanitized: true;
+  checklistItems: NaverAuthTokenProviderChecklistItem[];
+  blockingReasons: string[];
+  warnings: string[];
+  maxAllowedState: 'NAVER_AUTH_TOKEN_PROVIDER_REGISTERED_BUT_DISABLED';
+};
+
 type DraftBatchJob = {
   id: string;
   status: string;
@@ -315,6 +347,7 @@ type DraftBatchJob = {
   environmentSafety?: EnvironmentSafetyResult | null;
   liveAdapterSkeletonStatus?: LiveAdapterSkeletonStatus | null;
   naverAuthConfigSafety?: NaverAuthConfigSafety;
+  naverAuthTokenProviderStatus?: NaverAuthTokenProviderStatus | null;
 };
 
 type DraftBatchDetailResponse =
@@ -2301,6 +2334,125 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
           <div className="text-sm text-gray-400">인증정보 안전 확인 정보를 불러오는 중입니다...</div>
         )}
       </div>
+
+      {/* ── Naver API Token Provider 상태 ──────────────────────────────────── */}
+      {job.naverAuthTokenProviderStatus && (() => {
+        const tp = job.naverAuthTokenProviderStatus!;
+        return (
+          <div className="mb-6 rounded-lg border border-[#262629] bg-[#121214] p-4">
+            <h2 className="mb-3 flex items-center gap-2 text-base font-semibold text-white">
+              <ShieldAlert className="h-5 w-5 text-rose-400" />
+              Token Provider 준비 상태 — 발급 비활성화
+              <span className="ml-1 rounded-full border border-rose-500/30 bg-rose-500/10 px-2 py-0.5 text-[10px] font-semibold text-rose-300">
+                {tp.resultCode}
+              </span>
+            </h2>
+
+            {/* 안내 문구 */}
+            <div className="mb-4 rounded-md border border-rose-500/20 bg-rose-500/10 p-3 text-xs text-rose-200">
+              <p>
+                이 섹션은 Token Provider 구조가 준비되었지만 token 발급이 비활성화되어 있음을 표시합니다.
+                이 단계에서는 access token 발급, refresh token 요청, authorization header 생성, Naver API 호출을 수행하지 않습니다.
+              </p>
+            </div>
+
+            {/* Token Provider 상태 요약 */}
+            <div className="mb-4 flex items-center gap-3">
+              <span className="text-sm text-gray-400">Token Provider 상태:</span>
+              <span className="rounded-full border border-rose-500/30 bg-rose-500/10 px-2 py-0.5 text-xs font-semibold text-rose-300">
+                {tp.status}
+              </span>
+              <span className="rounded-full border border-slate-500/30 bg-slate-500/10 px-2 py-0.5 text-xs text-slate-400">
+                tokenStatus: {tp.tokenStatus}
+              </span>
+            </div>
+
+            {/* 안전 배지 */}
+            <div className="mb-4">
+              <p className="mb-2 text-xs font-semibold text-gray-400">안전 배지 (모두 비활성화됨)</p>
+              <div className="flex flex-wrap gap-2">
+                {[
+                  { label: 'Token 발급 비활성화', ok: !tp.tokenIssued },
+                  { label: 'Refresh Token 요청 없음', ok: !tp.refreshTokenRequested },
+                  { label: '인증정보 사용 안 함', ok: !tp.credentialsUsed },
+                  { label: 'Authorization header 없음', ok: !tp.authorizationHeaderCreated },
+                  { label: 'Endpoint 호출 없음', ok: !tp.endpointCalled },
+                  { label: 'Naver API 호출 비활성화', ok: !tp.naverApiCallAllowed },
+                  { label: 'Token 저장 없음', ok: !tp.tokenStored },
+                  { label: 'Secret 비노출', ok: !tp.secretVisible },
+                ].map(({ label, ok }) => (
+                  <span
+                    key={label}
+                    className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-semibold ${
+                      ok
+                        ? 'border-emerald-500/30 bg-emerald-500/20 text-emerald-300'
+                        : 'border-red-500/30 bg-red-500/20 text-red-300'
+                    }`}
+                  >
+                    {ok ? <CheckCircle2 className="h-3 w-3" /> : <AlertTriangle className="h-3 w-3" />}
+                    {label}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {/* 상태 카드 */}
+            <div className="mb-4 grid grid-cols-2 gap-2 text-xs sm:grid-cols-3 lg:grid-cols-4">
+              {[
+                { label: 'accessTokenRequested', value: String(tp.accessTokenRequested) },
+                { label: 'refreshTokenRequested', value: String(tp.refreshTokenRequested) },
+                { label: 'tokenIssued', value: String(tp.tokenIssued) },
+                { label: 'tokenStored', value: String(tp.tokenStored) },
+                { label: 'credentialsUsed', value: String(tp.credentialsUsed) },
+                { label: 'authorizationHeaderCreated', value: String(tp.authorizationHeaderCreated) },
+                { label: 'endpointCalled', value: String(tp.endpointCalled) },
+                { label: 'httpRequestCreated', value: String(tp.httpRequestCreated) },
+              ].map(({ label, value }) => (
+                <div key={label} className="rounded-md border border-[#262629] bg-[#18181b] p-2 text-center">
+                  <p className="text-[9px] text-gray-500">{label}</p>
+                  <p className={`mt-0.5 font-mono text-xs font-bold ${value === 'false' ? 'text-emerald-400' : 'text-red-400'}`}>
+                    {value}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            {/* 차단/경고 사유 */}
+            {tp.blockingReasons.length > 0 && (
+              <div className="mb-4 rounded-md border border-red-500/20 bg-red-500/10 p-3 text-xs">
+                <p className="mb-2 flex items-center gap-1.5 font-semibold text-red-300">
+                  <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                  차단 사유 ({tp.blockingReasons.length}건)
+                </p>
+                <ul className="space-y-1">
+                  {tp.blockingReasons.map((reason, idx) => (
+                    <li key={idx} className="text-red-200">- {reason}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {tp.warnings.length > 0 && (
+              <div className="mb-4 rounded-md border border-amber-500/20 bg-amber-500/10 p-3 text-xs">
+                <p className="mb-2 flex items-center gap-1.5 font-semibold text-amber-300">
+                  <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                  경고 ({tp.warnings.length}건)
+                </p>
+                <ul className="space-y-1">
+                  {tp.warnings.map((w, idx) => (
+                    <li key={idx} className="text-amber-200">- {w}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* maxAllowedState */}
+            <div className="rounded-md border border-slate-500/20 bg-slate-500/10 p-2 text-xs text-gray-400">
+              <span className="text-gray-500">최대 허용 상태: </span>
+              <span className="font-mono text-rose-300">{tp.maxAllowedState}</span>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* ── BatchJob 실행 결과 ────────────────────────────────────────────────── */}
       {['EXECUTED', 'PARTIAL_SUCCESS', 'FAILED', 'EXECUTING'].includes(job.status) && (

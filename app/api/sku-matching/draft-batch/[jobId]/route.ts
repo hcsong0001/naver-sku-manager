@@ -18,6 +18,7 @@ import {
   buildLiveAdapterSkeletonDisabledResult,
 } from '@/src/services/sku-keyword-final-approval-execution-naver-api-live-adapter-skeleton.service';
 import { evaluateNaverApiAuthConfigSafeReader } from '@/src/services/sku-keyword-final-approval-execution-naver-api-auth-config-safe-reader.service';
+import { createNaverApiTokenProviderDisabled } from '@/src/services/sku-keyword-final-approval-execution-naver-api-token-provider-disabled.service';
 
 // Compute safe DB environment hint from DATABASE_URL without exposing the original value.
 // Returns a classification key, never the actual URL.
@@ -404,6 +405,41 @@ export async function GET(
         warnings: naverAuthConfigSafety.warnings,
         maxAllowedState: naverAuthConfigSafety.maxAllowedState,
       },
+      naverAuthTokenProviderStatus: (() => {
+        const tokenProvider = createNaverApiTokenProviderDisabled({
+          authConfigSafety: naverAuthConfigSafety,
+          requestedAction: 'draft-batch-detail-read',
+          allowTokenRequest: false,
+          allowCredentialUse: false,
+          allowEndpointCall: false,
+          environmentSafetyResult: { ok: envSafetyResult.allowed },
+          liveAdapterSkeletonStatus: 'disabled',
+        });
+        return {
+          status: tokenProvider.status,
+          resultCode: tokenProvider.resultCode,
+          resultMessage: tokenProvider.resultMessage,
+          tokenStatus: tokenProvider.tokenStatus,
+          authConfigUsable: tokenProvider.authConfigUsable,
+          accessTokenRequested: tokenProvider.accessTokenRequested,
+          refreshTokenRequested: tokenProvider.refreshTokenRequested,
+          credentialsUsed: tokenProvider.credentialsUsed,
+          tokenIssued: tokenProvider.tokenIssued,
+          tokenStored: tokenProvider.tokenStored,
+          authorizationHeaderCreated: tokenProvider.authorizationHeaderCreated,
+          httpRequestCreated: tokenProvider.httpRequestCreated,
+          endpointCalled: tokenProvider.endpointCalled,
+          naverApiCallAllowed: tokenProvider.naverApiCallAllowed,
+          liveExecutionEnabled: tokenProvider.liveExecutionEnabled,
+          secretVisible: tokenProvider.secretVisible,
+          tokenVisible: tokenProvider.tokenVisible,
+          sanitized: tokenProvider.sanitized,
+          checklistItems: tokenProvider.checklistItems,
+          blockingReasons: tokenProvider.blockingReasons,
+          warnings: tokenProvider.warnings,
+          maxAllowedState: tokenProvider.maxAllowedState,
+        };
+      })(),
     };
 
     return NextResponse.json({ ok: true, job: responseJob });
