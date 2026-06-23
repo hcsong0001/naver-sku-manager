@@ -2,7 +2,9 @@ import { createFinalApprovalExecutionWorkerRuntime } from '../src/services/sku-k
 import type { FinalApprovalExecutionWorkerStartupEnv } from '../src/types/sku-keyword-final-approval-execution-worker-startup-config.types';
 import { createFinalApprovalExecutionWorkerProcessor } from '../src/services/sku-keyword-final-approval-execution-worker-processor.service';
 import { createWorkerRevalidationRepository } from '../src/services/sku-keyword-final-approval-execution-worker-revalidation-repository-factory.service';
+import { createWorkerTransitionApplyAdapter } from '../src/services/sku-keyword-final-approval-execution-worker-transition-apply-adapter-factory.service';
 import type { RevalidationPrismaClientPort } from '../src/services/sku-keyword-final-approval-execution-restricted-db-revalidation-prisma-adapter.service';
+import type { PrismaLikeClient } from '../src/types/sku-keyword-final-approval-execution-transition-apply-real-prisma-adapter.types';
 // Imported for restricted-db mode only — does NOT create a PrismaClient on import.
 import { createSafePrismaClientForTestDb } from './lib/create-safe-prisma-client-for-test-db';
 
@@ -29,20 +31,26 @@ const logger = {
 async function bootstrap() {
   logger.info('Starting FinalApproval Execution Worker Entrypoint...');
 
-  const adapterModeEnv = process.env.FINAL_APPROVAL_EXECUTION_REVALIDATION_ADAPTER;
-  logger.info(`Revalidation adapter mode: ${adapterModeEnv ?? '(default/mock)'}`);
+  const revalidationAdapterModeEnv = process.env.FINAL_APPROVAL_EXECUTION_REVALIDATION_ADAPTER;
+  const transitionApplyAdapterModeEnv = process.env.FINAL_APPROVAL_EXECUTION_TRANSITION_APPLY_ADAPTER;
+  logger.info(`Revalidation adapter mode: ${revalidationAdapterModeEnv ?? '(default/mock)'}`);
+  logger.info(`Transition apply adapter mode: ${transitionApplyAdapterModeEnv ?? '(default/mock)'}`);
 
-  // ── Select revalidation repository ─────────────────────────────────────────
-  // PrismaClient is created ONLY when restricted-db mode is requested.
-  // Static import of createSafePrismaClientForTestDb has no side effects
-  // (no PrismaClient is instantiated until the function is explicitly called).
-  let prismaClient: RevalidationPrismaClientPort | undefined;
-  if (adapterModeEnv === 'restricted-db') {
-    logger.info('Restricted DB mode: creating safe PrismaClient for revalidation adapter');
+  // ── Create shared PrismaClient (test DB only) ───────────────────────────────
+  // ONE PrismaClient instance is shared between both adapters when restricted-db
+  // mode is requested by either adapter. Creating two separate clients would waste
+  // connection pool resources pointing at the same test DB.
+  // PrismaClient is created ONLY when at least one restricted-db mode is active.
+  const needsRestrictedDb =
+    revalidationAdapterModeEnv === 'restricted-db' ||
+    transitionApplyAdapterModeEnv === 'restricted-db';
+
+  let rawPrismaClient: unknown;
+  if (needsRestrictedDb) {
+    logger.info('Restricted DB mode: creating safe PrismaClient for test DB');
     try {
       // createSafePrismaClientForTestDb() validates DATABASE_URL host/port/dbname.
-      // Type assertion: PrismaClient is structurally compatible at runtime.
-      prismaClient = createSafePrismaClientForTestDb() as unknown as RevalidationPrismaClientPort;
+      rawPrismaClient = createSafePrismaClientForTestDb();
     } catch (err) {
       const safeMsg = (err instanceof Error ? err.message : String(err))
         .replace(/postgresql?:\/\/[^\s]*/gi, '[REDACTED]');
@@ -51,13 +59,19 @@ async function bootstrap() {
     }
   }
 
+  // Cast the shared PrismaClient to each adapter's structural interface.
+  // Both interfaces are structurally satisfied by the generated PrismaClient.
+  const revalidationPrismaClient = rawPrismaClient as RevalidationPrismaClientPort | undefined;
+  const transitionApplyPrismaClient = rawPrismaClient as PrismaLikeClient | undefined;
+
+  // ── Select revalidation repository ─────────────────────────────────────────
   let revalidationRepository;
   try {
     revalidationRepository = createWorkerRevalidationRepository({
-      adapterModeEnvValue: adapterModeEnv,
+      adapterModeEnvValue: revalidationAdapterModeEnv,
       nodeEnv: process.env.NODE_ENV,
       databaseUrl: process.env.DATABASE_URL,
-      prismaClient,
+      prismaClient: revalidationPrismaClient,
     });
   } catch (err) {
     const safeMsg = (err instanceof Error ? err.message : String(err))
@@ -67,20 +81,27 @@ async function bootstrap() {
     process.exit(1);
   }
 
+  // ── Select transition apply adapter ─────────────────────────────────────────
+  let transitionApplyAdapter;
+  try {
+    transitionApplyAdapter = createWorkerTransitionApplyAdapter({
+      adapterModeEnvValue: transitionApplyAdapterModeEnv,
+      nodeEnv: process.env.NODE_ENV,
+      databaseUrl: process.env.DATABASE_URL,
+      prismaClient: transitionApplyPrismaClient,
+    });
+  } catch (err) {
+    const safeMsg = (err instanceof Error ? err.message : String(err))
+      .replace(/postgresql?:\/\/[^\s]*/gi, '[REDACTED]')
+      .replace(/redis:\/\/[^\s]*/gi, '[REDACTED]');
+    logger.error(`Failed to initialize transition apply adapter: ${safeMsg}`);
+    process.exit(1);
+  }
+
   // ── Build processor ─────────────────────────────────────────────────────────
-  // Transition Apply Adapter remains as safe mock.
-  // Real DB write wiring is deferred to the actual Dry Run execution step.
   const processor = createFinalApprovalExecutionWorkerProcessor({
     revalidationRepository,
-    transitionApplyAdapter: {
-      transaction: async (fn: any) => {
-        logger.info('Mock Transition Apply Transaction called in entrypoint');
-        return fn({
-          updateBatchJobStatus: async () => ({ updated: true }),
-          updateBatchJobItemStatus: async () => ({ updated: true })
-        });
-      }
-    }
+    transitionApplyAdapter,
   });
 
   const startupEnv: FinalApprovalExecutionWorkerStartupEnv = {
