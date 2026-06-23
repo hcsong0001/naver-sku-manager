@@ -42,4 +42,5 @@ next-env.d.ts
 
 /app/generated/prisma
 codex-next-dev*.log
+restricted_db_*.log
 /test-data
