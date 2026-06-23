@@ -6,8 +6,8 @@ import {
 } from '../src/services/sku-keyword-final-approval-execution-restricted-db-dry-run-safety.service';
 import { createFinalApprovalExecutionBullmqQueueAdapter } from '../src/services/sku-keyword-final-approval-execution-bullmq-queue-adapter.service';
 
-const RESTRICTED_DB_JOB_ID = 'final-approval-worker-restricted-db-dry-run-001';
-const RESTRICTED_DB_IDEMPOTENCY_KEY = 'restricted-db-dry-run-idempotency-001';
+const RESTRICTED_DB_JOB_ID = 'final-approval-worker-restricted-db-mock-execution-001';
+const RESTRICTED_DB_IDEMPOTENCY_KEY = 'restricted-db-mock-execution-idempotency-001';
 
 async function run() {
   // ── 1. Safety guard (must pass before any Redis/Queue access) ──
