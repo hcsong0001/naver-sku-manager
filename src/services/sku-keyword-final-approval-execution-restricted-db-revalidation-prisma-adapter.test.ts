@@ -147,6 +147,35 @@ describe('RestrictedDbRevalidationPrismaAdapter', () => {
     assert.strictEqual(result.readyItemCount, 3);
   });
 
+  it('9b. readyItemIds contains actual DB item IDs for real-adapter transition apply', async () => {
+    const adapter = createRestrictedDbRevalidationPrismaAdapter(makeMockPrisma(BASE_FA_ROW));
+    const result = await adapter.findSnapshotForWorkerJobRevalidation(FIXTURE_ID, IDEM_KEY);
+
+    assert.ok(result !== null);
+    assert.deepStrictEqual(result.readyItemIds, [ITEM_ID]);
+  });
+
+  it('9c. readyItemIds is empty array when job has no items', async () => {
+    const row = {
+      ...BASE_FA_ROW,
+      job: { id: JOB_ID, status: 'APPROVED', items: [] },
+    };
+    const adapter = createRestrictedDbRevalidationPrismaAdapter(makeMockPrisma(row));
+    const result = await adapter.findSnapshotForWorkerJobRevalidation(FIXTURE_ID, IDEM_KEY);
+
+    assert.ok(result !== null);
+    assert.deepStrictEqual(result.readyItemIds, []);
+  });
+
+  it('9d. readyItemIds is empty array when job relation is null', async () => {
+    const row = { ...BASE_FA_ROW, job: null };
+    const adapter = createRestrictedDbRevalidationPrismaAdapter(makeMockPrisma(row));
+    const result = await adapter.findSnapshotForWorkerJobRevalidation(FIXTURE_ID, IDEM_KEY);
+
+    assert.ok(result !== null);
+    assert.deepStrictEqual(result.readyItemIds, []);
+  });
+
   it('10. snapshot result contains no URL strings', async () => {
     const adapter = createRestrictedDbRevalidationPrismaAdapter(makeMockPrisma(BASE_FA_ROW));
     const result = await adapter.findSnapshotForWorkerJobRevalidation(FIXTURE_ID, IDEM_KEY);

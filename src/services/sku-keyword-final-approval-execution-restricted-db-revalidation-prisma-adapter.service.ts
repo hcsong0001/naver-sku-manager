@@ -59,7 +59,9 @@ export function createRestrictedDbRevalidationPrismaAdapter(
 
       if (!fa) return null;
 
-      const readyItemCount = fa.job?.items.length ?? 0;
+      const readyItems = fa.job?.items ?? [];
+      const readyItemCount = readyItems.length;
+      const readyItemIds = readyItems.map(i => i.id);
 
       // For the restricted dry-run fixture the DB record is the source of truth:
       // set expectedHash = actualHash so the hash checks in the orchestration pass.
@@ -70,6 +72,7 @@ export function createRestrictedDbRevalidationPrismaAdapter(
         jobId: fa.job?.id ?? fa.jobId,
         jobStatus: fa.job?.status ?? 'UNKNOWN',
         readyItemCount,
+        readyItemIds,
         payloadHash: fa.payloadHash,
         validationSnapshotHash: fa.validationSnapshotHash,
         expectedPayloadHash: fa.payloadHash,

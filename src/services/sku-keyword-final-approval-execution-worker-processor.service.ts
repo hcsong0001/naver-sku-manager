@@ -60,11 +60,15 @@ export async function processFinalApprovalExecutionWorkerJob(
   const actorId = (job.data as any)?.actorId || 'worker-processor';
   const dryRun = mode === 'MOCK' || mode === 'DRY_RUN_READY';
 
-  // Mock batchJobItems since snapshot only provides count
-  const batchJobItems = Array.from({ length: snapshot.readyItemCount }, (_, i) => ({
-    id: `mock-item-${i}`,
-    status: 'READY' as const
-  }));
+  // Use actual item IDs from snapshot when available (populated by DB-backed adapters).
+  // Fall back to stable mock IDs only when the snapshot has no real IDs (mock mode).
+  const batchJobItems =
+    snapshot.readyItemIds && snapshot.readyItemIds.length > 0
+      ? snapshot.readyItemIds.map(id => ({ id, status: 'READY' as const }))
+      : Array.from({ length: snapshot.readyItemCount }, (_, i) => ({
+          id: `mock-item-${i}`,
+          status: 'READY' as const,
+        }));
 
   // 3. Re-evaluate Transition Guard
   const guardResult = evaluateFinalApprovalExecutionTransitionGuard({

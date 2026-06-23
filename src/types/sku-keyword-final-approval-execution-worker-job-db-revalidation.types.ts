@@ -24,6 +24,9 @@ export interface FinalApprovalExecutionWorkerJobDbRevalidationSnapshot {
   jobId: string;
   jobStatus: string;
   readyItemCount: number;
+  // Actual item IDs when available from the DB adapter.
+  // When populated, the processor uses real IDs instead of mock-item-N placeholders.
+  readyItemIds?: string[];
   payloadHash: string | null;
   validationSnapshotHash: string | null;
   expectedPayloadHash: string;
