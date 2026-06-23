@@ -1,6 +1,45 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import {
+  evaluateFinalApprovalLivePreflightCheck,
+  summarizeLivePreflightReadiness,
+} from '@/src/services/sku-keyword-final-approval-execution-live-preflight-check.service';
+import {
+  evaluateLiveSingleTestApprovalGuard,
+  summarizeLiveSingleTestApprovalReadiness,
+} from '@/src/services/sku-keyword-final-approval-execution-live-single-test-approval-guard.service';
+import {
+  evaluateExecutionEnvironmentSafetyGuard,
+} from '@/src/services/sku-keyword-final-approval-execution-environment-safety-guard.service';
+import {
+  buildLiveSingleTestAuditHistoryItem,
+} from '@/src/services/sku-keyword-final-approval-execution-live-single-test-audit-history.service';
+import {
+  buildLiveAdapterSkeletonDisabledResult,
+} from '@/src/services/sku-keyword-final-approval-execution-naver-api-live-adapter-skeleton.service';
 import { evaluateNaverApiAuthConfigSafeReader } from '@/src/services/sku-keyword-final-approval-execution-naver-api-auth-config-safe-reader.service';
+
+// Compute safe DB environment hint from DATABASE_URL without exposing the original value.
+// Returns a classification key, never the actual URL.
+function getDatabaseUrlSafeHint(): string | null {
+  const url = process.env.DATABASE_URL;
+  if (!url) return null;
+  const lower = url.toLowerCase();
+  if (lower.includes('localhost') || lower.includes('127.0.0.1') || lower.includes('::1')) return 'local_host';
+  if (lower.includes('test') || lower.includes('dev') || lower.includes('staging')) return 'test_or_dev';
+  if (lower.includes('prod') || lower.includes('production') || lower.includes('operating') || lower.includes('live')) return 'possible_prod';
+  return 'unknown_host';
+}
+
+function getRedisUrlSafeHint(): string | null {
+  const url = process.env.REDIS_URL;
+  if (!url) return null;
+  const lower = url.toLowerCase();
+  if (lower.includes('localhost') || lower.includes('127.0.0.1')) return 'local_host';
+  if (lower.includes('test') || lower.includes('dev') || lower.includes('staging')) return 'test_or_dev';
+  if (lower.includes('prod') || lower.includes('production') || lower.includes('operating')) return 'possible_prod';
+  return 'unknown_host';
+}
 
 function extractSafeMetadata(raw: unknown): Record<string, unknown> | null {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
@@ -24,6 +63,57 @@ function extractSafeMetadata(raw: unknown): Record<string, unknown> | null {
   return Object.keys(out).length > 0 ? out : null;
 }
 
+function extractSafeAuditRecord(raw: unknown): Record<string, unknown> | null {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
+  const m = raw as Record<string, unknown>;
+  const out: Record<string, unknown> = {};
+
+  if (typeof m.auditCode === 'string') out.auditCode = m.auditCode;
+  if (typeof m.auditStatus === 'string') out.auditStatus = m.auditStatus;
+  if (typeof m.auditMessage === 'string') out.auditMessage = m.auditMessage;
+  if (typeof m.finalApprovalId === 'string') out.finalApprovalId = m.finalApprovalId;
+  if (typeof m.batchJobId === 'string') out.batchJobId = m.batchJobId;
+  if (typeof m.actorId === 'string') out.actorId = m.actorId;
+  if (typeof m.recordedAt === 'string') out.recordedAt = m.recordedAt;
+  if (typeof m.maxAllowedState === 'string') out.maxAllowedState = m.maxAllowedState;
+  out.naverApiCallAllowed = false;
+  out.liveExecutionEnabled = false;
+  if (Array.isArray(m.acknowledgedItems)) {
+    out.acknowledgedItems = m.acknowledgedItems.filter((x): x is string => typeof x === 'string');
+  }
+  if (Array.isArray(m.missingAcknowledgements)) {
+    out.missingAcknowledgements = m.missingAcknowledgements.filter((x): x is string => typeof x === 'string');
+  }
+  if (Array.isArray(m.warnings)) {
+    out.warnings = m.warnings.filter((x): x is string => typeof x === 'string');
+  }
+
+  // Safe target product summary (explicit safe fields only, no secrets)
+  if (m.targetProductSummary && typeof m.targetProductSummary === 'object' && !Array.isArray(m.targetProductSummary)) {
+    const tps = m.targetProductSummary as Record<string, unknown>;
+    out.targetProductSummary = {
+      itemId: typeof tps.itemId === 'string' ? tps.itemId : null,
+      targetType: typeof tps.targetType === 'string' ? tps.targetType : null,
+      targetId: typeof tps.targetId === 'string' ? tps.targetId : null,
+      channelProductNo: typeof tps.channelProductNo === 'string' ? tps.channelProductNo : null,
+      productName: typeof tps.productName === 'string' ? tps.productName : null,
+      skuCode: typeof tps.skuCode === 'string' ? tps.skuCode : null,
+      changeType: typeof tps.changeType === 'string' ? tps.changeType : null,
+    };
+  }
+
+  // Safe payload summary (only changeType + riskLevel)
+  if (m.safePayloadSummary && typeof m.safePayloadSummary === 'object' && !Array.isArray(m.safePayloadSummary)) {
+    const sps = m.safePayloadSummary as Record<string, unknown>;
+    out.safePayloadSummary = {
+      changeType: typeof sps.changeType === 'string' ? sps.changeType : null,
+      riskLevel: typeof sps.riskLevel === 'string' ? sps.riskLevel : null,
+    };
+  }
+
+  return Object.keys(out).length > 0 ? out : null;
+}
+
 export async function GET(
   request: Request,
   context: { params: Promise<{ jobId: string }> }
@@ -35,6 +125,10 @@ export async function GET(
       include: {
         items: {
           orderBy: { createdAt: 'asc' },
+        },
+        finalApprovals: {
+          orderBy: { createdAt: 'desc' },
+          take: 5,
         },
       },
     });
@@ -73,6 +167,135 @@ export async function GET(
       };
     });
 
+    const safeMetadata = extractSafeMetadata(job.metadata);
+    const activeFinalApproval =
+      (job.finalApprovals ?? []).find(a => String(a.status) === 'ACTIVE') ?? null;
+
+    const adapterMode =
+      typeof safeMetadata?.executionMode === 'string' ? safeMetadata.executionMode : null;
+    const naverApiCalled = adapterMode === 'live';
+
+    const preflightInput = {
+      finalApprovalStatus: activeFinalApproval?.status ? String(activeFinalApproval.status) : null,
+      batchJobStatus: String(job.status),
+      itemStatuses: job.items.map(item => String(item.status)),
+      totalItems: job.totalItems,
+      successItems: job.successItems,
+      failedItems: job.failedItems,
+      skippedItems: job.skippedItems,
+      executedAt: job.executedAt?.toISOString() ?? null,
+      executionMetadata: safeMetadata
+        ? {
+            executionMode:
+              typeof safeMetadata.executionMode === 'string'
+                ? safeMetadata.executionMode
+                : null,
+            actorId:
+              typeof safeMetadata.actorId === 'string' ? safeMetadata.actorId : null,
+          }
+        : null,
+      adapterMode,
+      naverApiCalled,
+    };
+
+    const preflightResult = evaluateFinalApprovalLivePreflightCheck(preflightInput);
+    const preflightSummary = summarizeLivePreflightReadiness(preflightResult);
+
+    // Safe payload summary (no secrets, endpoints, or tokens)
+    const firstItem = job.items[0] ?? null;
+    const firstItemPayload = firstItem?.requestPayload as Record<string, unknown> | null;
+    const firstCandidate = firstItemPayload?.candidate as Record<string, unknown> | undefined;
+    const firstDryRunItem = firstItemPayload?.dryRunItem as Record<string, unknown> | undefined;
+    const targetProductSummary = firstItem
+      ? {
+          itemId: firstItem.id,
+          targetType: firstItem.targetType,
+          targetId: firstItem.targetId,
+          channelProductNo: firstItem.channelProductNo ?? null,
+          productName: typeof firstCandidate?.productName === 'string'
+            ? firstCandidate.productName
+            : null,
+          skuCode: typeof firstCandidate?.skuCode === 'string'
+            ? firstCandidate.skuCode
+            : null,
+          changeType: typeof firstDryRunItem?.changeType === 'string'
+            ? firstDryRunItem.changeType
+            : null,
+          priceChange: firstDryRunItem?.before && firstDryRunItem?.after
+            ? {
+                before: (firstDryRunItem.before as Record<string, unknown>).price ?? null,
+                after: (firstDryRunItem.after as Record<string, unknown>).price ?? null,
+              }
+            : null,
+          stockChange: firstDryRunItem?.before && firstDryRunItem?.after
+            ? {
+                before: (firstDryRunItem.before as Record<string, unknown>).stock ?? null,
+                after: (firstDryRunItem.after as Record<string, unknown>).stock ?? null,
+              }
+            : null,
+        }
+      : null;
+
+    const approvalGuardInput = {
+      finalApprovalId: activeFinalApproval?.id ?? null,
+      finalApprovalStatus: activeFinalApproval?.status
+        ? String(activeFinalApproval.status)
+        : null,
+      batchJobId: job.id,
+      batchJobStatus: String(job.status),
+      itemStatuses: job.items.map(item => String(item.status)),
+      totalItems: job.totalItems,
+      successItems: job.successItems,
+      failedItems: job.failedItems,
+      executedAt: job.executedAt?.toISOString() ?? null,
+      executionMetadata: safeMetadata
+        ? {
+            executionMode:
+              typeof safeMetadata.executionMode === 'string'
+                ? safeMetadata.executionMode
+                : null,
+            actorId:
+              typeof safeMetadata.actorId === 'string' ? safeMetadata.actorId : null,
+          }
+        : null,
+      adapterMode,
+      naverApiCalled,
+      livePreflightResult: {
+        ready: preflightResult.ready,
+        blockingReasons: preflightResult.blockingReasons,
+      },
+      acknowledgedItems: [], // No DB storage — acknowledgements are UI-only state
+    };
+
+    const approvalGuardResult = evaluateLiveSingleTestApprovalGuard(approvalGuardInput);
+    const approvalGuardSummary = summarizeLiveSingleTestApprovalReadiness(approvalGuardResult);
+
+    // Read audit record from metadata (written by POST /live-single-test-approval)
+    const rawMetadata = job.metadata as Record<string, unknown> | null;
+    const liveSingleTestApprovalAudit = extractSafeAuditRecord(
+      rawMetadata?.liveSingleTestApprovalAudit
+    );
+
+    // Build audit history (read-only summary from metadata)
+    const auditHistory = buildLiveSingleTestAuditHistoryItem({
+      batchJobId: job.id,
+      metadata: job.metadata,
+    });
+
+    // Evaluate execution environment safety (safe hints only — no raw URLs or secrets exposed)
+    const envSafetyResult = evaluateExecutionEnvironmentSafetyGuard({
+      nodeEnv: process.env.NODE_ENV ?? null,
+      appEnv: process.env.APP_ENV ?? null,
+      executionMode: process.env.EXECUTION_MODE ?? null,
+      adapterMode,
+      databaseUrlPresent: !!process.env.DATABASE_URL,
+      databaseUrlSafeHint: getDatabaseUrlSafeHint(),
+      redisUrlPresent: !!process.env.REDIS_URL,
+      redisUrlSafeHint: getRedisUrlSafeHint(),
+      requestedAction: 'approval-audit-record-only',
+    });
+
+    // Evaluate Naver API auth config safety (existence check only — no credential values exposed)
     const naverAuthConfigSafety = evaluateNaverApiAuthConfigSafeReader({
       envLike: {
         NAVER_API_CLIENT_ID: process.env.NAVER_API_CLIENT_ID,
@@ -82,6 +305,8 @@ export async function GET(
       allowCredentialUse: false,
       allowTokenRequest: false,
       allowEndpointCall: false,
+      environmentSafetyResult: { ok: envSafetyResult.allowed },
+      liveAdapterSkeletonStatus: 'disabled',
     });
 
     const responseJob = {
@@ -94,8 +319,70 @@ export async function GET(
       failedItems: job.failedItems,
       skippedItems: job.skippedItems,
       executedAt: job.executedAt?.toISOString() ?? null,
-      executionMetadata: extractSafeMetadata(job.metadata),
+      executionMetadata: safeMetadata,
       items,
+      livePreflight: {
+        ready: preflightResult.ready,
+        readinessCode: preflightResult.readinessCode,
+        readinessMessage: preflightResult.readinessMessage,
+        checklistItems: preflightResult.checklistItems,
+        blockingReasons: preflightResult.blockingReasons,
+        warnings: preflightResult.warnings,
+        naverApiCallAllowed: preflightResult.naverApiCallAllowed,
+        naverApiCalled: preflightResult.naverApiCalled,
+        summary: preflightSummary,
+      },
+      liveSingleTestApproval: {
+        approvalReady: approvalGuardResult.approvalReady,
+        approvalCode: approvalGuardResult.approvalCode,
+        approvalMessage: approvalGuardResult.approvalMessage,
+        checklistItems: approvalGuardResult.checklistItems,
+        blockingReasons: approvalGuardResult.blockingReasons,
+        warnings: approvalGuardResult.warnings,
+        requiredAcknowledgements: approvalGuardResult.requiredAcknowledgements,
+        acknowledgedCount: approvalGuardResult.acknowledgedCount,
+        missingAcknowledgements: approvalGuardResult.missingAcknowledgements,
+        naverApiCallAllowed: approvalGuardResult.naverApiCallAllowed,
+        liveExecutionEnabled: approvalGuardResult.liveExecutionEnabled,
+        maxAllowedState: approvalGuardResult.maxAllowedState,
+        summary: approvalGuardSummary,
+        targetProductSummary,
+      },
+      liveSingleTestApprovalAudit,
+      liveSingleTestAuditHistory: {
+        exists: auditHistory.exists,
+        latestAudit: auditHistory.latestAudit,
+        summary: auditHistory.summary,
+        blockingReasons: auditHistory.blockingReasons,
+        warnings: auditHistory.warnings,
+        naverApiCallAllowed: false as const,
+        liveExecutionEnabled: false as const,
+        operatingDbWriteAllowed: false as const,
+        queueAllowed: false as const,
+        workerAllowed: false as const,
+        sanitized: true as const,
+        maxAllowedState: 'LIVE_SINGLE_TEST_AUDIT_HISTORY_READ_ONLY_READY' as const,
+      },
+      environmentSafety: {
+        allowed: envSafetyResult.allowed,
+        environmentCode: envSafetyResult.environmentCode,
+        environmentMessage: envSafetyResult.environmentMessage,
+        databaseEnvironment: envSafetyResult.databaseEnvironment,
+        redisEnvironment: envSafetyResult.redisEnvironment,
+        naverApiCallAllowed: false as const,
+        operatingDbWriteAllowed: false as const,
+        queueAllowed: false as const,
+        workerAllowed: false as const,
+        checklistItems: envSafetyResult.checklistItems,
+        blockingReasons: envSafetyResult.blockingReasons,
+        warnings: envSafetyResult.warnings,
+        sanitized: true as const,
+      },
+      liveAdapterSkeletonStatus: buildLiveAdapterSkeletonDisabledResult({
+        batchJobId: job.id,
+        finalApprovalId: activeFinalApproval?.id ?? null,
+        adapterMode,
+      }),
       naverAuthConfigSafety: {
         credentialConfigured: naverAuthConfigSafety.credentialConfigured,
         authConfigUsable: naverAuthConfigSafety.authConfigUsable,

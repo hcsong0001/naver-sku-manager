@@ -62,6 +62,211 @@ type ExecutionMetadata = {
   };
 };
 
+type LivePreflightChecklistItem = {
+  key: string;
+  label: string;
+  status: 'PASS' | 'WARN' | 'BLOCKED' | 'NEEDS_REVIEW';
+  message: string;
+};
+
+type LivePreflightSummary = {
+  statusLabel: string;
+  statusCode: string;
+  naverApiCalled: boolean;
+  naverApiCallAllowed: false;
+  blockingCount: number;
+  warningCount: number;
+  passCount: number;
+};
+
+type LivePreflightResult = {
+  ready: boolean;
+  readinessCode: string;
+  readinessMessage: string;
+  checklistItems: LivePreflightChecklistItem[];
+  blockingReasons: string[];
+  warnings: string[];
+  naverApiCallAllowed: false;
+  naverApiCalled: boolean;
+  summary: LivePreflightSummary;
+};
+
+type LiveSingleTestApprovalChecklistItem = {
+  key: string;
+  label: string;
+  status: 'PASS' | 'WARN' | 'BLOCKED' | 'NEEDS_REVIEW';
+  message: string;
+};
+
+type LiveSingleTestApprovalSummary = {
+  statusLabel: string;
+  approvalCode: string;
+  naverApiCallAllowed: false;
+  liveExecutionEnabled: false;
+  blockingCount: number;
+  warningCount: number;
+  passCount: number;
+  acknowledgedCount: number;
+  totalRequiredAcknowledgements: number;
+  missingAcknowledgements: string[];
+};
+
+type TargetProductSummary = {
+  itemId: string;
+  targetType?: string | null;
+  targetId?: string | null;
+  channelProductNo?: string | null;
+  productName?: string | null;
+  skuCode?: string | null;
+  changeType?: string | null;
+  priceChange?: { before: unknown; after: unknown } | null;
+  stockChange?: { before: unknown; after: unknown } | null;
+};
+
+type LiveSingleTestApprovalResult = {
+  approvalReady: boolean;
+  approvalCode: string;
+  approvalMessage: string;
+  checklistItems: LiveSingleTestApprovalChecklistItem[];
+  blockingReasons: string[];
+  warnings: string[];
+  requiredAcknowledgements: string[];
+  acknowledgedCount: number;
+  missingAcknowledgements: string[];
+  naverApiCallAllowed: false;
+  liveExecutionEnabled: false;
+  maxAllowedState: string;
+  summary: LiveSingleTestApprovalSummary;
+  targetProductSummary?: TargetProductSummary | null;
+};
+
+type EnvironmentSafetyChecklistItem = {
+  key: string;
+  label: string;
+  status: 'PASS' | 'WARN' | 'BLOCKED' | 'NEEDS_REVIEW';
+  message: string;
+};
+
+type EnvironmentSafetyResult = {
+  allowed: boolean;
+  environmentCode: string;
+  environmentMessage: string;
+  databaseEnvironment: 'local' | 'test' | 'unknown' | 'operating_blocked';
+  redisEnvironment: 'local' | 'test' | 'unknown' | 'operating_blocked';
+  naverApiCallAllowed: false;
+  operatingDbWriteAllowed: false;
+  queueAllowed: false;
+  workerAllowed: false;
+  checklistItems: EnvironmentSafetyChecklistItem[];
+  blockingReasons: string[];
+  warnings: string[];
+  sanitized: true;
+};
+
+type AuditHistoryItemStatus = 'RECORDED_BUT_NOT_EXECUTABLE' | 'UNKNOWN';
+
+type LiveSingleTestAuditHistoryItem = {
+  id: string;
+  batchJobId: string;
+  finalApprovalId: string | null;
+  auditCode: string;
+  status: AuditHistoryItemStatus;
+  recordedAt: string | null;
+  actorId: string | null;
+  acknowledgedItems: string[];
+  missingAcknowledgements: string[];
+  targetProductSummary: Record<string, unknown> | null;
+  safePayloadSummary: Record<string, unknown> | null;
+  naverApiCallAllowed: false;
+  liveExecutionEnabled: false;
+  queueAllowed: false;
+  workerAllowed: false;
+  sanitized: true;
+};
+
+type LiveSingleTestAuditHistorySummary = {
+  totalRecords: number;
+  hasAuditRecord: boolean;
+  latestAuditCode: string | null;
+  latestRecordedAt: string | null;
+  latestActorId: string | null;
+  latestStatus: AuditHistoryItemStatus | null;
+  naverApiCallAllowed: false;
+  liveExecutionEnabled: false;
+  operatingDbWriteAllowed: false;
+  queueAllowed: false;
+  workerAllowed: false;
+};
+
+type LiveSingleTestAuditHistoryResult = {
+  exists: boolean;
+  latestAudit: LiveSingleTestAuditHistoryItem | null;
+  summary: LiveSingleTestAuditHistorySummary;
+  blockingReasons: string[];
+  warnings: string[];
+  naverApiCallAllowed: false;
+  liveExecutionEnabled: false;
+  operatingDbWriteAllowed: false;
+  queueAllowed: false;
+  workerAllowed: false;
+  sanitized: true;
+  maxAllowedState: string;
+};
+
+type LiveSingleTestApprovalAuditTargetSummary = {
+  itemId?: string | null;
+  targetType?: string | null;
+  targetId?: string | null;
+  channelProductNo?: string | null;
+  productName?: string | null;
+  skuCode?: string | null;
+  changeType?: string | null;
+};
+
+type LiveSingleTestApprovalAuditPayloadSummary = {
+  changeType?: string | null;
+  riskLevel?: string | null;
+};
+
+type LiveSingleTestApprovalAuditRecord = {
+  auditCode: string;
+  auditStatus: string;
+  auditMessage: string;
+  finalApprovalId?: string | null;
+  batchJobId?: string | null;
+  actorId?: string | null;
+  acknowledgedItems: string[];
+  missingAcknowledgements: string[];
+  warnings: string[];
+  targetProductSummary?: LiveSingleTestApprovalAuditTargetSummary | null;
+  safePayloadSummary?: LiveSingleTestApprovalAuditPayloadSummary | null;
+  naverApiCallAllowed: false;
+  liveExecutionEnabled: false;
+  maxAllowedState: string;
+  recordedAt: string;
+};
+
+type LiveAdapterSkeletonStatus = {
+  ok: false;
+  success: false;
+  exists: true;
+  status: 'DISABLED' | 'NOT_IMPLEMENTED';
+  resultCode: string;
+  resultMessage: string;
+  naverApiCalled: false;
+  naverApiCallAllowed: false;
+  liveExecutionEnabled: false;
+  httpRequestCreated: false;
+  endpointCalled: false;
+  accessTokenRequested: false;
+  credentialsUsed: false;
+  operatingDbWriteAllowed: false;
+  queueAllowed: false;
+  workerAllowed: false;
+  maxAllowedState: string;
+  sanitized: true;
+};
+
 type NaverAuthConfigChecklistItem = {
   key: string;
   label: string;
@@ -103,6 +308,12 @@ type DraftBatchJob = {
   executedAt: string | null;
   executionMetadata: ExecutionMetadata | null;
   items: DraftBatchItem[];
+  livePreflight?: LivePreflightResult | null;
+  liveSingleTestApproval?: LiveSingleTestApprovalResult | null;
+  liveSingleTestApprovalAudit?: LiveSingleTestApprovalAuditRecord | null;
+  liveSingleTestAuditHistory?: LiveSingleTestAuditHistoryResult | null;
+  environmentSafety?: EnvironmentSafetyResult | null;
+  liveAdapterSkeletonStatus?: LiveAdapterSkeletonStatus | null;
   naverAuthConfigSafety?: NaverAuthConfigSafety;
 };
 
@@ -328,6 +539,16 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
   const [finalApprovalCreateError, setFinalApprovalCreateError] = useState<string | null>(null);
   const [finalApprovalCreateSuccess, setFinalApprovalCreateSuccess] = useState<string | null>(null);
 
+  const [liveAuditCheckedItems, setLiveAuditCheckedItems] = useState<string[]>([]);
+  const [liveAuditSaving, setLiveAuditSaving] = useState(false);
+  const [liveAuditSaveError, setLiveAuditSaveError] = useState<string | null>(null);
+  const [liveAuditSaveResult, setLiveAuditSaveResult] = useState<{
+    approvalCode: string;
+    recordedAt: string;
+    acknowledgedItems: string[];
+    message: string;
+  } | null>(null);
+
   const [now, setNow] = useState<number | null>(null);
 
   useEffect(() => {
@@ -424,6 +645,67 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
       else next.add(id);
       return next;
     });
+  };
+
+  const LIVE_AUDIT_REQUIRED_ACKNOWLEDGEMENTS = [
+    'CONFIRM_SINGLE_ITEM_ONLY',
+    'CONFIRM_TARGET_PRODUCT_REVIEWED',
+    'CONFIRM_PAYLOAD_REVIEWED',
+    'CONFIRM_NAVER_API_STILL_DISABLED',
+    'CONFIRM_LIVE_CAN_CHANGE_PRODUCT_LATER',
+    'CONFIRM_NO_REPLAY_ALLOWED',
+  ] as const;
+
+  const handleToggleLiveAuditItem = (ack: string) => {
+    setLiveAuditCheckedItems(prev =>
+      prev.includes(ack) ? prev.filter(a => a !== ack) : [...prev, ack]
+    );
+  };
+
+  const handleSaveLiveAudit = async () => {
+    if (!job || liveAuditSaving) return;
+    const currentActiveFinalApproval = finalApprovals?.find(a => a.status === 'ACTIVE') ?? null;
+    if (!currentActiveFinalApproval) return;
+
+    try {
+      setLiveAuditSaving(true);
+      setLiveAuditSaveError(null);
+
+      const response = await fetch('/api/sku-keyword-final-approvals/live-single-test-approval', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          finalApprovalId: currentActiveFinalApproval.id,
+          batchJobId: job.id,
+          acknowledgedItems: liveAuditCheckedItems,
+          confirmApprovalRecordOnly: true,
+          actorId: 'UI_USER',
+        }),
+      });
+
+      type SaveAuditResponse =
+        | { ok: true; approvalCode: string; auditRecord: { recordedAt: string; acknowledgedItems: string[] }; message: string }
+        | { ok: false; error?: string; missingAcknowledgements?: string[] };
+
+      const data = (await response.json()) as SaveAuditResponse;
+      if (!response.ok || !data.ok) {
+        throw new Error(
+          !data.ok && data.error ? data.error : '승인 기록 저장에 실패했습니다.'
+        );
+      }
+
+      setLiveAuditSaveResult({
+        approvalCode: data.approvalCode,
+        recordedAt: data.auditRecord.recordedAt,
+        acknowledgedItems: data.auditRecord.acknowledgedItems,
+        message: data.message,
+      });
+      await fetchJob();
+    } catch (err: unknown) {
+      setLiveAuditSaveError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setLiveAuditSaving(false);
+    }
   };
 
   const visibleWarnings = useMemo(() => detectVisibleWarningCodes(job), [job]);
@@ -956,6 +1238,951 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
           })()
         )}
       </div>
+
+      {/* ── Live 단일 테스트 전 점검표 ────────────────────────────────────────── */}
+      {job.livePreflight && (
+        <div className="mb-6 rounded-lg border border-[#262629] bg-[#121214] p-4">
+          <h2 className="mb-4 flex items-center gap-2 text-base font-semibold text-white">
+            <ShieldAlert className="h-5 w-5 text-amber-400" />
+            Live 단일 테스트 전 점검표
+          </h2>
+
+          <div className="mb-4 rounded-md border border-amber-500/20 bg-amber-500/10 p-3 text-xs text-amber-200">
+            <p>
+              현재 화면은 실제 Naver API 호출 전 점검용입니다.
+              이 단계에서는 상품 정보가 변경되지 않으며, Live 호출은 Safety Gate에 의해 차단됩니다.
+            </p>
+          </div>
+
+          {/* 점검 요약 */}
+          <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <div className="rounded-md border border-[#262629] bg-[#18181b] p-3">
+              <p className="mb-1 text-xs text-gray-500">점검 상태</p>
+              <p className={`text-xs font-semibold ${job.livePreflight.ready ? 'text-emerald-400' : 'text-red-400'}`}>
+                {job.livePreflight.ready ? '점검 조건 충족' : '점검 미완료'}
+              </p>
+            </div>
+            <div className="rounded-md border border-[#262629] bg-[#18181b] p-3">
+              <p className="mb-1 text-xs text-gray-500">Naver API 호출</p>
+              <p className={`text-xs font-semibold ${job.livePreflight.naverApiCalled ? 'text-red-400' : 'text-emerald-400'}`}>
+                {job.livePreflight.naverApiCalled ? '호출됨 (확인 필요)' : '아직 호출되지 않음'}
+              </p>
+            </div>
+            <div className="rounded-md border border-[#262629] bg-[#18181b] p-3">
+              <p className="mb-1 text-xs text-gray-500">Live 실행 가능 여부</p>
+              <p className="text-xs font-semibold text-red-400">현재는 차단됨</p>
+            </div>
+            <div className="rounded-md border border-[#262629] bg-[#18181b] p-3">
+              <p className="mb-1 text-xs text-gray-500">점검 현황</p>
+              <p className="text-xs">
+                <span className={job.livePreflight.summary.blockingCount > 0 ? 'text-red-400 font-semibold' : 'text-gray-400'}>
+                  차단 {job.livePreflight.summary.blockingCount}건
+                </span>
+                {' · '}
+                <span className={job.livePreflight.summary.warningCount > 0 ? 'text-amber-400' : 'text-gray-400'}>
+                  확인 {job.livePreflight.summary.warningCount}건
+                </span>
+                {' · '}
+                <span className="text-emerald-400">통과 {job.livePreflight.summary.passCount}건</span>
+              </p>
+            </div>
+          </div>
+
+          {/* 차단 사유 */}
+          {job.livePreflight.blockingReasons.length > 0 && (
+            <div className="mb-4 rounded-md border border-red-500/20 bg-red-500/10 p-3 text-xs">
+              <p className="mb-2 flex items-center gap-1.5 font-semibold text-red-300">
+                <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                차단 사유 ({job.livePreflight.blockingReasons.length}건)
+              </p>
+              <ul className="space-y-1">
+                {job.livePreflight.blockingReasons.map((reason, idx) => (
+                  <li key={idx} className="text-red-200">
+                    - {reason}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* 항목별 점검 결과 */}
+          <div className="mb-4 space-y-1.5">
+            <p className="mb-2 text-xs font-semibold text-gray-400">항목별 점검 결과</p>
+            {job.livePreflight.checklistItems.map(item => (
+              <div
+                key={item.key}
+                className={`flex items-start gap-3 rounded-md border p-2 text-xs ${
+                  item.status === 'PASS'
+                    ? 'border-emerald-500/20 bg-emerald-500/10'
+                    : item.status === 'BLOCKED'
+                      ? 'border-red-500/20 bg-red-500/10'
+                      : item.status === 'WARN'
+                        ? 'border-amber-500/20 bg-amber-500/10'
+                        : 'border-blue-500/20 bg-blue-500/10'
+                }`}
+              >
+                <span
+                  className={`mt-0.5 shrink-0 font-mono text-[9px] font-bold leading-4 ${
+                    item.status === 'PASS'
+                      ? 'text-emerald-400'
+                      : item.status === 'BLOCKED'
+                        ? 'text-red-400'
+                        : item.status === 'WARN'
+                          ? 'text-amber-400'
+                          : 'text-blue-400'
+                  }`}
+                >
+                  {item.status === 'PASS'
+                    ? 'PASS'
+                    : item.status === 'BLOCKED'
+                      ? 'BLOCKED'
+                      : item.status === 'WARN'
+                        ? 'WARN'
+                        : 'REVIEW'}
+                </span>
+                <div>
+                  <p className="font-semibold text-gray-200">{item.label}</p>
+                  <p className="text-gray-400">{item.message}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* 다음 단계 안내 */}
+          <div className="rounded-md border border-gray-500/20 bg-gray-500/5 p-3 text-xs text-gray-400">
+            <p className="mb-1 font-semibold text-gray-300">다음 단계 안내</p>
+            <p>
+              Live 단일 테스트는 별도 승인 흐름과 단일 테스트 상품 1건 제한 조건이 준비된
+              이후에만 진행할 수 있습니다.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* ── Live 단일 테스트 승인 준비 ────────────────────────────────────────── */}
+      {job.liveSingleTestApproval && (
+        <div className="mb-6 rounded-lg border border-[#262629] bg-[#121214] p-4">
+          <h2 className="mb-4 flex items-center gap-2 text-base font-semibold text-white">
+            <ShieldAlert className="h-5 w-5 text-indigo-400" />
+            Live 단일 테스트 승인 준비
+          </h2>
+
+          {/* 안내 문구 */}
+          <div className="mb-4 rounded-md border border-indigo-500/20 bg-indigo-500/10 p-3 text-xs text-indigo-200">
+            <p className="mb-1 font-semibold text-indigo-300">승인 준비 단계 안내</p>
+            <ul className="space-y-0.5">
+              <li>이 단계는 실제 Naver API 호출 전 승인 준비 단계입니다.</li>
+              <li>현재 승인해도 실제 네이버 상품은 변경되지 않습니다.</li>
+              <li>Live 실행은 별도 승인과 추가 Safety Gate가 준비된 이후에만 진행합니다.</li>
+              <li>운영 DB / 운영 Redis / 실제 Naver API 호출은 아직 비활성화되어 있습니다.</li>
+            </ul>
+          </div>
+
+          {/* 승인 준비 상태 요약 카드 */}
+          <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <div className="rounded-md border border-[#262629] bg-[#18181b] p-3">
+              <p className="mb-1 text-xs text-gray-500">승인 준비 상태</p>
+              <p className={`text-xs font-semibold ${job.liveSingleTestApproval.approvalReady ? 'text-emerald-400' : 'text-amber-400'}`}>
+                {job.liveSingleTestApproval.approvalReady ? '준비 완료' : '준비 미완료'}
+              </p>
+            </div>
+            <div className="rounded-md border border-[#262629] bg-[#18181b] p-3">
+              <p className="mb-1 text-xs text-gray-500">Naver API 호출</p>
+              <p className="text-xs font-semibold text-red-400">비활성화 (항상 차단)</p>
+            </div>
+            <div className="rounded-md border border-[#262629] bg-[#18181b] p-3">
+              <p className="mb-1 text-xs text-gray-500">Live 실행 가능 여부</p>
+              <p className="text-xs font-semibold text-red-400">비활성화 (항상 차단)</p>
+            </div>
+            <div className="rounded-md border border-[#262629] bg-[#18181b] p-3">
+              <p className="mb-1 text-xs text-gray-500">점검 현황</p>
+              <p className="text-xs">
+                <span className={job.liveSingleTestApproval.summary.blockingCount > 0 ? 'text-red-400 font-semibold' : 'text-gray-400'}>
+                  차단 {job.liveSingleTestApproval.summary.blockingCount}건
+                </span>
+                {' · '}
+                <span className="text-emerald-400">통과 {job.liveSingleTestApproval.summary.passCount}건</span>
+              </p>
+            </div>
+          </div>
+
+          {/* 대상 정보 카드 */}
+          {job.liveSingleTestApproval.targetProductSummary && (
+            <div className="mb-4 rounded-md border border-[#262629] bg-[#18181b] p-3 text-xs">
+              <p className="mb-2 font-semibold text-gray-300">대상 item 정보</p>
+              <div className="grid grid-cols-2 gap-x-4 gap-y-1 sm:grid-cols-3">
+                {job.liveSingleTestApproval.targetProductSummary.productName && (
+                  <div className="col-span-2 sm:col-span-3">
+                    <span className="text-gray-500">상품명: </span>
+                    <span className="text-gray-200">{job.liveSingleTestApproval.targetProductSummary.productName}</span>
+                  </div>
+                )}
+                {job.liveSingleTestApproval.targetProductSummary.channelProductNo && (
+                  <div>
+                    <span className="text-gray-500">채널 상품번호: </span>
+                    <span className="font-mono text-gray-300">{job.liveSingleTestApproval.targetProductSummary.channelProductNo}</span>
+                  </div>
+                )}
+                {job.liveSingleTestApproval.targetProductSummary.targetType && (
+                  <div>
+                    <span className="text-gray-500">대상 유형: </span>
+                    <span className="text-gray-300">{job.liveSingleTestApproval.targetProductSummary.targetType}</span>
+                  </div>
+                )}
+                {job.liveSingleTestApproval.targetProductSummary.changeType && (
+                  <div>
+                    <span className="text-gray-500">변경 유형: </span>
+                    <span className="font-semibold text-emerald-400">{job.liveSingleTestApproval.targetProductSummary.changeType}</span>
+                  </div>
+                )}
+                {job.liveSingleTestApproval.targetProductSummary.skuCode && (
+                  <div>
+                    <span className="text-gray-500">SKU: </span>
+                    <span className="font-mono text-gray-300">{job.liveSingleTestApproval.targetProductSummary.skuCode}</span>
+                  </div>
+                )}
+                {job.liveSingleTestApproval.targetProductSummary.priceChange && (
+                  <div>
+                    <span className="text-gray-500">가격 변경 예정: </span>
+                    <span className="text-gray-400 line-through">
+                      {String(job.liveSingleTestApproval.targetProductSummary.priceChange.before ?? '-')}
+                    </span>
+                    {' → '}
+                    <span className="font-semibold text-white">
+                      {String(job.liveSingleTestApproval.targetProductSummary.priceChange.after ?? '-')}
+                    </span>
+                  </div>
+                )}
+                {job.liveSingleTestApproval.targetProductSummary.stockChange && (
+                  <div>
+                    <span className="text-gray-500">재고 변경 예정: </span>
+                    <span className="text-gray-400 line-through">
+                      {String(job.liveSingleTestApproval.targetProductSummary.stockChange.before ?? '-')}
+                    </span>
+                    {' → '}
+                    <span className="font-semibold text-white">
+                      {String(job.liveSingleTestApproval.targetProductSummary.stockChange.after ?? '-')}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* 차단 사유 */}
+          {job.liveSingleTestApproval.blockingReasons.length > 0 && (
+            <div className="mb-4 rounded-md border border-red-500/20 bg-red-500/10 p-3 text-xs">
+              <p className="mb-2 flex items-center gap-1.5 font-semibold text-red-300">
+                <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                차단 사유 ({job.liveSingleTestApproval.blockingReasons.length}건)
+              </p>
+              <ul className="space-y-1">
+                {job.liveSingleTestApproval.blockingReasons.map((reason, idx) => (
+                  <li key={idx} className="text-red-200">- {reason}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* 항목별 점검 결과 */}
+          <div className="mb-4 space-y-1.5">
+            <p className="mb-2 text-xs font-semibold text-gray-400">항목별 점검 결과</p>
+            {job.liveSingleTestApproval.checklistItems.map(item => (
+              <div
+                key={item.key}
+                className={`flex items-start gap-3 rounded-md border p-2 text-xs ${
+                  item.status === 'PASS'
+                    ? 'border-emerald-500/20 bg-emerald-500/10'
+                    : item.status === 'BLOCKED'
+                      ? 'border-red-500/20 bg-red-500/10'
+                      : item.status === 'WARN'
+                        ? 'border-amber-500/20 bg-amber-500/10'
+                        : 'border-blue-500/20 bg-blue-500/10'
+                }`}
+              >
+                <span className={`mt-0.5 shrink-0 font-mono text-[9px] font-bold leading-4 ${
+                  item.status === 'PASS' ? 'text-emerald-400'
+                    : item.status === 'BLOCKED' ? 'text-red-400'
+                    : item.status === 'WARN' ? 'text-amber-400'
+                    : 'text-blue-400'
+                }`}>
+                  {item.status === 'PASS' ? 'PASS'
+                    : item.status === 'BLOCKED' ? 'BLOCKED'
+                    : item.status === 'WARN' ? 'WARN'
+                    : 'REVIEW'}
+                </span>
+                <div>
+                  <p className="font-semibold text-gray-200">{item.label}</p>
+                  <p className="text-gray-400">{item.message}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* 필수 확인 문구 (requiredAcknowledgements) */}
+          {job.liveSingleTestApproval.requiredAcknowledgements.length > 0 && (
+            <div className="mb-4 rounded-md border border-amber-500/20 bg-amber-500/10 p-3 text-xs">
+              <p className="mb-2 font-semibold text-amber-300">
+                필수 확인 항목 ({job.liveSingleTestApproval.requiredAcknowledgements.length}건 — 실제 Live 테스트 단계 전 확인 필요)
+              </p>
+              <ul className="space-y-1.5 text-amber-100">
+                {job.liveSingleTestApproval.requiredAcknowledgements.map(ack => (
+                  <li key={ack} className="flex items-start gap-2">
+                    <span className="mt-0.5 shrink-0 font-mono text-[9px] text-amber-400">[확인 필요]</span>
+                    <span>
+                      {ack === 'CONFIRM_SINGLE_ITEM_ONLY' && '실제 Live 테스트는 단일 상품 1건으로만 제한됩니다.'}
+                      {ack === 'CONFIRM_TARGET_PRODUCT_REVIEWED' && '대상 상품번호, 스마트스토어, 변경 예정 payload를 직접 확인해야 합니다.'}
+                      {ack === 'CONFIRM_PAYLOAD_REVIEWED' && '실제 변경될 가격/재고/키워드 값을 직접 검토했습니다.'}
+                      {ack === 'CONFIRM_NAVER_API_STILL_DISABLED' && '운영 DB / 운영 Redis / 실제 Naver API 호출은 아직 비활성화되어 있습니다.'}
+                      {ack === 'CONFIRM_LIVE_CAN_CHANGE_PRODUCT_LATER' && '실제 Live 테스트 단계에서는 네이버 스마트스토어 상품 정보가 변경될 수 있습니다.'}
+                      {ack === 'CONFIRM_NO_REPLAY_ALLOWED' && 'Live 실행은 별도 승인과 추가 Safety Gate가 준비된 이후에만 진행합니다.'}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Live 실행 비활성화 배지 */}
+          <div className="mb-4 flex items-center gap-3">
+            <div className="inline-flex items-center rounded-md border border-red-500/30 bg-red-500/10 px-3 py-1.5 text-xs font-semibold text-red-300">
+              <AlertTriangle className="mr-1.5 h-3.5 w-3.5" />
+              Live 실행 비활성화됨
+            </div>
+            <div className="inline-flex items-center rounded-md border border-gray-500/30 bg-gray-500/10 px-3 py-1.5 text-xs text-gray-400">
+              승인 준비만 가능 — 실제 Naver API 호출 불가
+            </div>
+          </div>
+
+          {/* 다음 단계 안내 */}
+          <div className="rounded-md border border-gray-500/20 bg-gray-500/5 p-3 text-xs text-gray-400">
+            <p className="mb-1 font-semibold text-gray-300">다음 단계 안내</p>
+            <p>
+              현재 단계에서는 실제 Live 실행이 불가능합니다. 다음 단계에서 별도 승인 흐름과
+              단일 테스트 실행 제한을 다시 확인한 뒤 Live Adapter 구현 여부를 결정하세요.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* ── Live 단일 테스트 승인 기록 저장 ──────────────────────────────────── */}
+      {job.liveSingleTestApproval && (() => {
+        const guard = job.liveSingleTestApproval!;
+        const existingAudit = job.liveSingleTestApprovalAudit ?? null;
+        const activeFa = finalApprovals?.find(a => a.status === 'ACTIVE') ?? null;
+        const allAcked = LIVE_AUDIT_REQUIRED_ACKNOWLEDGEMENTS.every(a =>
+          liveAuditCheckedItems.includes(a)
+        );
+        const canSave =
+          !liveAuditSaving &&
+          !liveAuditSaveResult &&
+          !existingAudit &&
+          !!activeFa &&
+          guard.summary.blockingCount === 0 &&
+          allAcked;
+
+        return (
+          <div className="mb-6 rounded-lg border border-[#262629] bg-[#121214] p-4">
+            <h2 className="mb-4 flex items-center gap-2 text-base font-semibold text-white">
+              <ShieldAlert className="h-5 w-5 text-violet-400" />
+              Live 단일 테스트 승인 기록 저장
+            </h2>
+
+            {/* 안내 문구 */}
+            <div className="mb-4 rounded-md border border-violet-500/20 bg-violet-500/10 p-3 text-xs text-violet-200">
+              <p className="mb-1 font-semibold text-violet-300">승인 기록 저장 안내</p>
+              <ul className="space-y-0.5">
+                <li>이 버튼은 실제 Naver API를 호출하지 않습니다. 승인 기록만 저장합니다.</li>
+                <li>승인 기록을 저장해도 실제 Live 실행은 계속 불가능합니다.</li>
+                <li>저장된 승인 기록은 감사 추적(audit trail)용으로만 사용됩니다.</li>
+                <li>모든 필수 확인 항목에 체크 후 저장 버튼을 클릭하세요.</li>
+              </ul>
+            </div>
+
+            {/* 이미 저장된 audit record 표시 */}
+            {(existingAudit || liveAuditSaveResult) && (
+              <div className="mb-4 rounded-md border border-emerald-500/20 bg-emerald-500/10 p-3 text-xs">
+                <p className="mb-2 flex items-center gap-1.5 font-semibold text-emerald-300">
+                  <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
+                  승인 기록 저장 완료
+                </p>
+                {(() => {
+                  const audit = existingAudit ?? (liveAuditSaveResult ? {
+                    auditCode: liveAuditSaveResult.approvalCode,
+                    recordedAt: liveAuditSaveResult.recordedAt,
+                    acknowledgedItems: liveAuditSaveResult.acknowledgedItems,
+                    actorId: 'UI_USER',
+                    naverApiCallAllowed: false as false,
+                    liveExecutionEnabled: false as false,
+                    maxAllowedState: 'LIVE_SINGLE_TEST_APPROVAL_RECORDED_BUT_NOT_EXECUTABLE',
+                  } : null);
+                  if (!audit) return null;
+                  return (
+                    <div className="space-y-1 text-gray-300">
+                      <div>
+                        <span className="text-gray-500">승인 코드: </span>
+                        <span className="font-mono text-xs text-emerald-300">{audit.auditCode}</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-500">기록 시각: </span>
+                        <span>{new Date(audit.recordedAt).toLocaleString()}</span>
+                      </div>
+                      {audit.actorId && (
+                        <div>
+                          <span className="text-gray-500">승인자: </span>
+                          <span className="font-mono">{audit.actorId}</span>
+                        </div>
+                      )}
+                      <div>
+                        <span className="text-gray-500">확인 항목: </span>
+                        <span>{audit.acknowledgedItems.length}건 완료</span>
+                      </div>
+                        <div className="mt-2 flex flex-wrap gap-2">
+                        <span className="inline-flex items-center rounded border border-red-500/30 bg-red-500/10 px-2 py-0.5 text-[10px] font-semibold text-red-300">
+                          Naver API 호출 비활성화됨
+                        </span>
+                        <span className="inline-flex items-center rounded border border-red-500/30 bg-red-500/10 px-2 py-0.5 text-[10px] font-semibold text-red-300">
+                          Live 실행 비활성화됨
+                        </span>
+                        <span className="inline-flex items-center rounded border border-gray-600/30 bg-gray-600/10 px-2 py-0.5 text-[10px] text-gray-400">
+                          승인 기록 전용 — 실행 상태 미전환
+                        </span>
+                      </div>
+                      <p className="mt-2 text-[10px] text-gray-500">
+                        이 기록은 Live 단일 테스트 전 확인 항목에 대한 감사 기록입니다. 이 기록만으로 실제 Naver API 호출은 실행되지 않습니다.
+                      </p>
+                    </div>
+                  );
+                })()}
+              </div>
+            )}
+
+            {/* 기록이 없을 때 체크박스 + 저장 버튼 표시 */}
+            {!existingAudit && !liveAuditSaveResult && (
+              <>
+                {/* Guard 차단 경고 */}
+                {guard.summary.blockingCount > 0 && (
+                  <div className="mb-4 rounded-md border border-red-500/20 bg-red-500/10 p-3 text-xs">
+                    <p className="mb-1 flex items-center gap-1.5 font-semibold text-red-300">
+                      <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                      승인 준비 Guard에서 {guard.summary.blockingCount}건이 차단 중입니다
+                    </p>
+                    <p className="text-red-200">
+                      위의 "Live 단일 테스트 승인 준비" 섹션의 차단 사유를 먼저 해결하세요.
+                    </p>
+                  </div>
+                )}
+
+                {/* 필수 확인 체크박스 */}
+                <div className="mb-4 space-y-2">
+                  <p className="mb-2 text-xs font-semibold text-gray-300">필수 확인 항목 (전체 체크 필요)</p>
+                  {([
+                    { key: 'CONFIRM_SINGLE_ITEM_ONLY', label: '실제 Live 테스트는 단일 상품 1건으로만 제한됩니다.' },
+                    { key: 'CONFIRM_TARGET_PRODUCT_REVIEWED', label: '대상 상품번호, 스마트스토어, 변경 예정 payload를 직접 확인했습니다.' },
+                    { key: 'CONFIRM_PAYLOAD_REVIEWED', label: '실제 변경될 가격/재고/키워드 값을 직접 검토했습니다.' },
+                    { key: 'CONFIRM_NAVER_API_STILL_DISABLED', label: '운영 DB / 운영 Redis / 실제 Naver API 호출은 아직 비활성화되어 있습니다.' },
+                    { key: 'CONFIRM_LIVE_CAN_CHANGE_PRODUCT_LATER', label: '실제 Live 테스트 단계에서는 네이버 스마트스토어 상품 정보가 변경될 수 있습니다.' },
+                    { key: 'CONFIRM_NO_REPLAY_ALLOWED', label: 'Live 실행은 별도 승인과 추가 Safety Gate가 준비된 이후에만 진행합니다.' },
+                  ] as const).map(({ key, label }) => {
+                    const checked = liveAuditCheckedItems.includes(key);
+                    return (
+                      <label
+                        key={key}
+                        className={`flex cursor-pointer items-start gap-3 rounded-md border p-2.5 text-xs transition-colors ${
+                          checked
+                            ? 'border-violet-500/30 bg-violet-500/10'
+                            : 'border-[#262629] bg-[#18181b] hover:border-violet-500/20'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          className="mt-0.5 shrink-0 accent-violet-500"
+                          checked={checked}
+                          onChange={() => handleToggleLiveAuditItem(key)}
+                        />
+                        <span className={checked ? 'text-violet-200' : 'text-gray-400'}>
+                          {label}
+                        </span>
+                      </label>
+                    );
+                  })}
+                </div>
+
+                {/* 체크 현황 */}
+                <div className="mb-4 flex items-center gap-2 text-xs">
+                  <span className={liveAuditCheckedItems.length >= 6 ? 'text-violet-300 font-semibold' : 'text-gray-500'}>
+                    {liveAuditCheckedItems.length} / {LIVE_AUDIT_REQUIRED_ACKNOWLEDGEMENTS.length} 항목 확인됨
+                  </span>
+                  {!allAcked && (
+                    <span className="text-amber-400">— 모든 항목을 체크해야 저장 가능합니다.</span>
+                  )}
+                </div>
+
+                {/* 저장 오류 */}
+                {liveAuditSaveError && (
+                  <div className="mb-4 rounded-md border border-red-500/20 bg-red-500/10 p-3 text-xs text-red-300">
+                    <span className="font-semibold">오류: </span>{liveAuditSaveError}
+                  </div>
+                )}
+
+                {/* 저장 버튼 */}
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                  <button
+                    type="button"
+                    onClick={handleSaveLiveAudit}
+                    disabled={!canSave}
+                    className={`inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-semibold transition-colors ${
+                      canSave
+                        ? 'border-violet-500/50 bg-violet-500/20 text-violet-200 hover:bg-violet-500/30'
+                        : 'cursor-not-allowed border-gray-700 bg-gray-800 text-gray-600'
+                    }`}
+                  >
+                    {liveAuditSaving && <Loader2 className="h-4 w-4 animate-spin" />}
+                    승인 기록 저장 (실제 Naver API 미호출)
+                  </button>
+                  <span className="text-xs text-gray-500">
+                    이 버튼은 승인 기록만 저장합니다 — 실제 네이버 스마트스토어 상품은 변경되지 않습니다.
+                  </span>
+                </div>
+
+                {/* 비활성 이유 */}
+                {!canSave && !liveAuditSaving && (
+                  <div className="mt-3 text-xs text-gray-600">
+                    {!activeFa && <div>• ACTIVE Final Approval이 없습니다.</div>}
+                    {guard.summary.blockingCount > 0 && (
+                      <div>• 승인 준비 Guard에서 {guard.summary.blockingCount}건이 차단 중입니다.</div>
+                    )}
+                    {!allAcked && <div>• 필수 확인 항목 {LIVE_AUDIT_REQUIRED_ACKNOWLEDGEMENTS.length - liveAuditCheckedItems.filter(a => LIVE_AUDIT_REQUIRED_ACKNOWLEDGEMENTS.includes(a as typeof LIVE_AUDIT_REQUIRED_ACKNOWLEDGEMENTS[number])).length}개가 미확인 상태입니다.</div>}
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        );
+      })()}
+
+      {/* ── 환경 / DB 안전 확인 ─────────────────────────────────────────────── */}
+      {job.environmentSafety && (() => {
+        const env = job.environmentSafety!;
+        const dbEnvColor: Record<string, string> = {
+          local: 'text-emerald-400',
+          test: 'text-teal-400',
+          unknown: 'text-amber-400',
+          operating_blocked: 'text-red-400',
+        };
+        return (
+          <div className="mb-6 rounded-lg border border-[#262629] bg-[#121214] p-4">
+            <h2 className="mb-3 flex items-center gap-2 text-base font-semibold text-white">
+              <ShieldAlert className="h-5 w-5 text-cyan-400" />
+              Live 실행 전 환경 안전 점검
+              <span className={`ml-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold ${
+                env.allowed
+                  ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300'
+                  : 'border-red-500/30 bg-red-500/10 text-red-300'
+              }`}>
+                {env.allowed ? '안전 조건 충족' : '차단 항목 있음'}
+              </span>
+            </h2>
+
+            {/* 안내 문구 */}
+            <div className="mb-4 rounded-md border border-cyan-500/20 bg-cyan-500/10 p-3 text-xs text-cyan-200">
+              <p className="mb-1 font-semibold text-cyan-300">환경 점검 안내</p>
+              <p className="mb-1">현재 화면은 Live 실행 전 환경 안전 점검용입니다. 이 단계에서는 실제 Naver API 호출, Queue enqueue, Worker 실행, 운영 DB write가 모두 비활성화되어야 합니다.</p>
+              <p className="text-cyan-300/70">환경 정보는 보안상 원문 URL이나 secret을 표시하지 않고 안전한 분류값만 표시합니다.</p>
+            </div>
+
+            {/* 환경 상태 요약 */}
+            <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <div className="rounded-md border border-[#262629] bg-[#18181b] p-2.5 text-center text-xs">
+                <p className="mb-1 text-gray-500">DB 환경</p>
+                <p className={`font-semibold font-mono ${dbEnvColor[env.databaseEnvironment] ?? 'text-gray-300'}`}>
+                  {env.databaseEnvironment}
+                </p>
+              </div>
+              <div className="rounded-md border border-[#262629] bg-[#18181b] p-2.5 text-center text-xs">
+                <p className="mb-1 text-gray-500">Redis 환경</p>
+                <p className={`font-semibold font-mono ${dbEnvColor[env.redisEnvironment] ?? 'text-gray-300'}`}>
+                  {env.redisEnvironment}
+                </p>
+              </div>
+              <div className="rounded-md border border-[#262629] bg-[#18181b] p-2.5 text-center text-xs">
+                <p className="mb-1 text-gray-500">차단 항목</p>
+                <p className={`font-semibold ${env.blockingReasons.length > 0 ? 'text-red-400' : 'text-emerald-400'}`}>
+                  {env.blockingReasons.length}건
+                </p>
+              </div>
+              <div className="rounded-md border border-[#262629] bg-[#18181b] p-2.5 text-center text-xs">
+                <p className="mb-1 text-gray-500">경고 항목</p>
+                <p className={`font-semibold ${env.warnings.length > 0 ? 'text-amber-400' : 'text-gray-400'}`}>
+                  {env.warnings.length}건
+                </p>
+              </div>
+            </div>
+
+            {/* 항상 false 강제 배지 */}
+            <div className="mb-4 flex flex-wrap gap-2">
+              <div className="inline-flex items-center rounded-md border border-red-500/30 bg-red-500/10 px-2.5 py-1 text-[10px] font-semibold text-red-300">
+                <X className="mr-1 h-3 w-3" /> Naver API 호출 비활성화
+              </div>
+              <div className="inline-flex items-center rounded-md border border-red-500/30 bg-red-500/10 px-2.5 py-1 text-[10px] font-semibold text-red-300">
+                <X className="mr-1 h-3 w-3" /> 운영 DB write 차단
+              </div>
+              <div className="inline-flex items-center rounded-md border border-red-500/30 bg-red-500/10 px-2.5 py-1 text-[10px] font-semibold text-red-300">
+                <X className="mr-1 h-3 w-3" /> Queue 비활성화
+              </div>
+              <div className="inline-flex items-center rounded-md border border-red-500/30 bg-red-500/10 px-2.5 py-1 text-[10px] font-semibold text-red-300">
+                <X className="mr-1 h-3 w-3" /> Worker 비활성화
+              </div>
+              <div className="inline-flex items-center rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-[10px] font-semibold text-emerald-300">
+                <CheckCircle2 className="mr-1 h-3 w-3" /> Secret 비노출
+              </div>
+            </div>
+
+            {/* 차단 사유 */}
+            {env.blockingReasons.length > 0 && (
+              <div className="mb-4 rounded-md border border-red-500/20 bg-red-500/10 p-3 text-xs">
+                <p className="mb-2 flex items-center gap-1.5 font-semibold text-red-300">
+                  <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                  차단 사유 ({env.blockingReasons.length}건)
+                </p>
+                <ul className="space-y-1">
+                  {env.blockingReasons.map((reason, idx) => (
+                    <li key={idx} className="text-red-200">- {reason}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* 경고 */}
+            {env.warnings.length > 0 && (
+              <div className="mb-4 rounded-md border border-amber-500/20 bg-amber-500/10 p-3 text-xs">
+                <p className="mb-2 flex items-center gap-1.5 font-semibold text-amber-300">
+                  <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                  경고 ({env.warnings.length}건)
+                </p>
+                <ul className="space-y-1">
+                  {env.warnings.map((w, idx) => (
+                    <li key={idx} className="text-amber-200">- {w}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* 체크리스트 */}
+            <div className="space-y-1.5">
+              <p className="mb-2 text-xs font-semibold text-gray-400">환경 안전 체크리스트</p>
+              {env.checklistItems.map(item => (
+                <div
+                  key={item.key}
+                  className={`flex items-start gap-3 rounded-md border p-2 text-xs ${
+                    item.status === 'PASS'
+                      ? 'border-emerald-500/20 bg-emerald-500/10'
+                      : item.status === 'BLOCKED'
+                        ? 'border-red-500/20 bg-red-500/10'
+                        : item.status === 'WARN'
+                          ? 'border-amber-500/20 bg-amber-500/10'
+                          : 'border-blue-500/20 bg-blue-500/10'
+                  }`}
+                >
+                  <span className={`mt-0.5 shrink-0 font-mono text-[9px] font-bold leading-4 ${
+                    item.status === 'PASS' ? 'text-emerald-400'
+                      : item.status === 'BLOCKED' ? 'text-red-400'
+                      : item.status === 'WARN' ? 'text-amber-400'
+                      : 'text-blue-400'
+                  }`}>
+                    {item.status === 'PASS' ? 'PASS'
+                      : item.status === 'BLOCKED' ? 'BLOCKED'
+                      : item.status === 'WARN' ? 'WARN'
+                      : 'REVIEW'}
+                  </span>
+                  <div>
+                    <p className="font-semibold text-gray-200">{item.label}</p>
+                    <p className="text-gray-400">{item.message}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* 환경 코드 */}
+            <div className="mt-3 rounded-md border border-gray-500/20 bg-gray-500/5 p-2 text-xs text-gray-400">
+              <span className="text-gray-500">환경 코드: </span>
+              <span className="font-mono text-gray-300">{env.environmentCode}</span>
+              <span className="mx-2 text-gray-600">|</span>
+              <span>{env.environmentMessage}</span>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Live Adapter Skeleton 상태 ───────────────────────────────────────── */}
+      {job.liveAdapterSkeletonStatus && (() => {
+        const skel = job.liveAdapterSkeletonStatus!;
+        return (
+          <div className="mb-6 rounded-lg border border-[#262629] bg-[#121214] p-4">
+            <h2 className="mb-3 flex items-center gap-2 text-base font-semibold text-white">
+              <FileJson className="h-5 w-5 text-violet-400" />
+              Live Adapter 준비 상태 — 실제 호출 비활성화
+              <span className="ml-1 rounded-full border border-violet-500/30 bg-violet-500/10 px-2 py-0.5 text-[10px] font-semibold text-violet-300">
+                {skel.resultCode}
+              </span>
+            </h2>
+
+            {/* 안내 */}
+            <div className="mb-4 rounded-md border border-violet-500/20 bg-violet-500/10 p-3 text-xs text-violet-200">
+              <p>{skel.resultMessage}</p>
+            </div>
+
+            {/* 안전 배지 */}
+            <div className="mb-4 flex flex-wrap gap-2">
+              <span className="inline-flex items-center rounded-md border border-violet-500/30 bg-violet-500/10 px-2.5 py-1 text-[10px] font-semibold text-violet-300">
+                <X className="mr-1 h-3 w-3" /> Live Adapter skeleton만 존재
+              </span>
+              <span className="inline-flex items-center rounded-md border border-red-500/30 bg-red-500/10 px-2.5 py-1 text-[10px] font-semibold text-red-300">
+                <X className="mr-1 h-3 w-3" /> 실제 호출 비활성화
+              </span>
+              <span className="inline-flex items-center rounded-md border border-red-500/30 bg-red-500/10 px-2.5 py-1 text-[10px] font-semibold text-red-300">
+                <X className="mr-1 h-3 w-3" /> HTTP 요청 없음
+              </span>
+              <span className="inline-flex items-center rounded-md border border-red-500/30 bg-red-500/10 px-2.5 py-1 text-[10px] font-semibold text-red-300">
+                <X className="mr-1 h-3 w-3" /> Token 요청 없음
+              </span>
+              <span className="inline-flex items-center rounded-md border border-red-500/30 bg-red-500/10 px-2.5 py-1 text-[10px] font-semibold text-red-300">
+                <X className="mr-1 h-3 w-3" /> Endpoint 호출 없음
+              </span>
+              <span className="inline-flex items-center rounded-md border border-red-500/30 bg-red-500/10 px-2.5 py-1 text-[10px] font-semibold text-red-300">
+                <X className="mr-1 h-3 w-3" /> Live 실행 불가
+              </span>
+            </div>
+
+            {/* 상태 체크 그리드 */}
+            <div className="mb-4 grid grid-cols-2 gap-2 text-xs sm:grid-cols-3 lg:grid-cols-4">
+              {[
+                { label: 'naverApiCalled', value: skel.naverApiCalled },
+                { label: 'naverApiCallAllowed', value: skel.naverApiCallAllowed },
+                { label: 'liveExecutionEnabled', value: skel.liveExecutionEnabled },
+                { label: 'httpRequestCreated', value: skel.httpRequestCreated },
+                { label: 'endpointCalled', value: skel.endpointCalled },
+                { label: 'accessTokenRequested', value: skel.accessTokenRequested },
+                { label: 'credentialsUsed', value: skel.credentialsUsed },
+                { label: 'operatingDbWriteAllowed', value: skel.operatingDbWriteAllowed },
+              ].map(({ label, value }) => (
+                <div key={label} className="rounded-md border border-[#262629] bg-[#18181b] p-2 text-center">
+                  <p className="text-[9px] text-gray-500">{label}</p>
+                  <p className={`mt-0.5 font-mono text-xs font-bold ${value ? 'text-red-400' : 'text-emerald-400'}`}>
+                    {String(value)}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            {/* maxAllowedState */}
+            <div className="rounded-md border border-gray-600/20 bg-gray-600/5 p-2 text-xs text-gray-400">
+              <span className="text-gray-500">최대 허용 상태: </span>
+              <span className="font-mono text-violet-300">{skel.maxAllowedState}</span>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Live 단일 테스트 승인 감사 이력 ─────────────────────────────────── */}
+      {job.liveSingleTestAuditHistory && (() => {
+        const hist = job.liveSingleTestAuditHistory!;
+        const latest = hist.latestAudit;
+        return (
+          <div className="mb-6 rounded-lg border border-[#262629] bg-[#121214] p-4">
+            <h2 className="mb-3 flex items-center gap-2 text-base font-semibold text-white">
+              <FileJson className="h-5 w-5 text-indigo-400" />
+              Live 단일 테스트 승인 감사 이력
+              <span className={`ml-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold ${
+                hist.exists
+                  ? 'border-indigo-500/30 bg-indigo-500/10 text-indigo-300'
+                  : 'border-gray-600/30 bg-gray-600/10 text-gray-500'
+              }`}>
+                {hist.exists ? `기록 ${hist.summary.totalRecords}건` : '기록 없음'}
+              </span>
+            </h2>
+
+            {/* 안내 문구 */}
+            <div className="mb-4 rounded-md border border-indigo-500/20 bg-indigo-500/10 p-3 text-xs text-indigo-200">
+              <p className="mb-1">이 감사 기록은 승인 확인 이력일 뿐이며 실제 Naver API 호출을 실행하지 않습니다.</p>
+              <p className="text-indigo-300/70">Live 실행은 별도 단계에서 추가 Safety Gate와 명시 승인 후에만 검토합니다.</p>
+            </div>
+
+            {/* 안전 상태 배지 */}
+            <div className="mb-4 flex flex-wrap gap-2">
+              <div className="inline-flex items-center rounded-md border border-red-500/30 bg-red-500/10 px-2.5 py-1 text-[10px] font-semibold text-red-300">
+                <X className="mr-1 h-3 w-3" /> Naver API 호출 비활성화
+              </div>
+              <div className="inline-flex items-center rounded-md border border-red-500/30 bg-red-500/10 px-2.5 py-1 text-[10px] font-semibold text-red-300">
+                <X className="mr-1 h-3 w-3" /> Live 실행 비활성화
+              </div>
+              <div className="inline-flex items-center rounded-md border border-red-500/30 bg-red-500/10 px-2.5 py-1 text-[10px] font-semibold text-red-300">
+                <X className="mr-1 h-3 w-3" /> 운영 DB write 차단
+              </div>
+              <div className="inline-flex items-center rounded-md border border-red-500/30 bg-red-500/10 px-2.5 py-1 text-[10px] font-semibold text-red-300">
+                <X className="mr-1 h-3 w-3" /> Queue 비활성화
+              </div>
+              <div className="inline-flex items-center rounded-md border border-red-500/30 bg-red-500/10 px-2.5 py-1 text-[10px] font-semibold text-red-300">
+                <X className="mr-1 h-3 w-3" /> Worker 비활성화
+              </div>
+              <div className="inline-flex items-center rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-[10px] font-semibold text-emerald-300">
+                <CheckCircle2 className="mr-1 h-3 w-3" /> Secret 비노출 (조회 전용)
+              </div>
+            </div>
+
+            {/* 기록 없음 */}
+            {!hist.exists && (
+              <div className="rounded-md border border-gray-600/20 bg-gray-600/5 p-3 text-xs text-gray-400">
+                <p className="font-semibold text-gray-300">승인 감사 기록이 없습니다.</p>
+                <p className="mt-1">Live 단일 테스트 승인 기록 저장 섹션에서 먼저 필수 확인 항목을 체크하고 기록을 저장하세요.</p>
+              </div>
+            )}
+
+            {/* 최신 감사 기록 */}
+            {latest && (
+              <div className="mb-4 rounded-md border border-indigo-500/20 bg-indigo-500/5 p-4 text-xs">
+                <p className="mb-3 text-xs font-semibold text-indigo-300">최신 감사 기록</p>
+
+                {/* 기본 정보 */}
+                <div className="mb-3 grid grid-cols-1 gap-y-1.5 sm:grid-cols-2">
+                  <div>
+                    <span className="text-gray-500">승인 코드: </span>
+                    <span className="font-mono text-indigo-300">{latest.auditCode}</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-500">상태: </span>
+                    <span className={`font-semibold ${
+                      latest.status === 'RECORDED_BUT_NOT_EXECUTABLE'
+                        ? 'text-emerald-400'
+                        : 'text-gray-400'
+                    }`}>
+                      {latest.status === 'RECORDED_BUT_NOT_EXECUTABLE'
+                        ? '기록 완료 (실행 불가)'
+                        : latest.status}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-gray-500">기록 시각: </span>
+                    <span className="text-gray-200">
+                      {latest.recordedAt ? new Date(latest.recordedAt).toLocaleString() : '-'}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-gray-500">승인자: </span>
+                    <span className="font-mono text-gray-200">{latest.actorId ?? '-'}</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-500">BatchJob ID: </span>
+                    <span className="font-mono text-gray-400">
+                      {latest.batchJobId ? `${latest.batchJobId.substring(0, 16)}…` : '-'}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-gray-500">FinalApproval ID: </span>
+                    <span className="font-mono text-gray-400">
+                      {latest.finalApprovalId
+                        ? `${latest.finalApprovalId.substring(0, 16)}…`
+                        : '-'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* 대상 상품 정보 */}
+                {latest.targetProductSummary && (
+                  <div className="mb-3 rounded-md border border-gray-600/20 bg-gray-600/5 p-2.5">
+                    <p className="mb-1.5 text-[10px] font-semibold text-gray-400">대상 상품 정보</p>
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+                      {Object.entries(latest.targetProductSummary).map(([k, v]) =>
+                        v !== null && v !== undefined ? (
+                          <div key={k}>
+                            <span className="text-gray-500">{k}: </span>
+                            <span className="text-gray-200">{String(v)}</span>
+                          </div>
+                        ) : null
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* acknowledgement 목록 */}
+                <div className="mb-3">
+                  <p className="mb-1.5 text-[10px] font-semibold text-gray-400">
+                    확인 항목 ({latest.acknowledgedItems.length}건 완료
+                    {latest.missingAcknowledgements.length > 0
+                      ? ` / ${latest.missingAcknowledgements.length}건 누락`
+                      : ''})
+                  </p>
+                  <ul className="space-y-1">
+                    {latest.acknowledgedItems.map(ack => (
+                      <li key={ack} className="flex items-center gap-1.5 text-emerald-300">
+                        <CheckCircle2 className="h-3 w-3 shrink-0" />
+                        <span className="font-mono text-[10px]">{ack}</span>
+                      </li>
+                    ))}
+                    {latest.missingAcknowledgements.map(ack => (
+                      <li key={ack} className="flex items-center gap-1.5 text-amber-400">
+                        <AlertTriangle className="h-3 w-3 shrink-0" />
+                        <span className="font-mono text-[10px]">{ack} (누락)</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                {/* 실행 불가 배지 */}
+                <div className="mt-2 flex flex-wrap gap-2">
+                  <span className="inline-flex items-center rounded border border-red-500/30 bg-red-500/10 px-2 py-0.5 text-[10px] font-semibold text-red-300">
+                    naverApiCallAllowed: false
+                  </span>
+                  <span className="inline-flex items-center rounded border border-red-500/30 bg-red-500/10 px-2 py-0.5 text-[10px] font-semibold text-red-300">
+                    liveExecutionEnabled: false
+                  </span>
+                  <span className="inline-flex items-center rounded border border-gray-600/30 bg-gray-600/10 px-2 py-0.5 text-[10px] text-gray-400">
+                    operatingDbWriteAllowed: false
+                  </span>
+                  <span className="inline-flex items-center rounded border border-gray-600/30 bg-gray-600/10 px-2 py-0.5 text-[10px] text-gray-400">
+                    queueAllowed: false
+                  </span>
+                  <span className="inline-flex items-center rounded border border-gray-600/30 bg-gray-600/10 px-2 py-0.5 text-[10px] text-gray-400">
+                    workerAllowed: false
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* 경고 */}
+            {hist.warnings.length > 0 && (
+              <div className="mt-2 rounded-md border border-amber-500/20 bg-amber-500/10 p-2.5 text-xs">
+                <p className="mb-1 flex items-center gap-1 font-semibold text-amber-300">
+                  <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                  경고 ({hist.warnings.length}건)
+                </p>
+                <ul className="space-y-0.5">
+                  {hist.warnings.map((w, idx) => (
+                    <li key={idx} className="text-amber-200">- {w}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* maxAllowedState */}
+            <div className="mt-3 rounded-md border border-gray-600/20 bg-gray-600/5 p-2 text-xs text-gray-400">
+              <span className="text-gray-500">최대 허용 상태: </span>
+              <span className="font-mono text-gray-300">{hist.maxAllowedState}</span>
+            </div>
+
+            {/* 전체 감사 기록 대시보드 링크 */}
+            <div className="mt-3 flex items-center justify-end">
+              <Link
+                href="/dashboard/sku-keyword-final-approval-live-audits"
+                className="inline-flex items-center gap-1.5 rounded-md border border-indigo-500/30 bg-indigo-500/10 px-3 py-1.5 text-xs font-semibold text-indigo-300 hover:bg-indigo-500/20"
+              >
+                <FileJson className="h-3.5 w-3.5" />
+                전체 감사 기록 대시보드 →
+              </Link>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* ── Naver API 인증정보 안전 확인 ────────────────────────────────────── */}
       <div className="mb-6 rounded-lg border border-[#262629] bg-[#121214] p-4">
