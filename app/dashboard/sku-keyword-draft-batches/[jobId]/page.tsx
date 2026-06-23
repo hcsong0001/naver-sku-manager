@@ -62,6 +62,35 @@ type ExecutionMetadata = {
   };
 };
 
+type LivePreflightChecklistItem = {
+  key: string;
+  label: string;
+  status: 'PASS' | 'WARN' | 'BLOCKED' | 'NEEDS_REVIEW';
+  message: string;
+};
+
+type LivePreflightSummary = {
+  statusLabel: string;
+  statusCode: string;
+  naverApiCalled: boolean;
+  naverApiCallAllowed: false;
+  blockingCount: number;
+  warningCount: number;
+  passCount: number;
+};
+
+type LivePreflightResult = {
+  ready: boolean;
+  readinessCode: string;
+  readinessMessage: string;
+  checklistItems: LivePreflightChecklistItem[];
+  blockingReasons: string[];
+  warnings: string[];
+  naverApiCallAllowed: false;
+  naverApiCalled: boolean;
+  summary: LivePreflightSummary;
+};
+
 type DraftBatchJob = {
   id: string;
   status: string;
@@ -74,6 +103,7 @@ type DraftBatchJob = {
   executedAt: string | null;
   executionMetadata: ExecutionMetadata | null;
   items: DraftBatchItem[];
+  livePreflight?: LivePreflightResult | null;
 };
 
 type DraftBatchDetailResponse =
@@ -926,6 +956,126 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
           })()
         )}
       </div>
+
+      {/* ── Live 단일 테스트 전 점검표 ────────────────────────────────────────── */}
+      {job.livePreflight && (
+        <div className="mb-6 rounded-lg border border-[#262629] bg-[#121214] p-4">
+          <h2 className="mb-4 flex items-center gap-2 text-base font-semibold text-white">
+            <ShieldAlert className="h-5 w-5 text-amber-400" />
+            Live 단일 테스트 전 점검표
+          </h2>
+
+          <div className="mb-4 rounded-md border border-amber-500/20 bg-amber-500/10 p-3 text-xs text-amber-200">
+            <p>
+              현재 화면은 실제 Naver API 호출 전 점검용입니다.
+              이 단계에서는 상품 정보가 변경되지 않으며, Live 호출은 Safety Gate에 의해 차단됩니다.
+            </p>
+          </div>
+
+          {/* 점검 요약 */}
+          <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <div className="rounded-md border border-[#262629] bg-[#18181b] p-3">
+              <p className="mb-1 text-xs text-gray-500">점검 상태</p>
+              <p className={`text-xs font-semibold ${job.livePreflight.ready ? 'text-emerald-400' : 'text-red-400'}`}>
+                {job.livePreflight.ready ? '점검 조건 충족' : '점검 미완료'}
+              </p>
+            </div>
+            <div className="rounded-md border border-[#262629] bg-[#18181b] p-3">
+              <p className="mb-1 text-xs text-gray-500">Naver API 호출</p>
+              <p className={`text-xs font-semibold ${job.livePreflight.naverApiCalled ? 'text-red-400' : 'text-emerald-400'}`}>
+                {job.livePreflight.naverApiCalled ? '호출됨 (확인 필요)' : '아직 호출되지 않음'}
+              </p>
+            </div>
+            <div className="rounded-md border border-[#262629] bg-[#18181b] p-3">
+              <p className="mb-1 text-xs text-gray-500">Live 실행 가능 여부</p>
+              <p className="text-xs font-semibold text-red-400">현재는 차단됨</p>
+            </div>
+            <div className="rounded-md border border-[#262629] bg-[#18181b] p-3">
+              <p className="mb-1 text-xs text-gray-500">점검 현황</p>
+              <p className="text-xs">
+                <span className={job.livePreflight.summary.blockingCount > 0 ? 'text-red-400 font-semibold' : 'text-gray-400'}>
+                  차단 {job.livePreflight.summary.blockingCount}건
+                </span>
+                {' · '}
+                <span className={job.livePreflight.summary.warningCount > 0 ? 'text-amber-400' : 'text-gray-400'}>
+                  확인 {job.livePreflight.summary.warningCount}건
+                </span>
+                {' · '}
+                <span className="text-emerald-400">통과 {job.livePreflight.summary.passCount}건</span>
+              </p>
+            </div>
+          </div>
+
+          {/* 차단 사유 */}
+          {job.livePreflight.blockingReasons.length > 0 && (
+            <div className="mb-4 rounded-md border border-red-500/20 bg-red-500/10 p-3 text-xs">
+              <p className="mb-2 flex items-center gap-1.5 font-semibold text-red-300">
+                <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                차단 사유 ({job.livePreflight.blockingReasons.length}건)
+              </p>
+              <ul className="space-y-1">
+                {job.livePreflight.blockingReasons.map((reason, idx) => (
+                  <li key={idx} className="text-red-200">
+                    - {reason}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* 항목별 점검 결과 */}
+          <div className="mb-4 space-y-1.5">
+            <p className="mb-2 text-xs font-semibold text-gray-400">항목별 점검 결과</p>
+            {job.livePreflight.checklistItems.map(item => (
+              <div
+                key={item.key}
+                className={`flex items-start gap-3 rounded-md border p-2 text-xs ${
+                  item.status === 'PASS'
+                    ? 'border-emerald-500/20 bg-emerald-500/10'
+                    : item.status === 'BLOCKED'
+                      ? 'border-red-500/20 bg-red-500/10'
+                      : item.status === 'WARN'
+                        ? 'border-amber-500/20 bg-amber-500/10'
+                        : 'border-blue-500/20 bg-blue-500/10'
+                }`}
+              >
+                <span
+                  className={`mt-0.5 shrink-0 font-mono text-[9px] font-bold leading-4 ${
+                    item.status === 'PASS'
+                      ? 'text-emerald-400'
+                      : item.status === 'BLOCKED'
+                        ? 'text-red-400'
+                        : item.status === 'WARN'
+                          ? 'text-amber-400'
+                          : 'text-blue-400'
+                  }`}
+                >
+                  {item.status === 'PASS'
+                    ? 'PASS'
+                    : item.status === 'BLOCKED'
+                      ? 'BLOCKED'
+                      : item.status === 'WARN'
+                        ? 'WARN'
+                        : 'REVIEW'}
+                </span>
+                <div>
+                  <p className="font-semibold text-gray-200">{item.label}</p>
+                  <p className="text-gray-400">{item.message}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* 다음 단계 안내 */}
+          <div className="rounded-md border border-gray-500/20 bg-gray-500/5 p-3 text-xs text-gray-400">
+            <p className="mb-1 font-semibold text-gray-300">다음 단계 안내</p>
+            <p>
+              Live 단일 테스트는 별도 승인 흐름과 단일 테스트 상품 1건 제한 조건이 준비된
+              이후에만 진행할 수 있습니다.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* ── BatchJob 실행 결과 ────────────────────────────────────────────────── */}
       {['EXECUTED', 'PARTIAL_SUCCESS', 'FAILED', 'EXECUTING'].includes(job.status) && (

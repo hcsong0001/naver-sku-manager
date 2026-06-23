@@ -1,4 +1,5 @@
 import { createFinalApprovalExecutionBullmqQueueAdapter } from '../src/services/sku-keyword-final-approval-execution-bullmq-queue-adapter.service';
+import type { FinalApprovalExecutionQueuePayload } from '../src/types/sku-keyword-final-approval-execution-queue.types';
 
 async function run() {
   const redisUrl = process.env.REDIS_URL;
@@ -19,8 +20,11 @@ async function run() {
 
   console.log('[Script] Initializing BullMQ Queue Adapter for dry run...');
   const adapter = createFinalApprovalExecutionBullmqQueueAdapter(redisUrl);
-  
-  const payload = {
+
+  // Must use strict jobId for tracking limited dry runs
+  const targetJobId = 'final-approval-worker-limited-dry-run-evidence-002';
+
+  const payload: FinalApprovalExecutionQueuePayload = {
     finalApprovalId: 'test-db-revalidation-final-approval-001',
     actorId: 'test-runner',
     idempotencyKey: 'final-approval-worker-limited-dry-run-evidence-003',

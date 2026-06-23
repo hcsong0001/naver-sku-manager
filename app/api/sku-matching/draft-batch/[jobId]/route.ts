@@ -1,5 +1,9 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import {
+  evaluateFinalApprovalLivePreflightCheck,
+  summarizeLivePreflightReadiness,
+} from '@/src/services/sku-keyword-final-approval-execution-live-preflight-check.service';
 
 function extractSafeMetadata(raw: unknown): Record<string, unknown> | null {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
@@ -34,6 +38,10 @@ export async function GET(
       include: {
         items: {
           orderBy: { createdAt: 'asc' },
+        },
+        finalApprovals: {
+          orderBy: { createdAt: 'desc' },
+          take: 5,
         },
       },
     });
@@ -72,6 +80,40 @@ export async function GET(
       };
     });
 
+    const safeMetadata = extractSafeMetadata(job.metadata);
+    const activeFinalApproval =
+      (job.finalApprovals ?? []).find(a => String(a.status) === 'ACTIVE') ?? null;
+
+    const adapterMode =
+      typeof safeMetadata?.executionMode === 'string' ? safeMetadata.executionMode : null;
+    const naverApiCalled = adapterMode === 'live';
+
+    const preflightInput = {
+      finalApprovalStatus: activeFinalApproval?.status ? String(activeFinalApproval.status) : null,
+      batchJobStatus: String(job.status),
+      itemStatuses: job.items.map(item => String(item.status)),
+      totalItems: job.totalItems,
+      successItems: job.successItems,
+      failedItems: job.failedItems,
+      skippedItems: job.skippedItems,
+      executedAt: job.executedAt?.toISOString() ?? null,
+      executionMetadata: safeMetadata
+        ? {
+            executionMode:
+              typeof safeMetadata.executionMode === 'string'
+                ? safeMetadata.executionMode
+                : null,
+            actorId:
+              typeof safeMetadata.actorId === 'string' ? safeMetadata.actorId : null,
+          }
+        : null,
+      adapterMode,
+      naverApiCalled,
+    };
+
+    const preflightResult = evaluateFinalApprovalLivePreflightCheck(preflightInput);
+    const preflightSummary = summarizeLivePreflightReadiness(preflightResult);
+
     const responseJob = {
       id: job.id,
       status: job.status,
@@ -82,8 +124,19 @@ export async function GET(
       failedItems: job.failedItems,
       skippedItems: job.skippedItems,
       executedAt: job.executedAt?.toISOString() ?? null,
-      executionMetadata: extractSafeMetadata(job.metadata),
+      executionMetadata: safeMetadata,
       items,
+      livePreflight: {
+        ready: preflightResult.ready,
+        readinessCode: preflightResult.readinessCode,
+        readinessMessage: preflightResult.readinessMessage,
+        checklistItems: preflightResult.checklistItems,
+        blockingReasons: preflightResult.blockingReasons,
+        warnings: preflightResult.warnings,
+        naverApiCallAllowed: preflightResult.naverApiCallAllowed,
+        naverApiCalled: preflightResult.naverApiCalled,
+        summary: preflightSummary,
+      },
     };
 
     return NextResponse.json({ ok: true, job: responseJob });
