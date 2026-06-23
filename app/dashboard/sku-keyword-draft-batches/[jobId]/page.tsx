@@ -246,6 +246,27 @@ type LiveSingleTestApprovalAuditRecord = {
   recordedAt: string;
 };
 
+type LiveAdapterSkeletonStatus = {
+  ok: false;
+  success: false;
+  exists: true;
+  status: 'DISABLED' | 'NOT_IMPLEMENTED';
+  resultCode: string;
+  resultMessage: string;
+  naverApiCalled: false;
+  naverApiCallAllowed: false;
+  liveExecutionEnabled: false;
+  httpRequestCreated: false;
+  endpointCalled: false;
+  accessTokenRequested: false;
+  credentialsUsed: false;
+  operatingDbWriteAllowed: false;
+  queueAllowed: false;
+  workerAllowed: false;
+  maxAllowedState: string;
+  sanitized: true;
+};
+
 type DraftBatchJob = {
   id: string;
   status: string;
@@ -263,6 +284,7 @@ type DraftBatchJob = {
   liveSingleTestApprovalAudit?: LiveSingleTestApprovalAuditRecord | null;
   liveSingleTestAuditHistory?: LiveSingleTestAuditHistoryResult | null;
   environmentSafety?: EnvironmentSafetyResult | null;
+  liveAdapterSkeletonStatus?: LiveAdapterSkeletonStatus | null;
 };
 
 type DraftBatchDetailResponse =
@@ -1857,6 +1879,76 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <span className="font-mono text-gray-300">{env.environmentCode}</span>
               <span className="mx-2 text-gray-600">|</span>
               <span>{env.environmentMessage}</span>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Live Adapter Skeleton 상태 ───────────────────────────────────────── */}
+      {job.liveAdapterSkeletonStatus && (() => {
+        const skel = job.liveAdapterSkeletonStatus!;
+        return (
+          <div className="mb-6 rounded-lg border border-[#262629] bg-[#121214] p-4">
+            <h2 className="mb-3 flex items-center gap-2 text-base font-semibold text-white">
+              <FileJson className="h-5 w-5 text-violet-400" />
+              Live Adapter 준비 상태 — 실제 호출 비활성화
+              <span className="ml-1 rounded-full border border-violet-500/30 bg-violet-500/10 px-2 py-0.5 text-[10px] font-semibold text-violet-300">
+                {skel.resultCode}
+              </span>
+            </h2>
+
+            {/* 안내 */}
+            <div className="mb-4 rounded-md border border-violet-500/20 bg-violet-500/10 p-3 text-xs text-violet-200">
+              <p>{skel.resultMessage}</p>
+            </div>
+
+            {/* 안전 배지 */}
+            <div className="mb-4 flex flex-wrap gap-2">
+              <span className="inline-flex items-center rounded-md border border-violet-500/30 bg-violet-500/10 px-2.5 py-1 text-[10px] font-semibold text-violet-300">
+                <X className="mr-1 h-3 w-3" /> Live Adapter skeleton만 존재
+              </span>
+              <span className="inline-flex items-center rounded-md border border-red-500/30 bg-red-500/10 px-2.5 py-1 text-[10px] font-semibold text-red-300">
+                <X className="mr-1 h-3 w-3" /> 실제 호출 비활성화
+              </span>
+              <span className="inline-flex items-center rounded-md border border-red-500/30 bg-red-500/10 px-2.5 py-1 text-[10px] font-semibold text-red-300">
+                <X className="mr-1 h-3 w-3" /> HTTP 요청 없음
+              </span>
+              <span className="inline-flex items-center rounded-md border border-red-500/30 bg-red-500/10 px-2.5 py-1 text-[10px] font-semibold text-red-300">
+                <X className="mr-1 h-3 w-3" /> Token 요청 없음
+              </span>
+              <span className="inline-flex items-center rounded-md border border-red-500/30 bg-red-500/10 px-2.5 py-1 text-[10px] font-semibold text-red-300">
+                <X className="mr-1 h-3 w-3" /> Endpoint 호출 없음
+              </span>
+              <span className="inline-flex items-center rounded-md border border-red-500/30 bg-red-500/10 px-2.5 py-1 text-[10px] font-semibold text-red-300">
+                <X className="mr-1 h-3 w-3" /> Live 실행 불가
+              </span>
+            </div>
+
+            {/* 상태 체크 그리드 */}
+            <div className="mb-4 grid grid-cols-2 gap-2 text-xs sm:grid-cols-3 lg:grid-cols-4">
+              {[
+                { label: 'naverApiCalled', value: skel.naverApiCalled },
+                { label: 'naverApiCallAllowed', value: skel.naverApiCallAllowed },
+                { label: 'liveExecutionEnabled', value: skel.liveExecutionEnabled },
+                { label: 'httpRequestCreated', value: skel.httpRequestCreated },
+                { label: 'endpointCalled', value: skel.endpointCalled },
+                { label: 'accessTokenRequested', value: skel.accessTokenRequested },
+                { label: 'credentialsUsed', value: skel.credentialsUsed },
+                { label: 'operatingDbWriteAllowed', value: skel.operatingDbWriteAllowed },
+              ].map(({ label, value }) => (
+                <div key={label} className="rounded-md border border-[#262629] bg-[#18181b] p-2 text-center">
+                  <p className="text-[9px] text-gray-500">{label}</p>
+                  <p className={`mt-0.5 font-mono text-xs font-bold ${value ? 'text-red-400' : 'text-emerald-400'}`}>
+                    {String(value)}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            {/* maxAllowedState */}
+            <div className="rounded-md border border-gray-600/20 bg-gray-600/5 p-2 text-xs text-gray-400">
+              <span className="text-gray-500">최대 허용 상태: </span>
+              <span className="font-mono text-violet-300">{skel.maxAllowedState}</span>
             </div>
           </div>
         );

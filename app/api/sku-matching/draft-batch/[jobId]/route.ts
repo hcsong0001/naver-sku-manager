@@ -14,6 +14,9 @@ import {
 import {
   buildLiveSingleTestAuditHistoryItem,
 } from '@/src/services/sku-keyword-final-approval-execution-live-single-test-audit-history.service';
+import {
+  buildLiveAdapterSkeletonDisabledResult,
+} from '@/src/services/sku-keyword-final-approval-execution-naver-api-live-adapter-skeleton.service';
 
 // Compute safe DB environment hint from DATABASE_URL without exposing the original value.
 // Returns a classification key, never the actual URL.
@@ -360,6 +363,11 @@ export async function GET(
         warnings: envSafetyResult.warnings,
         sanitized: true as const,
       },
+      liveAdapterSkeletonStatus: buildLiveAdapterSkeletonDisabledResult({
+        batchJobId: job.id,
+        finalApprovalId: activeFinalApproval?.id ?? null,
+        adapterMode,
+      }),
     };
 
     return NextResponse.json({ ok: true, job: responseJob });
