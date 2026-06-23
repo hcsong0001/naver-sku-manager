@@ -140,6 +140,39 @@ type LiveSingleTestApprovalResult = {
   targetProductSummary?: TargetProductSummary | null;
 };
 
+type LiveSingleTestApprovalAuditTargetSummary = {
+  itemId?: string | null;
+  targetType?: string | null;
+  targetId?: string | null;
+  channelProductNo?: string | null;
+  productName?: string | null;
+  skuCode?: string | null;
+  changeType?: string | null;
+};
+
+type LiveSingleTestApprovalAuditPayloadSummary = {
+  changeType?: string | null;
+  riskLevel?: string | null;
+};
+
+type LiveSingleTestApprovalAuditRecord = {
+  auditCode: string;
+  auditStatus: string;
+  auditMessage: string;
+  finalApprovalId?: string | null;
+  batchJobId?: string | null;
+  actorId?: string | null;
+  acknowledgedItems: string[];
+  missingAcknowledgements: string[];
+  warnings: string[];
+  targetProductSummary?: LiveSingleTestApprovalAuditTargetSummary | null;
+  safePayloadSummary?: LiveSingleTestApprovalAuditPayloadSummary | null;
+  naverApiCallAllowed: false;
+  liveExecutionEnabled: false;
+  maxAllowedState: string;
+  recordedAt: string;
+};
+
 type DraftBatchJob = {
   id: string;
   status: string;
@@ -154,6 +187,7 @@ type DraftBatchJob = {
   items: DraftBatchItem[];
   livePreflight?: LivePreflightResult | null;
   liveSingleTestApproval?: LiveSingleTestApprovalResult | null;
+  liveSingleTestApprovalAudit?: LiveSingleTestApprovalAuditRecord | null;
 };
 
 type DraftBatchDetailResponse =
@@ -378,6 +412,16 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
   const [finalApprovalCreateError, setFinalApprovalCreateError] = useState<string | null>(null);
   const [finalApprovalCreateSuccess, setFinalApprovalCreateSuccess] = useState<string | null>(null);
 
+  const [liveAuditCheckedItems, setLiveAuditCheckedItems] = useState<string[]>([]);
+  const [liveAuditSaving, setLiveAuditSaving] = useState(false);
+  const [liveAuditSaveError, setLiveAuditSaveError] = useState<string | null>(null);
+  const [liveAuditSaveResult, setLiveAuditSaveResult] = useState<{
+    approvalCode: string;
+    recordedAt: string;
+    acknowledgedItems: string[];
+    message: string;
+  } | null>(null);
+
   const [now, setNow] = useState<number | null>(null);
 
   useEffect(() => {
@@ -474,6 +518,67 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
       else next.add(id);
       return next;
     });
+  };
+
+  const LIVE_AUDIT_REQUIRED_ACKNOWLEDGEMENTS = [
+    'CONFIRM_SINGLE_ITEM_ONLY',
+    'CONFIRM_TARGET_PRODUCT_REVIEWED',
+    'CONFIRM_PAYLOAD_REVIEWED',
+    'CONFIRM_NAVER_API_STILL_DISABLED',
+    'CONFIRM_LIVE_CAN_CHANGE_PRODUCT_LATER',
+    'CONFIRM_NO_REPLAY_ALLOWED',
+  ] as const;
+
+  const handleToggleLiveAuditItem = (ack: string) => {
+    setLiveAuditCheckedItems(prev =>
+      prev.includes(ack) ? prev.filter(a => a !== ack) : [...prev, ack]
+    );
+  };
+
+  const handleSaveLiveAudit = async () => {
+    if (!job || liveAuditSaving) return;
+    const currentActiveFinalApproval = finalApprovals?.find(a => a.status === 'ACTIVE') ?? null;
+    if (!currentActiveFinalApproval) return;
+
+    try {
+      setLiveAuditSaving(true);
+      setLiveAuditSaveError(null);
+
+      const response = await fetch('/api/sku-keyword-final-approvals/live-single-test-approval', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          finalApprovalId: currentActiveFinalApproval.id,
+          batchJobId: job.id,
+          acknowledgedItems: liveAuditCheckedItems,
+          confirmApprovalRecordOnly: true,
+          actorId: 'UI_USER',
+        }),
+      });
+
+      type SaveAuditResponse =
+        | { ok: true; approvalCode: string; auditRecord: { recordedAt: string; acknowledgedItems: string[] }; message: string }
+        | { ok: false; error?: string; missingAcknowledgements?: string[] };
+
+      const data = (await response.json()) as SaveAuditResponse;
+      if (!response.ok || !data.ok) {
+        throw new Error(
+          !data.ok && data.error ? data.error : '승인 기록 저장에 실패했습니다.'
+        );
+      }
+
+      setLiveAuditSaveResult({
+        approvalCode: data.approvalCode,
+        recordedAt: data.auditRecord.recordedAt,
+        acknowledgedItems: data.auditRecord.acknowledgedItems,
+        message: data.message,
+      });
+      await fetchJob();
+    } catch (err: unknown) {
+      setLiveAuditSaveError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setLiveAuditSaving(false);
+    }
   };
 
   const visibleWarnings = useMemo(() => detectVisibleWarningCodes(job), [job]);
@@ -1332,6 +1437,196 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
           </div>
         </div>
       )}
+
+      {/* ── Live 단일 테스트 승인 기록 저장 ──────────────────────────────────── */}
+      {job.liveSingleTestApproval && (() => {
+        const guard = job.liveSingleTestApproval!;
+        const existingAudit = job.liveSingleTestApprovalAudit ?? null;
+        const activeFa = finalApprovals?.find(a => a.status === 'ACTIVE') ?? null;
+        const allAcked = LIVE_AUDIT_REQUIRED_ACKNOWLEDGEMENTS.every(a =>
+          liveAuditCheckedItems.includes(a)
+        );
+        const canSave =
+          !liveAuditSaving &&
+          !liveAuditSaveResult &&
+          !existingAudit &&
+          !!activeFa &&
+          guard.summary.blockingCount === 0 &&
+          allAcked;
+
+        return (
+          <div className="mb-6 rounded-lg border border-[#262629] bg-[#121214] p-4">
+            <h2 className="mb-4 flex items-center gap-2 text-base font-semibold text-white">
+              <ShieldAlert className="h-5 w-5 text-violet-400" />
+              Live 단일 테스트 승인 기록 저장
+            </h2>
+
+            {/* 안내 문구 */}
+            <div className="mb-4 rounded-md border border-violet-500/20 bg-violet-500/10 p-3 text-xs text-violet-200">
+              <p className="mb-1 font-semibold text-violet-300">승인 기록 저장 안내</p>
+              <ul className="space-y-0.5">
+                <li>이 버튼은 실제 Naver API를 호출하지 않습니다. 승인 기록만 저장합니다.</li>
+                <li>승인 기록을 저장해도 실제 Live 실행은 계속 불가능합니다.</li>
+                <li>저장된 승인 기록은 감사 추적(audit trail)용으로만 사용됩니다.</li>
+                <li>모든 필수 확인 항목에 체크 후 저장 버튼을 클릭하세요.</li>
+              </ul>
+            </div>
+
+            {/* 이미 저장된 audit record 표시 */}
+            {(existingAudit || liveAuditSaveResult) && (
+              <div className="mb-4 rounded-md border border-emerald-500/20 bg-emerald-500/10 p-3 text-xs">
+                <p className="mb-2 flex items-center gap-1.5 font-semibold text-emerald-300">
+                  <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
+                  승인 기록 저장 완료
+                </p>
+                {(() => {
+                  const audit = existingAudit ?? (liveAuditSaveResult ? {
+                    auditCode: liveAuditSaveResult.approvalCode,
+                    recordedAt: liveAuditSaveResult.recordedAt,
+                    acknowledgedItems: liveAuditSaveResult.acknowledgedItems,
+                    actorId: 'UI_USER',
+                    naverApiCallAllowed: false as false,
+                    liveExecutionEnabled: false as false,
+                    maxAllowedState: 'LIVE_SINGLE_TEST_APPROVAL_RECORDED_BUT_NOT_EXECUTABLE',
+                  } : null);
+                  if (!audit) return null;
+                  return (
+                    <div className="space-y-1 text-gray-300">
+                      <div>
+                        <span className="text-gray-500">승인 코드: </span>
+                        <span className="font-mono text-xs text-emerald-300">{audit.auditCode}</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-500">기록 시각: </span>
+                        <span>{new Date(audit.recordedAt).toLocaleString()}</span>
+                      </div>
+                      {audit.actorId && (
+                        <div>
+                          <span className="text-gray-500">승인자: </span>
+                          <span className="font-mono">{audit.actorId}</span>
+                        </div>
+                      )}
+                      <div>
+                        <span className="text-gray-500">확인 항목: </span>
+                        <span>{audit.acknowledgedItems.length}건 완료</span>
+                      </div>
+                      <div className="mt-2 flex gap-3">
+                        <span className="inline-flex items-center rounded border border-red-500/30 bg-red-500/10 px-2 py-0.5 text-[10px] font-semibold text-red-300">
+                          Naver API 호출 비활성화됨
+                        </span>
+                        <span className="inline-flex items-center rounded border border-red-500/30 bg-red-500/10 px-2 py-0.5 text-[10px] font-semibold text-red-300">
+                          Live 실행 비활성화됨
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+            )}
+
+            {/* 기록이 없을 때 체크박스 + 저장 버튼 표시 */}
+            {!existingAudit && !liveAuditSaveResult && (
+              <>
+                {/* Guard 차단 경고 */}
+                {guard.summary.blockingCount > 0 && (
+                  <div className="mb-4 rounded-md border border-red-500/20 bg-red-500/10 p-3 text-xs">
+                    <p className="mb-1 flex items-center gap-1.5 font-semibold text-red-300">
+                      <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                      승인 준비 Guard에서 {guard.summary.blockingCount}건이 차단 중입니다
+                    </p>
+                    <p className="text-red-200">
+                      위의 "Live 단일 테스트 승인 준비" 섹션의 차단 사유를 먼저 해결하세요.
+                    </p>
+                  </div>
+                )}
+
+                {/* 필수 확인 체크박스 */}
+                <div className="mb-4 space-y-2">
+                  <p className="mb-2 text-xs font-semibold text-gray-300">필수 확인 항목 (전체 체크 필요)</p>
+                  {([
+                    { key: 'CONFIRM_SINGLE_ITEM_ONLY', label: '실제 Live 테스트는 단일 상품 1건으로만 제한됩니다.' },
+                    { key: 'CONFIRM_TARGET_PRODUCT_REVIEWED', label: '대상 상품번호, 스마트스토어, 변경 예정 payload를 직접 확인했습니다.' },
+                    { key: 'CONFIRM_PAYLOAD_REVIEWED', label: '실제 변경될 가격/재고/키워드 값을 직접 검토했습니다.' },
+                    { key: 'CONFIRM_NAVER_API_STILL_DISABLED', label: '운영 DB / 운영 Redis / 실제 Naver API 호출은 아직 비활성화되어 있습니다.' },
+                    { key: 'CONFIRM_LIVE_CAN_CHANGE_PRODUCT_LATER', label: '실제 Live 테스트 단계에서는 네이버 스마트스토어 상품 정보가 변경될 수 있습니다.' },
+                    { key: 'CONFIRM_NO_REPLAY_ALLOWED', label: 'Live 실행은 별도 승인과 추가 Safety Gate가 준비된 이후에만 진행합니다.' },
+                  ] as const).map(({ key, label }) => {
+                    const checked = liveAuditCheckedItems.includes(key);
+                    return (
+                      <label
+                        key={key}
+                        className={`flex cursor-pointer items-start gap-3 rounded-md border p-2.5 text-xs transition-colors ${
+                          checked
+                            ? 'border-violet-500/30 bg-violet-500/10'
+                            : 'border-[#262629] bg-[#18181b] hover:border-violet-500/20'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          className="mt-0.5 shrink-0 accent-violet-500"
+                          checked={checked}
+                          onChange={() => handleToggleLiveAuditItem(key)}
+                        />
+                        <span className={checked ? 'text-violet-200' : 'text-gray-400'}>
+                          {label}
+                        </span>
+                      </label>
+                    );
+                  })}
+                </div>
+
+                {/* 체크 현황 */}
+                <div className="mb-4 flex items-center gap-2 text-xs">
+                  <span className={liveAuditCheckedItems.length >= 6 ? 'text-violet-300 font-semibold' : 'text-gray-500'}>
+                    {liveAuditCheckedItems.length} / {LIVE_AUDIT_REQUIRED_ACKNOWLEDGEMENTS.length} 항목 확인됨
+                  </span>
+                  {!allAcked && (
+                    <span className="text-amber-400">— 모든 항목을 체크해야 저장 가능합니다.</span>
+                  )}
+                </div>
+
+                {/* 저장 오류 */}
+                {liveAuditSaveError && (
+                  <div className="mb-4 rounded-md border border-red-500/20 bg-red-500/10 p-3 text-xs text-red-300">
+                    <span className="font-semibold">오류: </span>{liveAuditSaveError}
+                  </div>
+                )}
+
+                {/* 저장 버튼 */}
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                  <button
+                    type="button"
+                    onClick={handleSaveLiveAudit}
+                    disabled={!canSave}
+                    className={`inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-semibold transition-colors ${
+                      canSave
+                        ? 'border-violet-500/50 bg-violet-500/20 text-violet-200 hover:bg-violet-500/30'
+                        : 'cursor-not-allowed border-gray-700 bg-gray-800 text-gray-600'
+                    }`}
+                  >
+                    {liveAuditSaving && <Loader2 className="h-4 w-4 animate-spin" />}
+                    승인 기록 저장 (실제 Naver API 미호출)
+                  </button>
+                  <span className="text-xs text-gray-500">
+                    이 버튼은 승인 기록만 저장합니다 — 실제 네이버 스마트스토어 상품은 변경되지 않습니다.
+                  </span>
+                </div>
+
+                {/* 비활성 이유 */}
+                {!canSave && !liveAuditSaving && (
+                  <div className="mt-3 text-xs text-gray-600">
+                    {!activeFa && <div>• ACTIVE Final Approval이 없습니다.</div>}
+                    {guard.summary.blockingCount > 0 && (
+                      <div>• 승인 준비 Guard에서 {guard.summary.blockingCount}건이 차단 중입니다.</div>
+                    )}
+                    {!allAcked && <div>• 필수 확인 항목 {LIVE_AUDIT_REQUIRED_ACKNOWLEDGEMENTS.length - liveAuditCheckedItems.filter(a => LIVE_AUDIT_REQUIRED_ACKNOWLEDGEMENTS.includes(a as typeof LIVE_AUDIT_REQUIRED_ACKNOWLEDGEMENTS[number])).length}개가 미확인 상태입니다.</div>}
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        );
+      })()}
 
       {/* ── BatchJob 실행 결과 ────────────────────────────────────────────────── */}
       {['EXECUTED', 'PARTIAL_SUCCESS', 'FAILED', 'EXECUTING'].includes(job.status) && (

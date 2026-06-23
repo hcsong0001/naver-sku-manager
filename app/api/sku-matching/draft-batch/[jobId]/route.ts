@@ -31,6 +31,57 @@ function extractSafeMetadata(raw: unknown): Record<string, unknown> | null {
   return Object.keys(out).length > 0 ? out : null;
 }
 
+function extractSafeAuditRecord(raw: unknown): Record<string, unknown> | null {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
+  const m = raw as Record<string, unknown>;
+  const out: Record<string, unknown> = {};
+
+  if (typeof m.auditCode === 'string') out.auditCode = m.auditCode;
+  if (typeof m.auditStatus === 'string') out.auditStatus = m.auditStatus;
+  if (typeof m.auditMessage === 'string') out.auditMessage = m.auditMessage;
+  if (typeof m.finalApprovalId === 'string') out.finalApprovalId = m.finalApprovalId;
+  if (typeof m.batchJobId === 'string') out.batchJobId = m.batchJobId;
+  if (typeof m.actorId === 'string') out.actorId = m.actorId;
+  if (typeof m.recordedAt === 'string') out.recordedAt = m.recordedAt;
+  if (typeof m.maxAllowedState === 'string') out.maxAllowedState = m.maxAllowedState;
+  out.naverApiCallAllowed = false;
+  out.liveExecutionEnabled = false;
+  if (Array.isArray(m.acknowledgedItems)) {
+    out.acknowledgedItems = m.acknowledgedItems.filter((x): x is string => typeof x === 'string');
+  }
+  if (Array.isArray(m.missingAcknowledgements)) {
+    out.missingAcknowledgements = m.missingAcknowledgements.filter((x): x is string => typeof x === 'string');
+  }
+  if (Array.isArray(m.warnings)) {
+    out.warnings = m.warnings.filter((x): x is string => typeof x === 'string');
+  }
+
+  // Safe target product summary (explicit safe fields only, no secrets)
+  if (m.targetProductSummary && typeof m.targetProductSummary === 'object' && !Array.isArray(m.targetProductSummary)) {
+    const tps = m.targetProductSummary as Record<string, unknown>;
+    out.targetProductSummary = {
+      itemId: typeof tps.itemId === 'string' ? tps.itemId : null,
+      targetType: typeof tps.targetType === 'string' ? tps.targetType : null,
+      targetId: typeof tps.targetId === 'string' ? tps.targetId : null,
+      channelProductNo: typeof tps.channelProductNo === 'string' ? tps.channelProductNo : null,
+      productName: typeof tps.productName === 'string' ? tps.productName : null,
+      skuCode: typeof tps.skuCode === 'string' ? tps.skuCode : null,
+      changeType: typeof tps.changeType === 'string' ? tps.changeType : null,
+    };
+  }
+
+  // Safe payload summary (only changeType + riskLevel)
+  if (m.safePayloadSummary && typeof m.safePayloadSummary === 'object' && !Array.isArray(m.safePayloadSummary)) {
+    const sps = m.safePayloadSummary as Record<string, unknown>;
+    out.safePayloadSummary = {
+      changeType: typeof sps.changeType === 'string' ? sps.changeType : null,
+      riskLevel: typeof sps.riskLevel === 'string' ? sps.riskLevel : null,
+    };
+  }
+
+  return Object.keys(out).length > 0 ? out : null;
+}
+
 export async function GET(
   request: Request,
   context: { params: Promise<{ jobId: string }> }
@@ -187,6 +238,12 @@ export async function GET(
     const approvalGuardResult = evaluateLiveSingleTestApprovalGuard(approvalGuardInput);
     const approvalGuardSummary = summarizeLiveSingleTestApprovalReadiness(approvalGuardResult);
 
+    // Read audit record from metadata (written by POST /live-single-test-approval)
+    const rawMetadata = job.metadata as Record<string, unknown> | null;
+    const liveSingleTestApprovalAudit = extractSafeAuditRecord(
+      rawMetadata?.liveSingleTestApprovalAudit
+    );
+
     const responseJob = {
       id: job.id,
       status: job.status,
@@ -226,6 +283,7 @@ export async function GET(
         summary: approvalGuardSummary,
         targetProductSummary,
       },
+      liveSingleTestApprovalAudit,
     };
 
     return NextResponse.json({ ok: true, job: responseJob });
