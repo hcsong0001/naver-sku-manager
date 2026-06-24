@@ -913,6 +913,78 @@ type DraftBatchJob = {
     queueAllowed: false;
     workerAllowed: false;
   } | null;
+  naverAuthTokenFirstTestApprovalEvidenceTimelineScreen?: {
+    evidenceTimelineViewCreated: boolean;
+    displayOnly: boolean;
+    readOnly: boolean;
+    executionLocked: boolean;
+    allStepsTracked: boolean;
+    manualReviewRequired: boolean;
+    requiresSeparateLiveApproval: boolean;
+    tokenTestStillNotAllowed: boolean;
+    title: string;
+    description: string;
+    overallLockStatus: string;
+    tokenTestBlockedReason: string;
+    timelineSteps: Array<{
+      id: number;
+      stepKey: string;
+      stepName: string;
+      currentStatus: string;
+      confirmedSafetyConditions: string[];
+      stillLockedConditions: string[];
+    }>;
+    approvalNote: string;
+    executionButtonRendered: false;
+    executionButtonEnabled: false;
+    approvalButtonRendered: false;
+    approvalButtonEnabled: false;
+    formRendered: false;
+    formSubmitEnabled: false;
+    postApiEnabled: false;
+    finalConfirmationPersisted: false;
+    finalConfirmationDbWriteExecuted: false;
+    finalConfirmationActionEnabled: false;
+    liveTokenTestApproved: false;
+    liveTokenTestExecutionAllowed: false;
+    dbWriteAllowed: false;
+    persistenceExecuted: false;
+    metadataPersisted: false;
+    auditEventPersisted: false;
+    dbWriteExecuted: false;
+    prismaMutationExecuted: false;
+    goTicketIssued: false;
+    executionLeaseIssued: false;
+    sandboxInvocationAllowed: false;
+    sandboxInvocationExecuted: false;
+    coordinatorExecutionAllowed: false;
+    requestPayloadCreated: false;
+    requestBodyCreated: false;
+    requestHeadersCreated: false;
+    networkKillSwitchOpen: false;
+    networkAdapterEnabled: false;
+    networkExecutionAllowed: false;
+    tokenNetworkRequestAllowed: false;
+    tokenRequestAllowed: false;
+    tokenRequestPrepared: false;
+    tokenRequestExecuted: false;
+    accessTokenRequested: false;
+    refreshTokenRequested: false;
+    credentialsUsed: false;
+    clientSecretUsed: false;
+    clientSecretSignCreated: false;
+    tokenIssued: false;
+    tokenStored: false;
+    authorizationHeaderCreated: false;
+    endpointResolved: false;
+    endpointCalled: false;
+    httpRequestCreated: false;
+    httpClientCreated: false;
+    naverApiCallAllowed: false;
+    liveExecutionEnabled: false;
+    queueAllowed: false;
+    workerAllowed: false;
+  } | null;
 };
 
 type DraftBatchDetailResponse =
@@ -4463,6 +4535,97 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-2">
                 <Info className="mt-0.5 h-4 w-4 shrink-0 text-gray-400" />
                 <p className="text-xs text-gray-400">{packet.approvalNote}</p>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Token First Test Approval Evidence Timeline Screen ─────────────────── */}
+      {(() => {
+        const timeline = job.naverAuthTokenFirstTestApprovalEvidenceTimelineScreen;
+        if (!timeline) return null;
+
+        return (
+          <div className="mb-6 rounded-lg border border-cyan-500/30 bg-cyan-950/15 p-4">
+            <h2 className="mb-2 flex items-center gap-2 text-base font-semibold text-white">
+              <FileJson className="h-5 w-5 text-cyan-400" />
+              {timeline.title}
+            </h2>
+
+            <p className="mb-4 text-sm text-cyan-300">
+              {timeline.description}
+            </p>
+
+            {/* 전체 실행 잠금 상태 */}
+            <div className="mb-4 rounded-md border border-red-500/30 bg-red-500/10 p-3">
+              <div className="flex items-start gap-2">
+                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-red-400" />
+                <div>
+                  <p className="mb-1 text-xs font-semibold text-red-300">전체 실행 잠금 상태</p>
+                  <p className="text-xs text-red-200">{timeline.overallLockStatus}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* token 발급 테스트 차단 이유 */}
+            <div className="mb-4 rounded-md border border-amber-500/20 bg-amber-500/5 p-3">
+              <p className="mb-1 text-xs font-semibold text-amber-300">실제 Token 발급 테스트 차단 이유</p>
+              <p className="text-xs text-amber-200">{timeline.tokenTestBlockedReason}</p>
+            </div>
+
+            {/* Evidence Timeline Steps */}
+            <div className="mb-4 space-y-3">
+              <p className="text-sm font-semibold text-gray-300">안전 검토 단계 Evidence Timeline</p>
+              {timeline.timelineSteps.map((step) => (
+                <div
+                  key={step.id}
+                  className="rounded-md border border-cyan-500/15 bg-[#0a1018] p-3"
+                >
+                  <div className="mb-2 flex items-center gap-2">
+                    <span className="rounded border border-cyan-700/50 bg-cyan-900/30 px-2 py-0.5 font-mono text-[9px] font-bold text-cyan-400">
+                      {step.stepKey}
+                    </span>
+                    <span className="text-xs font-semibold text-gray-200">{step.stepName}</span>
+                    <span className="ml-auto rounded bg-green-900/30 px-2 py-0.5 text-[9px] font-semibold text-green-400">
+                      {step.currentStatus}
+                    </span>
+                  </div>
+
+                  <div className="mb-2">
+                    <p className="mb-1 text-[9px] font-semibold uppercase tracking-wider text-gray-500">확인된 안전 조건</p>
+                    <ul className="space-y-0.5">
+                      {step.confirmedSafetyConditions.map((cond, i) => (
+                        <li key={i} className="flex items-start gap-1.5 text-[11px] text-gray-400">
+                          <span className="mt-0.5 shrink-0 text-green-500">✓</span>
+                          <span>{cond}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div>
+                    <p className="mb-1 text-[9px] font-semibold uppercase tracking-wider text-gray-500">여전히 잠긴 실행 조건</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {step.stillLockedConditions.map((locked, i) => (
+                        <span
+                          key={i}
+                          className="rounded border border-red-800/30 bg-red-900/20 px-1.5 py-0.5 font-mono text-[9px] text-red-400"
+                        >
+                          {locked}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* 승인 안내 */}
+            <div className="rounded-md border border-gray-500/20 bg-gray-500/5 p-3">
+              <div className="flex items-start gap-2">
+                <Info className="mt-0.5 h-4 w-4 shrink-0 text-gray-400" />
+                <p className="text-xs text-gray-400">{timeline.approvalNote}</p>
               </div>
             </div>
           </div>
