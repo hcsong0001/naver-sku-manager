@@ -1434,6 +1434,97 @@ type DraftBatchJob = {
     queueAllowed: false;
     workerAllowed: false;
   } | null;
+  naverAuthTokenFirstTestSeparateApprovalBoundaryScreen?: {
+    approvalBoundaryCreated: boolean;
+    displayOnly: boolean;
+    readOnly: boolean;
+    executionLocked: boolean;
+    boundaryIsReadOnly: boolean;
+    currentScreenIsReviewOnly: boolean;
+    manualReviewRequired: boolean;
+    requiresSeparateLiveApproval: boolean;
+    tokenTestStillNotAllowed: boolean;
+    title: string;
+    boundaryLabel: string;
+    currentScreenNote: string;
+    afterApprovalNote: string;
+    allowedZoneTitle: string;
+    allowedItems: Array<{
+      id: number;
+      itemKey: string;
+      itemLabel: string;
+      itemDetail: string;
+      isReadOnly: boolean;
+      isActionable: false;
+    }>;
+    prohibitedZoneTitle: string;
+    prohibitedItems: Array<{
+      id: number;
+      itemKey: string;
+      itemLabel: string;
+      itemDetail: string;
+      isReadOnly: boolean;
+      isActionable: false;
+    }>;
+    boundaryNote: string;
+    executionButtonRendered: false;
+    executionButtonEnabled: false;
+    approvalButtonRendered: false;
+    approvalButtonEnabled: false;
+    approvalRequestSubmitButtonRendered: false;
+    approvalRequestSubmitButtonEnabled: false;
+    checklistSaveButtonRendered: false;
+    checklistSaveButtonEnabled: false;
+    decisionSaveButtonRendered: false;
+    decisionSaveButtonEnabled: false;
+    boundaryReleaseButtonRendered: false;
+    boundaryReleaseButtonEnabled: false;
+    formRendered: false;
+    formSubmitEnabled: false;
+    postApiEnabled: false;
+    finalConfirmationPersisted: false;
+    finalConfirmationDbWriteExecuted: false;
+    finalConfirmationActionEnabled: false;
+    liveTokenTestApproved: false;
+    liveTokenTestExecutionAllowed: false;
+    dbWriteAllowed: false;
+    persistenceExecuted: false;
+    metadataPersisted: false;
+    auditEventPersisted: false;
+    dbWriteExecuted: false;
+    prismaMutationExecuted: false;
+    goTicketIssued: false;
+    executionLeaseIssued: false;
+    sandboxInvocationAllowed: false;
+    sandboxInvocationExecuted: false;
+    coordinatorExecutionAllowed: false;
+    requestPayloadCreated: false;
+    requestBodyCreated: false;
+    requestHeadersCreated: false;
+    networkKillSwitchOpen: false;
+    networkAdapterEnabled: false;
+    networkExecutionAllowed: false;
+    tokenNetworkRequestAllowed: false;
+    tokenRequestAllowed: false;
+    tokenRequestPrepared: false;
+    tokenRequestExecuted: false;
+    accessTokenRequested: false;
+    refreshTokenRequested: false;
+    credentialsUsed: false;
+    clientSecretUsed: false;
+    clientSecretSignCreated: false;
+    tokenIssued: false;
+    tokenStored: false;
+    authorizationHeaderCreated: false;
+    endpointResolved: false;
+    endpointCalled: false;
+    httpRequestCreated: false;
+    httpClientCreated: false;
+    naverApiCallAllowed: false;
+    liveExecutionEnabled: false;
+    queueAllowed: false;
+    workerAllowed: false;
+  } | null;
 };
 
 type DraftBatchDetailResponse =
@@ -5509,6 +5600,81 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-2">
                 <Info className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" />
                 <p className="text-xs text-amber-300/70">{summary.summaryNote}</p>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Token First Test Separate Approval Boundary ─────────────────────────── */}
+      {(() => {
+        const boundary = job.naverAuthTokenFirstTestSeparateApprovalBoundaryScreen;
+        if (!boundary) return null;
+
+        return (
+          <div className="mb-6 rounded-lg border border-zinc-500/20 bg-zinc-950/20 p-4">
+            <h2 className="mb-2 flex items-center gap-2 text-base font-semibold text-white">
+              <ShieldAlert className="h-5 w-5 text-zinc-400" />
+              {boundary.title}
+            </h2>
+
+            {/* 경계 안내 배너 */}
+            <div className="mb-4 rounded-md border border-zinc-500/30 bg-zinc-500/10 px-4 py-3">
+              <div className="flex items-start gap-2">
+                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-zinc-400" />
+                <div>
+                  <p className="mb-1 text-xs font-bold text-zinc-300">{boundary.boundaryLabel}</p>
+                  <p className="text-xs text-zinc-300/80">{boundary.currentScreenNote}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* 승인 이후 안내 */}
+            <div className="mb-4 rounded-md border border-zinc-600/20 bg-zinc-800/20 px-3 py-2.5">
+              <div className="flex items-start gap-2">
+                <Info className="mt-0.5 h-4 w-4 shrink-0 text-zinc-500" />
+                <p className="text-xs text-zinc-400">{boundary.afterApprovalNote}</p>
+              </div>
+            </div>
+
+            {/* 2-column layout: 허용 / 금지 */}
+            <div className="mb-4 grid grid-cols-1 gap-3 md:grid-cols-2">
+              {/* 허용된 작업 */}
+              <div className="rounded-md border border-green-700/25 bg-green-950/10 p-3">
+                <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-green-500">
+                  ✔ {boundary.allowedZoneTitle}
+                </p>
+                <div className="space-y-1.5">
+                  {boundary.allowedItems.map((item) => (
+                    <div key={item.id} className="rounded border border-green-800/20 bg-green-900/10 px-2.5 py-2">
+                      <p className="mb-0.5 text-[11px] font-semibold text-green-300">{item.itemLabel}</p>
+                      <p className="text-[10px] leading-relaxed text-gray-500">{item.itemDetail}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* 금지된 작업 */}
+              <div className="rounded-md border border-red-700/25 bg-red-950/10 p-3">
+                <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-red-500">
+                  ✕ {boundary.prohibitedZoneTitle}
+                </p>
+                <div className="space-y-1.5">
+                  {boundary.prohibitedItems.map((item) => (
+                    <div key={item.id} className="rounded border border-red-800/20 bg-red-900/5 px-2.5 py-2">
+                      <p className="mb-0.5 text-[11px] font-semibold text-red-400">{item.itemLabel}</p>
+                      <p className="text-[10px] leading-relaxed text-gray-500">{item.itemDetail}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* 경계 안내 */}
+            <div className="rounded-md border border-zinc-600/15 bg-zinc-500/5 p-3">
+              <div className="flex items-start gap-2">
+                <Info className="mt-0.5 h-4 w-4 shrink-0 text-zinc-500" />
+                <p className="text-xs text-zinc-400/70">{boundary.boundaryNote}</p>
               </div>
             </div>
           </div>
