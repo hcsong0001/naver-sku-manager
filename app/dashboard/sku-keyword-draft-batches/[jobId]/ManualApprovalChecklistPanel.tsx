@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { buildManualApprovalChecklistView } from '@/src/services/sku-keyword-final-approval-execution-naver-api-token-first-test-manual-approval-checklist-view.service';
+import { GoTicketSavePreviewPanel } from './GoTicketSavePreviewPanel';
 
 const CHECKLIST_VIEW = buildManualApprovalChecklistView();
 
@@ -14,7 +15,12 @@ const SAFETY_INVARIANTS = [
   { label: 'Live execution enabled', value: 'false' },
 ] as const;
 
-export function ManualApprovalChecklistPanel() {
+interface ManualApprovalChecklistPanelProps {
+  jobId?: string;
+  readinessStatus?: string;
+}
+
+export function ManualApprovalChecklistPanel({ jobId, readinessStatus }: ManualApprovalChecklistPanelProps) {
   const [checked, setChecked] = useState<Record<string, boolean>>({});
 
   const total = CHECKLIST_VIEW.checklistItems.length;
@@ -30,6 +36,7 @@ export function ManualApprovalChecklistPanel() {
   }
 
   return (
+    <>
     <div className="mb-6 rounded-lg border border-[#262629] bg-[#121214] p-4">
       <div className="mb-3 flex items-center justify-between">
         <h2 className="flex items-center gap-2 text-base font-semibold text-white">
@@ -106,5 +113,13 @@ export function ManualApprovalChecklistPanel() {
         실제 token 발급 요청은 아직 구현되어 있지 않습니다.
       </p>
     </div>
+
+    <GoTicketSavePreviewPanel
+      allChecklistChecked={allChecked}
+      checkedCount={checkedCount}
+      jobId={jobId}
+      readinessStatus={readinessStatus}
+    />
+    </>
   );
 }

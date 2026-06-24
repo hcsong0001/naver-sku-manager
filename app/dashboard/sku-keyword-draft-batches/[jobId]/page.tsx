@@ -3798,7 +3798,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
       })()}
 
       {/* ── Manual Approval Checklist ──────────────────────────────────────────── */}
-      <ManualApprovalChecklistPanel />
+      <ManualApprovalChecklistPanel jobId={job.id} readinessStatus={job.status} />
 
       {/* ── BatchJob 실행 결과 ────────────────────────────────────────────────── */}
       {['EXECUTED', 'PARTIAL_SUCCESS', 'FAILED', 'EXECUTING'].includes(job.status) && (
