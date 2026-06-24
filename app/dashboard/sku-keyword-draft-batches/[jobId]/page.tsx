@@ -533,6 +533,72 @@ type DraftBatchJob = {
     workerAllowed: false;
     liveExecutionEnabled: false;
   } | null;
+  naverAuthTokenFirstTestReadinessScreen?: {
+    screenViewCreated: boolean;
+    readOnly: boolean;
+    statusCardsCreated: boolean;
+    safetyStepsCreated: boolean;
+    manualReviewRequired: boolean;
+    requiresSeparateLiveApproval: boolean;
+    
+    overallStatus: 'READY' | 'BLOCKED' | 'NOT_STARTED';
+    overallMessage: string;
+
+    statusCards: Array<{
+      title: string;
+      value: string;
+      isOk: boolean;
+    }>;
+    safetySteps: Array<{
+      step: number;
+      key: string;
+      label: string;
+      status: 'READY' | 'BLOCKED' | 'DISABLED' | 'REVIEW_ONLY' | 'NOT_STARTED' | 'PENDING';
+      message: string;
+      reasons: string[];
+    }>;
+
+    screenActionEnabled: false;
+    liveTokenTestApproved: false;
+    liveTokenTestExecutionAllowed: false;
+    dbWriteAllowed: false;
+    persistenceExecuted: false;
+    metadataPersisted: false;
+    auditEventPersisted: false;
+    dbWriteExecuted: false;
+    prismaMutationExecuted: false;
+    goTicketIssued: false;
+    executionLeaseIssued: false;
+    sandboxInvocationAllowed: false;
+    sandboxInvocationExecuted: false;
+    coordinatorExecutionAllowed: false;
+    requestPayloadCreated: false;
+    requestBodyCreated: false;
+    requestHeadersCreated: false;
+    networkKillSwitchOpen: false;
+    networkAdapterEnabled: false;
+    networkExecutionAllowed: false;
+    tokenNetworkRequestAllowed: false;
+    tokenRequestAllowed: false;
+    tokenRequestPrepared: false;
+    tokenRequestExecuted: false;
+    accessTokenRequested: false;
+    refreshTokenRequested: false;
+    credentialsUsed: false;
+    clientSecretUsed: false;
+    clientSecretSignCreated: false;
+    tokenIssued: false;
+    tokenStored: false;
+    authorizationHeaderCreated: false;
+    endpointResolved: false;
+    endpointCalled: false;
+    httpRequestCreated: false;
+    httpClientCreated: false;
+    naverApiCallAllowed: false;
+    liveExecutionEnabled: false;
+    queueAllowed: false;
+    workerAllowed: false;
+  } | null;
 };
 
 type DraftBatchDetailResponse =
@@ -3579,6 +3645,116 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             )}
             <p className="mt-2 text-[10px] text-gray-500">
               이 섹션은 최초 token 발급 테스트의 최종 승인 기록(Read-only)을 표시합니다. 승인이 기록되어도 실제 발급 로직이 비활성화된 상태임을 보장합니다.
+            </p>
+          </div>
+        );
+      })()}
+
+      {/* ── Token First Test Readiness Screen ──────────────────────────────────────────────────────── */}
+      {(() => {
+        const readiness = job.naverAuthTokenFirstTestReadinessScreen;
+        if (!readiness) return null;
+
+        return (
+          <div className="mb-6 rounded-lg border border-teal-500/30 bg-teal-500/5 p-4">
+            <h2 className="mb-3 flex items-center gap-2 text-base font-semibold text-teal-300">
+              <ShieldAlert className="h-5 w-5 shrink-0" />
+              Naver Token First Test Readiness (Read-only View)
+              <span className={`ml-auto rounded-full border px-2 py-0.5 text-xs font-semibold ${
+                readiness.overallStatus === 'READY' 
+                  ? 'border-emerald-500/30 bg-emerald-500/20 text-emerald-300' 
+                  : 'border-red-500/30 bg-red-500/20 text-red-300'
+              }`}>
+                {readiness.overallStatus}
+              </span>
+            </h2>
+
+            <p className="mb-4 text-sm text-gray-300">
+              {readiness.overallMessage}
+            </p>
+
+            {/* Status Cards */}
+            <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-5">
+              {readiness.statusCards.map((card, idx) => (
+                <div key={idx} className={`rounded-md border p-3 text-center ${
+                  card.isOk 
+                    ? 'border-emerald-500/20 bg-emerald-500/10' 
+                    : 'border-red-500/20 bg-red-500/10'
+                }`}>
+                  <p className={`text-xs ${card.isOk ? 'text-emerald-400' : 'text-red-400'}`}>
+                    {card.title}
+                  </p>
+                  <p className={`mt-1 font-mono text-sm font-bold ${card.isOk ? 'text-emerald-300' : 'text-red-300'}`}>
+                    {card.value}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            {/* Safety Steps */}
+            <div className="mb-4">
+              <p className="mb-2 text-xs font-semibold text-gray-400">안전 계층 평가 결과</p>
+              <div className="space-y-2">
+                {readiness.safetySteps.map((step) => (
+                  <div key={step.key} className="flex flex-col gap-1 rounded-md border border-[#262629] bg-[#18181b] p-3 text-sm sm:flex-row sm:items-start sm:gap-4">
+                    <div className="flex w-full items-center gap-2 sm:w-1/3">
+                      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#262629] text-[10px] font-bold text-gray-400">
+                        {step.step}
+                      </span>
+                      <span className="font-semibold text-gray-300">{step.label}</span>
+                    </div>
+                    <div className="flex w-full flex-col sm:w-2/3">
+                      <div className="flex items-center gap-2">
+                        <span className={`rounded-full border px-2 py-0.5 text-[10px] font-bold ${
+                          step.status === 'READY' || step.status === 'REVIEW_ONLY' || step.status === 'DISABLED'
+                            ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300'
+                            : step.status === 'PENDING'
+                              ? 'border-amber-500/30 bg-amber-500/10 text-amber-300'
+                              : step.status === 'NOT_STARTED'
+                                ? 'border-gray-500/30 bg-gray-500/10 text-gray-400'
+                                : 'border-red-500/30 bg-red-500/10 text-red-300'
+                        }`}>
+                          {step.status}
+                        </span>
+                        <span className="text-xs text-gray-400">{step.message}</span>
+                      </div>
+                      {step.reasons.length > 0 && (
+                        <div className="mt-1 pl-1">
+                          {step.reasons.map((r, i) => (
+                            <p key={i} className="text-[10px] text-red-400">• {r}</p>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Safety Flags Review */}
+            <div className="mb-3">
+              <p className="mb-1 text-xs font-semibold text-gray-400">강제 차단 플래그 검증 (전체 false 보장)</p>
+              <div className="grid grid-cols-2 gap-1 text-xs sm:grid-cols-4">
+                {([
+                  ['screenActionEnabled', readiness.screenActionEnabled],
+                  ['dbWriteAllowed', readiness.dbWriteAllowed],
+                  ['prismaMutationExecuted', readiness.prismaMutationExecuted],
+                  ['liveTokenTestExecutionAllowed', readiness.liveTokenTestExecutionAllowed],
+                  ['sandboxInvocationExecuted', readiness.sandboxInvocationExecuted],
+                  ['networkExecutionAllowed', readiness.networkExecutionAllowed],
+                  ['tokenRequestAllowed', readiness.tokenRequestAllowed],
+                  ['tokenIssued', readiness.tokenIssued],
+                ] as [string, boolean][]).map(([k, v]) => (
+                  <div key={k} className="rounded-sm border border-slate-500/20 bg-slate-500/10 px-2 py-1 flex justify-between items-center">
+                    <span className="text-gray-500 truncate mr-1" title={k}>{k}</span>
+                    <span className={v ? 'font-semibold text-red-300' : 'font-semibold text-emerald-300'}>{String(v)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <p className="mt-2 text-[10px] text-gray-500">
+              이 화면은 Read-only View Model을 렌더링하며 실제 API 호출이나 DB 쓰기 동작이 발생하지 않음을 보장합니다.
             </p>
           </div>
         );

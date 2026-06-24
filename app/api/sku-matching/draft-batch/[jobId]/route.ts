@@ -24,7 +24,11 @@ import { createNaverApiTokenProviderTestOnlySkeleton } from '@/src/services/sku-
 import { sanitizeStoredAuditRecord } from '@/src/services/sku-keyword-final-approval-execution-naver-api-token-test-approval-audit.service';
 import { evaluateNaverApiTokenFirstTestSafetyBoundary } from '@/src/services/sku-keyword-final-approval-execution-naver-api-token-first-test-safety-boundary.service';
 import { sanitizeStoredFinalApprovalAuditRecord } from '@/src/services/sku-keyword-final-approval-execution-naver-api-token-first-test-final-approval-audit.service';
-
+import { evaluateNaverApiTokenFirstTestOneTimeGoTicket } from '@/src/services/sku-keyword-final-approval-execution-naver-api-token-first-test-one-time-go-ticket.service';
+import { invokeNaverApiTokenFirstTestSandboxDisabled } from '@/src/services/sku-keyword-final-approval-execution-naver-api-token-first-test-sandbox-adapter-disabled.service';
+import { evaluateNaverApiTokenFirstTestGoTicketIssueAuditPlan } from '@/src/services/sku-keyword-final-approval-execution-naver-api-token-first-test-go-ticket-issue-audit-plan.service';
+import { evaluateNaverApiTokenFirstTestGoTicketPersistenceDisabled } from '@/src/services/sku-keyword-final-approval-execution-naver-api-token-first-test-go-ticket-persistence-disabled.service';
+import { buildNaverApiTokenFirstTestReadinessScreenView } from '@/src/services/sku-keyword-final-approval-execution-naver-api-token-first-test-readiness-screen-view.service';
 // Compute safe DB environment hint from DATABASE_URL without exposing the original value.
 // Returns a classification key, never the actual URL.
 function getDatabaseUrlSafeHint(): string | null {
@@ -766,6 +770,143 @@ export async function GET(
           maxAllowedState: boundary.maxAllowedState,
         };
       })(),
+      naverAuthTokenFirstTestReadinessScreen: (() => {
+        // Here we recreate the boundary since it's evaluated inside the scope above
+        const tokenProvider = createNaverApiTokenProviderDisabled({
+          authConfigSafety: naverAuthConfigSafety,
+          requestedAction: 'draft-batch-detail-read',
+          allowTokenRequest: false,
+          allowCredentialUse: false,
+          allowEndpointCall: false,
+          environmentSafetyResult: { ok: envSafetyResult.allowed },
+          liveAdapterSkeletonStatus: 'disabled',
+        });
+        const dryGate = evaluateNaverApiTokenDryPermissionGate({
+          authConfigSafety: naverAuthConfigSafety,
+          tokenProviderStatus: tokenProvider,
+          environmentSafetyResult: envSafetyResult,
+          liveAdapterSkeletonStatus: 'disabled',
+          liveSafetyGateResult: null,
+          livePreflightResult: preflightResult.ready !== undefined
+            ? { ready: preflightResult.ready, blockingReasons: preflightResult.blockingReasons }
+            : null,
+          liveSingleTestApproval: approvalGuardResult.approvalReady !== undefined
+            ? { approvalReady: approvalGuardResult.approvalReady, blockingReasons: approvalGuardResult.blockingReasons }
+            : null,
+          liveSingleTestApprovalAudit: liveSingleTestApprovalAudit
+            ? { auditCode: typeof liveSingleTestApprovalAudit.auditCode === 'string' ? liveSingleTestApprovalAudit.auditCode : undefined }
+            : null,
+          liveSingleTestAuditHistory: auditHistory ? { exists: auditHistory.exists } : null,
+          finalApprovalStatus: activeFinalApproval?.status ? String(activeFinalApproval.status) : null,
+          batchJobStatus: String(job.status),
+          itemStatuses: job.items.map(item => String(item.status)),
+          itemCount: job.totalItems,
+          requestedAction: 'draft-batch-detail-read',
+          allowTokenRequest: false,
+          allowCredentialUse: false,
+          allowEndpointCall: false,
+          actorId: typeof safeMetadata?.actorId === 'string' ? safeMetadata.actorId : null,
+          finalApprovalId: activeFinalApproval?.id ?? null,
+          batchJobId: job.id,
+        });
+        const skeleton = createNaverApiTokenProviderTestOnlySkeleton({
+          authConfigSafety: naverAuthConfigSafety,
+          tokenProviderDisabledStatus: tokenProvider,
+          tokenDryPermissionGate: dryGate,
+          environmentSafetyResult: envSafetyResult,
+          requestedAction: 'draft-batch-detail-read',
+          allowTokenRequest: false,
+          allowCredentialUse: false,
+          allowEndpointResolve: false,
+          allowEndpointCall: false,
+          actorId: typeof safeMetadata?.actorId === 'string' ? safeMetadata.actorId : null,
+          finalApprovalId: activeFinalApproval?.id ?? null,
+          batchJobId: job.id,
+        });
+        const auditRef = naverAuthTokenTestApprovalAudit
+          ? {
+              hasAudit: true as const,
+              auditCode: naverAuthTokenTestApprovalAudit.auditCode,
+              acknowledgedCount: Array.isArray(naverAuthTokenTestApprovalAudit.acknowledgedItems)
+                ? naverAuthTokenTestApprovalAudit.acknowledgedItems.length
+                : 0,
+              requiredCount: 12,
+              allAcknowledged: Array.isArray(naverAuthTokenTestApprovalAudit.acknowledgedItems) &&
+                naverAuthTokenTestApprovalAudit.acknowledgedItems.length >= 12,
+            }
+          : { hasAudit: false as const };
+
+        const boundary = evaluateNaverApiTokenFirstTestSafetyBoundary({
+          environmentSafetyResult: envSafetyResult,
+          authConfigSafety: naverAuthConfigSafety,
+          tokenProviderDisabledStatus: tokenProvider,
+          tokenDryPermissionGate: dryGate,
+          tokenTestOnlySkeletonStatus: skeleton,
+          tokenTestApprovalAudit: auditRef,
+          liveAdapterSkeletonStatus: 'disabled',
+          finalApprovalStatus: activeFinalApproval?.status ? String(activeFinalApproval.status) : null,
+          batchJobStatus: String(job.status),
+          itemStatuses: job.items.map(item => String(item.status)),
+          itemCount: job.totalItems,
+          requestedAction: 'draft-batch-detail-read',
+          allowTokenRequest: false,
+          allowCredentialUse: false,
+          allowEndpointResolve: false,
+          allowEndpointCall: false,
+          allowHttpClient: false,
+          actorId: typeof safeMetadata?.actorId === 'string' ? safeMetadata.actorId : null,
+          finalApprovalId: activeFinalApproval?.id ?? null,
+          batchJobId: job.id,
+        });
+
+        const goTicketPlan = evaluateNaverApiTokenFirstTestOneTimeGoTicket({
+          safetyBoundaryResult: boundary,
+          liveReadinessResult: null, // Read-only dashboard does not evaluate live execution intent
+          coordinatorResult: null,
+        });
+
+        const sandbox = invokeNaverApiTokenFirstTestSandboxDisabled({
+          safetyBoundaryResult: boundary,
+          goTicketPlanResult: goTicketPlan,
+        });
+
+        const auditPlan = evaluateNaverApiTokenFirstTestGoTicketIssueAuditPlan({
+          safetyBoundaryResult: boundary,
+          goTicketPlanResult: goTicketPlan,
+          sandboxResult: sandbox,
+          acknowledgements: {
+            notRealTokenIssue: false,
+            oneTimeUseOnly: false,
+            requiresSeparateExecutionTask: false,
+            tokenRequestNotApprovedYet: false,
+            productReadApiBlocked: false,
+            productUpdateApiBlocked: false,
+            queueExecutionBlocked: false,
+            workerExecutionBlocked: false,
+            tokenStorageBlocked: false,
+            tokenLogBlocked: false,
+            tokenUiDisplayBlocked: false,
+            autoRetryBlocked: false,
+            immediateTokenDiscard: false,
+            requiresSeparateApprovalForNextStep: false,
+          } // read-only UI doesn't have form state, so it will be blocked by default
+        });
+
+        const persistence = evaluateNaverApiTokenFirstTestGoTicketPersistenceDisabled({
+          auditPlanResult: auditPlan,
+          sandboxResult: sandbox,
+          goTicketPlanResult: goTicketPlan,
+          acknowledgements: {},
+        });
+
+        return buildNaverApiTokenFirstTestReadinessScreenView({
+          safetyBoundaryResult: boundary,
+          goTicketPlanResult: goTicketPlan,
+          sandboxResult: sandbox,
+          auditPlanResult: auditPlan,
+          persistenceResult: persistence,
+        });
+      })()
     };
 
     return NextResponse.json({ ok: true, job: responseJob });
