@@ -20,6 +20,7 @@ import {
 import { evaluateNaverApiAuthConfigSafeReader } from '@/src/services/sku-keyword-final-approval-execution-naver-api-auth-config-safe-reader.service';
 import { createNaverApiTokenProviderDisabled } from '@/src/services/sku-keyword-final-approval-execution-naver-api-token-provider-disabled.service';
 import { evaluateNaverApiTokenDryPermissionGate } from '@/src/services/sku-keyword-final-approval-execution-naver-api-token-dry-permission-gate.service';
+import { createNaverApiTokenProviderTestOnlySkeleton } from '@/src/services/sku-keyword-final-approval-execution-naver-api-token-provider-test-only-skeleton.service';
 
 // Compute safe DB environment hint from DATABASE_URL without exposing the original value.
 // Returns a classification key, never the actual URL.
@@ -510,6 +511,97 @@ export async function GET(
           warnings: gate.warnings,
           needsReviewReasons: gate.needsReviewReasons,
           maxAllowedState: gate.maxAllowedState,
+        };
+      })(),
+      naverAuthTokenTestOnlySkeletonStatus: (() => {
+        const tokenProvider = createNaverApiTokenProviderDisabled({
+          authConfigSafety: naverAuthConfigSafety,
+          requestedAction: 'draft-batch-detail-read',
+          allowTokenRequest: false,
+          allowCredentialUse: false,
+          allowEndpointCall: false,
+          environmentSafetyResult: { ok: envSafetyResult.allowed },
+          liveAdapterSkeletonStatus: 'disabled',
+        });
+        const dryGate = evaluateNaverApiTokenDryPermissionGate({
+          authConfigSafety: naverAuthConfigSafety,
+          tokenProviderStatus: tokenProvider,
+          environmentSafetyResult: envSafetyResult,
+          liveAdapterSkeletonStatus: 'disabled',
+          liveSafetyGateResult: null,
+          livePreflightResult: preflightResult.ready !== undefined
+            ? { ready: preflightResult.ready, blockingReasons: preflightResult.blockingReasons }
+            : null,
+          liveSingleTestApproval: approvalGuardResult.approvalReady !== undefined
+            ? { approvalReady: approvalGuardResult.approvalReady, blockingReasons: approvalGuardResult.blockingReasons }
+            : null,
+          liveSingleTestApprovalAudit: liveSingleTestApprovalAudit
+            ? { auditCode: typeof liveSingleTestApprovalAudit.auditCode === 'string' ? liveSingleTestApprovalAudit.auditCode : undefined }
+            : null,
+          liveSingleTestAuditHistory: auditHistory ? { exists: auditHistory.exists } : null,
+          finalApprovalStatus: activeFinalApproval?.status ? String(activeFinalApproval.status) : null,
+          batchJobStatus: String(job.status),
+          itemStatuses: job.items.map(item => String(item.status)),
+          itemCount: job.totalItems,
+          requestedAction: 'draft-batch-detail-read',
+          allowTokenRequest: false,
+          allowCredentialUse: false,
+          allowEndpointCall: false,
+          actorId: typeof safeMetadata?.actorId === 'string' ? safeMetadata.actorId : null,
+          finalApprovalId: activeFinalApproval?.id ?? null,
+          batchJobId: job.id,
+        });
+        const skeleton = createNaverApiTokenProviderTestOnlySkeleton({
+          authConfigSafety: naverAuthConfigSafety,
+          tokenProviderDisabledStatus: tokenProvider,
+          tokenDryPermissionGate: dryGate,
+          environmentSafetyResult: envSafetyResult,
+          requestedAction: 'draft-batch-detail-read',
+          allowTokenRequest: false,
+          allowCredentialUse: false,
+          allowEndpointResolve: false,
+          allowEndpointCall: false,
+          actorId: typeof safeMetadata?.actorId === 'string' ? safeMetadata.actorId : null,
+          finalApprovalId: activeFinalApproval?.id ?? null,
+          batchJobId: job.id,
+        });
+        return {
+          ok: skeleton.ok,
+          success: skeleton.success,
+          status: skeleton.status,
+          resultCode: skeleton.resultCode,
+          resultMessage: skeleton.resultMessage,
+          testOnlyMode: skeleton.testOnlyMode,
+          tokenRequestPrepared: skeleton.tokenRequestPrepared,
+          tokenRequestExecuted: skeleton.tokenRequestExecuted,
+          tokenRequestAllowed: skeleton.tokenRequestAllowed,
+          tokenStatus: skeleton.tokenStatus,
+          authConfigUsable: skeleton.authConfigUsable,
+          dryPermissionPassed: skeleton.dryPermissionPassed,
+          accessTokenRequested: skeleton.accessTokenRequested,
+          refreshTokenRequested: skeleton.refreshTokenRequested,
+          credentialsUsed: skeleton.credentialsUsed,
+          tokenIssued: skeleton.tokenIssued,
+          tokenStored: skeleton.tokenStored,
+          authorizationHeaderCreated: skeleton.authorizationHeaderCreated,
+          endpointResolved: skeleton.endpointResolved,
+          endpointCalled: skeleton.endpointCalled,
+          httpRequestCreated: skeleton.httpRequestCreated,
+          httpClientCreated: skeleton.httpClientCreated,
+          naverApiCallAllowed: skeleton.naverApiCallAllowed,
+          liveExecutionEnabled: skeleton.liveExecutionEnabled,
+          operatingDbWriteAllowed: skeleton.operatingDbWriteAllowed,
+          queueAllowed: skeleton.queueAllowed,
+          workerAllowed: skeleton.workerAllowed,
+          secretVisible: skeleton.secretVisible,
+          tokenVisible: skeleton.tokenVisible,
+          endpointVisible: skeleton.endpointVisible,
+          sanitized: skeleton.sanitized,
+          checklistItems: skeleton.checklistItems,
+          blockingReasons: skeleton.blockingReasons,
+          warnings: skeleton.warnings,
+          needsReviewReasons: skeleton.needsReviewReasons,
+          maxAllowedState: skeleton.maxAllowedState,
         };
       })(),
     };

@@ -368,6 +368,52 @@ type NaverAuthTokenDryPermissionGate = {
   maxAllowedState: 'NAVER_AUTH_TOKEN_DRY_PERMISSION_GATE_READY_BUT_DISABLED';
 };
 
+type NaverAuthTokenTestOnlySkeletonChecklistItem = {
+  key: string;
+  label: string;
+  status: 'PASS' | 'WARN' | 'BLOCKED' | 'NEEDS_REVIEW';
+  message: string;
+};
+
+type NaverAuthTokenTestOnlySkeleton = {
+  ok: false;
+  success: false;
+  status: 'DISABLED' | 'NOT_EXECUTED';
+  resultCode: string;
+  resultMessage: string;
+  testOnlyMode: true;
+  tokenRequestPrepared: false;
+  tokenRequestExecuted: false;
+  tokenRequestAllowed: false;
+  tokenStatus: 'disabled' | 'not_requested';
+  authConfigUsable: false;
+  dryPermissionPassed: boolean;
+  accessTokenRequested: false;
+  refreshTokenRequested: false;
+  credentialsUsed: false;
+  tokenIssued: false;
+  tokenStored: false;
+  authorizationHeaderCreated: false;
+  endpointResolved: false;
+  endpointCalled: false;
+  httpRequestCreated: false;
+  httpClientCreated: false;
+  naverApiCallAllowed: false;
+  liveExecutionEnabled: false;
+  operatingDbWriteAllowed: false;
+  queueAllowed: false;
+  workerAllowed: false;
+  secretVisible: false;
+  tokenVisible: false;
+  endpointVisible: false;
+  sanitized: true;
+  checklistItems: NaverAuthTokenTestOnlySkeletonChecklistItem[];
+  blockingReasons: string[];
+  warnings: string[];
+  needsReviewReasons: string[];
+  maxAllowedState: 'NAVER_AUTH_TOKEN_TEST_ONLY_PROVIDER_REGISTERED_BUT_DISABLED';
+};
+
 type DraftBatchJob = {
   id: string;
   status: string;
@@ -389,6 +435,7 @@ type DraftBatchJob = {
   naverAuthConfigSafety?: NaverAuthConfigSafety;
   naverAuthTokenProviderStatus?: NaverAuthTokenProviderStatus | null;
   naverAuthTokenDryPermissionGate?: NaverAuthTokenDryPermissionGate | null;
+  naverAuthTokenTestOnlySkeletonStatus?: NaverAuthTokenTestOnlySkeleton | null;
 };
 
 type DraftBatchDetailResponse =
@@ -2671,6 +2718,154 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             <div className="rounded-md border border-slate-500/20 bg-slate-500/10 p-2 text-xs text-gray-400">
               <span className="text-gray-500">최대 허용 상태: </span>
               <span className="font-mono text-indigo-300">{gate.maxAllowedState}</span>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Naver API Token Test-Only Skeleton ──────────────────────────────── */}
+      {job.naverAuthTokenTestOnlySkeletonStatus && (() => {
+        const sk = job.naverAuthTokenTestOnlySkeletonStatus!;
+        const statusColor =
+          sk.status === 'DISABLED'
+            ? 'text-red-400 border-red-500/40 bg-red-500/5'
+            : sk.blockingReasons.length > 0
+              ? 'text-red-400 border-red-500/40 bg-red-500/5'
+              : sk.needsReviewReasons.length > 0
+                ? 'text-amber-400 border-amber-500/40 bg-amber-500/5'
+                : 'text-violet-400 border-violet-500/40 bg-violet-500/5';
+        return (
+          <div className={`mb-6 rounded-lg border p-4 ${statusColor}`}>
+            <h2 className="mb-3 flex items-center gap-2 text-base font-semibold">
+              <ShieldAlert className="h-5 w-5 shrink-0" />
+              Token Test-Only Skeleton — 코드 경로 준비 확인
+              <span className="ml-auto rounded-full border px-2 py-0.5 text-xs font-semibold">
+                {sk.status}
+              </span>
+            </h2>
+
+            {/* 안전 배지 */}
+            <div className="mb-4 flex flex-wrap gap-2 text-xs">
+              <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-emerald-300">
+                testOnlyMode=true
+              </span>
+              <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-emerald-300">
+                Token 발급 차단
+              </span>
+              <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-emerald-300">
+                Endpoint 미해석
+              </span>
+              <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-emerald-300">
+                HTTP Client 없음
+              </span>
+              <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-emerald-300">
+                Secret 비노출
+              </span>
+              <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-emerald-300">
+                Naver API 호출 차단
+              </span>
+            </div>
+
+            {/* 결과 메시지 */}
+            <div className="mb-4 rounded-md border border-slate-500/20 bg-slate-500/10 p-3 text-xs">
+              <span className="text-gray-400">resultCode: </span>
+              <span className="font-mono text-indigo-300">{sk.resultCode}</span>
+              <div className="mt-1 text-gray-300">{sk.resultMessage}</div>
+            </div>
+
+            {/* 상태 카드 */}
+            <div className="mb-4 grid grid-cols-2 gap-2 text-xs sm:grid-cols-3">
+              {([
+                ['testOnlyMode', String(sk.testOnlyMode)],
+                ['tokenRequestPrepared', String(sk.tokenRequestPrepared)],
+                ['tokenRequestExecuted', String(sk.tokenRequestExecuted)],
+                ['tokenRequestAllowed', String(sk.tokenRequestAllowed)],
+                ['tokenIssued', String(sk.tokenIssued)],
+                ['dryPermissionPassed', String(sk.dryPermissionPassed)],
+                ['endpointResolved', String(sk.endpointResolved)],
+                ['httpClientCreated', String(sk.httpClientCreated)],
+                ['naverApiCallAllowed', String(sk.naverApiCallAllowed)],
+              ] as [string, string][]).map(([k, v]) => (
+                <div key={k} className="rounded-sm border border-slate-500/20 bg-slate-500/10 px-2 py-1">
+                  <span className="text-gray-400">{k}: </span>
+                  <span className={v === 'true' ? (k === 'dryPermissionPassed' ? 'text-violet-300 font-semibold' : 'text-red-300 font-semibold') : 'text-emerald-300 font-semibold'}>
+                    {v}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            {/* 차단 사유 */}
+            {sk.blockingReasons.length > 0 && (
+              <div className="mb-4 rounded-md border border-red-500/20 bg-red-500/10 p-3 text-xs">
+                <p className="mb-2 flex items-center gap-1.5 font-semibold text-red-300">
+                  <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                  차단 사유 ({sk.blockingReasons.length}건)
+                </p>
+                <ul className="space-y-1">
+                  {sk.blockingReasons.map((r, idx) => (
+                    <li key={idx} className="text-red-200">- {r}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* 검토 필요 */}
+            {sk.needsReviewReasons.length > 0 && (
+              <div className="mb-4 rounded-md border border-amber-500/20 bg-amber-500/10 p-3 text-xs">
+                <p className="mb-2 flex items-center gap-1.5 font-semibold text-amber-300">
+                  <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                  검토 필요 ({sk.needsReviewReasons.length}건)
+                </p>
+                <ul className="space-y-1">
+                  {sk.needsReviewReasons.map((r, idx) => (
+                    <li key={idx} className="text-amber-200">- {r}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* 경고 */}
+            {sk.warnings.length > 0 && (
+              <div className="mb-4 rounded-md border border-yellow-500/20 bg-yellow-500/10 p-3 text-xs">
+                <p className="mb-2 flex items-center gap-1.5 font-semibold text-yellow-300">
+                  <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                  경고 ({sk.warnings.length}건)
+                </p>
+                <ul className="space-y-1">
+                  {sk.warnings.map((w, idx) => (
+                    <li key={idx} className="text-yellow-200">- {w}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* 체크리스트 */}
+            <div className="mb-4">
+              <p className="mb-2 text-xs font-semibold text-gray-400">
+                점검 항목 ({sk.checklistItems.length}건)
+              </p>
+              <div className="space-y-1">
+                {sk.checklistItems.map((item) => (
+                  <div key={item.key} className="flex items-start gap-2 rounded-sm px-2 py-1 text-xs">
+                    <span className={`mt-0.5 shrink-0 font-semibold ${
+                      item.status === 'PASS' ? 'text-emerald-400'
+                      : item.status === 'WARN' ? 'text-amber-400'
+                      : item.status === 'BLOCKED' ? 'text-red-400'
+                      : 'text-yellow-400'
+                    }`}>
+                      [{item.status}]
+                    </span>
+                    <span className="text-gray-300">{item.label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* maxAllowedState */}
+            <div className="rounded-md border border-slate-500/20 bg-slate-500/10 p-2 text-xs text-gray-400">
+              <span className="text-gray-500">최대 허용 상태: </span>
+              <span className="font-mono text-indigo-300">{sk.maxAllowedState}</span>
             </div>
           </div>
         );
