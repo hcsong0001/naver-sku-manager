@@ -6,6 +6,7 @@ import {
   AlertTriangle,
   ArrowLeft,
   CheckCircle2,
+  ClipboardList,
   FileJson,
   Loader2,
   ShieldAlert,
@@ -1479,6 +1480,113 @@ type DraftBatchJob = {
     decisionSaveButtonEnabled: false;
     boundaryReleaseButtonRendered: false;
     boundaryReleaseButtonEnabled: false;
+    formRendered: false;
+    formSubmitEnabled: false;
+    postApiEnabled: false;
+    finalConfirmationPersisted: false;
+    finalConfirmationDbWriteExecuted: false;
+    finalConfirmationActionEnabled: false;
+    liveTokenTestApproved: false;
+    liveTokenTestExecutionAllowed: false;
+    dbWriteAllowed: false;
+    persistenceExecuted: false;
+    metadataPersisted: false;
+    auditEventPersisted: false;
+    dbWriteExecuted: false;
+    prismaMutationExecuted: false;
+    goTicketIssued: false;
+    executionLeaseIssued: false;
+    sandboxInvocationAllowed: false;
+    sandboxInvocationExecuted: false;
+    coordinatorExecutionAllowed: false;
+    requestPayloadCreated: false;
+    requestBodyCreated: false;
+    requestHeadersCreated: false;
+    networkKillSwitchOpen: false;
+    networkAdapterEnabled: false;
+    networkExecutionAllowed: false;
+    tokenNetworkRequestAllowed: false;
+    tokenRequestAllowed: false;
+    tokenRequestPrepared: false;
+    tokenRequestExecuted: false;
+    accessTokenRequested: false;
+    refreshTokenRequested: false;
+    credentialsUsed: false;
+    clientSecretUsed: false;
+    clientSecretSignCreated: false;
+    tokenIssued: false;
+    tokenStored: false;
+    authorizationHeaderCreated: false;
+    endpointResolved: false;
+    endpointCalled: false;
+    httpRequestCreated: false;
+    httpClientCreated: false;
+    naverApiCallAllowed: false;
+    liveExecutionEnabled: false;
+    queueAllowed: false;
+    workerAllowed: false;
+  } | null;
+  naverAuthTokenFirstTestApprovalHandoffSummaryScreen?: {
+    handoffSummaryCreated: boolean;
+    displayOnly: boolean;
+    readOnly: boolean;
+    executionLocked: boolean;
+    handoffIsReadOnly: boolean;
+    currentScreenIsReviewOnly: boolean;
+    manualReviewRequired: boolean;
+    requiresSeparateLiveApproval: boolean;
+    tokenTestStillNotAllowed: boolean;
+    title: string;
+    handoffLabel: string;
+    handoffNote: string;
+    currentConclusion: string;
+    currentPhase: string;
+    reviewedFlowCount: number;
+    currentAllowedSummary: string;
+    currentProhibitedSummary: string;
+    summaryItems: Array<{
+      id: number;
+      itemKey: string;
+      itemLabel: string;
+      itemValue: string;
+      isReadOnly: boolean;
+      isEditable: false;
+    }>;
+    nextActionItems: Array<{
+      id: number;
+      checkKey: string;
+      checkLabel: string;
+      checkDetail: string;
+      isReadOnly: boolean;
+      isCheckable: false;
+    }>;
+    absoluteProhibitionItems: Array<{
+      id: number;
+      prohibitionKey: string;
+      prohibitionLabel: string;
+      prohibitionDetail: string;
+      isReadOnly: boolean;
+      isReleasable: false;
+    }>;
+    handoffSummaryNote: string;
+    executionButtonRendered: false;
+    executionButtonEnabled: false;
+    approvalButtonRendered: false;
+    approvalButtonEnabled: false;
+    approvalRequestSubmitButtonRendered: false;
+    approvalRequestSubmitButtonEnabled: false;
+    checklistSaveButtonRendered: false;
+    checklistSaveButtonEnabled: false;
+    decisionSaveButtonRendered: false;
+    decisionSaveButtonEnabled: false;
+    boundaryReleaseButtonRendered: false;
+    boundaryReleaseButtonEnabled: false;
+    handoffSaveButtonRendered: false;
+    handoffSaveButtonEnabled: false;
+    handoffCopyButtonRendered: false;
+    handoffCopyButtonEnabled: false;
+    handoffSendButtonRendered: false;
+    handoffSendButtonEnabled: false;
     formRendered: false;
     formSubmitEnabled: false;
     postApiEnabled: false;
@@ -5675,6 +5783,91 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-2">
                 <Info className="mt-0.5 h-4 w-4 shrink-0 text-zinc-500" />
                 <p className="text-xs text-zinc-400/70">{boundary.boundaryNote}</p>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Token First Test Approval Handoff Summary ───────────────────────────── */}
+      {(() => {
+        const handoff = job.naverAuthTokenFirstTestApprovalHandoffSummaryScreen;
+        if (!handoff) return null;
+
+        return (
+          <div className="mb-6 rounded-lg border border-sky-500/20 bg-sky-950/10 p-4">
+            <h2 className="mb-2 flex items-center gap-2 text-base font-semibold text-white">
+              <ClipboardList className="h-5 w-5 text-sky-400" />
+              {handoff.title}
+            </h2>
+
+            {/* 인수인계 안내 배너 */}
+            <div className="mb-4 rounded-md border border-sky-500/25 bg-sky-500/10 px-4 py-3">
+              <div className="flex items-start gap-2">
+                <Info className="mt-0.5 h-4 w-4 shrink-0 text-sky-400" />
+                <div>
+                  <p className="mb-1 text-xs font-bold text-sky-300">{handoff.handoffLabel}</p>
+                  <p className="text-xs text-sky-300/80">{handoff.handoffNote}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* 현재 상태 요약 카드 */}
+            <div className="mb-4 grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3">
+              {handoff.summaryItems.map((item) => (
+                <div
+                  key={item.id}
+                  className="rounded-md border border-sky-700/20 bg-sky-900/10 px-3 py-2.5"
+                >
+                  <p className="mb-0.5 text-[10px] font-semibold uppercase tracking-wider text-sky-500">
+                    {item.itemLabel}
+                  </p>
+                  <p className="text-xs text-gray-300">{item.itemValue}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* 다음 작업자 확인 항목 */}
+            <div className="mb-4">
+              <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-sky-400">
+                다음 작업자 확인 항목
+              </p>
+              <div className="space-y-1.5">
+                {handoff.nextActionItems.map((item) => (
+                  <div
+                    key={item.id}
+                    className="rounded border border-sky-800/20 bg-sky-900/5 px-3 py-2"
+                  >
+                    <p className="mb-0.5 text-[11px] font-semibold text-sky-300">{item.checkLabel}</p>
+                    <p className="text-[10px] leading-relaxed text-gray-500">{item.checkDetail}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* 절대 금지 항목 */}
+            <div className="mb-4">
+              <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-red-500">
+                별도 승인 전까지 절대 하지 말아야 할 항목
+              </p>
+              <div className="space-y-1.5">
+                {handoff.absoluteProhibitionItems.map((item) => (
+                  <div
+                    key={item.id}
+                    className="rounded border border-red-800/15 bg-red-900/5 px-3 py-2"
+                  >
+                    <p className="mb-0.5 text-[11px] font-semibold text-red-400">{item.prohibitionLabel}</p>
+                    <p className="text-[10px] leading-relaxed text-gray-500">{item.prohibitionDetail}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* 요약 안내 */}
+            <div className="rounded-md border border-sky-600/15 bg-sky-500/5 p-3">
+              <div className="flex items-start gap-2">
+                <Info className="mt-0.5 h-4 w-4 shrink-0 text-sky-600" />
+                <p className="text-xs text-sky-400/70">{handoff.handoffSummaryNote}</p>
               </div>
             </div>
           </div>
