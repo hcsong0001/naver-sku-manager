@@ -377,3 +377,97 @@ test('36. null 입력 시에도 모든 안전 플래그가 false를 유지함', 
   assert.strictEqual(result.screenActionEnabled, false);
   assert.strictEqual(result.dbWriteAllowed, false);
 });
+
+// ── copyableSafetyReport 관련 테스트 ─────────────────────────────────────
+
+test('37. copyableSafetyReportCreated=true', () => {
+  const result = buildNaverApiTokenFirstTestReadinessScreenView(getValidInput());
+  assert.strictEqual(result.copyableSafetyReportCreated, true);
+});
+
+test('38. copyableSafetyReport가 비어 있지 않은 문자열로 생성됨', () => {
+  const result = buildNaverApiTokenFirstTestReadinessScreenView(getValidInput());
+  assert.strictEqual(typeof result.copyableSafetyReport, 'string');
+  assert.ok(result.copyableSafetyReport.length > 0, 'copyableSafetyReport must not be empty');
+});
+
+test('39. copyableSafetyReport에 read-only 안내가 포함됨', () => {
+  const result = buildNaverApiTokenFirstTestReadinessScreenView(getValidInput());
+  assert.ok(
+    result.copyableSafetyReport.includes('read-only') || result.copyableSafetyReport.includes('읽기 전용'),
+    'copyableSafetyReport must contain read-only notice',
+  );
+});
+
+test('40. copyableSafetyReport에 실제 Naver API 호출 없음이 포함됨', () => {
+  const result = buildNaverApiTokenFirstTestReadinessScreenView(getValidInput());
+  assert.ok(
+    result.copyableSafetyReport.includes('Naver API 호출 없음'),
+    'copyableSafetyReport must contain Naver API 호출 없음',
+  );
+});
+
+test('41. copyableSafetyReport에 실제 token 발급 없음이 포함됨', () => {
+  const result = buildNaverApiTokenFirstTestReadinessScreenView(getValidInput());
+  assert.ok(
+    result.copyableSafetyReport.includes('token 발급 없음'),
+    'copyableSafetyReport must contain token 발급 없음',
+  );
+});
+
+test('42. copyableSafetyReport에 실제 DB write 없음이 포함됨', () => {
+  const result = buildNaverApiTokenFirstTestReadinessScreenView(getValidInput());
+  assert.ok(
+    result.copyableSafetyReport.includes('DB write 없음'),
+    'copyableSafetyReport must contain DB write 없음',
+  );
+});
+
+test('43. copyableSafetyReport에 12개 안전 단계 요약이 포함됨 (12개 step 모두 존재)', () => {
+  const result = buildNaverApiTokenFirstTestReadinessScreenView(getValidInput());
+  for (let i = 1; i <= 12; i++) {
+    assert.ok(
+      result.copyableSafetyReport.includes(`[${i}]`),
+      `copyableSafetyReport must contain step [${i}]`,
+    );
+  }
+});
+
+test('44. copyableSafetyReport에 다음 단계 별도 승인 안내가 포함됨', () => {
+  const result = buildNaverApiTokenFirstTestReadinessScreenView(getValidInput());
+  assert.ok(
+    result.copyableSafetyReport.includes('별도 사용자 승인'),
+    'copyableSafetyReport must contain 별도 사용자 승인 notice',
+  );
+});
+
+test('45. copyableSafetyReport에 금지 문자열 미포함 (access_token, refresh_token, secret, Authorization, Bearer, endpoint URL)', () => {
+  const result = buildNaverApiTokenFirstTestReadinessScreenView(getValidInput());
+  const report = result.copyableSafetyReport;
+
+  const forbiddenPatterns: Array<[RegExp, string]> = [
+    [/ey[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+/, 'JWT token'],
+    [/access_token/i, 'access_token'],
+    [/refresh_token/i, 'refresh_token'],
+    [/client_secret(?!Used|SignCreated)/i, 'client_secret value'],
+    [/http:\/\//, 'http endpoint URL'],
+    [/https:\/\//, 'https endpoint URL'],
+    [/Authorization/i, 'Authorization header'],
+    [/Bearer\s+[A-Za-z0-9]/i, 'Bearer token value'],
+  ];
+
+  for (const [pattern, label] of forbiddenPatterns) {
+    assert.strictEqual(
+      pattern.test(report),
+      false,
+      `copyableSafetyReport must not contain ${label}`,
+    );
+  }
+});
+
+test('46. null 입력 시에도 copyableSafetyReport가 안전하게 생성됨', () => {
+  const result = buildNaverApiTokenFirstTestReadinessScreenView(null);
+  assert.strictEqual(result.copyableSafetyReportCreated, true);
+  assert.strictEqual(typeof result.copyableSafetyReport, 'string');
+  assert.ok(result.copyableSafetyReport.length > 0);
+});

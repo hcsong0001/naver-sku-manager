@@ -33,6 +33,8 @@ export interface NaverApiTokenFirstTestReadinessScreenViewModel {
   readOnly: boolean;
   statusCardsCreated: boolean;
   safetyStepsCreated: boolean;
+  copyableSafetyReportCreated: boolean;
+  copyableSafetyReport: string;
   manualReviewRequired: boolean;
   requiresSeparateLiveApproval: boolean;
   
@@ -91,6 +93,38 @@ export interface BuildReadinessScreenViewInput {
   sandboxResult?: NaverApiTokenFirstTestSandboxInvocationResult | null;
   auditPlanResult?: NaverApiTokenFirstTestGoTicketIssueAuditResult | null;
   persistenceResult?: NaverApiTokenFirstTestGoTicketPersistenceResult | null;
+}
+
+function buildCopyableSafetyReport(
+  steps: ReadinessScreenSafetyStep[],
+  overallStatus: string,
+  overallMessage: string,
+): string {
+  const stepLines = steps.map(step => {
+    const header = `  [${step.step}] ${step.label}: ${step.status} — ${step.message}`;
+    if (step.reasons.length === 0) return header;
+    return [header, ...step.reasons.map(r => `      └ ${r}`)].join('\n');
+  });
+
+  return [
+    '=== Naver Token First Test Readiness Safety Report ===',
+    '',
+    '■ 이 보고서는 read-only 상태 확인 전용입니다.',
+    '■ 실제 Naver API 호출 없음',
+    '■ 실제 token 발급 없음',
+    '■ 실제 DB write 없음',
+    '■ 실행 버튼 없음',
+    '',
+    `전체 상태: ${overallStatus}`,
+    overallMessage,
+    '',
+    '■ 12개 안전 단계 요약:',
+    ...stepLines,
+    '',
+    '■ 다음 단계는 별도 사용자 승인 후 Test DB 또는 명시된 안전 환경에서만 진행 가능합니다.',
+    '■ 현재 화면에서는 실행할 수 없습니다.',
+    '■ 실제 token 발급 요청은 아직 구현되어 있지 않습니다.',
+  ].join('\n');
 }
 
 export function buildNaverApiTokenFirstTestReadinessScreenView(
@@ -213,6 +247,10 @@ export function buildNaverApiTokenFirstTestReadinessScreenView(
   }
 
   const overallOk = blockedCount === 0;
+  const overallStatusValue: 'READY' | 'BLOCKED' = overallOk ? 'READY' : 'BLOCKED';
+  const overallMessageValue = overallOk
+    ? '모든 안전 계층이 준비되었습니다. 현재는 읽기 전용 상태입니다.'
+    : '일부 안전 계층이 차단되었습니다.';
 
   const statusCards: ReadinessScreenStatusCard[] = [
     {
@@ -247,12 +285,14 @@ export function buildNaverApiTokenFirstTestReadinessScreenView(
     readOnly: true,
     statusCardsCreated: true,
     safetyStepsCreated: true,
+    copyableSafetyReportCreated: true,
+    copyableSafetyReport: buildCopyableSafetyReport(steps, overallStatusValue, overallMessageValue),
     manualReviewRequired: true,
     requiresSeparateLiveApproval: true,
-    
-    overallStatus: overallOk ? 'READY' : 'BLOCKED',
-    overallMessage: overallOk ? '모든 안전 계층이 준비되었습니다. 현재는 읽기 전용 상태입니다.' : '일부 안전 계층이 차단되었습니다.',
-    
+
+    overallStatus: overallStatusValue,
+    overallMessage: overallMessageValue,
+
     statusCards,
     safetySteps: steps,
 

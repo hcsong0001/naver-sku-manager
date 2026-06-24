@@ -538,6 +538,8 @@ type DraftBatchJob = {
     readOnly: boolean;
     statusCardsCreated: boolean;
     safetyStepsCreated: boolean;
+    copyableSafetyReportCreated: boolean;
+    copyableSafetyReport: string;
     manualReviewRequired: boolean;
     requiresSeparateLiveApproval: boolean;
     
@@ -3751,6 +3753,40 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                   </div>
                 ))}
               </div>
+            </div>
+
+            {/* Why execution is blocked */}
+            <div className="mb-3 rounded-md border border-amber-500/20 bg-amber-500/10 p-3">
+              <p className="mb-2 text-xs font-semibold text-amber-300">왜 현재 실행할 수 없는가?</p>
+              <ul className="space-y-1 text-xs text-amber-200">
+                <li>• 실제 token 발급은 별도 사용자 승인 후에만 가능합니다.</li>
+                <li>• 실제 Naver API 호출은 별도 승인이 필요합니다.</li>
+                <li>• 운영 DB write는 별도 승인이 필요합니다.</li>
+                <li>• 가격/재고 변경은 별도 승인이 필요합니다.</li>
+                <li>• 현재 화면은 상태 확인 전용입니다.</li>
+              </ul>
+            </div>
+
+            {/* Copyable Safety Report */}
+            {readiness.copyableSafetyReport && (
+              <div className="mb-3">
+                <p className="mb-1 text-xs font-semibold text-gray-400">
+                  안전 보고서 (read-only — 텍스트 선택 후 복사 가능)
+                </p>
+                <pre className="max-h-52 overflow-auto rounded-md border border-[#262629] bg-[#0a0a0c] p-3 text-xs text-gray-300 whitespace-pre-wrap cursor-text select-all leading-relaxed">
+                  {readiness.copyableSafetyReport}
+                </pre>
+              </div>
+            )}
+
+            {/* Next Steps */}
+            <div className="mb-3 rounded-md border border-indigo-500/20 bg-indigo-500/10 p-3">
+              <p className="mb-2 text-xs font-semibold text-indigo-300">다음 단계 안내</p>
+              <ul className="space-y-1 text-xs text-indigo-200">
+                <li>• 다음 단계는 별도 사용자 승인 후 Test DB 또는 명시된 안전 환경에서만 진행 가능합니다.</li>
+                <li>• 현재 화면에서는 실행할 수 없습니다.</li>
+                <li>• 실제 token 발급 요청은 아직 구현되어 있지 않습니다.</li>
+              </ul>
             </div>
 
             <p className="mt-2 text-[10px] text-gray-500">
