@@ -2689,6 +2689,18 @@ type DraftBatchJob = {
     queueAllowed: false;
     workerAllowed: false;
   } | null;
+  tokenFirstTestSeparateApprovalFinalClosureGateView?: {
+    title: string;
+    statusLabel: string;
+    statusTone: 'locked' | 'blocked' | 'review_only';
+    summary: string;
+    task71Commit: string;
+    finalClosureGateItems: Array<{ label: string; value: string; tone: 'safe' | 'warning' | 'blocked' | 'neutral'; }>;
+    readOnlyClosureChecks: Array<{ label: string; value: string; tone: 'safe' | 'warning' | 'blocked' | 'neutral'; }>;
+    releaseBlockedReasons: Array<{ label: string; value: string; tone: 'safe' | 'warning' | 'blocked' | 'neutral'; }>;
+    nextHumanReviewItems: Array<{ label: string; value: string; tone: 'safe' | 'warning' | 'blocked' | 'neutral'; }>;
+    stillForbiddenItems: Array<{ label: string; value: string; tone: 'safe' | 'warning' | 'blocked' | 'neutral'; }>;
+  } | null;
 };
 
 type DraftBatchDetailResponse =
@@ -8495,6 +8507,169 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 <div>
                   <h5 className="text-sm font-medium text-violet-200">제출 판단 봉인 안내</h5>
                   <p className="mt-1 text-xs leading-relaxed text-violet-300/80">{seal.nextStepLabel}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 72: Separate Approval Final Closure Gate ─────────────────────── */}
+      {(() => {
+        const gate = job.tokenFirstTestSeparateApprovalFinalClosureGateView;
+        if (!gate) return null;
+
+        const toneColor = (tone: string) => {
+          if (tone === 'blocked') return 'border-red-900/30 bg-red-950/10 text-red-300';
+          if (tone === 'warning') return 'border-amber-900/30 bg-amber-950/10 text-amber-300';
+          if (tone === 'safe') return 'border-emerald-900/30 bg-emerald-950/10 text-emerald-300';
+          return 'border-slate-700/30 bg-slate-900/20 text-slate-300';
+        };
+
+        return (
+          <div className="mb-6 overflow-hidden rounded-lg border border-rose-500/25 bg-rose-950/10 shadow-md">
+            {/* Header */}
+            <div className="border-b border-rose-900/40 bg-rose-900/15 px-5 py-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-rose-500/10">
+                  <Lock className="h-5 w-5 text-rose-400" />
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-3">
+                    <h3 className="text-lg font-semibold text-rose-100">
+                      Token First Test Separate Approval Final Closure Gate
+                    </h3>
+                    <span className="rounded-full border border-rose-500/40 bg-rose-900/30 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-rose-300">
+                      {gate.statusLabel}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-xs text-rose-300/70">{gate.title}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-5 p-5">
+              {/* 요약 박스 */}
+              <div className="rounded-md border border-rose-700/25 bg-rose-950/20 px-4 py-3">
+                <div className="flex items-start gap-2">
+                  <Info className="mt-0.5 h-4 w-4 shrink-0 text-rose-400" />
+                  <div>
+                    <p className="text-[11px] leading-relaxed text-rose-300/80">{gate.summary}</p>
+                    <p className="mt-1 text-[10px] text-rose-400/60">Task 71 기준 커밋: {gate.task71Commit} | 승인 요청 제출 없음 | token 발급 없음 | 실행 버튼 없음</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Final Closure Gate 항목 */}
+              {gate.finalClosureGateItems.length > 0 && (
+                <div>
+                  <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-rose-400">
+                    Final Closure Gate — Task 41~71 흐름 요약
+                  </h4>
+                  <div className="space-y-2">
+                    {gate.finalClosureGateItems.map((item, idx) => (
+                      <div key={idx} className={`flex items-start gap-3 rounded border px-3 py-2.5 ${toneColor(item.tone)}`}>
+                        <Circle className="mt-0.5 h-3 w-3 shrink-0 opacity-60" />
+                        <div className="min-w-0 flex-1">
+                          <p className="text-[10px] font-semibold opacity-80">{item.label}</p>
+                          <p className="mt-0.5 text-[10px] leading-relaxed opacity-70">{item.value}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* 2-column: Read-only 확인 / Release 차단 사유 */}
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                {gate.readOnlyClosureChecks.length > 0 && (
+                  <div>
+                    <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-emerald-400">
+                      Read-only 흐름 확인
+                    </h4>
+                    <div className="space-y-2">
+                      {gate.readOnlyClosureChecks.map((item, idx) => (
+                        <div key={idx} className="flex items-start gap-2 rounded border border-emerald-900/30 bg-emerald-950/10 px-3 py-2">
+                          <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-500" />
+                          <div>
+                            <p className="text-[10px] font-semibold text-emerald-300">{item.label}</p>
+                            <p className="mt-0.5 text-[9px] leading-relaxed text-emerald-200/60">{item.value}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {gate.releaseBlockedReasons.length > 0 && (
+                  <div>
+                    <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-red-500">
+                      Release 차단 사유
+                    </h4>
+                    <div className="space-y-2">
+                      {gate.releaseBlockedReasons.map((item, idx) => (
+                        <div key={idx} className="flex items-start gap-2 rounded border border-red-900/25 bg-red-950/10 px-3 py-2">
+                          <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-red-500" />
+                          <div>
+                            <p className="text-[10px] font-semibold text-red-300">{item.label}</p>
+                            <p className="mt-0.5 text-[9px] leading-relaxed text-red-200/60">{item.value}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* 다음 사람 검토 항목 */}
+              {gate.nextHumanReviewItems.length > 0 && (
+                <div>
+                  <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-400">
+                    다음 사람 검토 항목 (실행 불허)
+                  </h4>
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    {gate.nextHumanReviewItems.map((item, idx) => (
+                      <div key={idx} className="rounded border border-slate-700/30 bg-slate-900/20 px-3 py-2">
+                        <p className="mb-0.5 text-[11px] font-semibold text-slate-300">{item.label}</p>
+                        <p className="text-[10px] leading-relaxed text-slate-500">{item.value}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* 여전히 금지 유지 */}
+              {gate.stillForbiddenItems.length > 0 && (
+                <div>
+                  <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-red-500">
+                    Final Closure Gate 이후에도 금지 유지
+                  </h4>
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3">
+                    {gate.stillForbiddenItems.map((item, idx) => (
+                      <div key={idx} className="rounded border border-red-900/25 bg-red-950/10 p-3">
+                        <div className="flex items-start gap-2">
+                          <Lock className="mt-0.5 h-3.5 w-3.5 shrink-0 text-red-500" />
+                          <div>
+                            <p className="text-[10px] font-bold text-red-300">{item.label}</p>
+                            <p className="mt-0.5 text-[9px] leading-relaxed text-red-200/60">{item.value}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* 최종 안내 */}
+              <div className="flex items-start gap-3 rounded-md border border-rose-900/30 bg-rose-950/15 p-4">
+                <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-rose-400" />
+                <div>
+                  <h5 className="text-sm font-medium text-rose-200">Final Closure Gate 안내</h5>
+                  <p className="mt-1 text-xs leading-relaxed text-rose-300/80">
+                    이 패널은 실제 제출/실행으로 넘어가기 전 read-only 검토 흐름을 최종 봉인합니다.
+                    현재 상태에서는 승인 요청 제출, token 발급, Naver API 호출, Queue/Worker 실행, 운영 DB write가 허용되지 않습니다.
+                    다음 단계는 사람의 별도 승인 여부 검토입니다.
+                  </p>
                 </div>
               </div>
             </div>
