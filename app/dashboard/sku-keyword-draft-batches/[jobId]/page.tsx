@@ -1737,6 +1737,107 @@ type DraftBatchJob = {
     queueAllowed: false;
     workerAllowed: false;
   } | null;
+  naverAuthTokenFirstTestManualApprovalChecklistAlignmentScreen?: {
+    checklistAlignmentCreated: boolean;
+    displayOnly: boolean;
+    readOnly: boolean;
+    executionLocked: boolean;
+    alignmentIsReadOnly: boolean;
+    checklistIsExecution: boolean;
+    currentScreenIsReviewOnly: boolean;
+    manualReviewRequired: boolean;
+    requiresSeparateLiveApproval: boolean;
+    tokenTestStillNotAllowed: boolean;
+    title: string;
+    alignmentLabel: string;
+    alignmentNote: string;
+    currentPhase: string;
+    nextStepContext: string;
+    alignmentItems: Array<{
+      id: number;
+      alignmentKey: string;
+      alignmentLabel: string;
+      alignmentValue: string;
+      isReadOnly: boolean;
+      isExecutable: false;
+    }>;
+    checklistClarificationItems: Array<{
+      id: number;
+      clarificationKey: string;
+      clarificationLabel: string;
+      clarificationDetail: string;
+      isReadOnly: boolean;
+      isExecutable: false;
+    }>;
+    alignmentSummaryNote: string;
+    executionButtonRendered: false;
+    executionButtonEnabled: false;
+    approvalButtonRendered: false;
+    approvalButtonEnabled: false;
+    approvalRequestSubmitButtonRendered: false;
+    approvalRequestSubmitButtonEnabled: false;
+    checklistSaveButtonRendered: false;
+    checklistSaveButtonEnabled: false;
+    decisionSaveButtonRendered: false;
+    decisionSaveButtonEnabled: false;
+    boundaryReleaseButtonRendered: false;
+    boundaryReleaseButtonEnabled: false;
+    handoffSaveButtonRendered: false;
+    handoffSaveButtonEnabled: false;
+    handoffCopyButtonRendered: false;
+    handoffCopyButtonEnabled: false;
+    handoffSendButtonRendered: false;
+    handoffSendButtonEnabled: false;
+    verificationSaveButtonRendered: false;
+    verificationSaveButtonEnabled: false;
+    verificationConfirmButtonRendered: false;
+    verificationConfirmButtonEnabled: false;
+    formRendered: false;
+    formSubmitEnabled: false;
+    postApiEnabled: false;
+    finalConfirmationPersisted: false;
+    finalConfirmationDbWriteExecuted: false;
+    finalConfirmationActionEnabled: false;
+    liveTokenTestApproved: false;
+    liveTokenTestExecutionAllowed: false;
+    dbWriteAllowed: false;
+    persistenceExecuted: false;
+    metadataPersisted: false;
+    auditEventPersisted: false;
+    dbWriteExecuted: false;
+    prismaMutationExecuted: false;
+    goTicketIssued: false;
+    executionLeaseIssued: false;
+    sandboxInvocationAllowed: false;
+    sandboxInvocationExecuted: false;
+    coordinatorExecutionAllowed: false;
+    requestPayloadCreated: false;
+    requestBodyCreated: false;
+    requestHeadersCreated: false;
+    networkKillSwitchOpen: false;
+    networkAdapterEnabled: false;
+    networkExecutionAllowed: false;
+    tokenNetworkRequestAllowed: false;
+    tokenRequestAllowed: false;
+    tokenRequestPrepared: false;
+    tokenRequestExecuted: false;
+    accessTokenRequested: false;
+    refreshTokenRequested: false;
+    credentialsUsed: false;
+    clientSecretUsed: false;
+    clientSecretSignCreated: false;
+    tokenIssued: false;
+    tokenStored: false;
+    authorizationHeaderCreated: false;
+    endpointResolved: false;
+    endpointCalled: false;
+    httpRequestCreated: false;
+    httpClientCreated: false;
+    naverApiCallAllowed: false;
+    liveExecutionEnabled: false;
+    queueAllowed: false;
+    workerAllowed: false;
+  } | null;
 };
 
 type DraftBatchDetailResponse =
@@ -6051,6 +6152,85 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-2">
                 <Info className="mt-0.5 h-4 w-4 shrink-0 text-indigo-600" />
                 <p className="text-xs text-indigo-400/70">{verification.handoffVerificationNote}</p>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Token First Test Manual Approval Checklist Alignment ────────────────── */}
+      {(() => {
+        const alignment = job.naverAuthTokenFirstTestManualApprovalChecklistAlignmentScreen;
+        if (!alignment) return null;
+
+        return (
+          <div className="mb-6 rounded-lg border border-fuchsia-500/20 bg-fuchsia-950/10 p-4">
+            <h2 className="mb-2 flex items-center gap-2 text-base font-semibold text-white">
+              <ClipboardList className="h-5 w-5 text-fuchsia-400" />
+              {alignment.title}
+            </h2>
+
+            {/* 안내 배너 */}
+            <div className="mb-4 rounded-md border border-fuchsia-500/25 bg-fuchsia-500/10 px-4 py-3">
+              <div className="flex items-start gap-2">
+                <Info className="mt-0.5 h-4 w-4 shrink-0 text-fuchsia-400" />
+                <div>
+                  <p className="mb-1 text-xs font-bold text-fuchsia-300">{alignment.alignmentLabel}</p>
+                  <p className="text-xs text-fuchsia-300/80">{alignment.alignmentNote}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* 연결 상태 요약 */}
+            <div className="mb-4 flex flex-wrap gap-3">
+              <div className="rounded border border-fuchsia-700/40 bg-fuchsia-900/20 px-3 py-1.5">
+                <p className="text-[9px] font-semibold uppercase tracking-wider text-fuchsia-500/70 mb-0.5">현재 단계</p>
+                <p className="text-sm font-bold text-fuchsia-300">{alignment.currentPhase}</p>
+              </div>
+              <div className="rounded border border-fuchsia-700/40 bg-fuchsia-900/20 px-3 py-1.5">
+                <p className="text-[9px] font-semibold uppercase tracking-wider text-fuchsia-500/70 mb-0.5">다음 단계 정보</p>
+                <p className="text-sm font-bold text-fuchsia-300">{alignment.nextStepContext}</p>
+              </div>
+            </div>
+
+            {/* 정렬(Alignment) 검토 항목 */}
+            <div className="mb-4 grid grid-cols-1 gap-2 sm:grid-cols-3">
+              {alignment.alignmentItems.map((item) => (
+                <div
+                  key={item.id}
+                  className="rounded-md border border-fuchsia-700/20 bg-fuchsia-900/10 px-3 py-2.5"
+                >
+                  <p className="mb-0.5 text-[10px] font-semibold uppercase tracking-wider text-fuchsia-500">
+                    {item.alignmentLabel}
+                  </p>
+                  <p className="text-xs font-medium text-gray-300">{item.alignmentValue}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* 체크리스트 명확화 설명 (Clarifications) */}
+            <div className="mb-4">
+              <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-fuchsia-400">
+                하단 체크리스트 명확화 항목
+              </p>
+              <div className="space-y-1.5">
+                {alignment.checklistClarificationItems.map((item) => (
+                  <div
+                    key={item.id}
+                    className="rounded border border-fuchsia-800/20 bg-fuchsia-900/5 px-3 py-2"
+                  >
+                    <p className="mb-0.5 text-[11px] font-semibold text-fuchsia-300">{item.clarificationLabel}</p>
+                    <p className="text-[10px] leading-relaxed text-gray-500">{item.clarificationDetail}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* 요약 안내 */}
+            <div className="rounded-md border border-fuchsia-600/15 bg-fuchsia-500/5 p-3">
+              <div className="flex items-start gap-2">
+                <Info className="mt-0.5 h-4 w-4 shrink-0 text-fuchsia-600" />
+                <p className="text-xs text-fuchsia-400/70">{alignment.alignmentSummaryNote}</p>
               </div>
             </div>
           </div>
