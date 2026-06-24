@@ -1947,6 +1947,128 @@ type DraftBatchJob = {
     queueAllowed: false;
     workerAllowed: false;
   } | null;
+  naverAuthTokenFirstTestReadOnlyPhaseClosureSummaryScreen?: {
+    readOnlyPhaseClosureSummaryCreated: boolean;
+    displayOnly: boolean;
+    readOnly: boolean;
+    executionLocked: boolean;
+    manualReviewRequired: boolean;
+    requiresSeparateLiveApproval: boolean;
+    tokenTestStillNotAllowed: boolean;
+    screenTitle: string;
+    phaseName: string;
+    phaseStatus: string;
+    reviewedFlowCount: number;
+    auditTargetCommit: string;
+    auditResultCommit: string;
+    allScreensReadOnly: boolean;
+    executionStillForbidden: boolean;
+    tokenRequestStillForbidden: boolean;
+    naverApiCallStillForbidden: boolean;
+    operatingDbWriteStillForbidden: boolean;
+    priceStockChangeStillForbidden: boolean;
+    queueWorkerStillDisconnected: boolean;
+    postApiStillNotAdded: boolean;
+    task58BulkAddAuditCompleted: boolean;
+    nextStepLabel: string;
+    closureSummaryItems: Array<{
+      id: number;
+      label: string;
+      value: string;
+      isReadOnly: boolean;
+    }>;
+    stillForbiddenItems: Array<{
+      id: number;
+      label: string;
+      value: string;
+      isReadOnly: boolean;
+    }>;
+    completedPhaseItems: Array<{
+      id: number;
+      label: string;
+      value: string;
+      isReadOnly: boolean;
+    }>;
+    executionButtonRendered: false;
+    executionButtonEnabled: false;
+    approvalButtonRendered: false;
+    approvalButtonEnabled: false;
+    approvalRequestSubmitButtonRendered: false;
+    approvalRequestSubmitButtonEnabled: false;
+    checklistSaveButtonRendered: false;
+    checklistSaveButtonEnabled: false;
+    decisionSaveButtonRendered: false;
+    decisionSaveButtonEnabled: false;
+    boundaryReleaseButtonRendered: false;
+    boundaryReleaseButtonEnabled: false;
+    handoffSaveButtonRendered: false;
+    handoffSaveButtonEnabled: false;
+    handoffCopyButtonRendered: false;
+    handoffCopyButtonEnabled: false;
+    handoffSendButtonRendered: false;
+    handoffSendButtonEnabled: false;
+    verificationSaveButtonRendered: false;
+    verificationSaveButtonEnabled: false;
+    verificationConfirmButtonRendered: false;
+    verificationConfirmButtonEnabled: false;
+    finalSealSaveButtonRendered: false;
+    finalSealSaveButtonEnabled: false;
+    finalSealConfirmButtonRendered: false;
+    finalSealConfirmButtonEnabled: false;
+    finalSealReleaseButtonRendered: false;
+    finalSealReleaseButtonEnabled: false;
+    closureSaveButtonRendered: false;
+    closureSaveButtonEnabled: false;
+    closureConfirmButtonRendered: false;
+    closureConfirmButtonEnabled: false;
+    closureReleaseButtonRendered: false;
+    closureReleaseButtonEnabled: false;
+    formRendered: false;
+    formSubmitEnabled: false;
+    postApiEnabled: false;
+    finalConfirmationPersisted: false;
+    finalConfirmationDbWriteExecuted: false;
+    finalConfirmationActionEnabled: false;
+    liveTokenTestApproved: false;
+    liveTokenTestExecutionAllowed: false;
+    dbWriteAllowed: false;
+    persistenceExecuted: false;
+    metadataPersisted: false;
+    auditEventPersisted: false;
+    dbWriteExecuted: false;
+    prismaMutationExecuted: false;
+    goTicketIssued: false;
+    executionLeaseIssued: false;
+    sandboxInvocationAllowed: false;
+    sandboxInvocationExecuted: false;
+    coordinatorExecutionAllowed: false;
+    requestPayloadCreated: false;
+    requestBodyCreated: false;
+    requestHeadersCreated: false;
+    networkKillSwitchOpen: false;
+    networkAdapterEnabled: false;
+    networkExecutionAllowed: false;
+    tokenNetworkRequestAllowed: false;
+    tokenRequestAllowed: false;
+    tokenRequestPrepared: false;
+    tokenRequestExecuted: false;
+    accessTokenRequested: false;
+    refreshTokenRequested: false;
+    credentialsUsed: false;
+    clientSecretUsed: false;
+    clientSecretSignCreated: false;
+    tokenIssued: false;
+    tokenStored: false;
+    authorizationHeaderCreated: false;
+    endpointResolved: false;
+    endpointCalled: false;
+    httpRequestCreated: false;
+    httpClientCreated: false;
+    naverApiCallAllowed: false;
+    liveExecutionEnabled: false;
+    queueAllowed: false;
+    workerAllowed: false;
+  } | null;
 };
 
 type DraftBatchDetailResponse =
@@ -6425,6 +6547,135 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <p className="text-xs font-medium leading-relaxed text-rose-300/90">
                 {finalSeal.sealSummaryNote}
               </p>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* Task 60: Token First Test Read-only Phase Closure Summary */}
+      {(() => {
+        const phaseClosure = job.naverAuthTokenFirstTestReadOnlyPhaseClosureSummaryScreen;
+        if (!phaseClosure || !phaseClosure.readOnlyPhaseClosureSummaryCreated) return null;
+
+        return (
+          <div className="mb-6 overflow-hidden rounded-lg border border-slate-700 bg-slate-900 shadow-md">
+            {/* Header */}
+            <div className="border-b border-slate-800 bg-slate-800/50 px-5 py-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-500/10">
+                  <CheckCircle2 className="h-5 w-5 text-emerald-400" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-slate-100">{phaseClosure.screenTitle}</h3>
+                  <div className="mt-1 flex items-center gap-2 text-sm text-slate-400">
+                    <span className="font-medium text-emerald-400/90">{phaseClosure.phaseStatus}</span>
+                    <span className="text-slate-600">|</span>
+                    <span>{phaseClosure.phaseName}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Content Body */}
+            <div className="p-5 space-y-6">
+              
+              {/* Top Stats / Audit Info */}
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div className="rounded border border-slate-700/60 bg-slate-800/40 p-4">
+                  <h4 className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-400">Audit Info</h4>
+                  <ul className="space-y-2 text-sm text-slate-300">
+                    <li className="flex justify-between">
+                      <span className="text-slate-500">Reviewed Flows</span>
+                      <span className="font-medium">{phaseClosure.reviewedFlowCount} steps</span>
+                    </li>
+                    <li className="flex justify-between">
+                      <span className="text-slate-500">Target Commit</span>
+                      <span className="font-mono text-emerald-400/80">{phaseClosure.auditTargetCommit}</span>
+                    </li>
+                    <li className="flex justify-between">
+                      <span className="text-slate-500">Result Commit</span>
+                      <span className="font-mono text-emerald-400/80">{phaseClosure.auditResultCommit}</span>
+                    </li>
+                    <li className="flex justify-between">
+                      <span className="text-slate-500">Bulk Add Audit</span>
+                      <span className="font-medium text-emerald-400">{phaseClosure.task58BulkAddAuditCompleted ? 'Completed' : 'Pending'}</span>
+                    </li>
+                  </ul>
+                </div>
+                
+                <div className="rounded border border-slate-700/60 bg-slate-800/40 p-4">
+                  <h4 className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-400">Safety Status</h4>
+                  <ul className="space-y-2 text-sm text-slate-300">
+                    <li className="flex items-center gap-2">
+                      <Lock className="h-4 w-4 text-emerald-500/70" />
+                      <span>All Screens Read-Only: <strong className="font-medium text-emerald-400">{phaseClosure.allScreensReadOnly ? 'Yes' : 'No'}</strong></span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <Lock className="h-4 w-4 text-emerald-500/70" />
+                      <span>Execution: <strong className="font-medium text-emerald-400">{phaseClosure.executionStillForbidden ? 'Forbidden' : 'Allowed'}</strong></span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <Lock className="h-4 w-4 text-emerald-500/70" />
+                      <span>API/Token Request: <strong className="font-medium text-emerald-400">{phaseClosure.naverApiCallStillForbidden ? 'Forbidden' : 'Allowed'}</strong></span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <Lock className="h-4 w-4 text-emerald-500/70" />
+                      <span>DB Write: <strong className="font-medium text-emerald-400">{phaseClosure.operatingDbWriteStillForbidden ? 'Forbidden' : 'Allowed'}</strong></span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+
+              {/* Closure Summary Items */}
+              <div>
+                <h4 className="mb-3 text-sm font-semibold text-slate-200">Closure Summary</h4>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  {phaseClosure.closureSummaryItems.map((item) => (
+                    <div key={item.id} className="flex flex-col justify-center rounded border border-slate-700/50 bg-[#161618] p-3">
+                      <span className="text-xs text-slate-500">{item.label}</span>
+                      <span className="mt-1 text-sm font-medium text-emerald-300/90">{item.value}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Still Forbidden Items */}
+              <div>
+                <h4 className="mb-3 text-sm font-semibold text-slate-200">Execution Safety Locks</h4>
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                  {phaseClosure.stillForbiddenItems.map((item) => (
+                    <div key={item.id} className="flex flex-col items-center justify-center rounded border border-rose-900/30 bg-rose-950/10 py-3 px-2 text-center">
+                      <span className="text-[11px] leading-tight text-slate-400">{item.label}</span>
+                      <span className="mt-1.5 text-xs font-bold tracking-wider text-rose-400">{item.value}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Completed Phase Items */}
+              <div>
+                <h4 className="mb-3 text-sm font-semibold text-slate-200">Completed Phase Items</h4>
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                  {phaseClosure.completedPhaseItems.map((item) => (
+                    <div key={item.id} className="flex items-center gap-2 rounded bg-[#1a1a1e] p-2 text-xs text-slate-300">
+                      <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-emerald-500/70" />
+                      <span className="truncate" title={item.label}>{item.label}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Next Step Guidance */}
+              <div className="mt-6 flex items-start gap-3 rounded-md border border-blue-900/30 bg-blue-950/20 p-4">
+                <AlertCircle className="h-5 w-5 shrink-0 text-blue-400" />
+                <div>
+                  <h5 className="text-sm font-medium text-blue-200">Next Step Direction</h5>
+                  <p className="mt-1 text-xs leading-relaxed text-blue-300/80">
+                    {phaseClosure.nextStepLabel}
+                  </p>
+                </div>
+              </div>
+
             </div>
           </div>
         );

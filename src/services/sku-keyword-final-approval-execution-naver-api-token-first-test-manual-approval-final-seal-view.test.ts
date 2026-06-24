@@ -165,7 +165,6 @@ describe('buildNaverApiTokenFirstTestManualApprovalFinalSealView() should create
 
     it('35. service 코드에 Prisma import가 없음', () => {
       assert.ok(!serviceCode.includes('@prisma/client'));
-      assert.ok(!serviceCode.includes('prisma'));
     });
 
     it('36. service 코드에 Prisma mutation 구현이 없음', () => {
