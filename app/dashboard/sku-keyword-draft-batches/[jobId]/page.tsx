@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { use, useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
@@ -2139,6 +2139,155 @@ type DraftBatchJob = {
     criteriaReviewConfirmButtonEnabled: false;
     criteriaReviewReleaseButtonRendered: false;
     criteriaReviewReleaseButtonEnabled: false;
+    formRendered: false;
+    formSubmitEnabled: false;
+    postApiEnabled: false;
+    finalConfirmationPersisted: false;
+    finalConfirmationDbWriteExecuted: false;
+    finalConfirmationActionEnabled: false;
+    liveTokenTestApproved: false;
+    liveTokenTestExecutionAllowed: false;
+    dbWriteAllowed: false;
+    persistenceExecuted: false;
+    metadataPersisted: false;
+    auditEventPersisted: false;
+    dbWriteExecuted: false;
+    prismaMutationExecuted: false;
+    goTicketIssued: false;
+    executionLeaseIssued: false;
+    sandboxInvocationAllowed: false;
+    sandboxInvocationExecuted: false;
+    coordinatorExecutionAllowed: false;
+    requestPayloadCreated: false;
+    requestBodyCreated: false;
+    requestHeadersCreated: false;
+    networkKillSwitchOpen: false;
+    networkAdapterEnabled: false;
+    networkExecutionAllowed: false;
+    tokenNetworkRequestAllowed: false;
+    tokenRequestAllowed: false;
+    tokenRequestPrepared: false;
+    tokenRequestExecuted: false;
+    accessTokenRequested: false;
+    refreshTokenRequested: false;
+    credentialsUsed: false;
+    clientSecretUsed: false;
+    clientSecretSignCreated: false;
+    tokenIssued: false;
+    tokenStored: false;
+    authorizationHeaderCreated: false;
+    endpointResolved: false;
+    endpointCalled: false;
+    httpRequestCreated: false;
+    httpClientCreated: false;
+    naverApiCallAllowed: false;
+    liveExecutionEnabled: false;
+    queueAllowed: false;
+    workerAllowed: false;
+  } | null;
+  naverAuthTokenFirstTestSeparateApprovalCriteriaGapAnalysisScreen?: {
+    gapAnalysisCreated: boolean;
+    displayOnly: boolean;
+    readOnly: boolean;
+    executionLocked: boolean;
+    criteriaReviewCompleted: boolean;
+    criteriaGapAnalysisOnly: boolean;
+    separateApprovalStillRequired: boolean;
+    executionStillForbidden: boolean;
+    tokenRequestStillForbidden: boolean;
+    naverApiCallStillForbidden: boolean;
+    operatingDbWriteStillForbidden: boolean;
+    priceStockChangeStillForbidden: boolean;
+    queueWorkerStillDisconnected: boolean;
+    postApiStillNotAdded: boolean;
+
+    screenTitle: string;
+    gapAnalysisPhaseName: string;
+    gapAnalysisStatus: string;
+    criteriaReviewCommit: string;
+    criteriaRecoveryCommit: string;
+
+    satisfiedCriteriaItems: Array<{
+      id: number;
+      criteriaKey: string;
+      criteriaLabel: string;
+      criteriaDetail: string;
+      isSatisfied: boolean;
+    }>;
+    unsatisfiedCriteriaItems: Array<{
+      id: number;
+      criteriaKey: string;
+      criteriaLabel: string;
+      criteriaDetail: string;
+      isSatisfied: boolean;
+    }>;
+    blockingGapItems: Array<{
+      id: number;
+      gapKey: string;
+      gapLabel: string;
+      gapDetail: string;
+    }>;
+    nextReviewItems: Array<{
+      id: number;
+      reviewKey: string;
+      reviewLabel: string;
+      reviewDetail: string;
+    }>;
+    stillForbiddenItems: Array<{
+      id: number;
+      forbiddenKey: string;
+      forbiddenLabel: string;
+      forbiddenDetail: string;
+    }>;
+
+    nextStepLabel: string;
+
+    executionButtonRendered: false;
+    executionButtonEnabled: false;
+    approvalButtonRendered: false;
+    approvalButtonEnabled: false;
+    approvalRequestSubmitButtonRendered: false;
+    approvalRequestSubmitButtonEnabled: false;
+    checklistSaveButtonRendered: false;
+    checklistSaveButtonEnabled: false;
+    decisionSaveButtonRendered: false;
+    decisionSaveButtonEnabled: false;
+    boundaryReleaseButtonRendered: false;
+    boundaryReleaseButtonEnabled: false;
+    handoffSaveButtonRendered: false;
+    handoffSaveButtonEnabled: false;
+    handoffCopyButtonRendered: false;
+    handoffCopyButtonEnabled: false;
+    handoffSendButtonRendered: false;
+    handoffSendButtonEnabled: false;
+    verificationSaveButtonRendered: false;
+    verificationSaveButtonEnabled: false;
+    verificationConfirmButtonRendered: false;
+    verificationConfirmButtonEnabled: false;
+    finalSealSaveButtonRendered: false;
+    finalSealSaveButtonEnabled: false;
+    finalSealConfirmButtonRendered: false;
+    finalSealConfirmButtonEnabled: false;
+    finalSealReleaseButtonRendered: false;
+    finalSealReleaseButtonEnabled: false;
+    closureSaveButtonRendered: false;
+    closureSaveButtonEnabled: false;
+    closureConfirmButtonRendered: false;
+    closureConfirmButtonEnabled: false;
+    closureReleaseButtonRendered: false;
+    closureReleaseButtonEnabled: false;
+    criteriaReviewSaveButtonRendered: false;
+    criteriaReviewSaveButtonEnabled: false;
+    criteriaReviewConfirmButtonRendered: false;
+    criteriaReviewConfirmButtonEnabled: false;
+    criteriaReviewReleaseButtonRendered: false;
+    criteriaReviewReleaseButtonEnabled: false;
+    gapAnalysisSaveButtonRendered: false;
+    gapAnalysisSaveButtonEnabled: false;
+    gapAnalysisConfirmButtonRendered: false;
+    gapAnalysisConfirmButtonEnabled: false;
+    gapAnalysisReleaseButtonRendered: false;
+    gapAnalysisReleaseButtonEnabled: false;
     formRendered: false;
     formSubmitEnabled: false;
     postApiEnabled: false;
@@ -6878,6 +7027,111 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
           </div>
         );
       })()}
+
+      {/* Task 64: Token First Test Separate Approval Criteria Gap Analysis */}
+      {(() => {
+        const gapAnalysis = job.naverAuthTokenFirstTestSeparateApprovalCriteriaGapAnalysisScreen;
+        if (!gapAnalysis || !gapAnalysis.gapAnalysisCreated) return null;
+
+        return (
+          <div className="mb-6 overflow-hidden rounded-lg border border-indigo-500/20 bg-indigo-950/10 shadow-md">
+            {/* Header */}
+            <div className="border-b border-indigo-900/30 bg-indigo-900/20 px-5 py-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-indigo-500/10">
+                  <ClipboardList className="h-5 w-5 text-indigo-400" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-indigo-100">{gapAnalysis.screenTitle}</h3>
+                  <div className="mt-1 flex items-center gap-2 text-sm text-indigo-400/80">
+                    <span className="font-medium text-emerald-400/90">{gapAnalysis.gapAnalysisStatus}</span>
+                    <span className="text-slate-600">|</span>
+                    <span>{gapAnalysis.gapAnalysisPhaseName}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Content Body */}
+            <div className="p-5 space-y-6">
+
+              {/* Satisfied Criteria Items */}
+              <div>
+                <h4 className="mb-3 text-sm font-semibold text-emerald-300">충족된 조건</h4>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  {gapAnalysis.satisfiedCriteriaItems.map((item) => (
+                    <div key={item.id} className="flex items-start gap-2 rounded border border-emerald-900/40 bg-emerald-950/20 p-3">
+                      <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
+                      <div>
+                        <p className="mb-0.5 text-[11px] font-bold text-emerald-400">{item.criteriaLabel}</p>
+                        <p className="text-[11px] leading-relaxed text-emerald-200/80">{item.criteriaDetail}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Unsatisfied Criteria Items */}
+              <div>
+                <h4 className="mb-3 text-sm font-semibold text-amber-300">미충족 조건</h4>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  {gapAnalysis.unsatisfiedCriteriaItems.map((item) => (
+                    <div key={item.id} className="flex items-start gap-2 rounded border border-amber-900/40 bg-amber-950/20 p-3">
+                      <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
+                      <div>
+                        <p className="mb-0.5 text-[11px] font-bold text-amber-400">{item.criteriaLabel}</p>
+                        <p className="text-[11px] leading-relaxed text-amber-200/80">{item.criteriaDetail}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Blocking Gap Items */}
+              <div>
+                <h4 className="mb-3 text-sm font-semibold text-rose-300">현재 승인 불가 사유 (Blocking Gaps)</h4>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  {gapAnalysis.blockingGapItems.map((item) => (
+                    <div key={item.id} className="flex items-start gap-2 rounded border border-rose-900/40 bg-rose-950/20 p-3">
+                      <X className="mt-0.5 h-4 w-4 shrink-0 text-rose-500" />
+                      <div>
+                        <p className="mb-0.5 text-[11px] font-bold text-rose-400">{item.gapLabel}</p>
+                        <p className="text-[11px] leading-relaxed text-rose-200/80">{item.gapDetail}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Still Forbidden Items */}
+              <div>
+                <h4 className="mb-3 text-sm font-semibold text-slate-300">여전히 제한되는 사항 (Safety Guard)</h4>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  {gapAnalysis.stillForbiddenItems.map((item) => (
+                    <div key={item.id} className="rounded border border-slate-700/60 bg-slate-800/40 p-3">
+                      <p className="mb-1 text-[11px] font-bold text-slate-300">{item.forbiddenLabel}</p>
+                      <p className="text-[11px] leading-relaxed text-slate-400/80">{item.forbiddenDetail}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Next Step */}
+              <div className="mt-6 flex items-start gap-3 rounded-md border border-blue-900/30 bg-blue-950/20 p-4">
+                <Info className="mt-0.5 h-5 w-5 shrink-0 text-blue-400" />
+                <div>
+                  <h5 className="text-sm font-medium text-blue-200">다음 단계 안내 (Next Step)</h5>
+                  <p className="mt-1 text-xs leading-relaxed text-blue-300/80">
+                    {gapAnalysis.nextStepLabel}
+                  </p>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        );
+      })()}
+
 
       {/* ── BatchJob 실행 결과 ────────────────────────────────────────────────── */}
       {['EXECUTED', 'PARTIAL_SUCCESS', 'FAILED', 'EXECUTING'].includes(job.status) && (
