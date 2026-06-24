@@ -2701,6 +2701,22 @@ type DraftBatchJob = {
     nextHumanReviewItems: Array<{ label: string; value: string; tone: 'safe' | 'warning' | 'blocked' | 'neutral'; }>;
     stillForbiddenItems: Array<{ label: string; value: string; tone: 'safe' | 'warning' | 'blocked' | 'neutral'; }>;
   } | null;
+  tokenFirstTestSeparateApprovalFinalClosureHandoffSummaryView?: {
+    title: string;
+    statusLabel: string;
+    statusTone: 'neutral' | 'warning' | 'blocked';
+    summary: string;
+    taskRangeLabel: string;
+    previousGateLabel: string;
+    previousGateCommit: string;
+    handoffSummaryItems: Array<{ label: string; value: string; description: string; tone: 'neutral' | 'warning' | 'blocked'; }>;
+    closureEvidenceItems: Array<{ label: string; description: string; evidence: string; tone: 'neutral' | 'warning' | 'blocked'; }>;
+    humanReviewRequiredItems: Array<{ label: string; reason: string; requiredBefore: string; tone: 'warning' | 'blocked'; }>;
+    notReleasedItems: Array<{ label: string; description: string; releaseState: string; tone: 'blocked'; }>;
+    nextHandoffItems: Array<{ label: string; description: string; owner: string; tone: 'neutral' | 'warning'; }>;
+    stillForbiddenItems: Array<{ label: string; description: string; tone: 'blocked'; }>;
+    finalNotice: string;
+  } | null;
 };
 
 type DraftBatchDetailResponse =
@@ -8670,6 +8686,195 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                     현재 상태에서는 승인 요청 제출, token 발급, Naver API 호출, Queue/Worker 실행, 운영 DB write가 허용되지 않습니다.
                     다음 단계는 사람의 별도 승인 여부 검토입니다.
                   </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 73: Separate Approval Final Closure Handoff Summary ────────────── */}
+      {(() => {
+        const hs = job.tokenFirstTestSeparateApprovalFinalClosureHandoffSummaryView;
+        if (!hs) return null;
+
+        const toneColor = (tone: string) => {
+          if (tone === 'blocked') return 'border-red-900/30 bg-red-950/10 text-red-300';
+          if (tone === 'warning') return 'border-amber-900/30 bg-amber-950/10 text-amber-300';
+          return 'border-slate-700/30 bg-slate-900/20 text-slate-300';
+        };
+
+        return (
+          <div className="mb-6 overflow-hidden rounded-lg border border-amber-500/25 bg-amber-950/10 shadow-md">
+            {/* Header */}
+            <div className="border-b border-amber-900/40 bg-amber-900/15 px-5 py-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-500/10">
+                  <Info className="h-5 w-5 text-amber-400" />
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-3">
+                    <h3 className="text-lg font-semibold text-amber-100">
+                      Final Closure Handoff Summary
+                    </h3>
+                    <span className="rounded-full border border-amber-500/40 bg-amber-900/30 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-300">
+                      {hs.statusLabel}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-xs text-amber-300/70">{hs.title}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-5 p-5">
+              {/* 요약 박스 */}
+              <div className="rounded-md border border-amber-700/25 bg-amber-950/20 px-4 py-3">
+                <div className="flex items-start gap-2">
+                  <Info className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" />
+                  <div>
+                    <p className="text-[11px] leading-relaxed text-amber-300/80">{hs.summary}</p>
+                    <p className="mt-1 text-[10px] text-amber-400/60">
+                      {hs.taskRangeLabel} | 이전 게이트: {hs.previousGateLabel} ({hs.previousGateCommit})
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Handoff Summary 항목 */}
+              {hs.handoffSummaryItems.length > 0 && (
+                <div>
+                  <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-amber-400">
+                    Handoff Summary
+                  </h4>
+                  <div className="space-y-2">
+                    {hs.handoffSummaryItems.map((item, idx) => (
+                      <div key={idx} className={`flex items-start gap-3 rounded border px-3 py-2.5 ${toneColor(item.tone)}`}>
+                        <Circle className="mt-0.5 h-3 w-3 shrink-0 opacity-60" />
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2">
+                            <p className="text-[10px] font-semibold opacity-80">{item.label}</p>
+                            <span className="rounded bg-slate-800/40 px-1.5 py-0.5 text-[9px] opacity-70">{item.value}</span>
+                          </div>
+                          <p className="mt-0.5 text-[10px] leading-relaxed opacity-70">{item.description}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* 2-column: Closure Evidence / Human Review Required */}
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                {hs.closureEvidenceItems.length > 0 && (
+                  <div>
+                    <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-emerald-400">
+                      Closure Evidence
+                    </h4>
+                    <div className="space-y-2">
+                      {hs.closureEvidenceItems.map((item, idx) => (
+                        <div key={idx} className="flex items-start gap-2 rounded border border-emerald-900/30 bg-emerald-950/10 px-3 py-2">
+                          <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-500" />
+                          <div>
+                            <p className="text-[10px] font-semibold text-emerald-300">{item.label}</p>
+                            <p className="mt-0.5 text-[9px] leading-relaxed text-emerald-200/60">{item.description}</p>
+                            <p className="mt-0.5 text-[9px] text-emerald-400/50">{item.evidence}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {hs.humanReviewRequiredItems.length > 0 && (
+                  <div>
+                    <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-red-500">
+                      Human Review Required
+                    </h4>
+                    <div className="space-y-2">
+                      {hs.humanReviewRequiredItems.map((item, idx) => (
+                        <div key={idx} className={`flex items-start gap-2 rounded border px-3 py-2 ${toneColor(item.tone)}`}>
+                          <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 opacity-70" />
+                          <div>
+                            <p className="text-[10px] font-semibold">{item.label}</p>
+                            <p className="mt-0.5 text-[9px] leading-relaxed opacity-70">{item.reason}</p>
+                            <p className="mt-0.5 text-[9px] opacity-50">필요 시점: {item.requiredBefore}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Not Released Yet */}
+              {hs.notReleasedItems.length > 0 && (
+                <div>
+                  <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-red-500">
+                    Not Released Yet — 실행 미해제 항목
+                  </h4>
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3">
+                    {hs.notReleasedItems.map((item, idx) => (
+                      <div key={idx} className="rounded border border-red-900/25 bg-red-950/10 p-2.5">
+                        <div className="flex items-start gap-2">
+                          <Lock className="mt-0.5 h-3.5 w-3.5 shrink-0 text-red-500" />
+                          <div>
+                            <p className="text-[10px] font-bold text-red-300">{item.label}</p>
+                            <p className="mt-0.5 text-[9px] leading-relaxed text-red-200/60">{item.description}</p>
+                            <span className="mt-1 inline-block rounded bg-red-900/30 px-1 py-0.5 text-[8px] text-red-400">{item.releaseState}</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Next Handoff Items */}
+              {hs.nextHandoffItems.length > 0 && (
+                <div>
+                  <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-400">
+                    Next Handoff Items — 사람 인수인계 항목
+                  </h4>
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    {hs.nextHandoffItems.map((item, idx) => (
+                      <div key={idx} className={`rounded border px-3 py-2.5 ${toneColor(item.tone)}`}>
+                        <p className="mb-0.5 text-[11px] font-semibold">{item.label}</p>
+                        <p className="text-[10px] leading-relaxed opacity-70">{item.description}</p>
+                        <p className="mt-1 text-[9px] opacity-50">담당: {item.owner}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Still Forbidden */}
+              {hs.stillForbiddenItems.length > 0 && (
+                <div>
+                  <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-red-500">
+                    Still Forbidden — Handoff Summary 이후에도 금지 유지
+                  </h4>
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3">
+                    {hs.stillForbiddenItems.map((item, idx) => (
+                      <div key={idx} className="rounded border border-red-900/25 bg-red-950/10 p-3">
+                        <div className="flex items-start gap-2">
+                          <Lock className="mt-0.5 h-3.5 w-3.5 shrink-0 text-red-500" />
+                          <div>
+                            <p className="text-[10px] font-bold text-red-300">{item.label}</p>
+                            <p className="mt-0.5 text-[9px] leading-relaxed text-red-200/60">{item.description}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Final Notice */}
+              <div className="flex items-start gap-3 rounded-md border border-amber-900/30 bg-amber-950/15 p-4">
+                <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-400" />
+                <div>
+                  <h5 className="text-sm font-medium text-amber-200">Final Handoff Notice</h5>
+                  <p className="mt-1 text-xs leading-relaxed text-amber-300/80">{hs.finalNotice}</p>
                 </div>
               </div>
             </div>
