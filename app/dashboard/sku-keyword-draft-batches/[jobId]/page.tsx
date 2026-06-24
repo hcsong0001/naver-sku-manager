@@ -779,6 +779,72 @@ type DraftBatchJob = {
     queueAllowed: false;
     workerAllowed: false;
   } | null;
+  naverAuthTokenFirstTestSafeNextStepGuideScreen?: {
+    safeNextStepGuideViewCreated: boolean;
+    displayOnly: boolean;
+    readOnly: boolean;
+    executionLocked: boolean;
+    completedStepsCreated: boolean;
+    pendingApprovalItemsCreated: boolean;
+    manualReviewRequired: boolean;
+    requiresSeparateLiveApproval: boolean;
+    title: string;
+    description: string;
+    currentPhaseLabel: string;
+    tokenTestExecutionAllowedYet: boolean;
+    blockedReason: string;
+    completedSteps: Array<{ step: number; label: string; statusLabel: string; }>;
+    pendingApprovalItems: Array<{ id: number; approvalKey: string; description: string; }>;
+    nextPhaseLabel: string;
+    nextPhaseGuide: string;
+    executionButtonRendered: false;
+    executionButtonEnabled: false;
+    formRendered: false;
+    formSubmitEnabled: false;
+    postApiEnabled: false;
+    finalConfirmationPersisted: false;
+    finalConfirmationDbWriteExecuted: false;
+    finalConfirmationActionEnabled: false;
+    liveTokenTestApproved: false;
+    liveTokenTestExecutionAllowed: false;
+    dbWriteAllowed: false;
+    persistenceExecuted: false;
+    metadataPersisted: false;
+    auditEventPersisted: false;
+    dbWriteExecuted: false;
+    prismaMutationExecuted: false;
+    goTicketIssued: false;
+    executionLeaseIssued: false;
+    sandboxInvocationAllowed: false;
+    sandboxInvocationExecuted: false;
+    coordinatorExecutionAllowed: false;
+    requestPayloadCreated: false;
+    requestBodyCreated: false;
+    requestHeadersCreated: false;
+    networkKillSwitchOpen: false;
+    networkAdapterEnabled: false;
+    networkExecutionAllowed: false;
+    tokenNetworkRequestAllowed: false;
+    tokenRequestAllowed: false;
+    tokenRequestPrepared: false;
+    tokenRequestExecuted: false;
+    accessTokenRequested: false;
+    refreshTokenRequested: false;
+    credentialsUsed: false;
+    clientSecretUsed: false;
+    clientSecretSignCreated: false;
+    tokenIssued: false;
+    tokenStored: false;
+    authorizationHeaderCreated: false;
+    endpointResolved: false;
+    endpointCalled: false;
+    httpRequestCreated: false;
+    httpClientCreated: false;
+    naverApiCallAllowed: false;
+    liveExecutionEnabled: false;
+    queueAllowed: false;
+    workerAllowed: false;
+  } | null;
 };
 
 type DraftBatchDetailResponse =
@@ -4164,6 +4230,82 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             <div className="flex items-center gap-2 rounded border border-gray-700 bg-gray-800/50 p-3">
               <Info className="h-4 w-4 text-gray-400" />
               <span className="text-xs text-gray-300">{review.warningMessage}</span>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Token First Test Safe Next Step Guide Screen ───────────────────────── */}
+      {(() => {
+        const guide = job.naverAuthTokenFirstTestSafeNextStepGuideScreen;
+        if (!guide) return null;
+
+        return (
+          <div className="mb-6 rounded-lg border border-violet-500/30 bg-violet-950/20 p-4">
+            <h2 className="mb-4 flex items-center gap-2 text-base font-semibold text-white">
+              <Info className="h-5 w-5 text-violet-400" />
+              {guide.title}
+            </h2>
+
+            <p className="mb-4 text-sm text-violet-300">
+              {guide.description}
+            </p>
+
+            {/* 현재 단계 상태 배지 */}
+            <div className="mb-4 flex flex-wrap items-center gap-2">
+              <span className="rounded-full border border-violet-500/30 bg-violet-500/10 px-3 py-1 text-xs font-semibold text-violet-300">
+                현재 단계: {guide.currentPhaseLabel}
+              </span>
+              <span className="rounded-full border border-red-500/30 bg-red-500/10 px-3 py-1 text-xs font-semibold text-red-400">
+                Token 발급 테스트 실행: 아직 불가
+              </span>
+            </div>
+
+            {/* 실행 불가 이유 */}
+            <div className="mb-4 rounded-md border border-red-500/20 bg-red-500/5 p-3">
+              <div className="flex items-start gap-2">
+                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-red-400" />
+                <p className="text-xs text-red-300">{guide.blockedReason}</p>
+              </div>
+            </div>
+
+            {/* 완료된 안전 단계 */}
+            <div className="mb-4 rounded-md border border-violet-500/20 bg-[#121214] p-3">
+              <p className="mb-3 text-sm font-semibold text-gray-300">완료된 안전 단계</p>
+              <ol className="space-y-2">
+                {guide.completedSteps.map((step) => (
+                  <li key={step.step} className="flex items-start gap-2 text-xs">
+                    <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-violet-500/20 text-[10px] font-bold text-violet-400">
+                      {step.step}
+                    </span>
+                    <div>
+                      <span className="font-semibold text-gray-200">{step.label}</span>
+                      <span className="ml-2 text-violet-400/70">{step.statusLabel}</span>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            </div>
+
+            {/* 별도 승인 필요 항목 */}
+            <div className="mb-4 rounded-md border border-amber-500/20 bg-amber-500/5 p-3">
+              <p className="mb-3 text-sm font-semibold text-amber-300">다음 단계로 넘어가기 위한 별도 승인 항목</p>
+              <ul className="space-y-2">
+                {guide.pendingApprovalItems.map((item) => (
+                  <li key={item.id} className="flex items-start gap-2 text-xs text-gray-400">
+                    <span className="mt-0.5 shrink-0 font-mono text-[9px] font-bold leading-4 text-amber-400">
+                      [{item.approvalKey}]
+                    </span>
+                    <span>{item.description}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* 다음 단계 안내 */}
+            <div className="rounded-md border border-gray-500/20 bg-gray-500/5 p-3">
+              <p className="mb-1 text-xs font-semibold text-gray-300">{guide.nextPhaseLabel}</p>
+              <p className="text-xs text-gray-400">{guide.nextPhaseGuide}</p>
             </div>
           </div>
         );
