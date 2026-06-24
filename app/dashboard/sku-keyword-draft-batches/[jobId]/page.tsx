@@ -16,6 +16,7 @@ import type {
   SkuKeywordDraftBatchApproveResponse,
 } from '@/src/types/sku-keyword-draft-preview.types';
 import type { SkuKeywordFinalApprovalCreateRequest } from '@/src/types/sku-keyword-final-approval.types';
+import { ManualApprovalChecklistPanel } from './ManualApprovalChecklistPanel';
 
 type DraftBatchItem = {
   id: string;
@@ -3795,6 +3796,9 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
           </div>
         );
       })()}
+
+      {/* ── Manual Approval Checklist ──────────────────────────────────────────── */}
+      <ManualApprovalChecklistPanel />
 
       {/* ── BatchJob 실행 결과 ────────────────────────────────────────────────── */}
       {['EXECUTED', 'PARTIAL_SUCCESS', 'FAILED', 'EXECUTING'].includes(job.status) && (
