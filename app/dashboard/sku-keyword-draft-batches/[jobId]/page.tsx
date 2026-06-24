@@ -460,6 +460,48 @@ type DraftBatchJob = {
   naverAuthTokenDryPermissionGate?: NaverAuthTokenDryPermissionGate | null;
   naverAuthTokenTestOnlySkeletonStatus?: NaverAuthTokenTestOnlySkeleton | null;
   naverAuthTokenTestApprovalAudit?: NaverAuthTokenTestApprovalAuditField | null;
+  naverAuthTokenFirstTestSafetyBoundary?: {
+    ok: boolean;
+    readyForExplicitTokenTestApproval: boolean;
+    allowed: false;
+    status: 'BLOCKED' | 'READY_BUT_DISABLED' | 'NEEDS_REVIEW';
+    resultCode: string;
+    resultMessage: string;
+    tokenTestApprovalPresent: boolean;
+    tokenTestApprovalComplete: boolean;
+    allPreconditionsPassed: boolean;
+    tokenRequestAllowed: false;
+    tokenRequestPrepared: false;
+    tokenRequestExecuted: false;
+    accessTokenRequested: false;
+    refreshTokenRequested: false;
+    credentialsUsed: false;
+    tokenIssued: false;
+    tokenStored: false;
+    authorizationHeaderCreated: false;
+    endpointResolved: false;
+    endpointCalled: false;
+    httpRequestCreated: false;
+    httpClientCreated: false;
+    naverApiCallAllowed: false;
+    liveExecutionEnabled: false;
+    queueAllowed: false;
+    workerAllowed: false;
+    secretVisible: false;
+    tokenVisible: false;
+    endpointVisible: false;
+    sanitized: true;
+    checklistItems: Array<{
+      key: string;
+      label: string;
+      status: 'PASS' | 'WARN' | 'BLOCKED' | 'NEEDS_REVIEW';
+      message: string;
+    }>;
+    blockingReasons: string[];
+    warnings: string[];
+    needsReviewReasons: string[];
+    maxAllowedState: 'NAVER_AUTH_TOKEN_FIRST_TEST_SAFETY_BOUNDARY_READY_BUT_NOT_EXECUTABLE';
+  } | null;
 };
 
 type DraftBatchDetailResponse =
@@ -3226,6 +3268,192 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 ))}
               </div>
             </div>
+          </div>
+        );
+      })()}
+
+      {/* ── 최초 Token 발급 테스트 Safety Boundary ───────────────────────────────── */}
+      {(() => {
+        const boundary = job.naverAuthTokenFirstTestSafetyBoundary ?? null;
+        if (!boundary) return null;
+
+        const statusBadgeClass =
+          boundary.status === 'READY_BUT_DISABLED'
+            ? 'border-emerald-500/30 bg-emerald-500/20 text-emerald-300'
+            : boundary.status === 'BLOCKED'
+              ? 'border-red-500/30 bg-red-500/20 text-red-300'
+              : 'border-amber-500/30 bg-amber-500/20 text-amber-300';
+
+        const checkItemBadge = (status: 'PASS' | 'WARN' | 'BLOCKED' | 'NEEDS_REVIEW') => {
+          if (status === 'PASS') return 'text-emerald-400';
+          if (status === 'WARN') return 'text-amber-400';
+          if (status === 'BLOCKED') return 'text-red-400';
+          return 'text-yellow-400';
+        };
+
+        const checkItemIcon = (status: 'PASS' | 'WARN' | 'BLOCKED' | 'NEEDS_REVIEW') => {
+          if (status === 'PASS') return '✓';
+          if (status === 'WARN') return '⚠';
+          if (status === 'BLOCKED') return '✗';
+          return '…';
+        };
+
+        return (
+          <div className="mb-6 rounded-lg border border-violet-500/30 bg-violet-500/5 p-4">
+            <h2 className="mb-3 flex items-center gap-2 text-base font-semibold text-violet-300">
+              <ShieldAlert className="h-5 w-5 shrink-0" />
+              최초 Token 발급 테스트 Safety Boundary
+              <span className={`ml-auto rounded-full border px-2 py-0.5 text-xs font-semibold ${statusBadgeClass}`}>
+                {boundary.status}
+              </span>
+            </h2>
+
+            {/* 안전 안내 배너 */}
+            <div className="mb-4 rounded-md border border-amber-500/20 bg-amber-500/10 p-3 text-sm text-amber-200">
+              <p className="mb-1 font-semibold text-amber-300">⚠ 안전 안내 — 이 Boundary는 실제 token 발급을 실행하지 않습니다</p>
+              <ul className="space-y-1 text-xs">
+                <li>• 이 Boundary는 실제 token 발급을 실행하지 않습니다.</li>
+                <li>• ready 상태여도 다음 Task에서 별도 명시 승인이 필요합니다.</li>
+                <li>• 상품 수정 API 호출과 연결되지 않습니다.</li>
+                <li>• Naver API endpoint URL이 이 단계에서 resolve되지 않습니다.</li>
+                <li>• HTTP client가 생성되지 않습니다.</li>
+              </ul>
+            </div>
+
+            {/* 상태 요약 카드 */}
+            <div className="mb-4 grid grid-cols-1 gap-2 text-xs sm:grid-cols-2">
+              <div className="rounded-md border border-[#262629] bg-[#18181b] p-3">
+                <p className="mb-1 text-gray-500">resultCode</p>
+                <p className="font-mono text-violet-300 break-all">{boundary.resultCode}</p>
+              </div>
+              <div className="rounded-md border border-[#262629] bg-[#18181b] p-3">
+                <p className="mb-1 text-gray-500">resultMessage</p>
+                <p className="text-gray-200 text-[11px]">{boundary.resultMessage}</p>
+              </div>
+              <div className="rounded-md border border-[#262629] bg-[#18181b] p-3">
+                <p className="mb-1 text-gray-500">readyForExplicitTokenTestApproval</p>
+                <p className={`font-semibold ${boundary.readyForExplicitTokenTestApproval ? 'text-emerald-300' : 'text-slate-400'}`}>
+                  {String(boundary.readyForExplicitTokenTestApproval)}
+                </p>
+                <p className="mt-0.5 text-[10px] text-gray-500">
+                  {boundary.readyForExplicitTokenTestApproval
+                    ? '다음 Task에서 별도 명시 승인 시 token 발급 테스트 진행 가능'
+                    : '조건 미충족 — token 발급 테스트 현재 차단'}
+                </p>
+              </div>
+              <div className="rounded-md border border-[#262629] bg-[#18181b] p-3">
+                <p className="mb-1 text-gray-500">allPreconditionsPassed</p>
+                <p className={`font-semibold ${boundary.allPreconditionsPassed ? 'text-emerald-300' : 'text-slate-400'}`}>
+                  {String(boundary.allPreconditionsPassed)}
+                </p>
+              </div>
+              <div className="rounded-md border border-[#262629] bg-[#18181b] p-3">
+                <p className="mb-1 text-gray-500">tokenTestApprovalPresent</p>
+                <p className={`font-semibold ${boundary.tokenTestApprovalPresent ? 'text-emerald-300' : 'text-slate-400'}`}>
+                  {String(boundary.tokenTestApprovalPresent)}
+                </p>
+              </div>
+              <div className="rounded-md border border-[#262629] bg-[#18181b] p-3">
+                <p className="mb-1 text-gray-500">tokenTestApprovalComplete</p>
+                <p className={`font-semibold ${boundary.tokenTestApprovalComplete ? 'text-emerald-300' : 'text-slate-400'}`}>
+                  {String(boundary.tokenTestApprovalComplete)}
+                </p>
+              </div>
+              <div className="rounded-md border border-[#262629] bg-[#18181b] p-3">
+                <p className="mb-1 text-gray-500">allowed</p>
+                <p className="font-semibold text-emerald-300">{String(boundary.allowed)}</p>
+                <p className="mt-0.5 text-[10px] text-gray-500">항상 false</p>
+              </div>
+            </div>
+
+            {/* 안전 배지 */}
+            <div className="mb-4">
+              <p className="mb-2 text-xs font-semibold text-gray-400">안전 배지 (모두 false 기보 보장)</p>
+              <div className="flex flex-wrap gap-2">
+                {[
+                  'Token 요청 비활성화',
+                  'Access Token 요청 없음',
+                  'Endpoint 미해결',
+                  'HTTP client 없음',
+                  'Authorization header 없음',
+                  'Token 저장 없음',
+                  'Live 실행 비활성화',
+                  'Queue/Worker 없음',
+                ].map(label => (
+                  <span
+                    key={label}
+                    className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-xs font-semibold text-emerald-300"
+                  >
+                    <CheckCircle2 className="h-3 w-3" />
+                    {label}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {/* 코어 체크리스트 */}
+            {boundary.checklistItems.length > 0 && (
+              <div className="mb-4">
+                <p className="mb-2 text-xs font-semibold text-gray-400">코어 체크리스트 ({boundary.checklistItems.length}연)</p>
+                <div className="space-y-1">
+                  {boundary.checklistItems.map((item) => (
+                    <div
+                      key={item.key}
+                      className="flex items-start gap-2 rounded-sm px-2 py-1.5 text-xs even:bg-white/[0.02]"
+                    >
+                      <span className={`mt-0.5 shrink-0 font-bold ${checkItemBadge(item.status)}`}>
+                        {checkItemIcon(item.status)}
+                      </span>
+                      <div className="min-w-0">
+                        <span className="font-mono text-[10px] text-gray-500">{item.key}</span>
+                        <p className="text-gray-300 mt-0.5">{item.message}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 차단 사유 */}
+            {boundary.blockingReasons.length > 0 && (
+              <div className="mb-3 rounded-md border border-red-500/20 bg-red-500/10 p-3">
+                <p className="mb-1 text-xs font-semibold text-red-300">토큰 테스트 차단 사유 ({boundary.blockingReasons.length}건)</p>
+                <ul className="space-y-1">
+                  {boundary.blockingReasons.map((reason, idx) => (
+                    <li key={idx} className="text-xs text-red-200">• {reason}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* 확인 필요 사유 */}
+            {boundary.needsReviewReasons.length > 0 && (
+              <div className="mb-3 rounded-md border border-amber-500/20 bg-amber-500/10 p-3">
+                <p className="mb-1 text-xs font-semibold text-amber-300">확인 필요 항목 ({boundary.needsReviewReasons.length}건)</p>
+                <ul className="space-y-1">
+                  {boundary.needsReviewReasons.map((reason, idx) => (
+                    <li key={idx} className="text-xs text-amber-200">• {reason}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* 경고 */}
+            {boundary.warnings.length > 0 && (
+              <div className="mb-3 rounded-md border border-slate-500/20 bg-slate-500/10 p-3">
+                <p className="mb-1 text-xs font-semibold text-slate-300">경고 ({boundary.warnings.length}건)</p>
+                <ul className="space-y-1">
+                  {boundary.warnings.map((w, idx) => (
+                    <li key={idx} className="text-xs text-slate-200">• {w}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* 안내 문구 */}
+            <p className="mt-2 text-[10px] text-gray-500">
+              이 섹션은 최초 token 발급 테스트 직전 조건을 최종 점검합니다. 모든 조건이 통과되어도 이 단계에서는 token을 발급하지 않으며, 실제 token 발급 테스트는 다음 Task에서 별도 명시 승인 후에만 진행됩니다.
+            </p>
           </div>
         );
       })()}
