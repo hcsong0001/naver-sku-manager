@@ -30,6 +30,7 @@ import { evaluateNaverApiTokenFirstTestGoTicketIssueAuditPlan } from '@/src/serv
 import { evaluateNaverApiTokenFirstTestGoTicketPersistenceDisabled } from '@/src/services/sku-keyword-final-approval-execution-naver-api-token-first-test-go-ticket-persistence-disabled.service';
 import { buildNaverApiTokenFirstTestReadinessScreenView } from '@/src/services/sku-keyword-final-approval-execution-naver-api-token-first-test-readiness-screen-view.service';
 import { buildNaverApiTokenFirstTestFinalConfirmationGateView } from '@/src/services/sku-keyword-final-approval-execution-naver-api-token-first-test-final-confirmation-gate-view.service';
+import { buildNaverApiTokenFirstTestActionLockView } from '@/src/services/sku-keyword-final-approval-execution-naver-api-token-first-test-action-lock-view.service';
 // Compute safe DB environment hint from DATABASE_URL without exposing the original value.
 // Returns a classification key, never the actual URL.
 function getDatabaseUrlSafeHint(): string | null {
@@ -1044,6 +1045,13 @@ export async function GET(
         });
 
         return buildNaverApiTokenFirstTestFinalConfirmationGateView(readinessView);
+      })(),
+      naverAuthTokenFirstTestActionLockScreen: (() => {
+        // Evaluate everything up to FinalConfirmationGate again, but simply pass it to ActionLockView
+        // In a real application, you might cache these or pass them down in a more structured way.
+        // For this task, we can just call buildNaverApiTokenFirstTestActionLockView() directly with null
+        // because ActionLockView currently doesn't strictly depend on FinalConfirmationGate to generate its static structure.
+        return buildNaverApiTokenFirstTestActionLockView(null);
       })()
     };
 

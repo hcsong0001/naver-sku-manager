@@ -544,7 +544,6 @@ type DraftBatchJob = {
     copyableSafetyReport: string;
     manualReviewRequired: boolean;
     requiresSeparateLiveApproval: boolean;
-    
     overallStatus: 'READY' | 'BLOCKED' | 'NOT_STARTED';
     overallMessage: string;
 
@@ -615,6 +614,67 @@ type DraftBatchJob = {
     description: string;
     warningMessage: string;
     checklist: Array<{ id: number; message: string; }>;
+    finalConfirmationPersisted: false;
+    finalConfirmationDbWriteExecuted: false;
+    finalConfirmationActionEnabled: false;
+    liveTokenTestApproved: false;
+    liveTokenTestExecutionAllowed: false;
+    dbWriteAllowed: false;
+    persistenceExecuted: false;
+    metadataPersisted: false;
+    auditEventPersisted: false;
+    dbWriteExecuted: false;
+    prismaMutationExecuted: false;
+    goTicketIssued: false;
+    executionLeaseIssued: false;
+    sandboxInvocationAllowed: false;
+    sandboxInvocationExecuted: false;
+    coordinatorExecutionAllowed: false;
+    requestPayloadCreated: false;
+    requestBodyCreated: false;
+    requestHeadersCreated: false;
+    networkKillSwitchOpen: false;
+    networkAdapterEnabled: false;
+    networkExecutionAllowed: false;
+    tokenNetworkRequestAllowed: false;
+    tokenRequestAllowed: false;
+    tokenRequestPrepared: false;
+    tokenRequestExecuted: false;
+    accessTokenRequested: false;
+    refreshTokenRequested: false;
+    credentialsUsed: false;
+    clientSecretUsed: false;
+    clientSecretSignCreated: false;
+    tokenIssued: false;
+    tokenStored: false;
+    authorizationHeaderCreated: false;
+    endpointResolved: false;
+    endpointCalled: false;
+    httpRequestCreated: false;
+    httpClientCreated: false;
+    naverApiCallAllowed: false;
+    liveExecutionEnabled: false;
+    queueAllowed: false;
+    workerAllowed: false;
+  } | null;
+  naverAuthTokenFirstTestActionLockScreen?: {
+    actionLockViewCreated: boolean;
+    displayOnly: boolean;
+    readOnly: boolean;
+    actionLocked: boolean;
+    lockReasonsCreated: boolean;
+    safetySummaryCreated: boolean;
+    manualReviewRequired: boolean;
+    requiresSeparateLiveApproval: boolean;
+    title: string;
+    description: string;
+    warningMessage: string;
+    lockReasons: Array<{ id: number; message: string; }>;
+    actionButtonRendered: false;
+    actionButtonEnabled: false;
+    formRendered: false;
+    formSubmitEnabled: false;
+    postApiEnabled: false;
     finalConfirmationPersisted: false;
     finalConfirmationDbWriteExecuted: false;
     finalConfirmationActionEnabled: false;
@@ -3720,9 +3780,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <ShieldAlert className="h-5 w-5 shrink-0" />
               Naver Token First Test Readiness (Read-only View)
               <span className={`ml-auto rounded-full border px-2 py-0.5 text-xs font-semibold ${
-                readiness.overallStatus === 'READY' 
-                  ? 'border-emerald-500/30 bg-emerald-500/20 text-emerald-300' 
-                  : 'border-red-500/30 bg-red-500/20 text-red-300'
+                readiness.overallStatus === 'READY'                  ? 'border-emerald-500/30 bg-emerald-500/20 text-emerald-300'                  : 'border-red-500/30 bg-red-500/20 text-red-300'
               }`}>
                 {readiness.overallStatus}
               </span>
@@ -3736,9 +3794,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-5">
               {readiness.statusCards.map((card, idx) => (
                 <div key={idx} className={`rounded-md border p-3 text-center ${
-                  card.isOk 
-                    ? 'border-emerald-500/20 bg-emerald-500/10' 
-                    : 'border-red-500/20 bg-red-500/10'
+                  card.isOk                    ? 'border-emerald-500/20 bg-emerald-500/10'                    : 'border-red-500/20 bg-red-500/10'
                 }`}>
                   <p className={`text-xs ${card.isOk ? 'text-emerald-400' : 'text-red-400'}`}>
                     {card.title}
@@ -3864,7 +3920,6 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <ShieldAlert className="h-5 w-5 text-red-400" />
               {gate.title} (Read-only View)
             </h2>
-            
             <p className="mb-4 text-sm text-red-300">
               {gate.description}
             </p>
@@ -3915,10 +3970,82 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <Info className="h-4 w-4 text-gray-400" />
               <span className="text-xs text-gray-300">{gate.warningMessage}</span>
             </div>
-            
             <p className="mt-3 text-[10px] text-gray-500 text-right">
               이 영역은 컴포넌트 격리를 위한 display-only 영역이며 실행 버튼을 포함하지 않습니다.
             </p>
+          </div>
+        );
+      })()}
+
+      {/* ── Token First Test Action Lock Screen ─────────────────────────────────────────────────── */}
+      {(() => {
+        const lock = job.naverAuthTokenFirstTestActionLockScreen;
+        if (!lock) return null;
+
+        return (
+          <div className="mb-6 rounded-lg border border-purple-500/30 bg-purple-950/20 p-4">
+            <h2 className="mb-4 flex items-center gap-2 text-base font-semibold text-white">
+              <ShieldAlert className="h-5 w-5 text-purple-400" />
+              {lock.title}
+            </h2>
+            <p className="mb-4 text-sm text-purple-300">
+              {lock.description}
+            </p>
+
+            <div className="mb-4 rounded-md border border-purple-500/20 bg-purple-500/10 p-3">
+              <p className="mb-2 text-xs font-semibold text-purple-300">Action Lock 요약 카드</p>
+              <div className="grid grid-cols-2 gap-2 text-[11px] text-purple-200 md:grid-cols-4">
+                <div className="rounded border border-purple-500/10 bg-purple-950/30 p-2">
+                  <div className="text-purple-400">Action Locked</div>
+                  <div className="font-mono text-purple-300">TRUE</div>
+                </div>
+                <div className="rounded border border-purple-500/10 bg-purple-950/30 p-2">
+                  <div className="text-purple-400">Display Only</div>
+                  <div className="font-mono text-purple-300">TRUE</div>
+                </div>
+                <div className="rounded border border-purple-500/10 bg-purple-950/30 p-2">
+                  <div className="text-purple-400">Execution Action</div>
+                  <div className="font-mono text-emerald-400">FALSE</div>
+                </div>
+                <div className="rounded border border-purple-500/10 bg-purple-950/30 p-2">
+                  <div className="text-purple-400">Form Submit</div>
+                  <div className="font-mono text-emerald-400">FALSE</div>
+                </div>
+                <div className="rounded border border-purple-500/10 bg-purple-950/30 p-2">
+                  <div className="text-purple-400">API POST</div>
+                  <div className="font-mono text-emerald-400">FALSE</div>
+                </div>
+                <div className="rounded border border-purple-500/10 bg-purple-950/30 p-2">
+                  <div className="text-purple-400">DB Write</div>
+                  <div className="font-mono text-emerald-400">FALSE</div>
+                </div>
+                <div className="rounded border border-purple-500/10 bg-purple-950/30 p-2">
+                  <div className="text-purple-400">Naver API Call</div>
+                  <div className="font-mono text-emerald-400">FALSE</div>
+                </div>
+                <div className="rounded border border-purple-500/10 bg-purple-950/30 p-2">
+                  <div className="text-purple-400">Token Request</div>
+                  <div className="font-mono text-emerald-400">FALSE</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="mb-4 rounded-md border border-purple-500/20 bg-[#121214] p-3">
+              <p className="mb-2 text-sm font-semibold text-gray-300">잠금 사유 목록</p>
+              <ul className="space-y-2">
+                {lock.lockReasons.map((item) => (
+                  <li key={item.id} className="flex items-start gap-2 text-xs text-gray-400">
+                    <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-gray-500" />
+                    <span>{item.message}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="flex items-center gap-2 rounded border border-gray-700 bg-gray-800/50 p-3">
+              <Info className="h-4 w-4 text-gray-400" />
+              <span className="text-xs text-gray-300">{lock.warningMessage}</span>
+            </div>
           </div>
         );
       })()}
