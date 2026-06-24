@@ -1353,6 +1353,87 @@ type DraftBatchJob = {
     queueAllowed: false;
     workerAllowed: false;
   } | null;
+  naverAuthTokenFirstTestApprovalDecisionSummaryScreen?: {
+    approvalDecisionSummaryCreated: boolean;
+    displayOnly: boolean;
+    readOnly: boolean;
+    executionLocked: boolean;
+    summaryIsReadOnly: boolean;
+    currentDecisionIsNotAllowed: boolean;
+    manualReviewRequired: boolean;
+    requiresSeparateLiveApproval: boolean;
+    tokenTestStillNotAllowed: boolean;
+    title: string;
+    summaryLabel: string;
+    currentDecision: string;
+    currentPhase: string;
+    reviewedPanelCount: number;
+    allPanelsReadOnly: boolean;
+    decisionItems: Array<{
+      id: number;
+      itemKey: string;
+      itemLabel: string;
+      currentState: string;
+      isReadOnly: boolean;
+      isDecisionEditable: false;
+    }>;
+    summaryNote: string;
+    executionButtonRendered: false;
+    executionButtonEnabled: false;
+    approvalButtonRendered: false;
+    approvalButtonEnabled: false;
+    approvalRequestSubmitButtonRendered: false;
+    approvalRequestSubmitButtonEnabled: false;
+    checklistSaveButtonRendered: false;
+    checklistSaveButtonEnabled: false;
+    decisionSaveButtonRendered: false;
+    decisionSaveButtonEnabled: false;
+    formRendered: false;
+    formSubmitEnabled: false;
+    postApiEnabled: false;
+    finalConfirmationPersisted: false;
+    finalConfirmationDbWriteExecuted: false;
+    finalConfirmationActionEnabled: false;
+    liveTokenTestApproved: false;
+    liveTokenTestExecutionAllowed: false;
+    dbWriteAllowed: false;
+    persistenceExecuted: false;
+    metadataPersisted: false;
+    auditEventPersisted: false;
+    dbWriteExecuted: false;
+    prismaMutationExecuted: false;
+    goTicketIssued: false;
+    executionLeaseIssued: false;
+    sandboxInvocationAllowed: false;
+    sandboxInvocationExecuted: false;
+    coordinatorExecutionAllowed: false;
+    requestPayloadCreated: false;
+    requestBodyCreated: false;
+    requestHeadersCreated: false;
+    networkKillSwitchOpen: false;
+    networkAdapterEnabled: false;
+    networkExecutionAllowed: false;
+    tokenNetworkRequestAllowed: false;
+    tokenRequestAllowed: false;
+    tokenRequestPrepared: false;
+    tokenRequestExecuted: false;
+    accessTokenRequested: false;
+    refreshTokenRequested: false;
+    credentialsUsed: false;
+    clientSecretUsed: false;
+    clientSecretSignCreated: false;
+    tokenIssued: false;
+    tokenStored: false;
+    authorizationHeaderCreated: false;
+    endpointResolved: false;
+    endpointCalled: false;
+    httpRequestCreated: false;
+    httpClientCreated: false;
+    naverApiCallAllowed: false;
+    liveExecutionEnabled: false;
+    queueAllowed: false;
+    workerAllowed: false;
+  } | null;
 };
 
 type DraftBatchDetailResponse =
@@ -5349,6 +5430,85 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-2">
                 <Info className="mt-0.5 h-4 w-4 shrink-0 text-teal-400" />
                 <p className="text-xs text-teal-300/70">{checklist.checklistNote}</p>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Token First Test Approval Decision Summary ──────────────────────────── */}
+      {(() => {
+        const summary = job.naverAuthTokenFirstTestApprovalDecisionSummaryScreen;
+        if (!summary) return null;
+
+        return (
+          <div className="mb-6 rounded-lg border border-amber-500/20 bg-amber-950/10 p-4">
+            <h2 className="mb-2 flex items-center gap-2 text-base font-semibold text-white">
+              <ShieldAlert className="h-5 w-5 text-amber-400" />
+              {summary.title}
+            </h2>
+
+            {/* 최종 결론 배너 */}
+            <div className="mb-4 rounded-md border border-amber-500/50 bg-amber-500/10 px-4 py-3">
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-400" />
+                <div>
+                  <p className="mb-1 text-xs font-bold text-amber-300">{summary.summaryLabel}</p>
+                  <div className="flex flex-wrap gap-3 mt-2">
+                    <div className="rounded border border-red-700/40 bg-red-900/20 px-3 py-1.5">
+                      <p className="text-[9px] font-semibold uppercase tracking-wider text-red-500/70 mb-0.5">현재 결론</p>
+                      <p className="text-sm font-bold text-red-400">{summary.currentDecision}</p>
+                    </div>
+                    <div className="rounded border border-amber-700/40 bg-amber-900/20 px-3 py-1.5">
+                      <p className="text-[9px] font-semibold uppercase tracking-wider text-amber-500/70 mb-0.5">현재 단계</p>
+                      <p className="text-sm font-bold text-amber-400">{summary.currentPhase}</p>
+                    </div>
+                    <div className="rounded border border-gray-700/40 bg-gray-800/20 px-3 py-1.5">
+                      <p className="text-[9px] font-semibold uppercase tracking-wider text-gray-500/70 mb-0.5">검토 완료 패널</p>
+                      <p className="text-sm font-bold text-gray-300">{summary.reviewedPanelCount}개 (모두 read-only)</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* 결론 항목 요약 */}
+            <div className="mb-4 rounded-md border border-amber-500/10 bg-[#0f0a00] p-3">
+              <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-amber-600">
+                현재 상태 항목 (총 {summary.decisionItems.length}개)
+              </p>
+              <div className="space-y-1.5">
+                {summary.decisionItems.map((item) => (
+                  <div
+                    key={item.id}
+                    className="flex items-center gap-3 rounded border border-amber-900/20 bg-amber-900/5 px-3 py-2"
+                  >
+                    <span className="w-4 shrink-0 font-mono text-[10px] font-bold text-amber-600/60">
+                      {String(item.id).padStart(2, '0')}
+                    </span>
+                    <p className="min-w-0 flex-1 text-[11px] font-medium text-gray-400">{item.itemLabel}</p>
+                    <span className={`shrink-0 rounded px-2 py-0.5 text-[10px] font-semibold ${
+                      item.currentState.includes('불가') || item.currentState.includes('차단') || item.currentState.includes('유지')
+                        ? 'bg-red-900/20 text-red-400 border border-red-800/30'
+                        : item.currentState.includes('완료')
+                          ? 'bg-green-900/20 text-green-400 border border-green-800/30'
+                          : 'bg-amber-900/20 text-amber-400 border border-amber-800/30'
+                    }`}>
+                      {item.currentState}
+                    </span>
+                    <span className="shrink-0 rounded border border-amber-800/20 bg-amber-900/10 px-1.5 py-0.5 text-[8px] text-amber-600">
+                      read-only
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* 최종 안내 */}
+            <div className="rounded-md border border-amber-500/15 bg-amber-500/5 p-3">
+              <div className="flex items-start gap-2">
+                <Info className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" />
+                <p className="text-xs text-amber-300/70">{summary.summaryNote}</p>
               </div>
             </div>
           </div>
