@@ -718,6 +718,67 @@ type DraftBatchJob = {
     queueAllowed: false;
     workerAllowed: false;
   } | null;
+  naverAuthTokenFirstTestSafetyReviewScreen?: {
+    safetyReviewViewCreated: boolean;
+    displayOnly: boolean;
+    readOnly: boolean;
+    executionLocked: boolean;
+    reviewItemsCreated: boolean;
+    safetySummaryCreated: boolean;
+    manualReviewRequired: boolean;
+    requiresSeparateLiveApproval: boolean;
+    title: string;
+    description: string;
+    warningMessage: string;
+    reviewItems: Array<{ id: number; message: string; }>;
+    executionButtonRendered: false;
+    executionButtonEnabled: false;
+    formRendered: false;
+    formSubmitEnabled: false;
+    postApiEnabled: false;
+    finalConfirmationPersisted: false;
+    finalConfirmationDbWriteExecuted: false;
+    finalConfirmationActionEnabled: false;
+    liveTokenTestApproved: false;
+    liveTokenTestExecutionAllowed: false;
+    dbWriteAllowed: false;
+    persistenceExecuted: false;
+    metadataPersisted: false;
+    auditEventPersisted: false;
+    dbWriteExecuted: false;
+    prismaMutationExecuted: false;
+    goTicketIssued: false;
+    executionLeaseIssued: false;
+    sandboxInvocationAllowed: false;
+    sandboxInvocationExecuted: false;
+    coordinatorExecutionAllowed: false;
+    requestPayloadCreated: false;
+    requestBodyCreated: false;
+    requestHeadersCreated: false;
+    networkKillSwitchOpen: false;
+    networkAdapterEnabled: false;
+    networkExecutionAllowed: false;
+    tokenNetworkRequestAllowed: false;
+    tokenRequestAllowed: false;
+    tokenRequestPrepared: false;
+    tokenRequestExecuted: false;
+    accessTokenRequested: false;
+    refreshTokenRequested: false;
+    credentialsUsed: false;
+    clientSecretUsed: false;
+    clientSecretSignCreated: false;
+    tokenIssued: false;
+    tokenStored: false;
+    authorizationHeaderCreated: false;
+    endpointResolved: false;
+    endpointCalled: false;
+    httpRequestCreated: false;
+    httpClientCreated: false;
+    naverApiCallAllowed: false;
+    liveExecutionEnabled: false;
+    queueAllowed: false;
+    workerAllowed: false;
+  } | null;
 };
 
 type DraftBatchDetailResponse =
@@ -4045,6 +4106,64 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             <div className="flex items-center gap-2 rounded border border-gray-700 bg-gray-800/50 p-3">
               <Info className="h-4 w-4 text-gray-400" />
               <span className="text-xs text-gray-300">{lock.warningMessage}</span>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Token First Test Safety Review Screen ─────────────────────────────────────────────────── */}
+      {(() => {
+        const review = job.naverAuthTokenFirstTestSafetyReviewScreen;
+        if (!review) return null;
+
+        return (
+          <div className="mb-6 rounded-lg border border-amber-500/30 bg-amber-950/20 p-4">
+            <h2 className="mb-4 flex items-center gap-2 text-base font-semibold text-white">
+              <CheckCircle2 className="h-5 w-5 text-amber-400" />
+              {review.title}
+            </h2>
+
+            <p className="mb-4 text-sm text-amber-300">
+              {review.description}
+            </p>
+
+            <div className="mb-4 rounded-md border border-amber-500/20 bg-amber-500/10 p-3">
+              <p className="mb-2 text-xs font-semibold text-amber-300">Safety Review 요약 카드</p>
+              <div className="grid grid-cols-2 gap-2 text-[11px] text-amber-200 md:grid-cols-4">
+                <div className="rounded border border-amber-500/10 bg-amber-950/30 p-2">
+                  <div className="text-amber-400">Execution Locked</div>
+                  <div className="font-mono text-amber-300">TRUE</div>
+                </div>
+                <div className="rounded border border-amber-500/10 bg-amber-950/30 p-2">
+                  <div className="text-amber-400">Read Only</div>
+                  <div className="font-mono text-amber-300">TRUE</div>
+                </div>
+                <div className="rounded border border-amber-500/10 bg-amber-950/30 p-2">
+                  <div className="text-amber-400">Execution Action</div>
+                  <div className="font-mono text-emerald-400">FALSE</div>
+                </div>
+                <div className="rounded border border-amber-500/10 bg-amber-950/30 p-2">
+                  <div className="text-amber-400">Form Submit</div>
+                  <div className="font-mono text-emerald-400">FALSE</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="mb-4 rounded-md border border-amber-500/20 bg-[#121214] p-3">
+              <p className="mb-2 text-sm font-semibold text-gray-300">안전 상태 리뷰 항목</p>
+              <ul className="space-y-2">
+                {review.reviewItems.map((item) => (
+                  <li key={item.id} className="flex items-start gap-2 text-xs text-gray-400">
+                    <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-500/50" />
+                    <span>{item.message}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="flex items-center gap-2 rounded border border-gray-700 bg-gray-800/50 p-3">
+              <Info className="h-4 w-4 text-gray-400" />
+              <span className="text-xs text-gray-300">{review.warningMessage}</span>
             </div>
           </div>
         );
