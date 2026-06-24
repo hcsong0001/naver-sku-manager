@@ -985,6 +985,74 @@ type DraftBatchJob = {
     queueAllowed: false;
     workerAllowed: false;
   } | null;
+  naverAuthTokenFirstTestApprovalConsoleScreen?: {
+    approvalConsoleViewCreated: boolean;
+    displayOnly: boolean;
+    readOnly: boolean;
+    executionLocked: boolean;
+    allPriorStepsCompletedAsReadOnly: boolean;
+    manualReviewRequired: boolean;
+    requiresSeparateLiveApproval: boolean;
+    tokenTestStillNotAllowed: boolean;
+    consoleReadyForApproverReview: boolean;
+    title: string;
+    description: string;
+    currentPhaseLabel: string;
+    overallStatus: string;
+    summaryItems: Array<{ id: number; itemKey: string; label: string; currentValue: string; }>;
+    completedFlowSteps: Array<{ id: number; stepKey: string; stepLabel: string; completedAsReadOnly: boolean; }>;
+    nextRequiredAction: string;
+    approvalNote: string;
+    executionButtonRendered: false;
+    executionButtonEnabled: false;
+    approvalButtonRendered: false;
+    approvalButtonEnabled: false;
+    formRendered: false;
+    formSubmitEnabled: false;
+    postApiEnabled: false;
+    finalConfirmationPersisted: false;
+    finalConfirmationDbWriteExecuted: false;
+    finalConfirmationActionEnabled: false;
+    liveTokenTestApproved: false;
+    liveTokenTestExecutionAllowed: false;
+    dbWriteAllowed: false;
+    persistenceExecuted: false;
+    metadataPersisted: false;
+    auditEventPersisted: false;
+    dbWriteExecuted: false;
+    prismaMutationExecuted: false;
+    goTicketIssued: false;
+    executionLeaseIssued: false;
+    sandboxInvocationAllowed: false;
+    sandboxInvocationExecuted: false;
+    coordinatorExecutionAllowed: false;
+    requestPayloadCreated: false;
+    requestBodyCreated: false;
+    requestHeadersCreated: false;
+    networkKillSwitchOpen: false;
+    networkAdapterEnabled: false;
+    networkExecutionAllowed: false;
+    tokenNetworkRequestAllowed: false;
+    tokenRequestAllowed: false;
+    tokenRequestPrepared: false;
+    tokenRequestExecuted: false;
+    accessTokenRequested: false;
+    refreshTokenRequested: false;
+    credentialsUsed: false;
+    clientSecretUsed: false;
+    clientSecretSignCreated: false;
+    tokenIssued: false;
+    tokenStored: false;
+    authorizationHeaderCreated: false;
+    endpointResolved: false;
+    endpointCalled: false;
+    httpRequestCreated: false;
+    httpClientCreated: false;
+    naverApiCallAllowed: false;
+    liveExecutionEnabled: false;
+    queueAllowed: false;
+    workerAllowed: false;
+  } | null;
 };
 
 type DraftBatchDetailResponse =
@@ -4626,6 +4694,76 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-2">
                 <Info className="mt-0.5 h-4 w-4 shrink-0 text-gray-400" />
                 <p className="text-xs text-gray-400">{timeline.approvalNote}</p>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Token First Test Approval Console Screen ───────────────────────────── */}
+      {(() => {
+        const console_ = job.naverAuthTokenFirstTestApprovalConsoleScreen;
+        if (!console_) return null;
+
+        return (
+          <div className="mb-6 rounded-lg border border-slate-500/30 bg-slate-900/30 p-4">
+            <h2 className="mb-2 flex items-center gap-2 text-base font-semibold text-white">
+              <FileJson className="h-5 w-5 text-slate-300" />
+              {console_.title}
+            </h2>
+
+            <p className="mb-4 text-sm text-slate-400">
+              {console_.description}
+            </p>
+
+            {/* 전체 상태 요약 배너 */}
+            <div className="mb-4 rounded-md border border-slate-600/40 bg-slate-800/40 px-4 py-3">
+              <p className="text-xs font-semibold text-slate-300">{console_.overallStatus}</p>
+            </div>
+
+            {/* 상태 요약 항목 */}
+            <div className="mb-4 rounded-md border border-slate-600/20 bg-[#0d0f12] p-3">
+              <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-500">현재 상태 요약</p>
+              <div className="space-y-2">
+                {console_.summaryItems.map((item) => (
+                  <div key={item.id} className="flex items-start gap-3 text-xs">
+                    <span className="w-36 shrink-0 font-mono text-[10px] text-slate-500">[{item.itemKey}]</span>
+                    <span className="w-28 shrink-0 text-slate-400">{item.label}</span>
+                    <span className="text-slate-300">{item.currentValue}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* 완료된 안전 검토 흐름 */}
+            <div className="mb-4 rounded-md border border-slate-600/20 bg-[#0d0f12] p-3">
+              <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-500">
+                완료된 안전 검토 흐름 ({console_.completedFlowSteps.length}개)
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {console_.completedFlowSteps.map((step) => (
+                  <div
+                    key={step.id}
+                    className="flex items-center gap-1.5 rounded border border-slate-700/50 bg-slate-800/40 px-2 py-1"
+                  >
+                    <span className="text-[9px] font-bold text-green-500">✓</span>
+                    <span className="font-mono text-[9px] text-slate-400">{step.stepKey}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* 다음 필요 행동 */}
+            <div className="mb-4 rounded-md border border-amber-500/20 bg-amber-500/5 p-3">
+              <p className="mb-1 text-xs font-semibold text-amber-300">다음 필요 행동</p>
+              <p className="text-xs text-amber-200">{console_.nextRequiredAction}</p>
+            </div>
+
+            {/* 콘솔 안내 */}
+            <div className="rounded-md border border-slate-500/20 bg-slate-500/5 p-3">
+              <div className="flex items-start gap-2">
+                <Info className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
+                <p className="text-xs text-slate-400">{console_.approvalNote}</p>
               </div>
             </div>
           </div>
