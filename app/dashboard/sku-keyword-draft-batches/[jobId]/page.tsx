@@ -2647,6 +2647,48 @@ type DraftBatchJob = {
     queueAllowed: false;
     workerAllowed: false;
   } | null;
+  naverAuthTokenFirstTestSeparateApprovalSubmissionDecisionSealScreen?: {
+    submissionDecisionSealReviewOnly: boolean;
+    separateApprovalStillRequired: boolean;
+    executionStillForbidden: boolean;
+    tokenRequestStillForbidden: boolean;
+    naverApiCallStillForbidden: boolean;
+    operatingDbWriteStillForbidden: boolean;
+    priceStockChangeStillForbidden: boolean;
+    queueWorkerStillDisconnected: boolean;
+    postApiStillNotAdded: boolean;
+    screenTitle: string;
+    submissionDecisionSealPhaseName: string;
+    submissionDecisionSealStatus: string;
+    submissionReadinessDecisionCommit: string;
+    approvalRequestSubmitted: false;
+    approvalRequestSubmissionAllowed: false;
+    approvalRequestSubmitButtonRendered: false;
+    approvalRequestSubmitButtonEnabled: false;
+    decisionSealItems: any[];
+    submissionStillBlockedItems: any[];
+    executionStillForbiddenItems: any[];
+    nextStepItems: any[];
+    stillForbiddenItems: any[];
+    nextStepLabel: string;
+    submissionDecisionSealSaveButtonRendered: false;
+    submissionDecisionSealSaveButtonEnabled: false;
+    submissionDecisionSealConfirmButtonRendered: false;
+    submissionDecisionSealConfirmButtonEnabled: false;
+    executionButtonRendered: false;
+    executionButtonEnabled: false;
+    formRendered: false;
+    formSubmitEnabled: false;
+    postApiEnabled: false;
+    dbWriteAllowed: false;
+    naverApiCallAllowed: false;
+    tokenRequestAllowed: false;
+    accessTokenRequested: false;
+    tokenIssued: false;
+    liveExecutionEnabled: false;
+    queueAllowed: false;
+    workerAllowed: false;
+  } | null;
 };
 
 type DraftBatchDetailResponse =
@@ -8298,6 +8340,161 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 <div>
                   <h5 className="text-sm font-medium text-rose-200">제출 준비 판단 안내</h5>
                   <p className="mt-1 text-xs leading-relaxed text-rose-300/80">{decision.nextStepLabel}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 71: Separate Approval Submission Decision Seal ───────────────── */}
+      {(() => {
+        const seal = job.naverAuthTokenFirstTestSeparateApprovalSubmissionDecisionSealScreen;
+        if (!seal || !seal.submissionDecisionSealReviewOnly) return null;
+
+        const sealStatusColor = (status: string) => {
+          if (status === 'BLOCKED') return 'text-red-400 bg-red-950/20 border-red-800/30';
+          if (status === 'NOT_RELEASED') return 'text-amber-400 bg-amber-950/20 border-amber-800/30';
+          return 'text-violet-400 bg-violet-950/20 border-violet-800/30';
+        };
+
+        return (
+          <div className="mb-6 overflow-hidden rounded-lg border border-violet-500/25 bg-violet-950/10 shadow-md">
+            {/* Header */}
+            <div className="border-b border-violet-900/40 bg-violet-900/15 px-5 py-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-violet-500/10">
+                  <ShieldAlert className="h-5 w-5 text-violet-400" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-violet-100">{seal.screenTitle}</h3>
+                  <div className="mt-1 flex items-center gap-2 text-sm text-violet-300/80">
+                    <span className="font-medium text-violet-400/90">{seal.submissionDecisionSealStatus}</span>
+                    <span className="text-slate-600">|</span>
+                    <span>{seal.submissionDecisionSealPhaseName}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-5 p-5">
+              {/* 참조 커밋 배너 */}
+              <div className="rounded-md border border-violet-700/25 bg-violet-950/20 px-4 py-3">
+                <div className="flex items-start gap-2">
+                  <Info className="mt-0.5 h-4 w-4 shrink-0 text-violet-400" />
+                  <p className="text-[10px] leading-relaxed text-violet-300/70">
+                    제출 준비 판단 참조 커밋: {seal.submissionReadinessDecisionCommit} | 승인 요청 제출 없음 | 실행 해제 없음 | 이 화면에 저장·제출·실행 기능 없음
+                  </p>
+                </div>
+              </div>
+
+              {/* 봉인 판단 카드 */}
+              {seal.decisionSealItems.length > 0 && (
+                <div>
+                  <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-violet-400">
+                    제출 판단 봉인 내용
+                  </h4>
+                  <div className="space-y-2">
+                    {seal.decisionSealItems.map((item: any) => (
+                      <div key={item.id} className={`flex items-start gap-3 rounded border px-3 py-2.5 ${sealStatusColor(item.sealStatus)}`}>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-[10px] font-semibold uppercase tracking-wider opacity-70">{item.sealLabel}</p>
+                          <p className="mt-0.5 text-xs">{item.sealValue}</p>
+                        </div>
+                        <span className="shrink-0 rounded-full px-2 py-0.5 text-[9px] font-bold uppercase opacity-80 border border-current">
+                          {item.sealStatus}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* 2-column: 제출 여전히 차단 / 여전히 금지 요약 */}
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                {/* 제출 여전히 차단 */}
+                {seal.submissionStillBlockedItems.length > 0 && (
+                  <div>
+                    <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-amber-400">
+                      제출 여전히 차단 사유
+                    </h4>
+                    <div className="space-y-2">
+                      {seal.submissionStillBlockedItems.map((item: any) => (
+                        <div key={item.id} className="rounded border border-amber-900/30 bg-amber-950/10 px-3 py-2">
+                          <p className="mb-0.5 text-[11px] font-semibold text-amber-300">{item.blockedLabel}</p>
+                          <p className="text-[10px] leading-relaxed text-gray-500">{item.blockedDetail}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* 봉인 이후에도 여전히 금지 요약 */}
+                {seal.stillForbiddenItems.length > 0 && (
+                  <div>
+                    <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-red-500">
+                      봉인 이후에도 금지 유지
+                    </h4>
+                    <div className="space-y-2">
+                      {seal.stillForbiddenItems.map((item: any) => (
+                        <div key={item.id} className="flex items-start gap-2 rounded border border-red-900/25 bg-red-950/10 px-3 py-2">
+                          <Lock className="mt-0.5 h-3.5 w-3.5 shrink-0 text-red-500" />
+                          <div>
+                            <p className="text-[10px] font-bold text-red-300">{item.itemLabel}</p>
+                            <p className="mt-0.5 text-[9px] leading-relaxed text-red-200/60">{item.itemDetail}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* 실행 여전히 금지 */}
+              {seal.executionStillForbiddenItems.length > 0 && (
+                <div>
+                  <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-red-500">
+                    실행 여전히 금지 (추가 해제 단계 필요)
+                  </h4>
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3">
+                    {seal.executionStillForbiddenItems.map((item: any) => (
+                      <div key={item.id} className="rounded border border-red-900/25 bg-red-950/10 p-3">
+                        <div className="flex items-start gap-2">
+                          <Lock className="mt-0.5 h-3.5 w-3.5 shrink-0 text-red-500" />
+                          <div>
+                            <p className="text-[10px] font-bold text-red-300">{item.forbiddenLabel}</p>
+                            <p className="mt-0.5 text-[9px] leading-relaxed text-red-200/60">{item.forbiddenDetail}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* 다음 단계 안내 */}
+              {seal.nextStepItems.length > 0 && (
+                <div>
+                  <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-400">
+                    다음 단계 안내 (실행 불허)
+                  </h4>
+                  <div className="space-y-2">
+                    {seal.nextStepItems.map((item: any) => (
+                      <div key={item.id} className="rounded border border-slate-700/30 bg-slate-900/20 px-3 py-2">
+                        <p className="mb-0.5 text-[11px] font-semibold text-slate-300">{item.stepLabel}</p>
+                        <p className="text-[10px] leading-relaxed text-slate-500">{item.stepDetail}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* 봉인 안내 */}
+              <div className="flex items-start gap-3 rounded-md border border-violet-900/30 bg-violet-950/15 p-4">
+                <Info className="mt-0.5 h-5 w-5 shrink-0 text-violet-400" />
+                <div>
+                  <h5 className="text-sm font-medium text-violet-200">제출 판단 봉인 안내</h5>
+                  <p className="mt-1 text-xs leading-relaxed text-violet-300/80">{seal.nextStepLabel}</p>
                 </div>
               </div>
             </div>
