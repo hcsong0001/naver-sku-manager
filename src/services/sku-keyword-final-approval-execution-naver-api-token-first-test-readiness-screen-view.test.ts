@@ -13,7 +13,7 @@ function getValidInput(): BuildReadinessScreenViewInput {
       readyForExplicitTokenTestApproval: true,
       allowed: false,
       status: 'READY_BUT_DISABLED',
-      resultCode: 'READY',
+      resultCode: 'NAVER_AUTH_TOKEN_FIRST_TEST_APPROVAL_CONFIRMED_BUT_TOKEN_REQUEST_DISABLED',
       resultMessage: 'Ready',
       tokenTestApprovalPresent: true,
       tokenTestApprovalComplete: true,

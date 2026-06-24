@@ -867,11 +867,10 @@ export async function GET(
 
         const sandbox = invokeNaverApiTokenFirstTestSandboxDisabled({
           safetyBoundaryResult: boundary,
-          goTicketPlanResult: goTicketPlan,
+          goTicketResult: goTicketPlan,
         });
 
         const auditPlan = evaluateNaverApiTokenFirstTestGoTicketIssueAuditPlan({
-          safetyBoundaryResult: boundary,
           goTicketPlanResult: goTicketPlan,
           sandboxResult: sandbox,
           acknowledgements: {
