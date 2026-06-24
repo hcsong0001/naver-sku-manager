@@ -2606,6 +2606,47 @@ type DraftBatchJob = {
     queueAllowed: false;
     workerAllowed: false;
   } | null;
+  naverAuthTokenFirstTestSeparateApprovalSubmissionReadinessDecisionScreen?: {
+    submissionDecisionReviewOnly: boolean;
+    separateApprovalStillRequired: boolean;
+    executionStillForbidden: boolean;
+    tokenRequestStillForbidden: boolean;
+    naverApiCallStillForbidden: boolean;
+    operatingDbWriteStillForbidden: boolean;
+    priceStockChangeStillForbidden: boolean;
+    queueWorkerStillDisconnected: boolean;
+    postApiStillNotAdded: boolean;
+    screenTitle: string;
+    submissionDecisionPhaseName: string;
+    submissionDecisionStatus: string;
+    preSubmissionReviewCommit: string;
+    approvalRequestSubmitted: false;
+    approvalRequestSubmissionAllowed: false;
+    approvalRequestSubmitButtonRendered: false;
+    approvalRequestSubmitButtonEnabled: false;
+    readinessDecisionItems: any[];
+    submissionBlockedReasonItems: any[];
+    unresolvedBeforeSubmissionItems: any[];
+    postSubmissionStillForbiddenItems: any[];
+    nextStepLabel: string;
+    submissionReadinessDecisionSaveButtonRendered: false;
+    submissionReadinessDecisionSaveButtonEnabled: false;
+    submissionReadinessDecisionConfirmButtonRendered: false;
+    submissionReadinessDecisionConfirmButtonEnabled: false;
+    executionButtonRendered: false;
+    executionButtonEnabled: false;
+    formRendered: false;
+    formSubmitEnabled: false;
+    postApiEnabled: false;
+    dbWriteAllowed: false;
+    naverApiCallAllowed: false;
+    tokenRequestAllowed: false;
+    accessTokenRequested: false;
+    tokenIssued: false;
+    liveExecutionEnabled: false;
+    queueAllowed: false;
+    workerAllowed: false;
+  } | null;
 };
 
 type DraftBatchDetailResponse =
@@ -8122,6 +8163,141 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 <div>
                   <h5 className="text-sm font-medium text-violet-200">사전검토 안내</h5>
                   <p className="mt-1 text-xs leading-relaxed text-violet-300/80">{preReview.nextStepLabel}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* Task 70: Token First Test Separate Approval Submission Readiness Decision */}
+      {(() => {
+        const decision = job.naverAuthTokenFirstTestSeparateApprovalSubmissionReadinessDecisionScreen;
+        if (!decision || !decision.submissionDecisionReviewOnly) return null;
+
+        const statusColor = (status: string) => {
+          if (status === 'NOT_READY') return 'text-red-400 bg-red-950/20 border-red-800/30';
+          if (status === 'CONDITIONAL') return 'text-amber-400 bg-amber-950/20 border-amber-800/30';
+          return 'text-slate-400 bg-slate-900/30 border-slate-700/30';
+        };
+
+        return (
+          <div className="mb-6 overflow-hidden rounded-lg border border-rose-500/25 bg-rose-950/10 shadow-md">
+            {/* Header */}
+            <div className="border-b border-rose-900/40 bg-rose-900/15 px-5 py-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-rose-500/10">
+                  <ShieldAlert className="h-5 w-5 text-rose-400" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-rose-100">{decision.screenTitle}</h3>
+                  <div className="mt-1 flex items-center gap-2 text-sm text-rose-300/80">
+                    <span className="font-medium text-rose-400/90">{decision.submissionDecisionStatus}</span>
+                    <span className="text-slate-600">|</span>
+                    <span>{decision.submissionDecisionPhaseName}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-5 p-5">
+              {/* 참조 커밋 배너 */}
+              <div className="rounded-md border border-rose-700/25 bg-rose-950/20 px-4 py-3">
+                <div className="flex items-start gap-2">
+                  <Info className="mt-0.5 h-4 w-4 shrink-0 text-rose-400" />
+                  <p className="text-[10px] leading-relaxed text-rose-300/70">
+                    사전검토 참조 커밋: {decision.preSubmissionReviewCommit} | 승인 요청 제출 없음 | 이 화면에 제출 기능 없음
+                  </p>
+                </div>
+              </div>
+
+              {/* 판단 요약 카드 */}
+              {decision.readinessDecisionItems.length > 0 && (
+                <div>
+                  <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-rose-400">
+                    제출 준비 판단 요약
+                  </h4>
+                  <div className="space-y-2">
+                    {decision.readinessDecisionItems.map((item: any) => (
+                      <div key={item.id} className={`flex items-start gap-3 rounded border px-3 py-2.5 ${statusColor(item.decisionStatus)}`}>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-[10px] font-semibold uppercase tracking-wider opacity-70">{item.decisionLabel}</p>
+                          <p className="mt-0.5 text-xs">{item.decisionValue}</p>
+                        </div>
+                        <span className="shrink-0 rounded-full px-2 py-0.5 text-[9px] font-bold uppercase opacity-80 border border-current">
+                          {item.decisionStatus}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* 2-column: 제출 보류 사유 / 해소 필요 항목 */}
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                {/* 제출 보류 사유 */}
+                {decision.submissionBlockedReasonItems.length > 0 && (
+                  <div>
+                    <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-amber-400">
+                      제출 보류 사유
+                    </h4>
+                    <div className="space-y-2">
+                      {decision.submissionBlockedReasonItems.map((item: any) => (
+                        <div key={item.id} className="rounded border border-amber-900/30 bg-amber-950/10 px-3 py-2">
+                          <p className="mb-0.5 text-[11px] font-semibold text-amber-300">{item.reasonLabel}</p>
+                          <p className="text-[10px] leading-relaxed text-gray-500">{item.reasonDetail}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* 제출 전 해소 필요 항목 */}
+                {decision.unresolvedBeforeSubmissionItems.length > 0 && (
+                  <div>
+                    <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-orange-400">
+                      제출 전 해소 필요 항목
+                    </h4>
+                    <div className="space-y-2">
+                      {decision.unresolvedBeforeSubmissionItems.map((item: any) => (
+                        <div key={item.id} className="rounded border border-orange-900/25 bg-orange-950/10 px-3 py-2">
+                          <p className="mb-0.5 text-[11px] font-semibold text-orange-300">{item.itemLabel}</p>
+                          <p className="text-[10px] leading-relaxed text-gray-500">{item.itemDetail}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* 제출 후에도 여전히 금지되는 항목 */}
+              {decision.postSubmissionStillForbiddenItems.length > 0 && (
+                <div>
+                  <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-red-500">
+                    제출 이후에도 여전히 금지 (추가 해제 단계 필요)
+                  </h4>
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3">
+                    {decision.postSubmissionStillForbiddenItems.map((item: any) => (
+                      <div key={item.id} className="rounded border border-red-900/25 bg-red-950/10 p-3">
+                        <div className="flex items-start gap-2">
+                          <Lock className="mt-0.5 h-3.5 w-3.5 shrink-0 text-red-500" />
+                          <div>
+                            <p className="text-[10px] font-bold text-red-300">{item.forbiddenLabel}</p>
+                            <p className="mt-0.5 text-[9px] leading-relaxed text-red-200/60">{item.forbiddenDetail}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* 다음 단계 안내 */}
+              <div className="flex items-start gap-3 rounded-md border border-rose-900/30 bg-rose-950/15 p-4">
+                <Info className="mt-0.5 h-5 w-5 shrink-0 text-rose-400" />
+                <div>
+                  <h5 className="text-sm font-medium text-rose-200">제출 준비 판단 안내</h5>
+                  <p className="mt-1 text-xs leading-relaxed text-rose-300/80">{decision.nextStepLabel}</p>
                 </div>
               </div>
             </div>
