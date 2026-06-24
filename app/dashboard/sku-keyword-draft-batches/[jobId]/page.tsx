@@ -1053,6 +1053,78 @@ type DraftBatchJob = {
     queueAllowed: false;
     workerAllowed: false;
   } | null;
+  naverAuthTokenFirstTestReviewHubNavigationScreen?: {
+    reviewHubNavigationViewCreated: boolean;
+    displayOnly: boolean;
+    readOnly: boolean;
+    executionLocked: boolean;
+    allPanelsIndexed: boolean;
+    manualReviewRequired: boolean;
+    requiresSeparateLiveApproval: boolean;
+    tokenTestStillNotAllowed: boolean;
+    title: string;
+    description: string;
+    totalPanelCount: number;
+    navigationEntries: Array<{
+      id: number;
+      stepNumber: number;
+      stepKey: string;
+      stepName: string;
+      currentStatus: string;
+      panelDescription: string;
+      executionAllowed: false;
+    }>;
+    hubNote: string;
+    executionButtonRendered: false;
+    executionButtonEnabled: false;
+    approvalButtonRendered: false;
+    approvalButtonEnabled: false;
+    formRendered: false;
+    formSubmitEnabled: false;
+    postApiEnabled: false;
+    finalConfirmationPersisted: false;
+    finalConfirmationDbWriteExecuted: false;
+    finalConfirmationActionEnabled: false;
+    liveTokenTestApproved: false;
+    liveTokenTestExecutionAllowed: false;
+    dbWriteAllowed: false;
+    persistenceExecuted: false;
+    metadataPersisted: false;
+    auditEventPersisted: false;
+    dbWriteExecuted: false;
+    prismaMutationExecuted: false;
+    goTicketIssued: false;
+    executionLeaseIssued: false;
+    sandboxInvocationAllowed: false;
+    sandboxInvocationExecuted: false;
+    coordinatorExecutionAllowed: false;
+    requestPayloadCreated: false;
+    requestBodyCreated: false;
+    requestHeadersCreated: false;
+    networkKillSwitchOpen: false;
+    networkAdapterEnabled: false;
+    networkExecutionAllowed: false;
+    tokenNetworkRequestAllowed: false;
+    tokenRequestAllowed: false;
+    tokenRequestPrepared: false;
+    tokenRequestExecuted: false;
+    accessTokenRequested: false;
+    refreshTokenRequested: false;
+    credentialsUsed: false;
+    clientSecretUsed: false;
+    clientSecretSignCreated: false;
+    tokenIssued: false;
+    tokenStored: false;
+    authorizationHeaderCreated: false;
+    endpointResolved: false;
+    endpointCalled: false;
+    httpRequestCreated: false;
+    httpClientCreated: false;
+    naverApiCallAllowed: false;
+    liveExecutionEnabled: false;
+    queueAllowed: false;
+    workerAllowed: false;
+  } | null;
 };
 
 type DraftBatchDetailResponse =
@@ -4100,6 +4172,64 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             <p className="mt-2 text-[10px] text-gray-500">
               이 섹션은 최초 token 발급 테스트의 최종 승인 기록(Read-only)을 표시합니다. 승인이 기록되어도 실제 발급 로직이 비활성화된 상태임을 보장합니다.
             </p>
+          </div>
+        );
+      })()}
+
+      {/* ── Token First Test Review Hub Navigation ─────────────────────────────── */}
+      {(() => {
+        const hub = job.naverAuthTokenFirstTestReviewHubNavigationScreen;
+        if (!hub) return null;
+
+        return (
+          <div className="mb-6 rounded-lg border border-violet-500/20 bg-violet-950/10 p-4">
+            <h2 className="mb-2 flex items-center gap-2 text-base font-semibold text-white">
+              <FileJson className="h-5 w-5 text-violet-400" />
+              {hub.title}
+            </h2>
+
+            <p className="mb-4 text-sm text-violet-300">
+              {hub.description}
+            </p>
+
+            {/* 패널 목차 */}
+            <div className="mb-4 rounded-md border border-violet-500/15 bg-[#0d0a14] p-3">
+              <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-violet-500">
+                안전 검토 패널 목차 (총 {hub.totalPanelCount}개)
+              </p>
+              <div className="space-y-2">
+                {hub.navigationEntries.map((entry) => (
+                  <div
+                    key={entry.id}
+                    className="flex items-start gap-3 rounded border border-violet-800/20 bg-violet-900/10 px-3 py-2"
+                  >
+                    <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-violet-600/40 font-mono text-[10px] font-bold text-violet-400">
+                      {entry.stepNumber}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className="mb-0.5 flex items-center gap-2">
+                        <span className="text-xs font-semibold text-gray-200">{entry.stepName}</span>
+                        <span className="rounded bg-green-900/30 px-1.5 py-0.5 text-[9px] font-semibold text-green-400">
+                          {entry.currentStatus}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-gray-500">{entry.panelDescription}</p>
+                    </div>
+                    <span className="shrink-0 rounded border border-gray-700/50 px-1.5 py-0.5 font-mono text-[9px] text-gray-600">
+                      실행불가
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* 허브 안내 */}
+            <div className="rounded-md border border-violet-500/15 bg-violet-500/5 p-3">
+              <div className="flex items-start gap-2">
+                <Info className="mt-0.5 h-4 w-4 shrink-0 text-violet-400" />
+                <p className="text-xs text-violet-300">{hub.hubNote}</p>
+              </div>
+            </div>
           </div>
         );
       })()}
