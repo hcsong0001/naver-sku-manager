@@ -1276,6 +1276,83 @@ type DraftBatchJob = {
     queueAllowed: false;
     workerAllowed: false;
   } | null;
+  naverAuthTokenFirstTestApprovalReadinessChecklistScreen?: {
+    approvalReadinessChecklistCreated: boolean;
+    displayOnly: boolean;
+    readOnly: boolean;
+    executionLocked: boolean;
+    checklistIsReadOnly: boolean;
+    allItemsReadOnly: boolean;
+    manualReviewRequired: boolean;
+    requiresSeparateLiveApproval: boolean;
+    tokenTestStillNotAllowed: boolean;
+    title: string;
+    checklistLabel: string;
+    checklistDescription: string;
+    checklistItems: Array<{
+      id: number;
+      checkKey: string;
+      checkLabel: string;
+      checkStatus: 'CONFIRMED' | 'LOCKED' | 'PENDING';
+      checkDetail: string;
+      isReadOnly: boolean;
+      isCheckable: false;
+    }>;
+    checklistNote: string;
+    executionButtonRendered: false;
+    executionButtonEnabled: false;
+    approvalButtonRendered: false;
+    approvalButtonEnabled: false;
+    approvalRequestSubmitButtonRendered: false;
+    approvalRequestSubmitButtonEnabled: false;
+    checklistSaveButtonRendered: false;
+    checklistSaveButtonEnabled: false;
+    formRendered: false;
+    formSubmitEnabled: false;
+    postApiEnabled: false;
+    finalConfirmationPersisted: false;
+    finalConfirmationDbWriteExecuted: false;
+    finalConfirmationActionEnabled: false;
+    liveTokenTestApproved: false;
+    liveTokenTestExecutionAllowed: false;
+    dbWriteAllowed: false;
+    persistenceExecuted: false;
+    metadataPersisted: false;
+    auditEventPersisted: false;
+    dbWriteExecuted: false;
+    prismaMutationExecuted: false;
+    goTicketIssued: false;
+    executionLeaseIssued: false;
+    sandboxInvocationAllowed: false;
+    sandboxInvocationExecuted: false;
+    coordinatorExecutionAllowed: false;
+    requestPayloadCreated: false;
+    requestBodyCreated: false;
+    requestHeadersCreated: false;
+    networkKillSwitchOpen: false;
+    networkAdapterEnabled: false;
+    networkExecutionAllowed: false;
+    tokenNetworkRequestAllowed: false;
+    tokenRequestAllowed: false;
+    tokenRequestPrepared: false;
+    tokenRequestExecuted: false;
+    accessTokenRequested: false;
+    refreshTokenRequested: false;
+    credentialsUsed: false;
+    clientSecretUsed: false;
+    clientSecretSignCreated: false;
+    tokenIssued: false;
+    tokenStored: false;
+    authorizationHeaderCreated: false;
+    endpointResolved: false;
+    endpointCalled: false;
+    httpRequestCreated: false;
+    httpClientCreated: false;
+    naverApiCallAllowed: false;
+    liveExecutionEnabled: false;
+    queueAllowed: false;
+    workerAllowed: false;
+  } | null;
 };
 
 type DraftBatchDetailResponse =
@@ -5198,6 +5275,80 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-2">
                 <Info className="mt-0.5 h-4 w-4 shrink-0 text-indigo-400" />
                 <p className="text-xs text-indigo-300/70">{draft.draftNote}</p>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Token First Test Approval Readiness Checklist ───────────────────────── */}
+      {(() => {
+        const checklist = job.naverAuthTokenFirstTestApprovalReadinessChecklistScreen;
+        if (!checklist) return null;
+
+        return (
+          <div className="mb-6 rounded-lg border border-teal-500/20 bg-teal-950/10 p-4">
+            <h2 className="mb-2 flex items-center gap-2 text-base font-semibold text-white">
+              <CheckCircle2 className="h-5 w-5 text-teal-400" />
+              {checklist.title}
+            </h2>
+
+            {/* 체크리스트 안내 배너 */}
+            <div className="mb-4 rounded-md border border-teal-500/40 bg-teal-500/10 px-4 py-3">
+              <div className="flex items-start gap-2">
+                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-teal-400" />
+                <div>
+                  <p className="mb-1 text-xs font-bold text-teal-300">{checklist.checklistLabel}</p>
+                  <p className="text-xs text-teal-200">{checklist.checklistDescription}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* 체크리스트 항목 */}
+            <div className="mb-4 rounded-md border border-teal-500/10 bg-[#040f0f] p-3">
+              <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-teal-600">
+                승인 준비 상태 항목 (총 {checklist.checklistItems.length}개)
+              </p>
+              <div className="space-y-2">
+                {checklist.checklistItems.map((item) => (
+                  <div
+                    key={item.id}
+                    className={`rounded border px-3 py-2.5 ${
+                      item.checkStatus === 'CONFIRMED'
+                        ? 'border-green-800/30 bg-green-900/10'
+                        : item.checkStatus === 'LOCKED'
+                          ? 'border-red-800/20 bg-red-900/5'
+                          : 'border-gray-700/20 bg-gray-900/10'
+                    }`}
+                  >
+                    <div className="mb-1.5 flex items-center gap-2">
+                      <span className="shrink-0 text-sm">
+                        {item.checkStatus === 'CONFIRMED' ? '✔' : item.checkStatus === 'LOCKED' ? '🔒' : '○'}
+                      </span>
+                      <p className={`text-[11px] font-semibold ${
+                        item.checkStatus === 'CONFIRMED'
+                          ? 'text-green-300'
+                          : item.checkStatus === 'LOCKED'
+                            ? 'text-red-400'
+                            : 'text-gray-400'
+                      }`}>
+                        {item.checkLabel}
+                      </p>
+                      <span className="ml-auto shrink-0 rounded border border-teal-800/30 bg-teal-900/20 px-1.5 py-0.5 text-[8px] font-semibold text-teal-500">
+                        read-only
+                      </span>
+                    </div>
+                    <p className="pl-6 text-[11px] leading-relaxed text-gray-500">{item.checkDetail}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* 체크리스트 안내 */}
+            <div className="rounded-md border border-teal-500/15 bg-teal-500/5 p-3">
+              <div className="flex items-start gap-2">
+                <Info className="mt-0.5 h-4 w-4 shrink-0 text-teal-400" />
+                <p className="text-xs text-teal-300/70">{checklist.checklistNote}</p>
               </div>
             </div>
           </div>
