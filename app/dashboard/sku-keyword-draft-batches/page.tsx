@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { AlertTriangle, List, RefreshCw, Search } from 'lucide-react';
@@ -176,7 +176,7 @@ function getRowSummaryBadges(job: DraftBatchListItem) {
   ];
 }
 
-export default function DraftBatchesPage() {
+function DraftBatchesContent() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -540,5 +540,13 @@ export default function DraftBatchesPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function DraftBatchesPage() {
+  return (
+    <Suspense fallback={<div className="flex h-full items-center justify-center p-6 text-gray-400">목록을 불러오는 중입니다...</div>}>
+      <DraftBatchesContent />
+    </Suspense>
   );
 }
