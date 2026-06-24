@@ -1199,6 +1199,83 @@ type DraftBatchJob = {
     queueAllowed: false;
     workerAllowed: false;
   } | null;
+  naverAuthTokenFirstTestSeparateApprovalRequestDraftScreen?: {
+    approvalRequestDraftCreated: boolean;
+    displayOnly: boolean;
+    readOnly: boolean;
+    executionLocked: boolean;
+    draftIsReadOnly: boolean;
+    approvalNotYetRequested: boolean;
+    manualReviewRequired: boolean;
+    requiresSeparateLiveApproval: boolean;
+    tokenTestStillNotAllowed: boolean;
+    title: string;
+    draftLabel: string;
+    draftPurpose: string;
+    currentStatusSummary: string;
+    whyNotAllowedYet: string;
+    approvalRequestSections: Array<{
+      id: number;
+      sectionKey: string;
+      sectionTitle: string;
+      sectionContent: string;
+      isReadOnly: boolean;
+      isSubmittable: false;
+    }>;
+    stillProhibitedItems: string[];
+    draftNote: string;
+    executionButtonRendered: false;
+    executionButtonEnabled: false;
+    approvalButtonRendered: false;
+    approvalButtonEnabled: false;
+    approvalRequestSubmitButtonRendered: false;
+    approvalRequestSubmitButtonEnabled: false;
+    formRendered: false;
+    formSubmitEnabled: false;
+    postApiEnabled: false;
+    finalConfirmationPersisted: false;
+    finalConfirmationDbWriteExecuted: false;
+    finalConfirmationActionEnabled: false;
+    liveTokenTestApproved: false;
+    liveTokenTestExecutionAllowed: false;
+    dbWriteAllowed: false;
+    persistenceExecuted: false;
+    metadataPersisted: false;
+    auditEventPersisted: false;
+    dbWriteExecuted: false;
+    prismaMutationExecuted: false;
+    goTicketIssued: false;
+    executionLeaseIssued: false;
+    sandboxInvocationAllowed: false;
+    sandboxInvocationExecuted: false;
+    coordinatorExecutionAllowed: false;
+    requestPayloadCreated: false;
+    requestBodyCreated: false;
+    requestHeadersCreated: false;
+    networkKillSwitchOpen: false;
+    networkAdapterEnabled: false;
+    networkExecutionAllowed: false;
+    tokenNetworkRequestAllowed: false;
+    tokenRequestAllowed: false;
+    tokenRequestPrepared: false;
+    tokenRequestExecuted: false;
+    accessTokenRequested: false;
+    refreshTokenRequested: false;
+    credentialsUsed: false;
+    clientSecretUsed: false;
+    clientSecretSignCreated: false;
+    tokenIssued: false;
+    tokenStored: false;
+    authorizationHeaderCreated: false;
+    endpointResolved: false;
+    endpointCalled: false;
+    httpRequestCreated: false;
+    httpClientCreated: false;
+    naverApiCallAllowed: false;
+    liveExecutionEnabled: false;
+    queueAllowed: false;
+    workerAllowed: false;
+  } | null;
 };
 
 type DraftBatchDetailResponse =
@@ -5037,6 +5114,90 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-2">
                 <Info className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
                 <p className="text-xs text-slate-400">{console_.approvalNote}</p>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Token First Test Separate Approval Request Draft ────────────────────── */}
+      {(() => {
+        const draft = job.naverAuthTokenFirstTestSeparateApprovalRequestDraftScreen;
+        if (!draft) return null;
+
+        return (
+          <div className="mb-6 rounded-lg border border-indigo-500/20 bg-indigo-950/10 p-4">
+            <h2 className="mb-2 flex items-center gap-2 text-base font-semibold text-white">
+              <FileJson className="h-5 w-5 text-indigo-400" />
+              {draft.title}
+            </h2>
+
+            {/* 초안 경고 배너 */}
+            <div className="mb-4 rounded-md border border-indigo-500/40 bg-indigo-500/10 px-4 py-3">
+              <div className="flex items-start gap-2">
+                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-indigo-400" />
+                <div>
+                  <p className="mb-1 text-xs font-bold text-indigo-300">{draft.draftLabel}</p>
+                  <p className="text-xs text-indigo-200">{draft.draftPurpose}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* 현재 상태 요약 */}
+            <div className="mb-4 rounded-md border border-indigo-500/15 bg-indigo-900/10 px-3 py-2">
+              <p className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-indigo-500">현재 상태</p>
+              <p className="text-xs font-mono text-indigo-300">{draft.currentStatusSummary}</p>
+            </div>
+
+            {/* 아직 실행 불가인 이유 */}
+            <div className="mb-4 rounded-md border border-indigo-500/15 bg-indigo-900/10 px-3 py-2">
+              <p className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-indigo-500">실행 불가 이유</p>
+              <p className="text-xs text-indigo-300/80">{draft.whyNotAllowedYet}</p>
+            </div>
+
+            {/* 별도 승인 요청 초안 섹션 6개 */}
+            <div className="mb-4 rounded-md border border-indigo-500/10 bg-[#08080f] p-3">
+              <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-indigo-600">
+                별도 승인 요청 초안 내용 (총 {draft.approvalRequestSections.length}개 섹션)
+              </p>
+              <div className="space-y-2">
+                {draft.approvalRequestSections.map((section) => (
+                  <div
+                    key={section.id}
+                    className="rounded border border-indigo-900/30 bg-indigo-900/10 px-3 py-2.5"
+                  >
+                    <div className="mb-1.5 flex items-center justify-between gap-2">
+                      <p className="text-[11px] font-semibold text-indigo-200">{section.sectionTitle}</p>
+                      <span className="shrink-0 rounded border border-green-800/30 bg-green-900/20 px-1.5 py-0.5 text-[8px] font-semibold text-green-500">
+                        read-only
+                      </span>
+                    </div>
+                    <p className="text-[11px] leading-relaxed text-gray-400">{section.sectionContent}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* 여전히 금지된 항목 */}
+            <div className="mb-4 rounded-md border border-red-500/10 bg-red-900/5 p-3">
+              <p className="mb-2 text-xs font-semibold text-red-500/80">
+                승인 이후에도 여전히 금지된 항목 ({draft.stillProhibitedItems.length}개)
+              </p>
+              <ul className="space-y-1">
+                {draft.stillProhibitedItems.map((item, idx) => (
+                  <li key={idx} className="flex items-start gap-2 text-[11px] text-gray-500">
+                    <span className="mt-0.5 shrink-0 text-red-600">✕</span>
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* 초안 안내 */}
+            <div className="rounded-md border border-indigo-500/15 bg-indigo-500/5 p-3">
+              <div className="flex items-start gap-2">
+                <Info className="mt-0.5 h-4 w-4 shrink-0 text-indigo-400" />
+                <p className="text-xs text-indigo-300/70">{draft.draftNote}</p>
               </div>
             </div>
           </div>
