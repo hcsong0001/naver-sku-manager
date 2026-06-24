@@ -21,6 +21,7 @@ import { evaluateNaverApiAuthConfigSafeReader } from '@/src/services/sku-keyword
 import { createNaverApiTokenProviderDisabled } from '@/src/services/sku-keyword-final-approval-execution-naver-api-token-provider-disabled.service';
 import { evaluateNaverApiTokenDryPermissionGate } from '@/src/services/sku-keyword-final-approval-execution-naver-api-token-dry-permission-gate.service';
 import { createNaverApiTokenProviderTestOnlySkeleton } from '@/src/services/sku-keyword-final-approval-execution-naver-api-token-provider-test-only-skeleton.service';
+import { sanitizeStoredAuditRecord } from '@/src/services/sku-keyword-final-approval-execution-naver-api-token-test-approval-audit.service';
 
 // Compute safe DB environment hint from DATABASE_URL without exposing the original value.
 // Returns a classification key, never the actual URL.
@@ -277,6 +278,11 @@ export async function GET(
     const rawMetadata = job.metadata as Record<string, unknown> | null;
     const liveSingleTestApprovalAudit = extractSafeAuditRecord(
       rawMetadata?.liveSingleTestApprovalAudit
+    );
+
+    // Read token test approval audit from metadata (written by POST /naver-auth-token-test-approval)
+    const naverAuthTokenTestApprovalAudit = sanitizeStoredAuditRecord(
+      rawMetadata?.naverAuthTokenTestApprovalAudit
     );
 
     // Build audit history (read-only summary from metadata)
@@ -604,6 +610,25 @@ export async function GET(
           maxAllowedState: skeleton.maxAllowedState,
         };
       })(),
+      naverAuthTokenTestApprovalAudit: naverAuthTokenTestApprovalAudit
+        ? {
+            hasAudit: true,
+            auditCode: naverAuthTokenTestApprovalAudit.auditCode,
+            recordedAt: naverAuthTokenTestApprovalAudit.recordedAt,
+            recordedBy: naverAuthTokenTestApprovalAudit.recordedBy,
+            approvalPurpose: naverAuthTokenTestApprovalAudit.approvalPurpose,
+            acknowledgedItems: naverAuthTokenTestApprovalAudit.acknowledgedItems,
+            maxAllowedState: naverAuthTokenTestApprovalAudit.maxAllowedState,
+            tokenRequestAllowed: naverAuthTokenTestApprovalAudit.tokenRequestAllowed,
+            accessTokenRequested: naverAuthTokenTestApprovalAudit.accessTokenRequested,
+            tokenIssued: naverAuthTokenTestApprovalAudit.tokenIssued,
+            endpointCalled: naverAuthTokenTestApprovalAudit.endpointCalled,
+            httpClientCreated: naverAuthTokenTestApprovalAudit.httpClientCreated,
+            naverApiCallAllowed: naverAuthTokenTestApprovalAudit.naverApiCallAllowed,
+            liveExecutionEnabled: naverAuthTokenTestApprovalAudit.liveExecutionEnabled,
+            sanitized: naverAuthTokenTestApprovalAudit.sanitized,
+          }
+        : { hasAudit: false },
     };
 
     return NextResponse.json({ ok: true, job: responseJob });

@@ -414,6 +414,29 @@ type NaverAuthTokenTestOnlySkeleton = {
   maxAllowedState: 'NAVER_AUTH_TOKEN_TEST_ONLY_PROVIDER_REGISTERED_BUT_DISABLED';
 };
 
+// Token Test Approval Audit 기록 타입
+type NaverAuthTokenTestApprovalAuditRecord = {
+  hasAudit: true;
+  auditCode: string;
+  recordedAt: string;
+  recordedBy: string | null;
+  approvalPurpose: string;
+  acknowledgedItems: string[];
+  maxAllowedState: string;
+  tokenRequestAllowed: false;
+  accessTokenRequested: false;
+  tokenIssued: false;
+  endpointCalled: false;
+  httpClientCreated: false;
+  naverApiCallAllowed: false;
+  liveExecutionEnabled: false;
+  sanitized: true;
+};
+
+type NaverAuthTokenTestApprovalAuditField =
+  | NaverAuthTokenTestApprovalAuditRecord
+  | { hasAudit: false };
+
 type DraftBatchJob = {
   id: string;
   status: string;
@@ -436,6 +459,7 @@ type DraftBatchJob = {
   naverAuthTokenProviderStatus?: NaverAuthTokenProviderStatus | null;
   naverAuthTokenDryPermissionGate?: NaverAuthTokenDryPermissionGate | null;
   naverAuthTokenTestOnlySkeletonStatus?: NaverAuthTokenTestOnlySkeleton | null;
+  naverAuthTokenTestApprovalAudit?: NaverAuthTokenTestApprovalAuditField | null;
 };
 
 type DraftBatchDetailResponse =
@@ -670,6 +694,17 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
     message: string;
   } | null>(null);
 
+  // Token Test Approval Audit state
+  const [tokenTestApprovalCheckedItems, setTokenTestApprovalCheckedItems] = useState<string[]>([]);
+  const [tokenTestApprovalSaving, setTokenTestApprovalSaving] = useState(false);
+  const [tokenTestApprovalSaveError, setTokenTestApprovalSaveError] = useState<string | null>(null);
+  const [tokenTestApprovalSaveResult, setTokenTestApprovalSaveResult] = useState<{
+    auditCode: string;
+    recordedAt: string;
+    acknowledgedItems: string[];
+    message: string;
+  } | null>(null);
+
   const [now, setNow] = useState<number | null>(null);
 
   useEffect(() => {
@@ -826,6 +861,113 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
       setLiveAuditSaveError(err instanceof Error ? err.message : String(err));
     } finally {
       setLiveAuditSaving(false);
+    }
+  };
+
+  // Token Test Approval Audit 필수 항목 목록
+  const TOKEN_TEST_APPROVAL_REQUIRED_ACKNOWLEDGEMENTS = [
+    'CONFIRM_TOKEN_TEST_ONLY',
+    'CONFIRM_NO_PRODUCT_UPDATE',
+    'CONFIRM_NO_ENDPOINT_CALL_IN_THIS_STEP',
+    'CONFIRM_NO_TOKEN_ISSUANCE_IN_THIS_STEP',
+    'CONFIRM_TOKEN_WILL_NOT_BE_STORED',
+    'CONFIRM_TOKEN_WILL_NOT_BE_DISPLAYED',
+    'CONFIRM_NO_AUTHORIZATION_HEADER_CREATED',
+    'CONFIRM_NO_QUEUE_OR_WORKER',
+    'CONFIRM_NO_AUTOMATIC_RETRY',
+    'CONFIRM_SUCCESS_DOES_NOT_ENABLE_LIVE_EXECUTION',
+    'CONFIRM_SEPARATE_APPROVAL_REQUIRED_FOR_REAL_TOKEN_TEST',
+    'CONFIRM_SEPARATE_APPROVAL_REQUIRED_FOR_PRODUCT_UPDATE',
+  ] as const;
+
+  const TOKEN_TEST_APPROVAL_LABELS: Record<string, string> = {
+    CONFIRM_TOKEN_TEST_ONLY:
+      '이 작업은 token 발급 테스트 기록만을 목적으로 합니다. 실제 token 발급은 이 단계에서 실행되지 않습니다.',
+    CONFIRM_NO_PRODUCT_UPDATE:
+      '이 작업은 상품 수정 API와 연결되지 않습니다. 스마트스토어 상품/가격/키워드는 변경되지 않습니다.',
+    CONFIRM_NO_ENDPOINT_CALL_IN_THIS_STEP:
+      '이 단계에서 Naver API endpoint 호출이 발생하지 않습니다.',
+    CONFIRM_NO_TOKEN_ISSUANCE_IN_THIS_STEP:
+      '이 단계에서 access token 또는 refresh token이 발급되지 않습니다.',
+    CONFIRM_TOKEN_WILL_NOT_BE_STORED:
+      '발급된 token은 저장되지 않습니다. (이 단계에서는 token이 발급되지 않으므로 저장도 없습니다.)',
+    CONFIRM_TOKEN_WILL_NOT_BE_DISPLAYED:
+      'access token, refresh token, client secret은 UI/로그에 표시되지 않습니다.',
+    CONFIRM_NO_AUTHORIZATION_HEADER_CREATED:
+      'Authorization header가 생성되지 않습니다.',
+    CONFIRM_NO_QUEUE_OR_WORKER:
+      'Queue enqueue 또는 Worker 호출이 없습니다.',
+    CONFIRM_NO_AUTOMATIC_RETRY:
+      '실패 시 자동 재시도가 없습니다.',
+    CONFIRM_SUCCESS_DOES_NOT_ENABLE_LIVE_EXECUTION:
+      '이 승인 기록 저장 성공이 Live 실행을 활성화하지 않습니다.',
+    CONFIRM_SEPARATE_APPROVAL_REQUIRED_FOR_REAL_TOKEN_TEST:
+      '실제 token 발급 테스트를 실행하려면 별도의 추가 사용자 승인이 필요합니다.',
+    CONFIRM_SEPARATE_APPROVAL_REQUIRED_FOR_PRODUCT_UPDATE:
+      '상품 수정 API 호출을 위해서는 별도의 추가 사용자 승인이 필요합니다.',
+  };
+
+  const handleToggleTokenTestApprovalItem = (ack: string) => {
+    setTokenTestApprovalCheckedItems(prev =>
+      prev.includes(ack) ? prev.filter(a => a !== ack) : [...prev, ack]
+    );
+  };
+
+  const handleSaveTokenTestApproval = async () => {
+    if (!job || tokenTestApprovalSaving) return;
+    const currentActiveFinalApproval = finalApprovals?.find(a => a.status === 'ACTIVE') ?? null;
+    if (!currentActiveFinalApproval) {
+      setTokenTestApprovalSaveError('ACTIVE 상태의 Final Approval이 없습니다.');
+      return;
+    }
+
+    try {
+      setTokenTestApprovalSaving(true);
+      setTokenTestApprovalSaveError(null);
+
+      const response = await fetch('/api/sku-keyword-final-approvals/naver-auth-token-test-approval', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          finalApprovalId: currentActiveFinalApproval.id,
+          batchJobId: job.id,
+          acknowledgedItems: tokenTestApprovalCheckedItems,
+          confirmApprovalRecordOnly: true,
+          actorId: 'UI_USER',
+        }),
+      });
+
+      type TokenTestApprovalResponse =
+        | {
+            ok: true;
+            audit: { auditCode: string; recordedAt: string; acknowledgedItems: string[] };
+            message: string;
+            tokenRequestAllowed: false;
+            accessTokenRequested: false;
+            tokenIssued: false;
+            naverApiCallAllowed: false;
+            liveExecutionEnabled: false;
+          }
+        | { ok: false; error?: string; missingAcknowledgements?: string[] };
+
+      const data = (await response.json()) as TokenTestApprovalResponse;
+      if (!response.ok || !data.ok) {
+        throw new Error(
+          !data.ok && data.error ? data.error : '승인 기록 저장에 실패했습니다.'
+        );
+      }
+
+      setTokenTestApprovalSaveResult({
+        auditCode: data.audit.auditCode,
+        recordedAt: data.audit.recordedAt,
+        acknowledgedItems: data.audit.acknowledgedItems,
+        message: data.message,
+      });
+      await fetchJob();
+    } catch (err: unknown) {
+      setTokenTestApprovalSaveError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setTokenTestApprovalSaving(false);
     }
   };
 
@@ -2866,6 +3008,223 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             <div className="rounded-md border border-slate-500/20 bg-slate-500/10 p-2 text-xs text-gray-400">
               <span className="text-gray-500">최대 허용 상태: </span>
               <span className="font-mono text-indigo-300">{sk.maxAllowedState}</span>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── 최초 Token 발급 테스트 승인 기록 ────────────────────────────────── */}
+      {(() => {
+        // 기존 저장된 audit 확인
+        const savedAudit = job.naverAuthTokenTestApprovalAudit;
+        const hasExistingAudit = savedAudit && savedAudit.hasAudit === true;
+        const existingAudit = hasExistingAudit ? (savedAudit as NaverAuthTokenTestApprovalAuditRecord) : null;
+        const currentActiveFinalApproval = finalApprovals?.find(a => a.status === 'ACTIVE') ?? null;
+        const allTokenTestAcksChecked = TOKEN_TEST_APPROVAL_REQUIRED_ACKNOWLEDGEMENTS.every(a =>
+          tokenTestApprovalCheckedItems.includes(a)
+        );
+        const canSaveTokenTestApproval =
+          allTokenTestAcksChecked &&
+          !!currentActiveFinalApproval &&
+          !tokenTestApprovalSaving;
+
+        return (
+          <div className="mb-6 rounded-lg border border-indigo-500/30 bg-indigo-500/5 p-4">
+            <h2 className="mb-3 flex items-center gap-2 text-base font-semibold text-indigo-300">
+              <ShieldAlert className="h-5 w-5 shrink-0" />
+              최초 Token 발급 테스트 전 사용자 승인 기록
+              {hasExistingAudit && (
+                <span className="ml-auto rounded-full border border-emerald-500/30 bg-emerald-500/20 px-2 py-0.5 text-xs font-semibold text-emerald-300">
+                  기록 완료
+                </span>
+              )}
+            </h2>
+
+            {/* 안전 안내 배너 */}
+            <div className="mb-4 rounded-md border border-amber-500/20 bg-amber-500/10 p-3 text-sm text-amber-200">
+              <p className="mb-1 font-semibold text-amber-300">⚠ 안전 안내 — 이 섹션은 승인 기록만 저장합니다</p>
+              <ul className="space-y-1 text-xs">
+                <li>• 이 승인 기록은 실제 token 발급을 실행하지 않습니다.</li>
+                <li>• 상품 수정 API 호출과 연결되지 않습니다.</li>
+                <li>• 성공해도 Live 실행이 활성화되지 않습니다.</li>
+                <li>• Naver API endpoint URL이 이 단계에서 resolve되지 않습니다.</li>
+                <li>• HTTP client가 생성되지 않습니다.</li>
+                <li>• Authorization header가 생성되지 않습니다.</li>
+              </ul>
+            </div>
+
+            {/* 필수 acknowledgement 체크박스 */}
+            {!hasExistingAudit && (
+              <div className="mb-4">
+                <p className="mb-2 text-xs font-semibold text-gray-400">
+                  필수 확인 항목 ({tokenTestApprovalCheckedItems.length}/{TOKEN_TEST_APPROVAL_REQUIRED_ACKNOWLEDGEMENTS.length}건 확인됨)
+                </p>
+                <div className="space-y-2">
+                  {TOKEN_TEST_APPROVAL_REQUIRED_ACKNOWLEDGEMENTS.map((ack) => (
+                    <label
+                      key={ack}
+                      className="flex cursor-pointer items-start gap-3 rounded-md border border-[#262629] bg-[#18181b] p-3 text-xs transition hover:border-indigo-500/40 hover:bg-indigo-500/5"
+                    >
+                      <input
+                        type="checkbox"
+                        id={`token-test-approval-${ack}`}
+                        checked={tokenTestApprovalCheckedItems.includes(ack)}
+                        onChange={() => handleToggleTokenTestApprovalItem(ack)}
+                        className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer accent-indigo-500"
+                      />
+                      <span className="text-gray-300">
+                        <span className="block font-mono text-[10px] text-gray-500 mb-0.5">{ack}</span>
+                        {TOKEN_TEST_APPROVAL_LABELS[ack] ?? ack}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 저장 버튼 */}
+            {!hasExistingAudit && (
+              <div className="mb-4">
+                {!currentActiveFinalApproval && (
+                  <div className="mb-2 rounded-md border border-amber-500/20 bg-amber-500/10 p-2 text-xs text-amber-300">
+                    ⚠ ACTIVE Final Approval이 없습니다. 먼저 최종 승인 Artifact를 생성하세요.
+                  </div>
+                )}
+                <button
+                  type="button"
+                  id="btn-save-token-test-approval-audit"
+                  disabled={!canSaveTokenTestApproval}
+                  onClick={() => void handleSaveTokenTestApproval()}
+                  className={`rounded-md px-5 py-2 text-sm font-semibold transition ${
+                    canSaveTokenTestApproval
+                      ? 'bg-indigo-600 text-white hover:bg-indigo-500'
+                      : 'cursor-not-allowed bg-slate-700 text-slate-400 opacity-60'
+                  }`}
+                >
+                  {tokenTestApprovalSaving ? (
+                    <><Loader2 className="mr-2 inline-block h-4 w-4 animate-spin" />저장 중...</>
+                  ) : (
+                    '승인 기록 저장 (Token 발급 미실행)'
+                  )}
+                </button>
+                <p className="mt-1 text-[10px] text-gray-500">
+                  이 버튼은 승인 기록만 저장합니다. token 발급 버튼이 아닙니다. 인증 테스트 버튼이 아닙니다. Live 실행 버튼이 아닙니다.
+                </p>
+
+                {/* 오류 */}
+                {tokenTestApprovalSaveError && (
+                  <div className="mt-2 rounded-md border border-red-500/20 bg-red-500/10 p-3 text-xs text-red-400">
+                    <span className="font-semibold">저장 오류: </span>{tokenTestApprovalSaveError}
+                  </div>
+                )}
+
+                {/* 저장 성공 결과 (방금 저장) */}
+                {tokenTestApprovalSaveResult && (
+                  <div className="mt-2 rounded-md border border-emerald-500/20 bg-emerald-500/10 p-3 text-xs text-emerald-300">
+                    <p className="mb-1 font-semibold">✓ 승인 기록 저장 완료</p>
+                    <p><span className="text-gray-400">auditCode: </span><span className="font-mono">{tokenTestApprovalSaveResult.auditCode}</span></p>
+                    <p><span className="text-gray-400">recordedAt: </span>{tokenTestApprovalSaveResult.recordedAt}</p>
+                    <p><span className="text-gray-400">acknowledgedItems: </span>{tokenTestApprovalSaveResult.acknowledgedItems.length}건</p>
+                    <p className="mt-1 text-[10px] text-emerald-400">{tokenTestApprovalSaveResult.message}</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* 저장된 audit 표시 */}
+            {existingAudit && (
+              <div className="mb-4 rounded-md border border-emerald-500/20 bg-emerald-500/10 p-4">
+                <p className="mb-3 flex items-center gap-2 text-sm font-semibold text-emerald-300">
+                  <CheckCircle2 className="h-4 w-4 shrink-0" />
+                  저장된 승인 기록
+                </p>
+                <div className="mb-3 grid grid-cols-1 gap-2 text-xs sm:grid-cols-2">
+                  <div className="rounded-md border border-[#262629] bg-[#18181b] p-2">
+                    <p className="text-gray-500">auditCode</p>
+                    <p className="mt-0.5 font-mono text-indigo-300 break-all">{existingAudit.auditCode}</p>
+                  </div>
+                  <div className="rounded-md border border-[#262629] bg-[#18181b] p-2">
+                    <p className="text-gray-500">recordedAt</p>
+                    <p className="mt-0.5 font-mono text-gray-200">{new Date(existingAudit.recordedAt).toLocaleString()}</p>
+                  </div>
+                  <div className="rounded-md border border-[#262629] bg-[#18181b] p-2">
+                    <p className="text-gray-500">recordedBy</p>
+                    <p className="mt-0.5 text-gray-200">{existingAudit.recordedBy ?? '-'}</p>
+                  </div>
+                  <div className="rounded-md border border-[#262629] bg-[#18181b] p-2">
+                    <p className="text-gray-500">acknowledgedItems</p>
+                    <p className="mt-0.5 text-gray-200">{existingAudit.acknowledgedItems.length}건 확인됨</p>
+                  </div>
+                  <div className="rounded-md border border-[#262629] bg-[#18181b] p-2">
+                    <p className="text-gray-500">maxAllowedState</p>
+                    <p className="mt-0.5 font-mono text-xs text-indigo-300 break-all">{existingAudit.maxAllowedState}</p>
+                  </div>
+                  <div className="rounded-md border border-[#262629] bg-[#18181b] p-2">
+                    <p className="text-gray-500">approvalPurpose</p>
+                    <p className="mt-0.5 font-mono text-xs text-gray-300 break-all">{existingAudit.approvalPurpose}</p>
+                  </div>
+                </div>
+
+                {/* acknowledgedItems 목록 */}
+                {existingAudit.acknowledgedItems.length > 0 && (
+                  <div className="mb-3">
+                    <p className="mb-1 text-xs font-semibold text-gray-400">확인된 항목 ({existingAudit.acknowledgedItems.length}건)</p>
+                    <div className="space-y-1">
+                      {existingAudit.acknowledgedItems.map(item => (
+                        <div key={item} className="flex items-center gap-2 rounded-sm px-2 py-1 text-xs">
+                          <CheckCircle2 className="h-3 w-3 shrink-0 text-emerald-400" />
+                          <span className="font-mono text-[10px] text-gray-500">{item}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* false safety flags */}
+                <div className="mb-3">
+                  <p className="mb-1 text-xs font-semibold text-gray-400">안전 플래그 (모두 false)</p>
+                  <div className="grid grid-cols-2 gap-1 text-xs sm:grid-cols-3">
+                    {([
+                      ['tokenRequestAllowed', existingAudit.tokenRequestAllowed],
+                      ['accessTokenRequested', existingAudit.accessTokenRequested],
+                      ['tokenIssued', existingAudit.tokenIssued],
+                      ['endpointCalled', existingAudit.endpointCalled],
+                      ['httpClientCreated', existingAudit.httpClientCreated],
+                      ['naverApiCallAllowed', existingAudit.naverApiCallAllowed],
+                      ['liveExecutionEnabled', existingAudit.liveExecutionEnabled],
+                    ] as [string, boolean][]).map(([k, v]) => (
+                      <div key={k} className="rounded-sm border border-slate-500/20 bg-slate-500/10 px-2 py-1">
+                        <span className="text-gray-500">{k}: </span>
+                        <span className={v ? 'font-semibold text-red-300' : 'font-semibold text-emerald-300'}>{String(v)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 안전 배지 */}
+            <div>
+              <p className="mb-2 text-xs font-semibold text-gray-400">안전 배지</p>
+              <div className="flex flex-wrap gap-2">
+                {[
+                  'Token 발급 미실행',
+                  'Endpoint 호출 없음',
+                  'HTTP client 없음',
+                  'Authorization header 없음',
+                  'Token 저장 없음',
+                  'Live 실행 비활성화',
+                  'Queue/Worker 없음',
+                ].map(label => (
+                  <span
+                    key={label}
+                    className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-xs font-semibold text-emerald-300"
+                  >
+                    <CheckCircle2 className="h-3 w-3" />
+                    {label}
+                  </span>
+                ))}
+              </div>
             </div>
           </div>
         );
