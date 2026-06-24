@@ -2331,6 +2331,158 @@ type DraftBatchJob = {
     httpClientCreated: false;
     naverApiCallAllowed: false;
     liveExecutionEnabled: false;
+    workerAllowed: false;
+  } | null;
+  naverAuthTokenFirstTestSeparateApprovalRiskMatrixScreen?: {
+    riskMatrixCreated: boolean;
+    displayOnly: boolean;
+    readOnly: boolean;
+    executionLocked: boolean;
+    criteriaReviewCompleted: boolean;
+    riskMatrixReviewOnly: boolean;
+    separateApprovalStillRequired: boolean;
+    executionStillForbidden: boolean;
+    tokenRequestStillForbidden: boolean;
+    naverApiCallStillForbidden: boolean;
+    operatingDbWriteStillForbidden: boolean;
+    priceStockChangeStillForbidden: boolean;
+    queueWorkerStillDisconnected: boolean;
+    postApiStillNotAdded: boolean;
+
+    screenTitle: string;
+    riskMatrixPhaseName: string;
+    riskMatrixStatus: string;
+    criteriaGapAnalysisCommit: string;
+
+    highRiskItems: Array<{
+      id: number;
+      riskKey: string;
+      riskLabel: string;
+      riskStatus: string;
+      blockingReason: string;
+      mitigationCondition: string;
+    }>;
+    mediumRiskItems: Array<{
+      id: number;
+      riskKey: string;
+      riskLabel: string;
+      riskStatus: string;
+      blockingReason: string;
+      mitigationCondition: string;
+    }>;
+    lowRiskItems: Array<{
+      id: number;
+      riskKey: string;
+      riskLabel: string;
+      riskStatus: string;
+      blockingReason: string;
+      mitigationCondition: string;
+    }>;
+
+    stillForbiddenItems: Array<{
+      id: number;
+      forbiddenKey: string;
+      forbiddenLabel: string;
+      forbiddenDetail: string;
+    }>;
+
+    nextStepLabel: string;
+
+    executionButtonRendered: false;
+    executionButtonEnabled: false;
+    approvalButtonRendered: false;
+    approvalButtonEnabled: false;
+    approvalRequestSubmitButtonRendered: false;
+    approvalRequestSubmitButtonEnabled: false;
+    checklistSaveButtonRendered: false;
+    checklistSaveButtonEnabled: false;
+    decisionSaveButtonRendered: false;
+    decisionSaveButtonEnabled: false;
+    boundaryReleaseButtonRendered: false;
+    boundaryReleaseButtonEnabled: false;
+    handoffSaveButtonRendered: false;
+    handoffSaveButtonEnabled: false;
+    handoffCopyButtonRendered: false;
+    handoffCopyButtonEnabled: false;
+    handoffSendButtonRendered: false;
+    handoffSendButtonEnabled: false;
+    verificationSaveButtonRendered: false;
+    verificationSaveButtonEnabled: false;
+    verificationConfirmButtonRendered: false;
+    verificationConfirmButtonEnabled: false;
+    finalSealSaveButtonRendered: false;
+    finalSealSaveButtonEnabled: false;
+    finalSealConfirmButtonRendered: false;
+    finalSealConfirmButtonEnabled: false;
+    finalSealReleaseButtonRendered: false;
+    finalSealReleaseButtonEnabled: false;
+    closureSaveButtonRendered: false;
+    closureSaveButtonEnabled: false;
+    closureConfirmButtonRendered: false;
+    closureConfirmButtonEnabled: false;
+    closureReleaseButtonRendered: false;
+    closureReleaseButtonEnabled: false;
+    criteriaReviewSaveButtonRendered: false;
+    criteriaReviewSaveButtonEnabled: false;
+    criteriaReviewConfirmButtonRendered: false;
+    criteriaReviewConfirmButtonEnabled: false;
+    criteriaReviewReleaseButtonRendered: false;
+    criteriaReviewReleaseButtonEnabled: false;
+    gapAnalysisSaveButtonRendered: false;
+    gapAnalysisSaveButtonEnabled: false;
+    gapAnalysisConfirmButtonRendered: false;
+    gapAnalysisConfirmButtonEnabled: false;
+    gapAnalysisReleaseButtonRendered: false;
+    gapAnalysisReleaseButtonEnabled: false;
+    riskMatrixSaveButtonRendered: false;
+    riskMatrixSaveButtonEnabled: false;
+    riskMatrixConfirmButtonRendered: false;
+    riskMatrixConfirmButtonEnabled: false;
+    riskMatrixReleaseButtonRendered: false;
+    riskMatrixReleaseButtonEnabled: false;
+    formRendered: false;
+    formSubmitEnabled: false;
+    postApiEnabled: false;
+    finalConfirmationPersisted: false;
+    finalConfirmationDbWriteExecuted: false;
+    finalConfirmationActionEnabled: false;
+    liveTokenTestApproved: false;
+    liveTokenTestExecutionAllowed: false;
+    dbWriteAllowed: false;
+    persistenceExecuted: false;
+    metadataPersisted: false;
+    auditEventPersisted: false;
+    dbWriteExecuted: false;
+    prismaMutationExecuted: false;
+    goTicketIssued: false;
+    executionLeaseIssued: false;
+    sandboxInvocationAllowed: false;
+    sandboxInvocationExecuted: false;
+    coordinatorExecutionAllowed: false;
+    requestPayloadCreated: false;
+    requestBodyCreated: false;
+    requestHeadersCreated: false;
+    networkKillSwitchOpen: false;
+    networkAdapterEnabled: false;
+    networkExecutionAllowed: false;
+    tokenNetworkRequestAllowed: false;
+    tokenRequestAllowed: false;
+    tokenRequestPrepared: false;
+    tokenRequestExecuted: false;
+    accessTokenRequested: false;
+    refreshTokenRequested: false;
+    credentialsUsed: false;
+    clientSecretUsed: false;
+    clientSecretSignCreated: false;
+    tokenIssued: false;
+    tokenStored: false;
+    authorizationHeaderCreated: false;
+    endpointResolved: false;
+    endpointCalled: false;
+    httpRequestCreated: false;
+    httpClientCreated: false;
+    naverApiCallAllowed: false;
+    liveExecutionEnabled: false;
     queueAllowed: false;
     workerAllowed: false;
   } | null;
@@ -7123,6 +7275,158 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                   <h5 className="text-sm font-medium text-blue-200">다음 단계 안내 (Next Step)</h5>
                   <p className="mt-1 text-xs leading-relaxed text-blue-300/80">
                     {gapAnalysis.nextStepLabel}
+                  </p>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* Task 65: Token First Test Separate Approval Risk Matrix */}
+      {(() => {
+        const riskMatrix = job.naverAuthTokenFirstTestSeparateApprovalRiskMatrixScreen;
+        if (!riskMatrix || !riskMatrix.riskMatrixCreated) return null;
+
+        return (
+          <div className="mb-6 overflow-hidden rounded-lg border border-rose-500/30 bg-rose-950/10 shadow-md">
+            {/* Header */}
+            <div className="border-b border-rose-900/40 bg-rose-900/20 px-5 py-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-rose-500/10">
+                  <ShieldAlert className="h-5 w-5 text-rose-400" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-rose-100">{riskMatrix.screenTitle}</h3>
+                  <div className="mt-1 flex items-center gap-2 text-sm text-rose-300/80">
+                    <span className="font-medium text-amber-400/90">{riskMatrix.riskMatrixStatus}</span>
+                    <span className="text-slate-600">|</span>
+                    <span>{riskMatrix.riskMatrixPhaseName}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Content Body */}
+            <div className="p-5 space-y-6">
+
+              {/* High Risk Items */}
+              {riskMatrix.highRiskItems.length > 0 && (
+                <div>
+                  <h4 className="mb-3 text-sm font-semibold text-rose-400 flex items-center gap-2">
+                    <X className="h-4 w-4" />
+                    High Risk (고위험 요인)
+                  </h4>
+                  <div className="grid grid-cols-1 gap-3">
+                    {riskMatrix.highRiskItems.map((item) => (
+                      <div key={item.id} className="flex flex-col gap-2 rounded border border-rose-900/50 bg-rose-950/30 p-4 sm:flex-row sm:items-start sm:gap-4">
+                        <div className="flex w-full flex-col gap-1 sm:w-1/3">
+                          <p className="text-xs font-bold text-rose-300">{item.riskLabel}</p>
+                          <span className="w-fit rounded bg-rose-900/60 px-2 py-0.5 text-[10px] font-medium text-rose-200">
+                            {item.riskStatus}
+                          </span>
+                        </div>
+                        <div className="flex w-full flex-col gap-2 sm:w-2/3">
+                          <div className="rounded bg-rose-900/20 p-2">
+                            <p className="text-[10px] font-semibold text-rose-400/80">차단 사유</p>
+                            <p className="text-[11px] leading-relaxed text-rose-100/90">{item.blockingReason}</p>
+                          </div>
+                          <div className="rounded bg-emerald-900/10 p-2 border border-emerald-900/20">
+                            <p className="text-[10px] font-semibold text-emerald-500/80">완화 조건</p>
+                            <p className="text-[11px] leading-relaxed text-emerald-200/90">{item.mitigationCondition}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Medium Risk Items */}
+              {riskMatrix.mediumRiskItems.length > 0 && (
+                <div>
+                  <h4 className="mb-3 text-sm font-semibold text-amber-400 flex items-center gap-2">
+                    <AlertCircle className="h-4 w-4" />
+                    Medium Risk (중위험 요인)
+                  </h4>
+                  <div className="grid grid-cols-1 gap-3">
+                    {riskMatrix.mediumRiskItems.map((item) => (
+                      <div key={item.id} className="flex flex-col gap-2 rounded border border-amber-900/40 bg-amber-950/20 p-4 sm:flex-row sm:items-start sm:gap-4">
+                        <div className="flex w-full flex-col gap-1 sm:w-1/3">
+                          <p className="text-xs font-bold text-amber-300">{item.riskLabel}</p>
+                          <span className="w-fit rounded bg-amber-900/40 px-2 py-0.5 text-[10px] font-medium text-amber-200">
+                            {item.riskStatus}
+                          </span>
+                        </div>
+                        <div className="flex w-full flex-col gap-2 sm:w-2/3">
+                          <div className="rounded bg-amber-900/10 p-2">
+                            <p className="text-[10px] font-semibold text-amber-500/80">제한 사유</p>
+                            <p className="text-[11px] leading-relaxed text-amber-100/90">{item.blockingReason}</p>
+                          </div>
+                          <div className="rounded bg-emerald-900/10 p-2 border border-emerald-900/20">
+                            <p className="text-[10px] font-semibold text-emerald-500/80">완화 조건</p>
+                            <p className="text-[11px] leading-relaxed text-emerald-200/90">{item.mitigationCondition}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Low Risk Items */}
+              {riskMatrix.lowRiskItems.length > 0 && (
+                <div>
+                  <h4 className="mb-3 text-sm font-semibold text-blue-400 flex items-center gap-2">
+                    <Info className="h-4 w-4" />
+                    Low Risk (저위험 요인)
+                  </h4>
+                  <div className="grid grid-cols-1 gap-3">
+                    {riskMatrix.lowRiskItems.map((item) => (
+                      <div key={item.id} className="flex flex-col gap-2 rounded border border-blue-900/40 bg-blue-950/20 p-4 sm:flex-row sm:items-start sm:gap-4">
+                        <div className="flex w-full flex-col gap-1 sm:w-1/3">
+                          <p className="text-xs font-bold text-blue-300">{item.riskLabel}</p>
+                          <span className="w-fit rounded bg-blue-900/40 px-2 py-0.5 text-[10px] font-medium text-blue-200">
+                            {item.riskStatus}
+                          </span>
+                        </div>
+                        <div className="flex w-full flex-col gap-2 sm:w-2/3">
+                          <div className="rounded bg-blue-900/10 p-2">
+                            <p className="text-[10px] font-semibold text-blue-400/80">주의 사유</p>
+                            <p className="text-[11px] leading-relaxed text-blue-100/90">{item.blockingReason}</p>
+                          </div>
+                          <div className="rounded bg-emerald-900/10 p-2 border border-emerald-900/20">
+                            <p className="text-[10px] font-semibold text-emerald-500/80">완화 가이드</p>
+                            <p className="text-[11px] leading-relaxed text-emerald-200/90">{item.mitigationCondition}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Still Forbidden Items */}
+              <div>
+                <h4 className="mb-3 text-sm font-semibold text-slate-300">지속 금지 항목 (Always Forbidden)</h4>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  {riskMatrix.stillForbiddenItems.map((item) => (
+                    <div key={item.id} className="rounded border border-slate-700/60 bg-slate-800/40 p-3">
+                      <p className="mb-1 text-[11px] font-bold text-slate-300">{item.forbiddenLabel}</p>
+                      <p className="text-[11px] leading-relaxed text-slate-400/80">{item.forbiddenDetail}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Next Step */}
+              <div className="mt-6 flex items-start gap-3 rounded-md border border-indigo-900/30 bg-indigo-950/20 p-4">
+                <Info className="mt-0.5 h-5 w-5 shrink-0 text-indigo-400" />
+                <div>
+                  <h5 className="text-sm font-medium text-indigo-200">다음 단계 안내 (Next Step)</h5>
+                  <p className="mt-1 text-xs leading-relaxed text-indigo-300/80">
+                    {riskMatrix.nextStepLabel}
                   </p>
                 </div>
               </div>
