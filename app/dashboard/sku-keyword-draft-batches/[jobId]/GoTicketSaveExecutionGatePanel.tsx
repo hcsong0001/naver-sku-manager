@@ -2,6 +2,7 @@
 
 import { buildExecutionGateView } from '@/src/services/sku-keyword-final-approval-execution-naver-api-token-first-test-save-execution-gate-view.service';
 import type { DryRunValidationResult } from '@/src/services/sku-keyword-final-approval-execution-naver-api-token-first-test-save-dry-run-validation.service';
+import { GoTicketSaveDisabledAdapterPanel } from './GoTicketSaveDisabledAdapterPanel';
 
 interface GoTicketSaveExecutionGatePanelProps {
   dryRunResult: DryRunValidationResult | null;
@@ -65,6 +66,7 @@ export function GoTicketSaveExecutionGatePanel({
     : 'border-slate-700/30 bg-slate-900/20 text-slate-400';
 
   return (
+    <>
     <div className={`mb-6 rounded-lg border ${borderColor} bg-[#080809] p-4`}>
       <div className="mb-3 flex items-center gap-2">
         <span className={isReady ? 'text-emerald-400' : isBlocked ? 'text-rose-500' : 'text-slate-600'}>
@@ -175,5 +177,7 @@ export function GoTicketSaveExecutionGatePanel({
         Test DB Save Execution Gate · Still No-Write · 다음 Task에서만 Test DB 저장 구현 가능
       </p>
     </div>
+    <GoTicketSaveDisabledAdapterPanel gateStatus={gateStatus} />
+    </>
   );
 }
