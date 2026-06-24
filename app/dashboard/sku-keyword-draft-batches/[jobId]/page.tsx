@@ -1125,6 +1125,80 @@ type DraftBatchJob = {
     queueAllowed: false;
     workerAllowed: false;
   } | null;
+  naverAuthTokenFirstTestReviewSectionLayoutScreen?: {
+    reviewSectionLayoutCreated: boolean;
+    displayOnly: boolean;
+    readOnly: boolean;
+    executionLocked: boolean;
+    sectionIsReviewOnly: boolean;
+    allSectionsReadOnly: boolean;
+    manualReviewRequired: boolean;
+    requiresSeparateLiveApproval: boolean;
+    tokenTestStillNotAllowed: boolean;
+    title: string;
+    sectionAreaLabel: string;
+    sectionAreaDescription: string;
+    notExecutionAreaWarning: string;
+    sectionEntries: Array<{
+      id: number;
+      sectionOrder: number;
+      sectionKey: string;
+      sectionLabel: string;
+      sectionDescription: string;
+      isReadOnly: boolean;
+      isExecutionSection: false;
+    }>;
+    layoutNote: string;
+    executionButtonRendered: false;
+    executionButtonEnabled: false;
+    approvalButtonRendered: false;
+    approvalButtonEnabled: false;
+    formRendered: false;
+    formSubmitEnabled: false;
+    postApiEnabled: false;
+    finalConfirmationPersisted: false;
+    finalConfirmationDbWriteExecuted: false;
+    finalConfirmationActionEnabled: false;
+    liveTokenTestApproved: false;
+    liveTokenTestExecutionAllowed: false;
+    dbWriteAllowed: false;
+    persistenceExecuted: false;
+    metadataPersisted: false;
+    auditEventPersisted: false;
+    dbWriteExecuted: false;
+    prismaMutationExecuted: false;
+    goTicketIssued: false;
+    executionLeaseIssued: false;
+    sandboxInvocationAllowed: false;
+    sandboxInvocationExecuted: false;
+    coordinatorExecutionAllowed: false;
+    requestPayloadCreated: false;
+    requestBodyCreated: false;
+    requestHeadersCreated: false;
+    networkKillSwitchOpen: false;
+    networkAdapterEnabled: false;
+    networkExecutionAllowed: false;
+    tokenNetworkRequestAllowed: false;
+    tokenRequestAllowed: false;
+    tokenRequestPrepared: false;
+    tokenRequestExecuted: false;
+    accessTokenRequested: false;
+    refreshTokenRequested: false;
+    credentialsUsed: false;
+    clientSecretUsed: false;
+    clientSecretSignCreated: false;
+    tokenIssued: false;
+    tokenStored: false;
+    authorizationHeaderCreated: false;
+    endpointResolved: false;
+    endpointCalled: false;
+    httpRequestCreated: false;
+    httpClientCreated: false;
+    naverApiCallAllowed: false;
+    liveExecutionEnabled: false;
+    queueAllowed: false;
+    workerAllowed: false;
+  } | null;
 };
 
 type DraftBatchDetailResponse =
@@ -4228,6 +4302,75 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-2">
                 <Info className="mt-0.5 h-4 w-4 shrink-0 text-violet-400" />
                 <p className="text-xs text-violet-300">{hub.hubNote}</p>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Token First Test Review Section Layout ─────────────────────────────── */}
+      {(() => {
+        const layout = job.naverAuthTokenFirstTestReviewSectionLayoutScreen;
+        if (!layout) return null;
+
+        return (
+          <div className="mb-6 rounded-lg border border-orange-500/20 bg-orange-950/10 p-4">
+            <h2 className="mb-2 flex items-center gap-2 text-base font-semibold text-white">
+              <FileJson className="h-5 w-5 text-orange-400" />
+              {layout.title}
+            </h2>
+
+            {/* 검토 전용 영역 경고 배너 */}
+            <div className="mb-4 rounded-md border border-orange-500/40 bg-orange-500/10 px-4 py-3">
+              <div className="flex items-start gap-2">
+                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-orange-400" />
+                <div>
+                  <p className="mb-1 text-xs font-bold text-orange-300">{layout.sectionAreaLabel}</p>
+                  <p className="text-xs text-orange-200">{layout.notExecutionAreaWarning}</p>
+                </div>
+              </div>
+            </div>
+
+            <p className="mb-4 text-sm text-orange-300/80">
+              {layout.sectionAreaDescription}
+            </p>
+
+            {/* 섹션 구조 맵 */}
+            <div className="mb-4 rounded-md border border-orange-500/10 bg-[#100c08] p-3">
+              <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-orange-600">
+                검토 섹션 구조 (총 {layout.sectionEntries.length}개)
+              </p>
+              <div className="space-y-1.5">
+                {layout.sectionEntries.map((entry) => (
+                  <div
+                    key={entry.id}
+                    className="flex items-start gap-3 rounded border border-orange-900/20 bg-orange-900/10 px-3 py-2"
+                  >
+                    <span className="mt-0.5 w-6 shrink-0 font-mono text-[10px] font-bold text-orange-500/70">
+                      {String(entry.sectionOrder).padStart(2, '0')}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="mb-0.5 text-[11px] font-semibold text-gray-300">{entry.sectionLabel}</p>
+                      <p className="text-[10px] text-gray-600">{entry.sectionDescription}</p>
+                    </div>
+                    <div className="flex shrink-0 gap-1">
+                      <span className="rounded border border-green-800/30 bg-green-900/20 px-1.5 py-0.5 text-[8px] font-semibold text-green-500">
+                        read-only
+                      </span>
+                      <span className="rounded border border-red-800/30 bg-red-900/10 px-1.5 py-0.5 text-[8px] text-red-600">
+                        실행불가
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* 레이아웃 안내 */}
+            <div className="rounded-md border border-orange-500/15 bg-orange-500/5 p-3">
+              <div className="flex items-start gap-2">
+                <Info className="mt-0.5 h-4 w-4 shrink-0 text-orange-400" />
+                <p className="text-xs text-orange-300/70">{layout.layoutNote}</p>
               </div>
             </div>
           </div>
