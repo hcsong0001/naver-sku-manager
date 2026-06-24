@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { buildGoTicketSavePreviewView } from '@/src/services/sku-keyword-final-approval-execution-naver-api-token-first-test-save-preview-view.service';
+import { GoTicketSaveContractReviewPanel } from './GoTicketSaveContractReviewPanel';
 
 interface GoTicketSavePreviewPanelProps {
   allChecklistChecked: boolean;
@@ -47,22 +48,31 @@ export function GoTicketSavePreviewPanel({
 
   if (!allChecklistChecked) {
     return (
-      <div className="mb-6 rounded-lg border border-[#262629] bg-[#0f0f11] p-4">
-        <div className="flex items-center gap-2">
-          <span className="text-slate-600">▣</span>
-          <h2 className="text-base font-semibold text-slate-500">Test DB Save Preview</h2>
-          <span className="ml-1 rounded-full border border-slate-700 bg-slate-800 px-2 py-0.5 text-xs text-slate-500">
-            No-write preview
-          </span>
+      <>
+        <div className="mb-6 rounded-lg border border-[#262629] bg-[#0f0f11] p-4">
+          <div className="flex items-center gap-2">
+            <span className="text-slate-600">▣</span>
+            <h2 className="text-base font-semibold text-slate-500">Test DB Save Preview</h2>
+            <span className="ml-1 rounded-full border border-slate-700 bg-slate-800 px-2 py-0.5 text-xs text-slate-500">
+              No-write preview
+            </span>
+          </div>
+          <p className="mt-2 text-xs text-slate-600">
+            체크리스트 완료 후 preview 확인 가능 — 모든 14개 항목을 체크하면 저장 전 미리보기가 표시됩니다.
+          </p>
         </div>
-        <p className="mt-2 text-xs text-slate-600">
-          체크리스트 완료 후 preview 확인 가능 — 모든 14개 항목을 체크하면 저장 전 미리보기가 표시됩니다.
-        </p>
-      </div>
+        <GoTicketSaveContractReviewPanel
+          allChecklistChecked={allChecklistChecked}
+          checkedCount={checkedCount}
+          jobId={jobId}
+          readinessStatus={readinessStatus}
+        />
+      </>
     );
   }
 
   return (
+    <>
     <div className="mb-6 rounded-lg border border-slate-600/30 bg-[#0f0f11] p-4">
       <div className="mb-3 flex items-center justify-between">
         <h2 className="flex items-center gap-2 text-base font-semibold text-white">
@@ -138,5 +148,12 @@ export function GoTicketSavePreviewPanel({
         Local-only preview · 새로고침하면 초기화됩니다 · 실제 저장은 별도 사용자 승인 후 전용 Task에서 진행합니다.
       </p>
     </div>
+    <GoTicketSaveContractReviewPanel
+      allChecklistChecked={allChecklistChecked}
+      checkedCount={checkedCount}
+      jobId={jobId}
+      readinessStatus={readinessStatus}
+    />
+    </>
   );
 }
