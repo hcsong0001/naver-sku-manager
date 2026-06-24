@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { buildGoTicketSaveContractReview } from '@/src/services/sku-keyword-final-approval-execution-naver-api-token-first-test-save-contract-review.service';
 import type { DryRunValidationResult } from '@/src/services/sku-keyword-final-approval-execution-naver-api-token-first-test-save-dry-run-validation.service';
+import { GoTicketFinalConfirmationPanel } from './GoTicketFinalConfirmationPanel';
 
 interface GoTicketSaveContractReviewPanelProps {
   allChecklistChecked: boolean;
@@ -63,18 +64,21 @@ export function GoTicketSaveContractReviewPanel({
 
   if (!allChecklistChecked) {
     return (
-      <div className="mb-6 rounded-lg border border-[#262629] bg-[#0c0c0e] p-4">
-        <div className="flex items-center gap-2">
-          <span className="text-slate-700">◈</span>
-          <h2 className="text-base font-semibold text-slate-600">Test DB Save Contract Review</h2>
-          <span className="ml-1 rounded-full border border-slate-800 bg-slate-900 px-2 py-0.5 text-xs text-slate-600">
-            No-route · No-write
-          </span>
+      <>
+        <div className="mb-6 rounded-lg border border-[#262629] bg-[#0c0c0e] p-4">
+          <div className="flex items-center gap-2">
+            <span className="text-slate-700">◈</span>
+            <h2 className="text-base font-semibold text-slate-600">Test DB Save Contract Review</h2>
+            <span className="ml-1 rounded-full border border-slate-800 bg-slate-900 px-2 py-0.5 text-xs text-slate-600">
+              No-route · No-write
+            </span>
+          </div>
+          <p className="mt-2 text-xs text-slate-700">
+            체크리스트 완료 후 계약 리뷰 확인 가능 — 모든 14개 항목을 체크하면 저장 API 계약 검토가 표시됩니다.
+          </p>
         </div>
-        <p className="mt-2 text-xs text-slate-700">
-          체크리스트 완료 후 계약 리뷰 확인 가능 — 모든 14개 항목을 체크하면 저장 API 계약 검토가 표시됩니다.
-        </p>
-      </div>
+        <GoTicketFinalConfirmationPanel dryRunResult={null} />
+      </>
     );
   }
 
@@ -117,6 +121,7 @@ export function GoTicketSaveContractReviewPanel({
   ];
 
   return (
+    <>
     <div className="mb-6 rounded-lg border border-slate-700/20 bg-[#0c0c0e] p-4">
       <div className="mb-3 flex items-center justify-between">
         <h2 className="flex items-center gap-2 text-base font-semibold text-white">
@@ -357,5 +362,7 @@ export function GoTicketSaveContractReviewPanel({
         )}
       </div>
     </div>
+    <GoTicketFinalConfirmationPanel dryRunResult={dryRunResult} />
+    </>
   );
 }
