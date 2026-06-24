@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { buildFinalConfirmationView } from '@/src/services/sku-keyword-final-approval-execution-naver-api-token-first-test-final-confirmation-view.service';
 import type { DryRunValidationResult } from '@/src/services/sku-keyword-final-approval-execution-naver-api-token-first-test-save-dry-run-validation.service';
+import { GoTicketSaveExecutionGatePanel } from './GoTicketSaveExecutionGatePanel';
 
 interface GoTicketFinalConfirmationPanelProps {
   dryRunResult: DryRunValidationResult | null;
@@ -41,26 +42,34 @@ export function GoTicketFinalConfirmationPanel({
   if (state !== 'review') {
     const isPending = state === 'pending';
     return (
-      <div className="mb-6 rounded-lg border border-[#262629] bg-[#0a0a0c] p-4">
-        <div className="flex items-center gap-2">
-          <span className={isPending ? 'text-slate-700' : 'text-rose-800'}>◉</span>
-          <h2 className="text-base font-semibold text-slate-600">
-            Final Confirmation
-          </h2>
-          <span className="ml-1 rounded-full border border-slate-800 bg-slate-900 px-2 py-0.5 text-xs text-slate-600">
-            Still No-Write
-          </span>
+      <>
+        <div className="mb-6 rounded-lg border border-[#262629] bg-[#0a0a0c] p-4">
+          <div className="flex items-center gap-2">
+            <span className={isPending ? 'text-slate-700' : 'text-rose-800'}>◉</span>
+            <h2 className="text-base font-semibold text-slate-600">
+              Final Confirmation
+            </h2>
+            <span className="ml-1 rounded-full border border-slate-800 bg-slate-900 px-2 py-0.5 text-xs text-slate-600">
+              Still No-Write
+            </span>
+          </div>
+          <p className="mt-2 text-xs text-slate-600">{stateMessage}</p>
+          <p className="mt-1 text-[10px] text-slate-700">
+            실제 Test DB 저장은 별도 Task와 별도 사용자 승인 후에만 가능합니다.
+          </p>
         </div>
-        <p className="mt-2 text-xs text-slate-600">{stateMessage}</p>
-        <p className="mt-1 text-[10px] text-slate-700">
-          실제 Test DB 저장은 별도 Task와 별도 사용자 승인 후에만 가능합니다.
-        </p>
-      </div>
+        <GoTicketSaveExecutionGatePanel
+          dryRunResult={dryRunResult}
+          finalConfirmationAllChecked={false}
+          finalConfirmationCheckedCount={0}
+        />
+      </>
     );
   }
 
   // review 상태 (dry-run ok=true, saved=false)
   return (
+    <>
     <div className="mb-6 rounded-lg border border-teal-700/20 bg-[#0a0a0c] p-4">
       <div className="mb-3 flex items-center justify-between">
         <h2 className="flex items-center gap-2 text-base font-semibold text-white">
@@ -163,5 +172,11 @@ export function GoTicketFinalConfirmationPanel({
         Local-only final confirmation · 새로고침하면 초기화됩니다 · 저장 버튼은 이번 Task에 없습니다.
       </p>
     </div>
+    <GoTicketSaveExecutionGatePanel
+      dryRunResult={dryRunResult}
+      finalConfirmationAllChecked={allChecked}
+      finalConfirmationCheckedCount={checkedCount}
+    />
+    </>
   );
 }
