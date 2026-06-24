@@ -53,6 +53,7 @@ import { buildNaverApiTokenFirstTestSeparateApprovalRiskMatrixView } from '@/src
 import { buildNaverApiTokenFirstTestSeparateApprovalRiskMitigationPlanView } from '@/src/services/sku-keyword-final-approval-execution-naver-api-token-first-test-separate-approval-risk-mitigation-plan-view.service';
 import { buildNaverApiTokenFirstTestSeparateApprovalFinalBlockerSummaryView } from '@/src/services/sku-keyword-final-approval-execution-naver-api-token-first-test-separate-approval-final-blocker-summary-view.service';
 import { buildNaverApiTokenFirstTestSeparateApprovalRequestPacketView } from '@/src/services/sku-keyword-final-approval-execution-naver-api-token-first-test-separate-approval-request-packet-view.service';
+import { buildNaverApiTokenFirstTestSeparateApprovalPreSubmissionReviewView } from '@/src/services/sku-keyword-final-approval-execution-naver-api-token-first-test-separate-approval-pre-submission-review-view.service';
 
 // Compute safe DB environment hint from DATABASE_URL without exposing the original value.
 // Returns a classification key, never the actual URL.
@@ -1127,6 +1128,7 @@ export async function GET(
       naverAuthTokenFirstTestSeparateApprovalRiskMitigationPlanScreen: buildNaverApiTokenFirstTestSeparateApprovalRiskMitigationPlanView(null),
       naverAuthTokenFirstTestSeparateApprovalFinalBlockerSummaryScreen: buildNaverApiTokenFirstTestSeparateApprovalFinalBlockerSummaryView(null),
       naverAuthTokenFirstTestSeparateApprovalRequestPacketScreen: buildNaverApiTokenFirstTestSeparateApprovalRequestPacketView(null),
+      naverAuthTokenFirstTestSeparateApprovalPreSubmissionReviewScreen: buildNaverApiTokenFirstTestSeparateApprovalPreSubmissionReviewView(null),
     };
 
     return NextResponse.json({ ok: true, job: responseJob });

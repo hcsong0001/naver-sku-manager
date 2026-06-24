@@ -2565,6 +2565,47 @@ type DraftBatchJob = {
     stillForbiddenItems: any[];
     nextStepLabel: string;
   } | null;
+  naverAuthTokenFirstTestSeparateApprovalPreSubmissionReviewScreen?: {
+    preSubmissionReviewOnly: boolean;
+    separateApprovalStillRequired: boolean;
+    executionStillForbidden: boolean;
+    tokenRequestStillForbidden: boolean;
+    naverApiCallStillForbidden: boolean;
+    operatingDbWriteStillForbidden: boolean;
+    priceStockChangeStillForbidden: boolean;
+    queueWorkerStillDisconnected: boolean;
+    postApiStillNotAdded: boolean;
+    screenTitle: string;
+    preSubmissionPhaseName: string;
+    preSubmissionStatus: string;
+    requestPacketCommit: string;
+    approvalRequestSubmitted: false;
+    approvalRequestSubmitButtonRendered: false;
+    approvalRequestSubmitButtonEnabled: false;
+    packetReviewItems: any[];
+    missingBeforeSubmissionItems: any[];
+    misunderstandingPreventionItems: any[];
+    riskRecheckItems: any[];
+    stillForbiddenItems: any[];
+    nextStepLabel: string;
+    preSubmissionConfirmButtonRendered: false;
+    preSubmissionConfirmButtonEnabled: false;
+    requestPacketSubmitButtonRendered: false;
+    requestPacketSubmitButtonEnabled: false;
+    executionButtonRendered: false;
+    executionButtonEnabled: false;
+    formRendered: false;
+    formSubmitEnabled: false;
+    postApiEnabled: false;
+    dbWriteAllowed: false;
+    naverApiCallAllowed: false;
+    tokenRequestAllowed: false;
+    accessTokenRequested: false;
+    tokenIssued: false;
+    liveExecutionEnabled: false;
+    queueAllowed: false;
+    workerAllowed: false;
+  } | null;
 };
 
 type DraftBatchDetailResponse =
@@ -7941,6 +7982,152 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
+
+      {/* Task 69: Token First Test Separate Approval Pre-submission Review */}
+      {(() => {
+        const preReview = job.naverAuthTokenFirstTestSeparateApprovalPreSubmissionReviewScreen;
+        if (!preReview || !preReview.preSubmissionReviewOnly) return null;
+
+        return (
+          <div className="mb-6 overflow-hidden rounded-lg border border-violet-500/30 bg-violet-950/10 shadow-md">
+            {/* Header */}
+            <div className="border-b border-violet-900/40 bg-violet-900/20 px-5 py-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-violet-500/10">
+                  <FileCheck className="h-5 w-5 text-violet-400" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-violet-100">{preReview.screenTitle}</h3>
+                  <div className="mt-1 flex items-center gap-2 text-sm text-violet-300/80">
+                    <span className="font-medium text-violet-400/90">{preReview.preSubmissionStatus}</span>
+                    <span className="text-slate-600">|</span>
+                    <span>{preReview.preSubmissionPhaseName}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-5 p-5">
+              {/* 미제출 상태 배너 */}
+              <div className="rounded-md border border-violet-700/30 bg-violet-950/30 px-4 py-3">
+                <div className="flex items-start gap-2">
+                  <Info className="mt-0.5 h-4 w-4 shrink-0 text-violet-400" />
+                  <div>
+                    <p className="text-xs font-bold text-violet-300">승인 요청 미제출 상태 (read-only 사전검토 전용)</p>
+                    <p className="mt-1 text-[10px] leading-relaxed text-violet-300/70">
+                      패킷 참조 커밋: {preReview.requestPacketCommit} | 이 화면은 실행 화면이 아닙니다. 승인 요청 제출 기능이 없습니다.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* 패킷 검토 상태 */}
+              {preReview.packetReviewItems.length > 0 && (
+                <div>
+                  <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-violet-400">
+                    승인 요청서 패킷 검토 상태
+                  </h4>
+                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                    {preReview.packetReviewItems.map((item: any) => (
+                      <div key={item.id} className="rounded border border-violet-800/30 bg-violet-900/10 px-3 py-2 text-center">
+                        <CheckCircle2 className="mx-auto mb-1 h-4 w-4 text-emerald-500" />
+                        <p className="text-[10px] font-semibold text-violet-200">{item.reviewLabel}</p>
+                        <p className="mt-0.5 text-[9px] text-emerald-400">{item.reviewStatus}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* 2-column: 누락 가능 항목 / 오해 방지 항목 */}
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                {/* 제출 전 누락 가능 항목 */}
+                {preReview.missingBeforeSubmissionItems.length > 0 && (
+                  <div>
+                    <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-amber-400">
+                      제출 전 누락 가능 항목
+                    </h4>
+                    <div className="space-y-2">
+                      {preReview.missingBeforeSubmissionItems.map((item: any) => (
+                        <div key={item.id} className="rounded border border-amber-900/30 bg-amber-950/10 px-3 py-2">
+                          <p className="mb-0.5 text-[11px] font-semibold text-amber-300">{item.checkLabel}</p>
+                          <p className="text-[10px] leading-relaxed text-gray-500">{item.checkDetail}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* 오해 방지 항목 */}
+                {preReview.misunderstandingPreventionItems.length > 0 && (
+                  <div>
+                    <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-sky-400">
+                      제출 전 오해 방지 항목
+                    </h4>
+                    <div className="space-y-2">
+                      {preReview.misunderstandingPreventionItems.map((item: any) => (
+                        <div key={item.id} className="rounded border border-sky-900/30 bg-sky-950/10 px-3 py-2">
+                          <p className="mb-0.5 text-[11px] font-semibold text-sky-300">{item.itemLabel}</p>
+                          <p className="text-[10px] leading-relaxed text-gray-500">{item.itemDetail}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* 위험 재확인 항목 */}
+              {preReview.riskRecheckItems.length > 0 && (
+                <div>
+                  <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-red-400">
+                    제출 전 위험 재확인 항목
+                  </h4>
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    {preReview.riskRecheckItems.map((item: any) => (
+                      <div key={item.id} className="rounded border border-red-900/25 bg-red-950/10 px-3 py-2">
+                        <div className="flex items-start gap-2">
+                          <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-red-400" />
+                          <div>
+                            <p className="text-[11px] font-semibold text-red-300">{item.recheckLabel}</p>
+                            <p className="mt-0.5 text-[10px] leading-relaxed text-gray-500">{item.recheckDetail}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* 여전히 금지되는 항목 */}
+              {preReview.stillForbiddenItems.length > 0 && (
+                <div>
+                  <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-rose-500">
+                    여전히 금지되는 항목 (승인 전·후 공통)
+                  </h4>
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3">
+                    {preReview.stillForbiddenItems.map((item: any) => (
+                      <div key={item.id} className="rounded border border-rose-900/25 bg-rose-950/10 p-3 text-center">
+                        <Lock className="mx-auto mb-1 h-4 w-4 text-rose-500" />
+                        <p className="text-[10px] font-bold text-rose-300">{item.forbiddenLabel}</p>
+                        <p className="mt-0.5 text-[9px] text-rose-200/70">{item.forbiddenDetail}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* 다음 단계 */}
+              <div className="flex items-start gap-3 rounded-md border border-violet-900/30 bg-violet-950/20 p-4">
+                <Info className="mt-0.5 h-5 w-5 shrink-0 text-violet-400" />
+                <div>
+                  <h5 className="text-sm font-medium text-violet-200">사전검토 안내</h5>
+                  <p className="mt-1 text-xs leading-relaxed text-violet-300/80">{preReview.nextStepLabel}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* ── BatchJob 실행 결과 ────────────────────────────────────────────────── */}
       {['EXECUTED', 'PARTIAL_SUCCESS', 'FAILED', 'EXECUTING'].includes(job.status) && (
