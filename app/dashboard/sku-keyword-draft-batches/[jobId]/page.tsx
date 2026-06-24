@@ -1633,6 +1633,110 @@ type DraftBatchJob = {
     queueAllowed: false;
     workerAllowed: false;
   } | null;
+  naverAuthTokenFirstTestApprovalHandoffVerificationScreen?: {
+    handoffVerificationCreated: boolean;
+    displayOnly: boolean;
+    readOnly: boolean;
+    executionLocked: boolean;
+    handoffIsReadOnly: boolean;
+    verificationIsReadOnly: boolean;
+    currentScreenIsReviewOnly: boolean;
+    manualReviewRequired: boolean;
+    requiresSeparateLiveApproval: boolean;
+    tokenTestStillNotAllowed: boolean;
+    title: string;
+    verificationLabel: string;
+    verificationNote: string;
+    currentConclusion: string;
+    currentPhase: string;
+    verifiedFlowCount: number;
+    currentAllowedSummary: string;
+    currentProhibitedSummary: string;
+    verificationItems: Array<{
+      id: number;
+      verificationKey: string;
+      verificationLabel: string;
+      verificationValue: string;
+      isReadOnly: boolean;
+      isVerifiable: false;
+    }>;
+    verificationCheckItems: Array<{
+      id: number;
+      checkKey: string;
+      checkLabel: string;
+      checkDetail: string;
+      isReadOnly: boolean;
+      isCheckable: false;
+    }>;
+    handoffVerificationNote: string;
+    executionButtonRendered: false;
+    executionButtonEnabled: false;
+    approvalButtonRendered: false;
+    approvalButtonEnabled: false;
+    approvalRequestSubmitButtonRendered: false;
+    approvalRequestSubmitButtonEnabled: false;
+    checklistSaveButtonRendered: false;
+    checklistSaveButtonEnabled: false;
+    decisionSaveButtonRendered: false;
+    decisionSaveButtonEnabled: false;
+    boundaryReleaseButtonRendered: false;
+    boundaryReleaseButtonEnabled: false;
+    handoffSaveButtonRendered: false;
+    handoffSaveButtonEnabled: false;
+    handoffCopyButtonRendered: false;
+    handoffCopyButtonEnabled: false;
+    handoffSendButtonRendered: false;
+    handoffSendButtonEnabled: false;
+    verificationSaveButtonRendered: false;
+    verificationSaveButtonEnabled: false;
+    verificationConfirmButtonRendered: false;
+    verificationConfirmButtonEnabled: false;
+    formRendered: false;
+    formSubmitEnabled: false;
+    postApiEnabled: false;
+    finalConfirmationPersisted: false;
+    finalConfirmationDbWriteExecuted: false;
+    finalConfirmationActionEnabled: false;
+    liveTokenTestApproved: false;
+    liveTokenTestExecutionAllowed: false;
+    dbWriteAllowed: false;
+    persistenceExecuted: false;
+    metadataPersisted: false;
+    auditEventPersisted: false;
+    dbWriteExecuted: false;
+    prismaMutationExecuted: false;
+    goTicketIssued: false;
+    executionLeaseIssued: false;
+    sandboxInvocationAllowed: false;
+    sandboxInvocationExecuted: false;
+    coordinatorExecutionAllowed: false;
+    requestPayloadCreated: false;
+    requestBodyCreated: false;
+    requestHeadersCreated: false;
+    networkKillSwitchOpen: false;
+    networkAdapterEnabled: false;
+    networkExecutionAllowed: false;
+    tokenNetworkRequestAllowed: false;
+    tokenRequestAllowed: false;
+    tokenRequestPrepared: false;
+    tokenRequestExecuted: false;
+    accessTokenRequested: false;
+    refreshTokenRequested: false;
+    credentialsUsed: false;
+    clientSecretUsed: false;
+    clientSecretSignCreated: false;
+    tokenIssued: false;
+    tokenStored: false;
+    authorizationHeaderCreated: false;
+    endpointResolved: false;
+    endpointCalled: false;
+    httpRequestCreated: false;
+    httpClientCreated: false;
+    naverApiCallAllowed: false;
+    liveExecutionEnabled: false;
+    queueAllowed: false;
+    workerAllowed: false;
+  } | null;
 };
 
 type DraftBatchDetailResponse =
@@ -5868,6 +5972,85 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-2">
                 <Info className="mt-0.5 h-4 w-4 shrink-0 text-sky-600" />
                 <p className="text-xs text-sky-400/70">{handoff.handoffSummaryNote}</p>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Token First Test Approval Handoff Verification ──────────────────────── */}
+      {(() => {
+        const verification = job.naverAuthTokenFirstTestApprovalHandoffVerificationScreen;
+        if (!verification) return null;
+
+        return (
+          <div className="mb-6 rounded-lg border border-indigo-500/20 bg-indigo-950/10 p-4">
+            <h2 className="mb-2 flex items-center gap-2 text-base font-semibold text-white">
+              <ClipboardList className="h-5 w-5 text-indigo-400" />
+              {verification.title}
+            </h2>
+
+            {/* 검증 안내 배너 */}
+            <div className="mb-4 rounded-md border border-indigo-500/25 bg-indigo-500/10 px-4 py-3">
+              <div className="flex items-start gap-2">
+                <Info className="mt-0.5 h-4 w-4 shrink-0 text-indigo-400" />
+                <div>
+                  <p className="mb-1 text-xs font-bold text-indigo-300">{verification.verificationLabel}</p>
+                  <p className="text-xs text-indigo-300/80">{verification.verificationNote}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* 최종 결론 상태 */}
+            <div className="mb-4 flex flex-wrap gap-3">
+              <div className="rounded border border-indigo-700/40 bg-indigo-900/20 px-3 py-1.5">
+                <p className="text-[9px] font-semibold uppercase tracking-wider text-indigo-500/70 mb-0.5">최종 결론</p>
+                <p className="text-sm font-bold text-indigo-300">{verification.currentConclusion}</p>
+              </div>
+              <div className="rounded border border-indigo-700/40 bg-indigo-900/20 px-3 py-1.5">
+                <p className="text-[9px] font-semibold uppercase tracking-wider text-indigo-500/70 mb-0.5">현재 단계</p>
+                <p className="text-sm font-bold text-indigo-300">{verification.currentPhase}</p>
+              </div>
+            </div>
+
+            {/* 상태 검증 항목 카드 */}
+            <div className="mb-4 grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3">
+              {verification.verificationItems.map((item) => (
+                <div
+                  key={item.id}
+                  className="rounded-md border border-indigo-700/20 bg-indigo-900/10 px-3 py-2.5"
+                >
+                  <p className="mb-0.5 text-[10px] font-semibold uppercase tracking-wider text-indigo-500">
+                    {item.verificationLabel}
+                  </p>
+                  <p className="text-xs text-gray-300">{item.verificationValue}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* 최종 확인 리스트 */}
+            <div className="mb-4">
+              <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-indigo-400">
+                최종 검증 확인 항목
+              </p>
+              <div className="space-y-1.5">
+                {verification.verificationCheckItems.map((item) => (
+                  <div
+                    key={item.id}
+                    className="rounded border border-indigo-800/20 bg-indigo-900/5 px-3 py-2"
+                  >
+                    <p className="mb-0.5 text-[11px] font-semibold text-indigo-300">{item.checkLabel}</p>
+                    <p className="text-[10px] leading-relaxed text-gray-500">{item.checkDetail}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* 검증 요약 안내 */}
+            <div className="rounded-md border border-indigo-600/15 bg-indigo-500/5 p-3">
+              <div className="flex items-start gap-2">
+                <Info className="mt-0.5 h-4 w-4 shrink-0 text-indigo-600" />
+                <p className="text-xs text-indigo-400/70">{verification.handoffVerificationNote}</p>
               </div>
             </div>
           </div>
