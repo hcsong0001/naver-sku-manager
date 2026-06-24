@@ -33,6 +33,7 @@ import { buildNaverApiTokenFirstTestFinalConfirmationGateView } from '@/src/serv
 import { buildNaverApiTokenFirstTestActionLockView } from '@/src/services/sku-keyword-final-approval-execution-naver-api-token-first-test-action-lock-view.service';
 import { buildNaverApiTokenFirstTestSafetyReviewView } from '@/src/services/sku-keyword-final-approval-execution-naver-api-token-first-test-safety-review-view.service';
 import { buildNaverApiTokenFirstTestSafeNextStepGuideView } from '@/src/services/sku-keyword-final-approval-execution-naver-api-token-first-test-safe-next-step-guide-view.service';
+import { buildNaverApiTokenFirstTestSeparateApprovalPacketView } from '@/src/services/sku-keyword-final-approval-execution-naver-api-token-first-test-separate-approval-packet-view.service';
 // Compute safe DB environment hint from DATABASE_URL without exposing the original value.
 // Returns a classification key, never the actual URL.
 function getDatabaseUrlSafeHint(): string | null {
@@ -1063,6 +1064,9 @@ export async function GET(
       })(),
       naverAuthTokenFirstTestSafeNextStepGuideScreen: (() => {
         return buildNaverApiTokenFirstTestSafeNextStepGuideView(null);
+      })(),
+      naverAuthTokenFirstTestSeparateApprovalPacketScreen: (() => {
+        return buildNaverApiTokenFirstTestSeparateApprovalPacketView(null);
       })()
     };
 

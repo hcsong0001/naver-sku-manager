@@ -845,6 +845,74 @@ type DraftBatchJob = {
     queueAllowed: false;
     workerAllowed: false;
   } | null;
+  naverAuthTokenFirstTestSeparateApprovalPacketScreen?: {
+    approvalPacketViewCreated: boolean;
+    displayOnly: boolean;
+    readOnly: boolean;
+    executionLocked: boolean;
+    riskScopeItemsCreated: boolean;
+    approverChecklistCreated: boolean;
+    prohibitedItemsCreated: boolean;
+    manualReviewRequired: boolean;
+    requiresSeparateLiveApproval: boolean;
+    title: string;
+    description: string;
+    currentLockStatus: string;
+    tokenTestNotAllowedReason: string;
+    riskScopeItems: Array<{ id: number; riskKey: string; description: string; }>;
+    approverChecklist: Array<{ id: number; checkKey: string; description: string; }>;
+    prohibitedItems: Array<{ id: number; prohibitedKey: string; description: string; }>;
+    approvalNote: string;
+    executionButtonRendered: false;
+    executionButtonEnabled: false;
+    approvalButtonRendered: false;
+    approvalButtonEnabled: false;
+    formRendered: false;
+    formSubmitEnabled: false;
+    postApiEnabled: false;
+    finalConfirmationPersisted: false;
+    finalConfirmationDbWriteExecuted: false;
+    finalConfirmationActionEnabled: false;
+    liveTokenTestApproved: false;
+    liveTokenTestExecutionAllowed: false;
+    dbWriteAllowed: false;
+    persistenceExecuted: false;
+    metadataPersisted: false;
+    auditEventPersisted: false;
+    dbWriteExecuted: false;
+    prismaMutationExecuted: false;
+    goTicketIssued: false;
+    executionLeaseIssued: false;
+    sandboxInvocationAllowed: false;
+    sandboxInvocationExecuted: false;
+    coordinatorExecutionAllowed: false;
+    requestPayloadCreated: false;
+    requestBodyCreated: false;
+    requestHeadersCreated: false;
+    networkKillSwitchOpen: false;
+    networkAdapterEnabled: false;
+    networkExecutionAllowed: false;
+    tokenNetworkRequestAllowed: false;
+    tokenRequestAllowed: false;
+    tokenRequestPrepared: false;
+    tokenRequestExecuted: false;
+    accessTokenRequested: false;
+    refreshTokenRequested: false;
+    credentialsUsed: false;
+    clientSecretUsed: false;
+    clientSecretSignCreated: false;
+    tokenIssued: false;
+    tokenStored: false;
+    authorizationHeaderCreated: false;
+    endpointResolved: false;
+    endpointCalled: false;
+    httpRequestCreated: false;
+    httpClientCreated: false;
+    naverApiCallAllowed: false;
+    liveExecutionEnabled: false;
+    queueAllowed: false;
+    workerAllowed: false;
+  } | null;
 };
 
 type DraftBatchDetailResponse =
@@ -4306,6 +4374,96 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             <div className="rounded-md border border-gray-500/20 bg-gray-500/5 p-3">
               <p className="mb-1 text-xs font-semibold text-gray-300">{guide.nextPhaseLabel}</p>
               <p className="text-xs text-gray-400">{guide.nextPhaseGuide}</p>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Token First Test Separate Approval Packet Screen ──────────────────── */}
+      {(() => {
+        const packet = job.naverAuthTokenFirstTestSeparateApprovalPacketScreen;
+        if (!packet) return null;
+
+        return (
+          <div className="mb-6 rounded-lg border border-rose-500/30 bg-rose-950/20 p-4">
+            <h2 className="mb-4 flex items-center gap-2 text-base font-semibold text-white">
+              <FileJson className="h-5 w-5 text-rose-400" />
+              {packet.title}
+            </h2>
+
+            <p className="mb-4 text-sm text-rose-300">
+              {packet.description}
+            </p>
+
+            {/* 현재 실행 잠금 상태 */}
+            <div className="mb-4 rounded-md border border-red-500/30 bg-red-500/10 p-3">
+              <div className="flex items-start gap-2">
+                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-red-400" />
+                <div>
+                  <p className="mb-1 text-xs font-semibold text-red-300">현재 실행 잠금 상태</p>
+                  <p className="text-xs text-red-200">{packet.currentLockStatus}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* 실제 token 발급 테스트 불가 이유 */}
+            <div className="mb-4 rounded-md border border-amber-500/20 bg-amber-500/5 p-3">
+              <p className="mb-1 text-xs font-semibold text-amber-300">실제 Token 발급 테스트 불가 이유</p>
+              <p className="text-xs text-amber-200">{packet.tokenTestNotAllowedReason}</p>
+            </div>
+
+            {/* 위험 범위 */}
+            <div className="mb-4 rounded-md border border-rose-500/20 bg-[#121214] p-3">
+              <p className="mb-3 text-sm font-semibold text-gray-300">별도 승인 시 확인해야 할 위험 범위</p>
+              <ul className="space-y-2">
+                {packet.riskScopeItems.map((item) => (
+                  <li key={item.id} className="flex items-start gap-2 text-xs text-gray-400">
+                    <span className="mt-0.5 shrink-0 font-mono text-[9px] font-bold leading-4 text-rose-400">
+                      [{item.riskKey}]
+                    </span>
+                    <span>{item.description}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* 승인자 체크리스트 */}
+            <div className="mb-4 rounded-md border border-indigo-500/20 bg-indigo-500/5 p-3">
+              <p className="mb-3 text-sm font-semibold text-indigo-300">승인자 확인 체크리스트 (read-only)</p>
+              <ul className="space-y-2">
+                {packet.approverChecklist.map((item) => (
+                  <li key={item.id} className="flex items-start gap-2 text-xs">
+                    <span className="mt-0.5 shrink-0 font-mono text-[9px] font-bold leading-4 text-indigo-400">
+                      [{item.checkKey}]
+                    </span>
+                    <span className="text-gray-300">{item.description}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* 금지 항목 */}
+            <div className="mb-4 rounded-md border border-gray-600/20 bg-gray-900/30 p-3">
+              <p className="mb-3 text-xs font-semibold text-gray-400">현재 이 화면에서 여전히 금지된 항목</p>
+              <div className="flex flex-wrap gap-2">
+                {packet.prohibitedItems.map((item) => (
+                  <span
+                    key={item.id}
+                    className="rounded border border-gray-700 bg-gray-800/60 px-2 py-0.5 font-mono text-[9px] text-gray-500"
+                    title={item.description}
+                  >
+                    {item.prohibitedKey}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {/* 승인 안내 */}
+            <div className="rounded-md border border-gray-500/20 bg-gray-500/5 p-3">
+              <div className="flex items-start gap-2">
+                <Info className="mt-0.5 h-4 w-4 shrink-0 text-gray-400" />
+                <p className="text-xs text-gray-400">{packet.approvalNote}</p>
+              </div>
             </div>
           </div>
         );
