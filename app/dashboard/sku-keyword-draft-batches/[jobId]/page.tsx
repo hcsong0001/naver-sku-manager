@@ -2505,6 +2505,31 @@ type DraftBatchJob = {
     stillBlockingItems: any[];
     nextStepLabel: string;
   } | null;
+  naverAuthTokenFirstTestSeparateApprovalFinalBlockerSummaryScreen?: {
+    finalBlockerSummaryCreated: boolean;
+    displayOnly: boolean;
+    readOnly: boolean;
+    executionLocked: boolean;
+    riskMitigationPlanCompleted: boolean;
+    finalBlockerReviewOnly: boolean;
+    separateApprovalStillRequired: boolean;
+    executionStillForbidden: boolean;
+    tokenRequestStillForbidden: boolean;
+    naverApiCallStillForbidden: boolean;
+    operatingDbWriteStillForbidden: boolean;
+    priceStockChangeStillForbidden: boolean;
+    queueWorkerStillDisconnected: boolean;
+    postApiStillNotAdded: boolean;
+    screenTitle: string;
+    finalBlockerPhaseName: string;
+    finalBlockerStatus: string;
+    riskMitigationPlanCommit: string;
+    finalBlockerItems: any[];
+    unresolvedBlockerItems: any[];
+    stillForbiddenItems: any[];
+    releaseRequirementItems: any[];
+    nextStepLabel: string;
+  } | null;
 };
 
 type DraftBatchDetailResponse =
@@ -7622,6 +7647,127 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
+      {/* Task 67: Token First Test Separate Approval Final Blocker Summary */}
+      {(() => {
+        const finalBlocker = job.naverAuthTokenFirstTestSeparateApprovalFinalBlockerSummaryScreen;
+        if (!finalBlocker || !finalBlocker.finalBlockerSummaryCreated) return null;
+
+        return (
+          <div className="mb-6 overflow-hidden rounded-lg border border-red-500/30 bg-red-950/10 shadow-md">
+            {/* Header */}
+            <div className="border-b border-red-900/40 bg-red-900/20 px-5 py-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-500/10">
+                  <ShieldAlert className="h-5 w-5 text-red-400" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-red-100">{finalBlocker.screenTitle}</h3>
+                  <div className="mt-1 flex items-center gap-2 text-sm text-red-300/80">
+                    <span className="font-medium text-red-400/90">{finalBlocker.finalBlockerStatus}</span>
+                    <span className="text-slate-600">|</span>
+                    <span>{finalBlocker.finalBlockerPhaseName}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Content Body */}
+            <div className="p-5 space-y-6">
+
+              {/* Final Blocker Items */}
+              {finalBlocker.finalBlockerItems.length > 0 && (
+                <div>
+                  <h4 className="mb-3 text-sm font-semibold text-red-400 flex items-center gap-2">
+                    <Lock className="h-4 w-4" />
+                    최종 차단 조건 (Final Blockers)
+                  </h4>
+                  <div className="grid grid-cols-1 gap-3">
+                    {finalBlocker.finalBlockerItems.map((item: any) => (
+                      <div key={item.id} className="flex flex-col gap-2 rounded border border-red-900/50 bg-red-950/30 p-4">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex flex-col gap-1 w-full">
+                            <p className="text-sm font-bold text-red-300">{item.blockerLabel}</p>
+                            <p className="text-xs text-red-200/70 mt-1">{item.blockerReason}</p>
+                          </div>
+                          <span className="shrink-0 rounded bg-red-900/60 px-2 py-1 text-[10px] font-bold text-red-200">
+                            {item.blockerStatus}
+                          </span>
+                        </div>
+                        <div className="mt-3 rounded bg-red-950/50 p-2 border border-red-900/40">
+                          <p className="text-[10px] font-semibold text-red-500/80 mb-1">차단되는 기능</p>
+                          <p className="text-[11px] font-medium text-red-200/90">{item.forbiddenFunction}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Unresolved Blocker Items */}
+              {finalBlocker.unresolvedBlockerItems.length > 0 && (
+                <div>
+                  <h4 className="mb-3 text-sm font-semibold text-rose-400 flex items-center gap-2">
+                    <X className="h-4 w-4" />
+                    완화 불가능 영구 차단 항목 (Unresolved Blockers)
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {finalBlocker.unresolvedBlockerItems.map((item: any) => (
+                      <div key={item.id} className="rounded border border-rose-900/40 bg-rose-950/20 p-3">
+                        <p className="mb-1 text-xs font-bold text-rose-300">{item.forbiddenLabel}</p>
+                        <p className="text-[11px] leading-relaxed text-rose-200/80">{item.forbiddenDetail}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Still Forbidden Items */}
+              {finalBlocker.stillForbiddenItems.length > 0 && (
+                <div>
+                  <h4 className="mb-3 text-sm font-semibold text-amber-400 flex items-center gap-2">
+                    <AlertCircle className="h-4 w-4" />
+                    별도 승인 전까지 지속 차단되는 기능 (Still Forbidden)
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    {finalBlocker.stillForbiddenItems.map((item: any) => (
+                      <div key={item.id} className="rounded border border-amber-900/40 bg-amber-950/20 p-3">
+                        <p className="mb-1 text-xs font-bold text-amber-300">{item.forbiddenLabel}</p>
+                        <p className="text-[10px] text-amber-200/80">{item.forbiddenDetail}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Release Requirement Items */}
+              {finalBlocker.releaseRequirementItems.length > 0 && (
+                <div className="mt-4 rounded-md bg-indigo-950/30 p-3 border border-indigo-900/30">
+                  <p className="text-xs font-semibold text-indigo-400 mb-2">테스트 실행을 위한 최소 요구 조건</p>
+                  <ul className="list-disc pl-5 text-[11px] text-indigo-200/80 space-y-1">
+                    {finalBlocker.releaseRequirementItems.map((item: any) => (
+                      <li key={item.id}>
+                        <span className="font-semibold text-indigo-300">{item.requirementLabel}:</span> {item.requirementDetail}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Next Step */}
+              <div className="mt-6 flex items-start gap-3 rounded-md border border-emerald-900/30 bg-emerald-950/20 p-4">
+                <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-400" />
+                <div>
+                  <h5 className="text-sm font-medium text-emerald-200">다음 단계 안내 (Next Step)</h5>
+                  <p className="mt-1 text-xs leading-relaxed text-emerald-300/80">
+                    {finalBlocker.nextStepLabel}
+                  </p>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        );
+      })()}
 
 
       {/* ── BatchJob 실행 결과 ────────────────────────────────────────────────── */}
