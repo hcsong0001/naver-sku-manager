@@ -10,6 +10,7 @@ import {
   FileJson,
   Loader2,
   ShieldAlert,
+  ShieldCheck,
   X,
   Info,
   Lock,
@@ -2485,6 +2486,24 @@ type DraftBatchJob = {
     liveExecutionEnabled: false;
     queueAllowed: false;
     workerAllowed: false;
+  } | null;
+  naverAuthTokenFirstTestSeparateApprovalRiskMitigationPlanScreen?: {
+    mitigationPlanCreated: boolean;
+    displayOnly: boolean;
+    readOnly: boolean;
+    executionLocked: boolean;
+    riskMatrixCompleted: boolean;
+    mitigationPlanReviewOnly: boolean;
+    executionStillForbidden: boolean;
+    screenTitle: string;
+    mitigationPlanPhaseName: string;
+    mitigationPlanStatus: string;
+    highRiskMitigationItems: any[];
+    mediumRiskMitigationItems: any[];
+    lowRiskMitigationItems: any[];
+    postMitigationStillForbiddenItems: any[];
+    stillBlockingItems: any[];
+    nextStepLabel: string;
   } | null;
 };
 
@@ -7435,6 +7454,174 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
           </div>
         );
       })()}
+
+      {/* Task 66: Token First Test Separate Approval Risk Mitigation Plan */}
+      {(() => {
+        const mitigationPlan = job.naverAuthTokenFirstTestSeparateApprovalRiskMitigationPlanScreen;
+        if (!mitigationPlan || !mitigationPlan.mitigationPlanCreated) return null;
+
+        return (
+          <div className="mb-6 overflow-hidden rounded-lg border border-indigo-500/30 bg-indigo-950/10 shadow-md">
+            {/* Header */}
+            <div className="border-b border-indigo-900/40 bg-indigo-900/20 px-5 py-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-indigo-500/10">
+                  <ShieldCheck className="h-5 w-5 text-indigo-400" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-indigo-100">{mitigationPlan.screenTitle}</h3>
+                  <div className="mt-1 flex items-center gap-2 text-sm text-indigo-300/80">
+                    <span className="font-medium text-amber-400/90">{mitigationPlan.mitigationPlanStatus}</span>
+                    <span className="text-slate-600">|</span>
+                    <span>{mitigationPlan.mitigationPlanPhaseName}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Content Body */}
+            <div className="p-5 space-y-6">
+
+              {/* High Risk Mitigation Items */}
+              {mitigationPlan.highRiskMitigationItems.length > 0 && (
+                <div>
+                  <h4 className="mb-3 text-sm font-semibold text-rose-400 flex items-center gap-2">
+                    <X className="h-4 w-4" />
+                    High Risk 완화 조건 (고위험 요인)
+                  </h4>
+                  <div className="grid grid-cols-1 gap-3">
+                    {mitigationPlan.highRiskMitigationItems.map((item: any) => (
+                      <div key={item.id} className="flex flex-col gap-2 rounded border border-rose-900/50 bg-rose-950/30 p-4 sm:flex-row sm:items-start sm:gap-4">
+                        <div className="flex w-full flex-col gap-1 sm:w-1/3">
+                          <p className="text-xs font-bold text-rose-300">{item.riskLabel}</p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className="w-fit rounded bg-rose-900/60 px-2 py-0.5 text-[10px] font-medium text-rose-200">
+                              {item.currentRiskLevel}
+                            </span>
+                            <span className="w-fit rounded bg-rose-900/60 px-2 py-0.5 text-[10px] font-medium text-rose-200">
+                              {item.currentBlockingStatus}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex w-full flex-col gap-2 sm:w-2/3">
+                          <div className="rounded bg-emerald-900/10 p-2 border border-emerald-900/20">
+                            <p className="text-[10px] font-semibold text-emerald-500/80">필요한 완화 조건</p>
+                            <p className="text-[11px] leading-relaxed text-emerald-200/90">{item.mitigationRequirement}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Medium Risk Mitigation Items */}
+              {mitigationPlan.mediumRiskMitigationItems.length > 0 && (
+                <div>
+                  <h4 className="mb-3 text-sm font-semibold text-amber-400 flex items-center gap-2">
+                    <AlertCircle className="h-4 w-4" />
+                    Medium Risk 완화 조건 (중위험 요인)
+                  </h4>
+                  <div className="grid grid-cols-1 gap-3">
+                    {mitigationPlan.mediumRiskMitigationItems.map((item: any) => (
+                      <div key={item.id} className="flex flex-col gap-2 rounded border border-amber-900/40 bg-amber-950/20 p-4 sm:flex-row sm:items-start sm:gap-4">
+                        <div className="flex w-full flex-col gap-1 sm:w-1/3">
+                          <p className="text-xs font-bold text-amber-300">{item.riskLabel}</p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className="w-fit rounded bg-amber-900/40 px-2 py-0.5 text-[10px] font-medium text-amber-200">
+                              {item.currentRiskLevel}
+                            </span>
+                            <span className="w-fit rounded bg-amber-900/40 px-2 py-0.5 text-[10px] font-medium text-amber-200">
+                              {item.currentBlockingStatus}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex w-full flex-col gap-2 sm:w-2/3">
+                          <div className="rounded bg-emerald-900/10 p-2 border border-emerald-900/20">
+                            <p className="text-[10px] font-semibold text-emerald-500/80">필요한 완화 조건</p>
+                            <p className="text-[11px] leading-relaxed text-emerald-200/90">{item.mitigationRequirement}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Low Risk Mitigation Items */}
+              {mitigationPlan.lowRiskMitigationItems.length > 0 && (
+                <div>
+                  <h4 className="mb-3 text-sm font-semibold text-blue-400 flex items-center gap-2">
+                    <Info className="h-4 w-4" />
+                    Low Risk 완화 조건 (저위험 요인)
+                  </h4>
+                  <div className="grid grid-cols-1 gap-3">
+                    {mitigationPlan.lowRiskMitigationItems.map((item: any) => (
+                      <div key={item.id} className="flex flex-col gap-2 rounded border border-blue-900/40 bg-blue-950/20 p-4 sm:flex-row sm:items-start sm:gap-4">
+                        <div className="flex w-full flex-col gap-1 sm:w-1/3">
+                          <p className="text-xs font-bold text-blue-300">{item.riskLabel}</p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className="w-fit rounded bg-blue-900/40 px-2 py-0.5 text-[10px] font-medium text-blue-200">
+                              {item.currentRiskLevel}
+                            </span>
+                            <span className="w-fit rounded bg-blue-900/40 px-2 py-0.5 text-[10px] font-medium text-blue-200">
+                              {item.currentBlockingStatus}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex w-full flex-col gap-2 sm:w-2/3">
+                          <div className="rounded bg-emerald-900/10 p-2 border border-emerald-900/20">
+                            <p className="text-[10px] font-semibold text-emerald-500/80">필요한 완화 조건</p>
+                            <p className="text-[11px] leading-relaxed text-emerald-200/90">{item.mitigationRequirement}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Post Mitigation Still Forbidden Items */}
+              <div>
+                <h4 className="mb-3 text-sm font-semibold text-slate-300">완화 후에도 지속 금지되는 항목 (Post-Mitigation Still Forbidden)</h4>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  {mitigationPlan.postMitigationStillForbiddenItems.map((item: any) => (
+                    <div key={item.id} className="rounded border border-slate-700/60 bg-slate-800/40 p-3">
+                      <p className="mb-1 text-[11px] font-bold text-slate-300">{item.forbiddenLabel}</p>
+                      <p className="text-[11px] leading-relaxed text-slate-400/80">{item.forbiddenDetail}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Still Blocking Items (Status summary) */}
+              {mitigationPlan.stillBlockingItems.length > 0 && (
+                <div className="mt-4 rounded-md bg-amber-950/30 p-3 border border-amber-900/30">
+                  <p className="text-xs font-semibold text-amber-400 mb-2">현재 차단 요약</p>
+                  <ul className="list-disc pl-5 text-[11px] text-amber-200/80 space-y-1">
+                    {mitigationPlan.stillBlockingItems.map((item: any) => (
+                      <li key={item.id}>{item.blockingLabel}: {item.blockingDetail}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Next Step */}
+              <div className="mt-6 flex items-start gap-3 rounded-md border border-indigo-900/30 bg-indigo-950/20 p-4">
+                <Info className="mt-0.5 h-5 w-5 shrink-0 text-indigo-400" />
+                <div>
+                  <h5 className="text-sm font-medium text-indigo-200">다음 단계 안내 (Next Step)</h5>
+                  <p className="mt-1 text-xs leading-relaxed text-indigo-300/80">
+                    {mitigationPlan.nextStepLabel}
+                  </p>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        );
+      })()}
+
 
 
       {/* ── BatchJob 실행 결과 ────────────────────────────────────────────────── */}

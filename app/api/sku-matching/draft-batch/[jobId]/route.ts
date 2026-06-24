@@ -50,6 +50,7 @@ import { buildNaverApiTokenFirstTestReadOnlyPhaseClosureSummaryView } from '@/sr
 import { buildNaverApiTokenFirstTestSeparateApprovalCriteriaReviewView } from '@/src/services/sku-keyword-final-approval-execution-naver-api-token-first-test-separate-approval-criteria-review-view.service';
 import { buildNaverApiTokenFirstTestSeparateApprovalCriteriaGapAnalysisView } from '@/src/services/sku-keyword-final-approval-execution-naver-api-token-first-test-separate-approval-criteria-gap-analysis-view.service';
 import { buildNaverApiTokenFirstTestSeparateApprovalRiskMatrixView } from '@/src/services/sku-keyword-final-approval-execution-naver-api-token-first-test-separate-approval-risk-matrix-view.service';
+import { buildNaverApiTokenFirstTestSeparateApprovalRiskMitigationPlanView } from '@/src/services/sku-keyword-final-approval-execution-naver-api-token-first-test-separate-approval-risk-mitigation-plan-view.service';
 
 // Compute safe DB environment hint from DATABASE_URL without exposing the original value.
 // Returns a classification key, never the actual URL.
@@ -1121,6 +1122,7 @@ export async function GET(
       naverAuthTokenFirstTestSeparateApprovalCriteriaReviewScreen: buildNaverApiTokenFirstTestSeparateApprovalCriteriaReviewView(),
       naverAuthTokenFirstTestSeparateApprovalCriteriaGapAnalysisScreen: buildNaverApiTokenFirstTestSeparateApprovalCriteriaGapAnalysisView(null),
       naverAuthTokenFirstTestSeparateApprovalRiskMatrixScreen: buildNaverApiTokenFirstTestSeparateApprovalRiskMatrixView(null),
+      naverAuthTokenFirstTestSeparateApprovalRiskMitigationPlanScreen: buildNaverApiTokenFirstTestSeparateApprovalRiskMitigationPlanView(null),
     };
 
     return NextResponse.json({ ok: true, job: responseJob });
