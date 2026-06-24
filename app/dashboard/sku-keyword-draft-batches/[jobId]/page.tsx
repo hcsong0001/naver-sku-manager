@@ -12,6 +12,8 @@ import {
   ShieldAlert,
   X,
   Info,
+  Lock,
+  AlertCircle,
 } from 'lucide-react';
 import type {
   SkuKeywordDraftBatchApproveRequest,
@@ -1792,6 +1794,113 @@ type DraftBatchJob = {
     verificationSaveButtonEnabled: false;
     verificationConfirmButtonRendered: false;
     verificationConfirmButtonEnabled: false;
+    formRendered: false;
+    formSubmitEnabled: false;
+    postApiEnabled: false;
+    finalConfirmationPersisted: false;
+    finalConfirmationDbWriteExecuted: false;
+    finalConfirmationActionEnabled: false;
+    liveTokenTestApproved: false;
+    liveTokenTestExecutionAllowed: false;
+    dbWriteAllowed: false;
+    persistenceExecuted: false;
+    metadataPersisted: false;
+    auditEventPersisted: false;
+    dbWriteExecuted: false;
+    prismaMutationExecuted: false;
+    goTicketIssued: false;
+    executionLeaseIssued: false;
+    sandboxInvocationAllowed: false;
+    sandboxInvocationExecuted: false;
+    coordinatorExecutionAllowed: false;
+    requestPayloadCreated: false;
+    requestBodyCreated: false;
+    requestHeadersCreated: false;
+    networkKillSwitchOpen: false;
+    networkAdapterEnabled: false;
+    networkExecutionAllowed: false;
+    tokenNetworkRequestAllowed: false;
+    tokenRequestAllowed: false;
+    tokenRequestPrepared: false;
+    tokenRequestExecuted: false;
+    accessTokenRequested: false;
+    refreshTokenRequested: false;
+    credentialsUsed: false;
+    clientSecretUsed: false;
+    clientSecretSignCreated: false;
+    tokenIssued: false;
+    tokenStored: false;
+    authorizationHeaderCreated: false;
+    endpointResolved: false;
+    endpointCalled: false;
+    httpRequestCreated: false;
+    httpClientCreated: false;
+    naverApiCallAllowed: false;
+    liveExecutionEnabled: false;
+    queueAllowed: false;
+    workerAllowed: false;
+  } | null;
+  naverAuthTokenFirstTestManualApprovalFinalSealScreen?: {
+    finalSealCreated: boolean;
+    displayOnly: boolean;
+    readOnly: boolean;
+    executionLocked: boolean;
+    sealIsReadOnly: boolean;
+    checklistIsExecution: boolean;
+    currentScreenIsReviewOnly: boolean;
+    manualReviewRequired: boolean;
+    requiresSeparateLiveApproval: boolean;
+    tokenTestStillNotAllowed: boolean;
+    title: string;
+    sealStatusLabel: string;
+    sealStatusNote: string;
+    currentPhase: string;
+    nextStepContext: string;
+    sealItems: Array<{
+      id: number;
+      sealKey: string;
+      sealLabel: string;
+      sealValue: string;
+      isReadOnly: boolean;
+      isExecutable: false;
+    }>;
+    sealClarificationItems: Array<{
+      id: number;
+      clarificationKey: string;
+      clarificationLabel: string;
+      clarificationDetail: string;
+      isReadOnly: boolean;
+      isExecutable: false;
+    }>;
+    sealSummaryNote: string;
+    executionButtonRendered: false;
+    executionButtonEnabled: false;
+    approvalButtonRendered: false;
+    approvalButtonEnabled: false;
+    approvalRequestSubmitButtonRendered: false;
+    approvalRequestSubmitButtonEnabled: false;
+    checklistSaveButtonRendered: false;
+    checklistSaveButtonEnabled: false;
+    decisionSaveButtonRendered: false;
+    decisionSaveButtonEnabled: false;
+    boundaryReleaseButtonRendered: false;
+    boundaryReleaseButtonEnabled: false;
+    handoffSaveButtonRendered: false;
+    handoffSaveButtonEnabled: false;
+    handoffCopyButtonRendered: false;
+    handoffCopyButtonEnabled: false;
+    handoffSendButtonRendered: false;
+    handoffSendButtonEnabled: false;
+    verificationSaveButtonRendered: false;
+    verificationSaveButtonEnabled: false;
+    verificationConfirmButtonRendered: false;
+    verificationConfirmButtonEnabled: false;
+    finalSealSaveButtonRendered: false;
+    finalSealSaveButtonEnabled: false;
+    finalSealConfirmButtonRendered: false;
+    finalSealConfirmButtonEnabled: false;
+    finalSealReleaseButtonRendered: false;
+    finalSealReleaseButtonEnabled: false;
     formRendered: false;
     formSubmitEnabled: false;
     postApiEnabled: false;
@@ -6239,6 +6348,87 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
 
       {/* ── Manual Approval Checklist ──────────────────────────────────────────── */}
       <ManualApprovalChecklistPanel jobId={job.id} readinessStatus={job.status} />
+
+      {/* ── Token First Test Manual Approval Final Seal ─────────────────────────── */}
+      {(() => {
+        const finalSeal = job.naverAuthTokenFirstTestManualApprovalFinalSealScreen;
+        if (!finalSeal) return null;
+
+        return (
+          <div className="mb-6 rounded-lg border border-rose-500/30 bg-rose-950/20 p-4 shadow-sm shadow-rose-900/10">
+            <h2 className="mb-3 flex items-center gap-2 text-base font-bold text-rose-400">
+              <ShieldAlert className="h-5 w-5" />
+              {finalSeal.title}
+            </h2>
+
+            {/* 최종 결론 상태 배너 */}
+            <div className="mb-5 flex items-start gap-3 rounded-md border border-rose-600/40 bg-rose-900/30 p-4">
+              <Lock className="mt-0.5 h-5 w-5 shrink-0 text-rose-500" />
+              <div>
+                <p className="mb-1 text-sm font-bold tracking-wide text-rose-300 uppercase">
+                  {finalSeal.sealStatusLabel}
+                </p>
+                <p className="text-xs text-rose-300/80 leading-relaxed">
+                  {finalSeal.sealStatusNote}
+                </p>
+              </div>
+            </div>
+
+            {/* 현재 단계 요약 */}
+            <div className="mb-5 flex flex-wrap gap-4 border-l-2 border-rose-700/50 pl-3">
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-rose-500/70 mb-0.5">현재 단계</p>
+                <p className="text-sm font-bold text-rose-300">{finalSeal.currentPhase}</p>
+              </div>
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-rose-500/70 mb-0.5">다음 단계 정보</p>
+                <p className="text-sm font-bold text-rose-300">{finalSeal.nextStepContext}</p>
+              </div>
+            </div>
+
+            {/* 개별 봉인 항목 (Seal Items) */}
+            <div className="mb-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
+              {finalSeal.sealItems.map((item) => (
+                <div
+                  key={item.id}
+                  className="flex items-center justify-between rounded-md border border-rose-700/30 bg-rose-950/40 px-4 py-3"
+                >
+                  <span className="text-xs font-semibold text-rose-400">{item.sealLabel}</span>
+                  <span className="rounded bg-rose-900/50 px-2 py-0.5 text-xs font-bold text-rose-200 shadow-inner">
+                    {item.sealValue}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            {/* 명확화 항목 (Clarifications) */}
+            <div className="mb-5">
+              <h3 className="mb-3 text-[11px] font-bold uppercase tracking-wider text-rose-400 flex items-center gap-1.5">
+                <AlertCircle className="h-3.5 w-3.5" />
+                최종 봉인 명확화 항목
+              </h3>
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                {finalSeal.sealClarificationItems.map((item) => (
+                  <div
+                    key={item.id}
+                    className="rounded border border-rose-800/30 bg-rose-900/10 p-3"
+                  >
+                    <p className="mb-1 text-xs font-bold text-rose-300">{item.clarificationLabel}</p>
+                    <p className="text-[11px] leading-relaxed text-gray-400">{item.clarificationDetail}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* 요약 안내 */}
+            <div className="rounded-md border-l-4 border-rose-600 bg-rose-500/10 p-3">
+              <p className="text-xs font-medium leading-relaxed text-rose-300/90">
+                {finalSeal.sealSummaryNote}
+              </p>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* ── BatchJob 실행 결과 ────────────────────────────────────────────────── */}
       {['EXECUTED', 'PARTIAL_SUCCESS', 'FAILED', 'EXECUTING'].includes(job.status) && (
