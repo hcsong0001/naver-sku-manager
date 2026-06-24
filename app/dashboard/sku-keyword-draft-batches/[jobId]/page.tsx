@@ -328,6 +328,46 @@ type NaverAuthTokenProviderStatus = {
   maxAllowedState: 'NAVER_AUTH_TOKEN_PROVIDER_REGISTERED_BUT_DISABLED';
 };
 
+type NaverAuthTokenDryPermissionGateChecklistItem = {
+  key: string;
+  label: string;
+  status: 'PASS' | 'WARN' | 'BLOCKED' | 'NEEDS_REVIEW';
+  message: string;
+};
+
+type NaverAuthTokenDryPermissionGate = {
+  ok: boolean;
+  allowed: false;
+  status: 'BLOCKED' | 'DISABLED' | 'NEEDS_REVIEW';
+  resultCode: string;
+  resultMessage: string;
+  dryCheckPassed: boolean;
+  tokenRequestAllowed: false;
+  tokenStatus: 'disabled';
+  authConfigUsable: false;
+  naverApiCallAllowed: false;
+  liveExecutionEnabled: false;
+  httpRequestCreated: false;
+  endpointCalled: false;
+  accessTokenRequested: false;
+  refreshTokenRequested: false;
+  credentialsUsed: false;
+  tokenIssued: false;
+  tokenStored: false;
+  authorizationHeaderCreated: false;
+  operatingDbWriteAllowed: false;
+  queueAllowed: false;
+  workerAllowed: false;
+  secretVisible: false;
+  tokenVisible: false;
+  sanitized: true;
+  checklistItems: NaverAuthTokenDryPermissionGateChecklistItem[];
+  blockingReasons: string[];
+  warnings: string[];
+  needsReviewReasons: string[];
+  maxAllowedState: 'NAVER_AUTH_TOKEN_DRY_PERMISSION_GATE_READY_BUT_DISABLED';
+};
+
 type DraftBatchJob = {
   id: string;
   status: string;
@@ -348,6 +388,7 @@ type DraftBatchJob = {
   liveAdapterSkeletonStatus?: LiveAdapterSkeletonStatus | null;
   naverAuthConfigSafety?: NaverAuthConfigSafety;
   naverAuthTokenProviderStatus?: NaverAuthTokenProviderStatus | null;
+  naverAuthTokenDryPermissionGate?: NaverAuthTokenDryPermissionGate | null;
 };
 
 type DraftBatchDetailResponse =
@@ -2449,6 +2490,187 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             <div className="rounded-md border border-slate-500/20 bg-slate-500/10 p-2 text-xs text-gray-400">
               <span className="text-gray-500">최대 허용 상태: </span>
               <span className="font-mono text-rose-300">{tp.maxAllowedState}</span>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Naver API Token Dry Permission Gate ────────────────────────────── */}
+      {job.naverAuthTokenDryPermissionGate && (() => {
+        const gate = job.naverAuthTokenDryPermissionGate!;
+        const statusColor = gate.dryCheckPassed
+          ? 'text-indigo-400'
+          : gate.status === 'BLOCKED'
+            ? 'text-red-400'
+            : 'text-amber-400';
+        const borderColor = gate.dryCheckPassed
+          ? 'border-indigo-500/30'
+          : gate.status === 'BLOCKED'
+            ? 'border-red-500/30'
+            : 'border-amber-500/30';
+        const bgColor = gate.dryCheckPassed
+          ? 'bg-indigo-500/10'
+          : gate.status === 'BLOCKED'
+            ? 'bg-red-500/10'
+            : 'bg-amber-500/10';
+        const textColor = gate.dryCheckPassed
+          ? 'text-indigo-200'
+          : gate.status === 'BLOCKED'
+            ? 'text-red-200'
+            : 'text-amber-200';
+        return (
+          <div className="mb-6 rounded-lg border border-[#262629] bg-[#121214] p-4">
+            <h2 className="mb-3 flex items-center gap-2 text-base font-semibold text-white">
+              <ShieldAlert className={`h-5 w-5 ${statusColor}`} />
+              Token Dry Permission Gate — 사전 조건 점검
+              <span className={`ml-1 rounded-full border ${borderColor} ${bgColor} px-2 py-0.5 text-[10px] font-semibold ${textColor}`}>
+                {gate.resultCode}
+              </span>
+            </h2>
+
+            {/* 안내 문구 */}
+            <div className={`mb-4 rounded-md border ${borderColor} ${bgColor} p-3 text-xs ${textColor}`}>
+              <p>
+                이 섹션은 token 발급 전 dry-run 점검 결과를 표시합니다.
+                모든 선행 조건이 충족되어도(dryCheckPassed=true) 이 단계에서는 token을 발급하지 않습니다.
+              </p>
+            </div>
+
+            {/* 상태 요약 */}
+            <div className="mb-4 flex flex-wrap items-center gap-3">
+              <span className="text-sm text-gray-400">Gate 상태:</span>
+              <span className={`rounded-full border ${borderColor} ${bgColor} px-2 py-0.5 text-xs font-semibold ${textColor}`}>
+                {gate.status}
+              </span>
+              <span className={`rounded-full border ${gate.dryCheckPassed ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300' : 'border-slate-500/30 bg-slate-500/10 text-slate-400'} px-2 py-0.5 text-xs font-semibold`}>
+                dryCheckPassed: {String(gate.dryCheckPassed)}
+              </span>
+              <span className="rounded-full border border-slate-500/30 bg-slate-500/10 px-2 py-0.5 text-xs text-slate-400">
+                tokenStatus: {gate.tokenStatus}
+              </span>
+            </div>
+
+            {/* 안전 배지 */}
+            <div className="mb-4">
+              <p className="mb-2 text-xs font-semibold text-gray-400">안전 배지 (모두 비활성화됨)</p>
+              <div className="flex flex-wrap gap-2">
+                {[
+                  { label: 'Token 발급 차단', ok: !gate.tokenIssued },
+                  { label: 'Token 요청 차단', ok: !gate.tokenRequestAllowed },
+                  { label: 'Refresh Token 없음', ok: !gate.refreshTokenRequested },
+                  { label: '인증정보 사용 안 함', ok: !gate.credentialsUsed },
+                  { label: 'Authorization header 없음', ok: !gate.authorizationHeaderCreated },
+                  { label: 'Endpoint 호출 없음', ok: !gate.endpointCalled },
+                  { label: 'Naver API 호출 차단', ok: !gate.naverApiCallAllowed },
+                  { label: 'Secret 비노출', ok: !gate.secretVisible },
+                ].map(({ label, ok }) => (
+                  <span
+                    key={label}
+                    className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-semibold ${
+                      ok
+                        ? 'border-emerald-500/30 bg-emerald-500/20 text-emerald-300'
+                        : 'border-red-500/30 bg-red-500/20 text-red-300'
+                    }`}
+                  >
+                    {ok ? <CheckCircle2 className="h-3 w-3" /> : <AlertTriangle className="h-3 w-3" />}
+                    {label}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {/* 상태 카드 */}
+            <div className="mb-4 grid grid-cols-2 gap-2 text-xs sm:grid-cols-3 lg:grid-cols-4">
+              {[
+                { label: 'allowed', value: String(gate.allowed) },
+                { label: 'tokenRequestAllowed', value: String(gate.tokenRequestAllowed) },
+                { label: 'accessTokenRequested', value: String(gate.accessTokenRequested) },
+                { label: 'tokenIssued', value: String(gate.tokenIssued) },
+                { label: 'credentialsUsed', value: String(gate.credentialsUsed) },
+                { label: 'authorizationHeaderCreated', value: String(gate.authorizationHeaderCreated) },
+                { label: 'endpointCalled', value: String(gate.endpointCalled) },
+                { label: 'naverApiCallAllowed', value: String(gate.naverApiCallAllowed) },
+              ].map(({ label, value }) => (
+                <div key={label} className="rounded-md border border-[#262629] bg-[#18181b] p-2 text-center">
+                  <p className="text-[9px] text-gray-500">{label}</p>
+                  <p className={`mt-0.5 font-mono text-xs font-bold ${value === 'false' ? 'text-emerald-400' : 'text-red-400'}`}>
+                    {value}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            {/* 차단 사유 */}
+            {gate.blockingReasons.length > 0 && (
+              <div className="mb-4 rounded-md border border-red-500/20 bg-red-500/10 p-3 text-xs">
+                <p className="mb-2 flex items-center gap-1.5 font-semibold text-red-300">
+                  <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                  차단 사유 ({gate.blockingReasons.length}건)
+                </p>
+                <ul className="space-y-1">
+                  {gate.blockingReasons.map((reason, idx) => (
+                    <li key={idx} className="text-red-200">- {reason}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* 검토 필요 사유 */}
+            {gate.needsReviewReasons.length > 0 && (
+              <div className="mb-4 rounded-md border border-amber-500/20 bg-amber-500/10 p-3 text-xs">
+                <p className="mb-2 flex items-center gap-1.5 font-semibold text-amber-300">
+                  <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                  검토 필요 ({gate.needsReviewReasons.length}건)
+                </p>
+                <ul className="space-y-1">
+                  {gate.needsReviewReasons.map((r, idx) => (
+                    <li key={idx} className="text-amber-200">- {r}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* 경고 */}
+            {gate.warnings.length > 0 && (
+              <div className="mb-4 rounded-md border border-yellow-500/20 bg-yellow-500/10 p-3 text-xs">
+                <p className="mb-2 flex items-center gap-1.5 font-semibold text-yellow-300">
+                  <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                  경고 ({gate.warnings.length}건)
+                </p>
+                <ul className="space-y-1">
+                  {gate.warnings.map((w, idx) => (
+                    <li key={idx} className="text-yellow-200">- {w}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* 체크리스트 요약 */}
+            <div className="mb-4">
+              <p className="mb-2 text-xs font-semibold text-gray-400">
+                점검 항목 ({gate.checklistItems.length}건)
+              </p>
+              <div className="space-y-1">
+                {gate.checklistItems.map((item) => (
+                  <div key={item.key} className="flex items-start gap-2 rounded-sm px-2 py-1 text-xs">
+                    <span className={`mt-0.5 shrink-0 font-semibold ${
+                      item.status === 'PASS' ? 'text-emerald-400'
+                      : item.status === 'WARN' ? 'text-amber-400'
+                      : item.status === 'BLOCKED' ? 'text-red-400'
+                      : 'text-yellow-400'
+                    }`}>
+                      [{item.status}]
+                    </span>
+                    <span className="text-gray-300">{item.label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* maxAllowedState */}
+            <div className="rounded-md border border-slate-500/20 bg-slate-500/10 p-2 text-xs text-gray-400">
+              <span className="text-gray-500">최대 허용 상태: </span>
+              <span className="font-mono text-indigo-300">{gate.maxAllowedState}</span>
             </div>
           </div>
         );

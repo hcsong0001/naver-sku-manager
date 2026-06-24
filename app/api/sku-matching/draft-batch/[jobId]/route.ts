@@ -19,6 +19,7 @@ import {
 } from '@/src/services/sku-keyword-final-approval-execution-naver-api-live-adapter-skeleton.service';
 import { evaluateNaverApiAuthConfigSafeReader } from '@/src/services/sku-keyword-final-approval-execution-naver-api-auth-config-safe-reader.service';
 import { createNaverApiTokenProviderDisabled } from '@/src/services/sku-keyword-final-approval-execution-naver-api-token-provider-disabled.service';
+import { evaluateNaverApiTokenDryPermissionGate } from '@/src/services/sku-keyword-final-approval-execution-naver-api-token-dry-permission-gate.service';
 
 // Compute safe DB environment hint from DATABASE_URL without exposing the original value.
 // Returns a classification key, never the actual URL.
@@ -438,6 +439,77 @@ export async function GET(
           blockingReasons: tokenProvider.blockingReasons,
           warnings: tokenProvider.warnings,
           maxAllowedState: tokenProvider.maxAllowedState,
+        };
+      })(),
+      naverAuthTokenDryPermissionGate: (() => {
+        const tokenProvider = createNaverApiTokenProviderDisabled({
+          authConfigSafety: naverAuthConfigSafety,
+          requestedAction: 'draft-batch-detail-read',
+          allowTokenRequest: false,
+          allowCredentialUse: false,
+          allowEndpointCall: false,
+          environmentSafetyResult: { ok: envSafetyResult.allowed },
+          liveAdapterSkeletonStatus: 'disabled',
+        });
+        const gate = evaluateNaverApiTokenDryPermissionGate({
+          authConfigSafety: naverAuthConfigSafety,
+          tokenProviderStatus: tokenProvider,
+          environmentSafetyResult: envSafetyResult,
+          liveAdapterSkeletonStatus: 'disabled',
+          liveSafetyGateResult: null,
+          livePreflightResult: preflightResult.ready !== undefined
+            ? { ready: preflightResult.ready, blockingReasons: preflightResult.blockingReasons }
+            : null,
+          liveSingleTestApproval: approvalGuardResult.approvalReady !== undefined
+            ? { approvalReady: approvalGuardResult.approvalReady, blockingReasons: approvalGuardResult.blockingReasons }
+            : null,
+          liveSingleTestApprovalAudit: liveSingleTestApprovalAudit
+            ? { auditCode: typeof liveSingleTestApprovalAudit.auditCode === 'string' ? liveSingleTestApprovalAudit.auditCode : undefined }
+            : null,
+          liveSingleTestAuditHistory: auditHistory ? { exists: auditHistory.exists } : null,
+          finalApprovalStatus: activeFinalApproval?.status ? String(activeFinalApproval.status) : null,
+          batchJobStatus: String(job.status),
+          itemStatuses: job.items.map(item => String(item.status)),
+          itemCount: job.totalItems,
+          requestedAction: 'draft-batch-detail-read',
+          allowTokenRequest: false,
+          allowCredentialUse: false,
+          allowEndpointCall: false,
+          actorId: typeof safeMetadata?.actorId === 'string' ? safeMetadata.actorId : null,
+          finalApprovalId: activeFinalApproval?.id ?? null,
+          batchJobId: job.id,
+        });
+        return {
+          ok: gate.ok,
+          allowed: gate.allowed,
+          status: gate.status,
+          resultCode: gate.resultCode,
+          resultMessage: gate.resultMessage,
+          dryCheckPassed: gate.dryCheckPassed,
+          tokenRequestAllowed: gate.tokenRequestAllowed,
+          tokenStatus: gate.tokenStatus,
+          authConfigUsable: gate.authConfigUsable,
+          naverApiCallAllowed: gate.naverApiCallAllowed,
+          liveExecutionEnabled: gate.liveExecutionEnabled,
+          httpRequestCreated: gate.httpRequestCreated,
+          endpointCalled: gate.endpointCalled,
+          accessTokenRequested: gate.accessTokenRequested,
+          refreshTokenRequested: gate.refreshTokenRequested,
+          credentialsUsed: gate.credentialsUsed,
+          tokenIssued: gate.tokenIssued,
+          tokenStored: gate.tokenStored,
+          authorizationHeaderCreated: gate.authorizationHeaderCreated,
+          operatingDbWriteAllowed: gate.operatingDbWriteAllowed,
+          queueAllowed: gate.queueAllowed,
+          workerAllowed: gate.workerAllowed,
+          secretVisible: gate.secretVisible,
+          tokenVisible: gate.tokenVisible,
+          sanitized: gate.sanitized,
+          checklistItems: gate.checklistItems,
+          blockingReasons: gate.blockingReasons,
+          warnings: gate.warnings,
+          needsReviewReasons: gate.needsReviewReasons,
+          maxAllowedState: gate.maxAllowedState,
         };
       })(),
     };
