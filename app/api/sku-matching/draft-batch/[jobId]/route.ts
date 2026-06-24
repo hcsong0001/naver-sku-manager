@@ -23,6 +23,7 @@ import { evaluateNaverApiTokenDryPermissionGate } from '@/src/services/sku-keywo
 import { createNaverApiTokenProviderTestOnlySkeleton } from '@/src/services/sku-keyword-final-approval-execution-naver-api-token-provider-test-only-skeleton.service';
 import { sanitizeStoredAuditRecord } from '@/src/services/sku-keyword-final-approval-execution-naver-api-token-test-approval-audit.service';
 import { evaluateNaverApiTokenFirstTestSafetyBoundary } from '@/src/services/sku-keyword-final-approval-execution-naver-api-token-first-test-safety-boundary.service';
+import { sanitizeStoredFinalApprovalAuditRecord } from '@/src/services/sku-keyword-final-approval-execution-naver-api-token-first-test-final-approval-audit.service';
 
 // Compute safe DB environment hint from DATABASE_URL without exposing the original value.
 // Returns a classification key, never the actual URL.
@@ -284,6 +285,11 @@ export async function GET(
     // Read token test approval audit from metadata (written by POST /naver-auth-token-test-approval)
     const naverAuthTokenTestApprovalAudit = sanitizeStoredAuditRecord(
       rawMetadata?.naverAuthTokenTestApprovalAudit
+    );
+
+    // Read final approval audit from metadata
+    const naverAuthTokenFirstTestFinalApprovalAudit = sanitizeStoredFinalApprovalAuditRecord(
+      rawMetadata?.naverAuthTokenFirstTestFinalApprovalAudit
     );
 
     // Build audit history (read-only summary from metadata)
@@ -630,6 +636,7 @@ export async function GET(
             sanitized: naverAuthTokenTestApprovalAudit.sanitized,
           }
         : { hasAudit: false },
+      naverAuthTokenFirstTestFinalApprovalAudit: naverAuthTokenFirstTestFinalApprovalAudit ?? null,
       // ── Token 최초 발급 테스트 Safety Boundary (read-only) ──────────────────────
       naverAuthTokenFirstTestSafetyBoundary: (() => {
         const tokenProvider = createNaverApiTokenProviderDisabled({

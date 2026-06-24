@@ -502,6 +502,37 @@ type DraftBatchJob = {
     needsReviewReasons: string[];
     maxAllowedState: 'NAVER_AUTH_TOKEN_FIRST_TEST_SAFETY_BOUNDARY_READY_BUT_NOT_EXECUTABLE';
   } | null;
+  naverAuthTokenFirstTestFinalApprovalAudit?: {
+    approvalRecorded: boolean;
+    approvalRecordedAt?: string;
+    approvalScope: string;
+    approvedByRole: string;
+    acknowledgementVersion: string;
+    acknowledgementCount: number;
+    approvedAcknowledgementKeys: string[];
+    safetyBoundaryStatus: string;
+    executorStatus: string;
+    tokenRequestAllowed: false;
+    executorArmed: false;
+    tokenRequestPrepared: false;
+    tokenRequestExecuted: false;
+    accessTokenRequested: false;
+    refreshTokenRequested: false;
+    credentialsUsed: false;
+    clientSecretUsed: false;
+    clientSecretSignCreated: false;
+    naverApiCallAllowed: false;
+    endpointResolved: false;
+    endpointCalled: false;
+    httpRequestCreated: false;
+    httpClientCreated: false;
+    authorizationHeaderCreated: false;
+    tokenIssued: false;
+    tokenStored: false;
+    queueAllowed: false;
+    workerAllowed: false;
+    liveExecutionEnabled: false;
+  } | null;
 };
 
 type DraftBatchDetailResponse =
@@ -3453,6 +3484,101 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             {/* 안내 문구 */}
             <p className="mt-2 text-[10px] text-gray-500">
               이 섹션은 최초 token 발급 테스트 직전 조건을 최종 점검합니다. 모든 조건이 통과되어도 이 단계에서는 token을 발급하지 않으며, 실제 token 발급 테스트는 다음 Task에서 별도 명시 승인 후에만 진행됩니다.
+            </p>
+          </div>
+        );
+      })()}
+
+      {/* ── 최초 Token 발급 테스트 Final Approval Audit ────────────────────────────── */}
+      {(() => {
+        const audit = job.naverAuthTokenFirstTestFinalApprovalAudit ?? null;
+        if (!audit) return null;
+
+        const isRecorded = audit.approvalRecorded;
+
+        return (
+          <div className="mb-6 rounded-lg border border-fuchsia-500/30 bg-fuchsia-500/5 p-4">
+            <h2 className="mb-3 flex items-center gap-2 text-base font-semibold text-fuchsia-300">
+              <ShieldAlert className="h-5 w-5 shrink-0" />
+              최초 Token 발급 테스트 최종 승인 (Final Approval)
+              {isRecorded ? (
+                <span className="ml-auto rounded-full border border-fuchsia-500/30 bg-fuchsia-500/20 px-2 py-0.5 text-xs font-semibold text-fuchsia-300">
+                  RECORDED
+                </span>
+              ) : (
+                <span className="ml-auto rounded-full border border-gray-500/30 bg-gray-500/20 px-2 py-0.5 text-xs font-semibold text-gray-400">
+                  NOT RECORDED
+                </span>
+              )}
+            </h2>
+
+            {isRecorded && (
+              <div className="space-y-3">
+                <div className="grid grid-cols-1 gap-2 text-xs sm:grid-cols-2">
+                  <div className="rounded-md border border-[#262629] bg-[#18181b] p-2">
+                    <p className="text-gray-500">approvalRecordedAt</p>
+                    <p className="mt-0.5 font-mono text-xs text-gray-300 break-all">{audit.approvalRecordedAt || '-'}</p>
+                  </div>
+                  <div className="rounded-md border border-[#262629] bg-[#18181b] p-2">
+                    <p className="text-gray-500">approvalScope</p>
+                    <p className="mt-0.5 font-mono text-xs text-gray-300 break-all">{audit.approvalScope}</p>
+                  </div>
+                  <div className="rounded-md border border-[#262629] bg-[#18181b] p-2">
+                    <p className="text-gray-500">approvedByRole</p>
+                    <p className="mt-0.5 font-mono text-xs text-gray-300 break-all">{audit.approvedByRole}</p>
+                  </div>
+                  <div className="rounded-md border border-[#262629] bg-[#18181b] p-2">
+                    <p className="text-gray-500">safetyBoundaryStatus</p>
+                    <p className="mt-0.5 font-mono text-xs text-gray-300 break-all">{audit.safetyBoundaryStatus}</p>
+                  </div>
+                  <div className="rounded-md border border-[#262629] bg-[#18181b] p-2">
+                    <p className="text-gray-500">executorStatus</p>
+                    <p className="mt-0.5 font-mono text-xs text-gray-300 break-all">{audit.executorStatus}</p>
+                  </div>
+                </div>
+
+                {/* acknowledgedKeys 목록 */}
+                {Array.isArray(audit.approvedAcknowledgementKeys) && audit.approvedAcknowledgementKeys.length > 0 && (
+                  <div className="mb-3">
+                    <p className="mb-1 text-xs font-semibold text-gray-400">확인된 동의 항목 ({audit.approvedAcknowledgementKeys.length}건)</p>
+                    <div className="space-y-1">
+                      {audit.approvedAcknowledgementKeys.map(item => (
+                        <div key={item} className="flex items-center gap-2 rounded-sm px-2 py-1 text-xs">
+                          <CheckCircle2 className="h-3 w-3 shrink-0 text-emerald-400" />
+                          <span className="font-mono text-[10px] text-gray-500">{item}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* false safety flags */}
+                <div className="mb-3">
+                  <p className="mb-1 text-xs font-semibold text-gray-400">안전 플래그 (모두 false)</p>
+                  <div className="grid grid-cols-2 gap-1 text-xs sm:grid-cols-3">
+                    {([
+                      ['tokenRequestAllowed', audit.tokenRequestAllowed],
+                      ['executorArmed', audit.executorArmed],
+                      ['tokenRequestPrepared', audit.tokenRequestPrepared],
+                      ['tokenRequestExecuted', audit.tokenRequestExecuted],
+                      ['accessTokenRequested', audit.accessTokenRequested],
+                      ['tokenIssued', audit.tokenIssued],
+                      ['endpointCalled', audit.endpointCalled],
+                      ['httpClientCreated', audit.httpClientCreated],
+                      ['naverApiCallAllowed', audit.naverApiCallAllowed],
+                      ['liveExecutionEnabled', audit.liveExecutionEnabled],
+                    ] as [string, boolean][]).map(([k, v]) => (
+                      <div key={k} className="rounded-sm border border-slate-500/20 bg-slate-500/10 px-2 py-1">
+                        <span className="text-gray-500">{k}: </span>
+                        <span className={v ? 'font-semibold text-red-300' : 'font-semibold text-emerald-300'}>{String(v)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+            <p className="mt-2 text-[10px] text-gray-500">
+              이 섹션은 최초 token 발급 테스트의 최종 승인 기록(Read-only)을 표시합니다. 승인이 기록되어도 실제 발급 로직이 비활성화된 상태임을 보장합니다.
             </p>
           </div>
         );
