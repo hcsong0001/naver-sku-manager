@@ -15,6 +15,12 @@ import {
   Info,
   Lock,
   AlertCircle,
+  FileText,
+  Target,
+  Maximize,
+  FileCheck,
+  ListChecks,
+  Circle,
 } from 'lucide-react';
 import type {
   SkuKeywordDraftBatchApproveRequest,
@@ -2528,6 +2534,35 @@ type DraftBatchJob = {
     unresolvedBlockerItems: any[];
     stillForbiddenItems: any[];
     releaseRequirementItems: any[];
+    nextStepLabel: string;
+  } | null;
+  naverAuthTokenFirstTestSeparateApprovalRequestPacketScreen?: {
+    requestPacketCreated: boolean;
+    displayOnly: boolean;
+    readOnly: boolean;
+    executionLocked: boolean;
+    finalBlockerSummaryCompleted: boolean;
+    requestPacketReviewOnly: boolean;
+    separateApprovalStillRequired: boolean;
+    executionStillForbidden: boolean;
+    tokenRequestStillForbidden: boolean;
+    naverApiCallStillForbidden: boolean;
+    operatingDbWriteStillForbidden: boolean;
+    priceStockChangeStillForbidden: boolean;
+    queueWorkerStillDisconnected: boolean;
+    postApiStillNotAdded: boolean;
+    screenTitle: string;
+    requestPacketPhaseName: string;
+    requestPacketStatus: string;
+    finalBlockerSummaryCommit: string;
+    approvalRequestSubmitted: boolean;
+    approvalRequestSubmitButtonRendered: boolean;
+    approvalRequestSubmitButtonEnabled: boolean;
+    requestPurposeItems: any[];
+    requestScopeItems: any[];
+    evidencePacketItems: any[];
+    preSubmissionCheckItems: any[];
+    stillForbiddenItems: any[];
     nextStepLabel: string;
   } | null;
 };
@@ -7760,6 +7795,143 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                   <h5 className="text-sm font-medium text-emerald-200">다음 단계 안내 (Next Step)</h5>
                   <p className="mt-1 text-xs leading-relaxed text-emerald-300/80">
                     {finalBlocker.nextStepLabel}
+                  </p>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* Task 68: Token First Test Separate Approval Request Packet */}
+      {(() => {
+        const requestPacket = job.naverAuthTokenFirstTestSeparateApprovalRequestPacketScreen;
+        if (!requestPacket || !requestPacket.requestPacketCreated) return null;
+
+        return (
+          <div className="mb-6 overflow-hidden rounded-lg border border-indigo-500/30 bg-indigo-950/10 shadow-md">
+            {/* Header */}
+            <div className="border-b border-indigo-900/40 bg-indigo-900/20 px-5 py-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-indigo-500/10">
+                  <FileText className="h-5 w-5 text-indigo-400" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-indigo-100">{requestPacket.screenTitle}</h3>
+                  <div className="mt-1 flex items-center gap-2 text-sm text-indigo-300/80">
+                    <span className="font-medium text-indigo-400/90">{requestPacket.requestPacketStatus}</span>
+                    <span className="text-slate-600">|</span>
+                    <span>{requestPacket.requestPacketPhaseName}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Content Body */}
+            <div className="p-5 space-y-6">
+
+              {/* Request Purpose Items */}
+              {requestPacket.requestPurposeItems.length > 0 && (
+                <div>
+                  <h4 className="mb-3 text-sm font-semibold text-indigo-300 flex items-center gap-2">
+                    <Target className="h-4 w-4" />
+                    승인 요청 목적 (Request Purpose)
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {requestPacket.requestPurposeItems.map((item: any) => (
+                      <div key={item.id} className="rounded border border-indigo-900/40 bg-indigo-950/30 p-3">
+                        <p className="mb-1 text-xs font-bold text-indigo-200">{item.purposeLabel}</p>
+                        <p className="text-[11px] leading-relaxed text-indigo-300/80">{item.purposeDetail}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Request Scope Items */}
+              {requestPacket.requestScopeItems.length > 0 && (
+                <div>
+                  <h4 className="mb-3 text-sm font-semibold text-sky-300 flex items-center gap-2">
+                    <Maximize className="h-4 w-4" />
+                    허가 요청 대상 및 범위 (Request Scope)
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {requestPacket.requestScopeItems.map((item: any) => (
+                      <div key={item.id} className="rounded border border-sky-900/40 bg-sky-950/20 p-3">
+                        <p className="mb-1 text-xs font-bold text-sky-200">{item.scopeLabel}</p>
+                        <p className="text-[11px] leading-relaxed text-sky-300/80">{item.scopeDetail}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Evidence Packet Items */}
+              {requestPacket.evidencePacketItems.length > 0 && (
+                <div>
+                  <h4 className="mb-3 text-sm font-semibold text-teal-300 flex items-center gap-2">
+                    <FileCheck className="h-4 w-4" />
+                    첨부 증거물 요약 (Evidence Packet)
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {requestPacket.evidencePacketItems.map((item: any) => (
+                      <div key={item.id} className="rounded border border-teal-900/40 bg-teal-950/20 p-3">
+                        <p className="mb-1 text-xs font-bold text-teal-200">{item.evidenceLabel}</p>
+                        <p className="text-[11px] leading-relaxed text-teal-300/80">{item.evidenceDetail}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Still Forbidden Items */}
+              {requestPacket.stillForbiddenItems.length > 0 && (
+                <div>
+                  <h4 className="mb-3 text-sm font-semibold text-amber-400 flex items-center gap-2">
+                    <AlertTriangle className="h-4 w-4" />
+                    승인 전 유지되는 강력한 제약사항 (Still Forbidden)
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                    {requestPacket.stillForbiddenItems.map((item: any) => (
+                      <div key={item.id} className="rounded border border-amber-900/40 bg-amber-950/20 p-3 text-center flex flex-col justify-center items-center h-full">
+                        <p className="text-xs font-bold text-amber-300 mb-1">{item.forbiddenLabel}</p>
+                        <p className="text-[10px] text-amber-200/80">{item.forbiddenDetail}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Pre Submission Check Items */}
+              {requestPacket.preSubmissionCheckItems.length > 0 && (
+                <div className="mt-4 rounded-md bg-slate-900/50 p-4 border border-slate-700">
+                  <h4 className="text-xs font-semibold text-slate-300 mb-3 flex items-center gap-2">
+                    <ListChecks className="h-4 w-4 text-slate-400" />
+                    제출 전 확인 사항 (Pre-submission Checklist)
+                  </h4>
+                  <ul className="space-y-2">
+                    {requestPacket.preSubmissionCheckItems.map((item: any) => (
+                      <li key={item.id} className="flex items-start gap-2 text-[11px] text-slate-400">
+                        {item.isConfirmed ? (
+                          <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 mt-0.5 shrink-0" />
+                        ) : (
+                          <Circle className="h-3.5 w-3.5 text-slate-600 mt-0.5 shrink-0" />
+                        )}
+                        <span>{item.checkLabel}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Next Step */}
+              <div className="mt-6 flex items-start gap-3 rounded-md border border-fuchsia-900/30 bg-fuchsia-950/20 p-4">
+                <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-fuchsia-400" />
+                <div>
+                  <h5 className="text-sm font-medium text-fuchsia-200">다음 단계 안내 (Next Step)</h5>
+                  <p className="mt-1 text-xs leading-relaxed text-fuchsia-300/80">
+                    {requestPacket.nextStepLabel}
                   </p>
                 </div>
               </div>
