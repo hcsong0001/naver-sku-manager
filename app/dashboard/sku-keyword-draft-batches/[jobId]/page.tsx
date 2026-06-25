@@ -2717,6 +2717,23 @@ type DraftBatchJob = {
     stillForbiddenItems: Array<{ label: string; description: string; tone: 'blocked'; }>;
     finalNotice: string;
   } | null;
+  tokenFirstTestSeparateApprovalHumanReviewAcceptanceChecklistView?: {
+    title: string;
+    statusLabel: string;
+    statusTone: 'neutral' | 'warning' | 'blocked';
+    summary: string;
+    taskRangeLabel: string;
+    previousHandoffLabel: string;
+    previousHandoffCommit: string;
+    acceptanceChecklistItems: Array<{ label: string; description: string; requiredState: string; currentState: string; tone: 'neutral' | 'warning' | 'blocked'; }>;
+    reviewerAwarenessItems: Array<{ label: string; description: string; reviewerMustUnderstand: string; tone: 'warning' | 'blocked'; }>;
+    acceptanceBlockedItems: Array<{ label: string; reason: string; unresolvedState: string; tone: 'blocked'; }>;
+    evidenceReviewItems: Array<{ label: string; description: string; evidenceState: string; tone: 'neutral' | 'warning'; }>;
+    notApprovalItems: Array<{ label: string; description: string; notGrantedState: string; tone: 'blocked'; }>;
+    nextReviewPreparationItems: Array<{ label: string; description: string; nextOwner: string; tone: 'neutral' | 'warning'; }>;
+    stillForbiddenItems: Array<{ label: string; description: string; tone: 'blocked'; }>;
+    finalNotice: string;
+  } | null;
 };
 
 type DraftBatchDetailResponse =
@@ -8875,6 +8892,217 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 <div>
                   <h5 className="text-sm font-medium text-amber-200">Final Handoff Notice</h5>
                   <p className="mt-1 text-xs leading-relaxed text-amber-300/80">{hs.finalNotice}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 74: Human Review Acceptance Checklist ───────────────────────── */}
+      {(() => {
+        const cl = job.tokenFirstTestSeparateApprovalHumanReviewAcceptanceChecklistView;
+        if (!cl) return null;
+
+        const toneColor = (tone: string) => {
+          if (tone === 'blocked') return 'border-red-900/30 bg-red-950/10 text-red-300';
+          if (tone === 'warning') return 'border-amber-900/30 bg-amber-950/10 text-amber-300';
+          return 'border-slate-700/30 bg-slate-900/20 text-slate-300';
+        };
+
+        return (
+          <div className="mb-6 overflow-hidden rounded-lg border border-cyan-500/25 bg-cyan-950/10 shadow-md">
+            {/* Header */}
+            <div className="border-b border-cyan-900/40 bg-cyan-900/15 px-5 py-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-cyan-500/10">
+                  <CheckCircle2 className="h-5 w-5 text-cyan-400" />
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-3">
+                    <h3 className="text-lg font-semibold text-cyan-100">
+                      Human Review Acceptance Checklist
+                    </h3>
+                    <span className="rounded-full border border-cyan-500/40 bg-cyan-900/30 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-cyan-300">
+                      {cl.statusLabel}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-xs text-cyan-300/70">{cl.title}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-5 p-5">
+              {/* 요약 박스 */}
+              <div className="rounded-md border border-cyan-700/25 bg-cyan-950/20 px-4 py-3">
+                <div className="flex items-start gap-2">
+                  <Info className="mt-0.5 h-4 w-4 shrink-0 text-cyan-400" />
+                  <div>
+                    <p className="text-[11px] leading-relaxed text-cyan-300/80">{cl.summary}</p>
+                    <p className="mt-1 text-[10px] text-cyan-400/60">
+                      {cl.taskRangeLabel} | 이전 인수인계: {cl.previousHandoffLabel} ({cl.previousHandoffCommit})
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Acceptance Checklist */}
+              {cl.acceptanceChecklistItems.length > 0 && (
+                <div>
+                  <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-cyan-400">
+                    Acceptance Checklist — 검토 수락 전 확인 항목
+                  </h4>
+                  <div className="space-y-2">
+                    {cl.acceptanceChecklistItems.map((item, idx) => (
+                      <div key={idx} className={`flex items-start gap-3 rounded border px-3 py-2.5 ${toneColor(item.tone)}`}>
+                        <Circle className="mt-0.5 h-3 w-3 shrink-0 opacity-60" />
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <p className="text-[10px] font-semibold opacity-80">{item.label}</p>
+                            <span className="rounded bg-slate-800/40 px-1.5 py-0.5 text-[9px] opacity-70">{item.currentState}</span>
+                          </div>
+                          <p className="mt-0.5 text-[10px] leading-relaxed opacity-70">{item.description}</p>
+                          <p className="mt-0.5 text-[9px] opacity-50">필요 상태: {item.requiredState}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* 2-column: Reviewer Awareness / Acceptance Blocked */}
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                {cl.reviewerAwarenessItems.length > 0 && (
+                  <div>
+                    <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-amber-400">
+                      Reviewer Awareness — 검토자 인지 필요
+                    </h4>
+                    <div className="space-y-2">
+                      {cl.reviewerAwarenessItems.map((item, idx) => (
+                        <div key={idx} className={`flex items-start gap-2 rounded border px-3 py-2 ${toneColor(item.tone)}`}>
+                          <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 opacity-70" />
+                          <div>
+                            <p className="text-[10px] font-semibold">{item.label}</p>
+                            <p className="mt-0.5 text-[9px] leading-relaxed opacity-70">{item.description}</p>
+                            <p className="mt-0.5 text-[9px] font-medium opacity-60">{item.reviewerMustUnderstand}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {cl.acceptanceBlockedItems.length > 0 && (
+                  <div>
+                    <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-red-500">
+                      Acceptance Blocked — 수락 차단 사유
+                    </h4>
+                    <div className="space-y-2">
+                      {cl.acceptanceBlockedItems.map((item, idx) => (
+                        <div key={idx} className="flex items-start gap-2 rounded border border-red-900/25 bg-red-950/10 px-3 py-2">
+                          <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-red-500" />
+                          <div>
+                            <p className="text-[10px] font-semibold text-red-300">{item.label}</p>
+                            <p className="mt-0.5 text-[9px] leading-relaxed text-red-200/60">{item.reason}</p>
+                            <span className="mt-0.5 inline-block rounded bg-red-900/30 px-1 py-0.5 text-[8px] text-red-400">{item.unresolvedState}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Evidence Review */}
+              {cl.evidenceReviewItems.length > 0 && (
+                <div>
+                  <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-emerald-400">
+                    Evidence Review — 근거 검토
+                  </h4>
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    {cl.evidenceReviewItems.map((item, idx) => (
+                      <div key={idx} className="flex items-start gap-2 rounded border border-emerald-900/30 bg-emerald-950/10 px-3 py-2">
+                        <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-500" />
+                        <div>
+                          <p className="text-[10px] font-semibold text-emerald-300">{item.label}</p>
+                          <p className="mt-0.5 text-[9px] leading-relaxed text-emerald-200/60">{item.description}</p>
+                          <p className="mt-0.5 text-[9px] text-emerald-400/50">{item.evidenceState}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Not Approval */}
+              {cl.notApprovalItems.length > 0 && (
+                <div>
+                  <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-red-500">
+                    Not Approval — 이 화면은 승인 부여가 아님
+                  </h4>
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    {cl.notApprovalItems.map((item, idx) => (
+                      <div key={idx} className="rounded border border-red-900/25 bg-red-950/10 p-2.5">
+                        <div className="flex items-start gap-2">
+                          <Lock className="mt-0.5 h-3.5 w-3.5 shrink-0 text-red-500" />
+                          <div>
+                            <p className="text-[10px] font-bold text-red-300">{item.label}</p>
+                            <p className="mt-0.5 text-[9px] leading-relaxed text-red-200/60">{item.description}</p>
+                            <span className="mt-1 inline-block rounded bg-red-900/30 px-1 py-0.5 text-[8px] text-red-400">{item.notGrantedState}</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Next Review Preparation */}
+              {cl.nextReviewPreparationItems.length > 0 && (
+                <div>
+                  <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-400">
+                    Next Review Preparation — 다음 검토 준비 항목
+                  </h4>
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    {cl.nextReviewPreparationItems.map((item, idx) => (
+                      <div key={idx} className={`rounded border px-3 py-2.5 ${toneColor(item.tone)}`}>
+                        <p className="mb-0.5 text-[11px] font-semibold">{item.label}</p>
+                        <p className="text-[10px] leading-relaxed opacity-70">{item.description}</p>
+                        <p className="mt-1 text-[9px] opacity-50">담당: {item.nextOwner}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Still Forbidden */}
+              {cl.stillForbiddenItems.length > 0 && (
+                <div>
+                  <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-red-500">
+                    Still Forbidden — 체크리스트 이후에도 금지 유지
+                  </h4>
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3">
+                    {cl.stillForbiddenItems.map((item, idx) => (
+                      <div key={idx} className="rounded border border-red-900/25 bg-red-950/10 p-3">
+                        <div className="flex items-start gap-2">
+                          <Lock className="mt-0.5 h-3.5 w-3.5 shrink-0 text-red-500" />
+                          <div>
+                            <p className="text-[10px] font-bold text-red-300">{item.label}</p>
+                            <p className="mt-0.5 text-[9px] leading-relaxed text-red-200/60">{item.description}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Final Notice */}
+              <div className="flex items-start gap-3 rounded-md border border-cyan-900/30 bg-cyan-950/15 p-4">
+                <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-cyan-400" />
+                <div>
+                  <h5 className="text-sm font-medium text-cyan-200">Human Review Checklist — Final Notice</h5>
+                  <p className="mt-1 text-xs leading-relaxed text-cyan-300/80">{cl.finalNotice}</p>
                 </div>
               </div>
             </div>
