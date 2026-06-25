@@ -72,6 +72,7 @@ import { buildNaverApiTokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffFi
 import { buildNaverApiTokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureGateView } from '@/src/services/sku-keyword-final-approval-execution-naver-api-token-first-test-separate-approval-final-hold-non-release-handoff-closure-gate-view.service';
 import { buildNaverApiTokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureNonReleaseSealView } from '@/src/services/sku-keyword-final-approval-execution-naver-api-token-first-test-separate-approval-final-hold-non-release-handoff-closure-non-release-seal-view.service';
 import { buildNaverApiTokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSummaryView } from '@/src/services/sku-keyword-final-approval-execution-naver-api-token-first-test-separate-approval-final-hold-non-release-handoff-closure-final-status-summary-view.service';
+import { buildNaverApiTokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusBoundaryView } from '@/src/services/sku-keyword-final-approval-execution-naver-api-token-first-test-separate-approval-final-hold-non-release-handoff-closure-final-status-boundary-view.service';
 
 // Compute safe DB environment hint from DATABASE_URL without exposing the original value.
 // Returns a classification key, never the actual URL.
@@ -1165,6 +1166,7 @@ export async function GET(
       tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureGateView: buildNaverApiTokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureGateView(null),
       tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureNonReleaseSealView: buildNaverApiTokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureNonReleaseSealView(null),
       tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSummaryView: buildNaverApiTokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSummaryView(null),
+      tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusBoundaryView: buildNaverApiTokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusBoundaryView(null),
     };
 
     return NextResponse.json({ ok: true, job: responseJob });
