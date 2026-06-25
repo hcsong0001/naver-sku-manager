@@ -2837,6 +2837,23 @@ type DraftBatchJob = {
     stillForbiddenItems: Array<{ label: string; description: string; tone: 'blocked'; }>;
     finalNotice: string;
   } | null;
+  tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffChecklistView?: {
+    title: string;
+    statusLabel: string;
+    statusTone: 'neutral' | 'warning' | 'blocked';
+    summary: string;
+    taskRangeLabel: string;
+    previousSealLabel: string;
+    previousSealCommit: string;
+    handoffChecklistItems: Array<{ label: string; description: string; requiredCheck: string; tone: 'neutral' | 'warning' | 'blocked'; }>;
+    nonReleaseStateItems: Array<{ label: string; description: string; currentState: string; tone: 'warning' | 'blocked'; }>;
+    reviewerConfirmationItems: Array<{ label: string; description: string; reviewerMustConfirm: string; tone: 'neutral' | 'warning' | 'blocked'; }>;
+    releaseNotAllowedItems: Array<{ label: string; description: string; notAllowedReason: string; tone: 'blocked'; }>;
+    handoffMisunderstandingPreventionItems: Array<{ label: string; misunderstanding: string; correctInterpretation: string; tone: 'warning' | 'blocked'; }>;
+    nextHumanReviewItems: Array<{ label: string; description: string; nextOwner: string; tone: 'neutral' | 'warning'; }>;
+    stillForbiddenItems: Array<{ label: string; description: string; tone: 'blocked'; }>;
+    finalNotice: string;
+  } | null;
 };
 
 type DraftBatchDetailResponse =
