@@ -2734,6 +2734,23 @@ type DraftBatchJob = {
     stillForbiddenItems: Array<{ label: string; description: string; tone: 'blocked'; }>;
     finalNotice: string;
   } | null;
+  tokenFirstTestSeparateApprovalHumanReviewAcceptanceBoundaryView?: {
+    title: string;
+    statusLabel: string;
+    statusTone: 'neutral' | 'warning' | 'blocked';
+    summary: string;
+    taskRangeLabel: string;
+    previousChecklistLabel: string;
+    previousChecklistCommit: string;
+    boundarySummaryItems: Array<{ label: string; description: string; boundaryState: string; tone: 'neutral' | 'warning' | 'blocked'; }>;
+    acceptanceIsNotApprovalItems: Array<{ label: string; description: string; notApprovalReason: string; tone: 'warning' | 'blocked'; }>;
+    nonExecutionBoundaryItems: Array<{ label: string; description: string; blockedState: string; tone: 'blocked'; }>;
+    requiredBeforeReleaseItems: Array<{ label: string; description: string; requiredEvidence: string; tone: 'warning' | 'blocked'; }>;
+    reviewerMisunderstandingPreventionItems: Array<{ label: string; misunderstanding: string; correctInterpretation: string; tone: 'warning' | 'blocked'; }>;
+    nextHumanDecisionItems: Array<{ label: string; description: string; nextOwner: string; tone: 'neutral' | 'warning'; }>;
+    stillForbiddenItems: Array<{ label: string; description: string; tone: 'blocked'; }>;
+    finalNotice: string;
+  } | null;
 };
 
 type DraftBatchDetailResponse =
@@ -9103,6 +9120,211 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 <div>
                   <h5 className="text-sm font-medium text-cyan-200">Human Review Checklist — Final Notice</h5>
                   <p className="mt-1 text-xs leading-relaxed text-cyan-300/80">{cl.finalNotice}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 75: Human Review Acceptance Boundary ───────────────────────── */}
+      {(() => {
+        const bd = job.tokenFirstTestSeparateApprovalHumanReviewAcceptanceBoundaryView;
+        if (!bd) return null;
+
+        const toneColor = (tone: string) => {
+          if (tone === 'blocked') return 'border-red-900/30 bg-red-950/10 text-red-300';
+          if (tone === 'warning') return 'border-amber-900/30 bg-amber-950/10 text-amber-300';
+          return 'border-slate-700/30 bg-slate-900/20 text-slate-300';
+        };
+
+        return (
+          <div className="mb-6 overflow-hidden rounded-lg border border-indigo-500/25 bg-indigo-950/10 shadow-md">
+            {/* Header */}
+            <div className="border-b border-indigo-900/40 bg-indigo-900/15 px-5 py-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-indigo-500/10">
+                  <AlertTriangle className="h-5 w-5 text-indigo-400" />
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-3">
+                    <h3 className="text-lg font-semibold text-indigo-100">
+                      Human Review Acceptance Boundary
+                    </h3>
+                    <span className="rounded-full border border-indigo-500/40 bg-indigo-900/30 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-indigo-300">
+                      {bd.statusLabel}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-xs text-indigo-300/70">{bd.title}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-5 p-5">
+              {/* 요약 박스 */}
+              <div className="rounded-md border border-indigo-700/25 bg-indigo-950/20 px-4 py-3">
+                <div className="flex items-start gap-2">
+                  <Info className="mt-0.5 h-4 w-4 shrink-0 text-indigo-400" />
+                  <div>
+                    <p className="text-[11px] leading-relaxed text-indigo-300/80">{bd.summary}</p>
+                    <p className="mt-1 text-[10px] text-indigo-400/60">
+                      {bd.taskRangeLabel} | 이전 체크리스트: {bd.previousChecklistLabel} ({bd.previousChecklistCommit})
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Boundary Summary */}
+              {bd.boundarySummaryItems.length > 0 && (
+                <div>
+                  <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-indigo-400">
+                    Boundary Summary — 검토 수락 경계
+                  </h4>
+                  <div className="space-y-2">
+                    {bd.boundarySummaryItems.map((item, idx) => (
+                      <div key={idx} className={`flex items-start gap-3 rounded border px-3 py-2.5 ${toneColor(item.tone)}`}>
+                        <Circle className="mt-0.5 h-3 w-3 shrink-0 opacity-60" />
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <p className="text-[10px] font-semibold opacity-80">{item.label}</p>
+                            <span className="rounded bg-slate-800/40 px-1.5 py-0.5 text-[9px] opacity-70">{item.boundaryState}</span>
+                          </div>
+                          <p className="mt-0.5 text-[10px] leading-relaxed opacity-70">{item.description}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* 2-column: Acceptance Is Not Approval / Non-Execution Boundary */}
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                {bd.acceptanceIsNotApprovalItems.length > 0 && (
+                  <div>
+                    <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-red-500">
+                      Acceptance Is Not Approval — 수락 ≠ 승인 부여
+                    </h4>
+                    <div className="space-y-2">
+                      {bd.acceptanceIsNotApprovalItems.map((item, idx) => (
+                        <div key={idx} className={`flex items-start gap-2 rounded border px-3 py-2 ${toneColor(item.tone)}`}>
+                          <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 opacity-70" />
+                          <div>
+                            <p className="text-[10px] font-semibold">{item.label}</p>
+                            <p className="mt-0.5 text-[9px] leading-relaxed opacity-70">{item.description}</p>
+                            <p className="mt-0.5 text-[9px] font-medium opacity-60">{item.notApprovalReason}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {bd.nonExecutionBoundaryItems.length > 0 && (
+                  <div>
+                    <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-red-500">
+                      Non-Execution Boundary — 실행 비실행 경계
+                    </h4>
+                    <div className="space-y-2">
+                      {bd.nonExecutionBoundaryItems.map((item, idx) => (
+                        <div key={idx} className="flex items-start gap-2 rounded border border-red-900/25 bg-red-950/10 px-3 py-2">
+                          <Lock className="mt-0.5 h-3.5 w-3.5 shrink-0 text-red-500" />
+                          <div>
+                            <p className="text-[10px] font-semibold text-red-300">{item.label}</p>
+                            <p className="mt-0.5 text-[9px] leading-relaxed text-red-200/60">{item.description}</p>
+                            <span className="mt-0.5 inline-block rounded bg-red-900/30 px-1 py-0.5 text-[8px] text-red-400">{item.blockedState}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Required Before Release */}
+              {bd.requiredBeforeReleaseItems.length > 0 && (
+                <div>
+                  <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-amber-400">
+                    Required Before Release — 실행 전 필수 조건
+                  </h4>
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    {bd.requiredBeforeReleaseItems.map((item, idx) => (
+                      <div key={idx} className={`flex items-start gap-2 rounded border px-3 py-2 ${toneColor(item.tone)}`}>
+                        <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 opacity-70" />
+                        <div>
+                          <p className="text-[10px] font-semibold">{item.label}</p>
+                          <p className="mt-0.5 text-[9px] leading-relaxed opacity-70">{item.description}</p>
+                          <p className="mt-0.5 text-[9px] opacity-50">필요 근거: {item.requiredEvidence}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Misunderstanding Prevention */}
+              {bd.reviewerMisunderstandingPreventionItems.length > 0 && (
+                <div>
+                  <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-amber-400">
+                    Misunderstanding Prevention — 오해 방지
+                  </h4>
+                  <div className="space-y-2">
+                    {bd.reviewerMisunderstandingPreventionItems.map((item, idx) => (
+                      <div key={idx} className={`rounded border px-3 py-2.5 ${toneColor(item.tone)}`}>
+                        <p className="mb-0.5 text-[10px] font-semibold">{item.label}</p>
+                        <p className="text-[9px] opacity-60">오해: {item.misunderstanding}</p>
+                        <p className="mt-0.5 text-[9px] font-medium opacity-80">올바른 해석: {item.correctInterpretation}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Next Human Decision */}
+              {bd.nextHumanDecisionItems.length > 0 && (
+                <div>
+                  <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-400">
+                    Next Human Decision — 다음 사람 판단 항목
+                  </h4>
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    {bd.nextHumanDecisionItems.map((item, idx) => (
+                      <div key={idx} className={`rounded border px-3 py-2.5 ${toneColor(item.tone)}`}>
+                        <p className="mb-0.5 text-[11px] font-semibold">{item.label}</p>
+                        <p className="text-[10px] leading-relaxed opacity-70">{item.description}</p>
+                        <p className="mt-1 text-[9px] opacity-50">담당: {item.nextOwner}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Still Forbidden */}
+              {bd.stillForbiddenItems.length > 0 && (
+                <div>
+                  <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-red-500">
+                    Still Forbidden — 경계 표시 이후에도 금지 유지
+                  </h4>
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3">
+                    {bd.stillForbiddenItems.map((item, idx) => (
+                      <div key={idx} className="rounded border border-red-900/25 bg-red-950/10 p-3">
+                        <div className="flex items-start gap-2">
+                          <Lock className="mt-0.5 h-3.5 w-3.5 shrink-0 text-red-500" />
+                          <div>
+                            <p className="text-[10px] font-bold text-red-300">{item.label}</p>
+                            <p className="mt-0.5 text-[9px] leading-relaxed text-red-200/60">{item.description}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Final Notice */}
+              <div className="flex items-start gap-3 rounded-md border border-indigo-900/30 bg-indigo-950/15 p-4">
+                <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-indigo-400" />
+                <div>
+                  <h5 className="text-sm font-medium text-indigo-200">Acceptance Boundary — Final Notice</h5>
+                  <p className="mt-1 text-xs leading-relaxed text-indigo-300/80">{bd.finalNotice}</p>
                 </div>
               </div>
             </div>
