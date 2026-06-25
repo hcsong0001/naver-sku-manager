@@ -3158,6 +3158,24 @@ type DraftBatchJob = {
     stillForbiddenItems: Array<{ label: string; description: string; tone: 'blocked'; }>;
     finalNotice: string;
   } | null;
+  tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusSummaryView?: {
+    title: string;
+    statusLabel: string;
+    statusTone: 'neutral' | 'warning' | 'blocked';
+    summary: string;
+    taskRangeLabel: string;
+    previousSealLabel: string;
+    previousSealCommit: string;
+    closureStatusSummaryItems: Array<{ label: string; description: string; statusState: string; tone: 'neutral' | 'warning' | 'blocked'; }>;
+    finalReviewClosureFlowItems: Array<{ label: string; description: string; flowState: string; tone: 'neutral' | 'warning' | 'blocked'; }>;
+    nonReleaseStatusItems: Array<{ label: string; description: string; nonReleaseState: string; tone: 'blocked'; }>;
+    notReleaseApprovalItems: Array<{ label: string; description: string; notApprovalReason: string; tone: 'warning' | 'blocked'; }>;
+    transitionStillBlockedItems: Array<{ label: string; description: string; blockedState: string; tone: 'blocked'; }>;
+    requiredBeforeAnyFutureTransitionItems: Array<{ label: string; description: string; requiredEvidence: string; tone: 'warning' | 'blocked'; }>;
+    nextSafeReviewItems: Array<{ label: string; description: string; nextOwner: string; tone: 'neutral' | 'warning'; }>;
+    stillForbiddenItems: Array<{ label: string; description: string; tone: 'blocked'; }>;
+    finalNotice: string;
+  } | null;
 };
 
 type DraftBatchDetailResponse =
@@ -13780,6 +13798,168 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 <div>
                   <h5 className="text-sm font-medium text-purple-200">Final Hold Non-Release Handoff Closure Final Status Seal Confirmation Final Review Closure Non-Release Seal — Final Notice</h5>
                   <p className="mt-1 text-xs leading-relaxed text-purple-300/80">{frcnrs.finalNotice}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 99: Final Review Closure Status Summary ──────────────────────── */}
+      {(() => {
+        const ss = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusSummaryView;
+        if (!ss) return null;
+
+        const toneColor = (tone: string) => {
+          if (tone === 'blocked') return 'text-red-400';
+          if (tone === 'warning') return 'text-yellow-400';
+          return 'text-teal-300';
+        };
+        const toneBorder = (tone: string) => {
+          if (tone === 'blocked') return 'border-red-900/30 bg-red-950/15';
+          if (tone === 'warning') return 'border-yellow-900/30 bg-yellow-950/15';
+          return 'border-teal-900/30 bg-teal-950/15';
+        };
+
+        return (
+          <div className="mb-6 rounded-lg border border-teal-900/40 bg-[#0a1412] p-4">
+            <div className="mb-3 flex items-center gap-2">
+              <Lock className="h-5 w-5 shrink-0 text-teal-400" />
+              <h2 className="text-base font-semibold text-white">{ss.title}</h2>
+              <span className="ml-auto rounded-full border border-teal-700/50 bg-teal-900/30 px-2 py-0.5 text-xs font-medium text-teal-300">
+                {ss.statusLabel}
+              </span>
+            </div>
+
+            <p className="mb-4 text-xs leading-relaxed text-teal-300/70">{ss.summary}</p>
+
+            <div className="mb-3 flex flex-wrap gap-2 text-xs">
+              <span className="rounded border border-teal-800/40 bg-teal-900/20 px-2 py-0.5 text-teal-400">{ss.taskRangeLabel}</span>
+              <span className="rounded border border-teal-800/40 bg-teal-900/20 px-2 py-0.5 font-mono text-teal-400/70">Seal: {ss.previousSealCommit}</span>
+            </div>
+
+            <div className="space-y-4">
+              {/* Closure Status Summary */}
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-teal-400">Closure Status Summary</h4>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {ss.closureStatusSummaryItems.map((item, idx) => (
+                    <div key={idx} className={`rounded-md border p-3 ${toneBorder(item.tone)}`}>
+                      <p className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</p>
+                      <p className="mt-0.5 text-xs text-teal-300/60">{item.description}</p>
+                      <p className="mt-1 text-xs font-mono text-teal-400/50">{item.statusState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Final Review Closure Flow */}
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-teal-400">Final Review Closure Flow</h4>
+                <div className="space-y-2">
+                  {ss.finalReviewClosureFlowItems.map((item, idx) => (
+                    <div key={idx} className={`rounded-md border p-3 ${toneBorder(item.tone)}`}>
+                      <p className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</p>
+                      <p className="mt-0.5 text-xs text-teal-300/60">{item.description}</p>
+                      <p className="mt-1 text-xs font-mono text-teal-400/50">{item.flowState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                {/* Non-Release Status */}
+                <div>
+                  <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">Non-Release Status</h4>
+                  <div className="space-y-2">
+                    {ss.nonReleaseStatusItems.map((item, idx) => (
+                      <div key={idx} className="rounded-md border border-red-900/30 bg-red-950/15 p-3">
+                        <p className="text-xs font-medium text-red-300">{item.label}</p>
+                        <p className="mt-0.5 text-xs text-red-300/70">{item.description}</p>
+                        <p className="mt-1 text-xs font-mono text-red-400/60">{item.nonReleaseState}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Not Release Approval */}
+                <div>
+                  <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">Not Release Approval</h4>
+                  <div className="space-y-2">
+                    {ss.notReleaseApprovalItems.map((item, idx) => (
+                      <div key={idx} className={`rounded-md border p-3 ${toneBorder(item.tone)}`}>
+                        <p className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</p>
+                        <p className="mt-0.5 text-xs text-red-300/70">{item.description}</p>
+                        <p className="mt-1 text-xs font-mono text-red-400/60">{item.notApprovalReason}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Transition Still Blocked */}
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">Transition Still Blocked</h4>
+                <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                  {ss.transitionStillBlockedItems.map((item, idx) => (
+                    <div key={idx} className="rounded-md border border-red-900/30 bg-red-950/15 p-3">
+                      <p className="text-xs font-medium text-red-300">{item.label}</p>
+                      <p className="mt-0.5 text-xs text-red-300/70">{item.description}</p>
+                      <p className="mt-1 text-xs font-mono text-red-400/60">{item.blockedState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                {/* Required Before Any Future Transition */}
+                <div>
+                  <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-teal-400">Required Before Any Future Transition</h4>
+                  <div className="space-y-2">
+                    {ss.requiredBeforeAnyFutureTransitionItems.map((item, idx) => (
+                      <div key={idx} className={`rounded-md border p-3 ${toneBorder(item.tone)}`}>
+                        <p className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</p>
+                        <p className="mt-0.5 text-xs text-teal-300/70">{item.description}</p>
+                        <p className="mt-1 text-xs font-mono text-teal-400/60">{item.requiredEvidence}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Next Safe Review */}
+                <div>
+                  <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-teal-400">Next Safe Review</h4>
+                  <div className="space-y-2">
+                    {ss.nextSafeReviewItems.map((item, idx) => (
+                      <div key={idx} className={`rounded-md border p-3 ${toneBorder(item.tone)}`}>
+                        <p className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</p>
+                        <p className="mt-0.5 text-xs text-teal-300/70">{item.description}</p>
+                        <p className="mt-1 text-xs font-mono text-teal-400/60">{item.nextOwner}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Still Forbidden */}
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">Still Forbidden</h4>
+                <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                  {ss.stillForbiddenItems.map((item, idx) => (
+                    <div key={idx} className="rounded-md border border-red-900/30 bg-red-950/15 p-2">
+                      <p className="text-xs font-medium text-red-300">{item.label}</p>
+                      <p className="mt-0.5 text-xs text-red-300/60">{item.description}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Final Notice */}
+              <div className="flex items-start gap-3 rounded-md border border-teal-900/30 bg-teal-950/15 p-4">
+                <Lock className="mt-0.5 h-5 w-5 shrink-0 text-teal-400" />
+                <div>
+                  <h5 className="text-sm font-medium text-teal-200">Final Review Closure Status Summary — Final Notice</h5>
+                  <p className="mt-1 text-xs leading-relaxed text-teal-300/80">{ss.finalNotice}</p>
                 </div>
               </div>
             </div>
