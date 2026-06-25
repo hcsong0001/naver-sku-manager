@@ -5,6 +5,7 @@ import Link from 'next/link';
 import {
   AlertTriangle,
   ArrowLeft,
+  Ban,
   CheckCircle2,
   ClipboardList,
   FileJson,
@@ -2799,6 +2800,23 @@ type DraftBatchJob = {
     approvalEvidenceRequiredItems: Array<{ label: string; description: string; evidenceRequired: string; tone: 'warning' | 'blocked'; }>;
     releaseMisunderstandingPreventionItems: Array<{ label: string; misunderstanding: string; correctInterpretation: string; tone: 'warning' | 'blocked'; }>;
     nextReviewGateItems: Array<{ label: string; description: string; nextOwner: string; tone: 'neutral' | 'warning'; }>;
+    stillForbiddenItems: Array<{ label: string; description: string; tone: 'blocked'; }>;
+    finalNotice: string;
+  } | null;
+  tokenFirstTestSeparateApprovalFinalHoldReleaseBoundaryView?: {
+    title: string;
+    statusLabel: string;
+    statusTone: 'neutral' | 'warning' | 'blocked';
+    summary: string;
+    taskRangeLabel: string;
+    previousPreconditionsLabel: string;
+    previousPreconditionsCommit: string;
+    boundarySummaryItems: Array<{ label: string; description: string; boundaryState: string; tone: 'neutral' | 'warning' | 'blocked'; }>;
+    releaseIsNotGrantedItems: Array<{ label: string; description: string; notGrantedReason: string; tone: 'warning' | 'blocked'; }>;
+    preconditionReviewNotApprovalItems: Array<{ label: string; description: string; correctInterpretation: string; tone: 'warning' | 'blocked'; }>;
+    blockedReleasePathItems: Array<{ label: string; description: string; blockedState: string; tone: 'blocked'; }>;
+    requiredBeforeActualReleaseItems: Array<{ label: string; description: string; requiredEvidence: string; tone: 'warning' | 'blocked'; }>;
+    nextHumanGateItems: Array<{ label: string; description: string; nextOwner: string; tone: 'neutral' | 'warning'; }>;
     stillForbiddenItems: Array<{ label: string; description: string; tone: 'blocked'; }>;
     finalNotice: string;
   } | null;
@@ -9899,6 +9917,178 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 <div>
                   <h5 className="text-sm font-medium text-purple-200">Release Preconditions Review — Final Notice</h5>
                   <p className="mt-1 text-xs leading-relaxed text-purple-300/80">{pr.finalNotice}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 79: Final Hold Release Boundary ──────────────────────────────── */}
+      {(() => {
+        const rb = job.tokenFirstTestSeparateApprovalFinalHoldReleaseBoundaryView;
+        if (!rb) return null;
+
+        const toneColor = (tone: string) => {
+          if (tone === 'blocked') return 'text-red-400';
+          if (tone === 'warning') return 'text-yellow-400';
+          return 'text-purple-300';
+        };
+        const toneBg = (tone: string) => {
+          if (tone === 'blocked') return 'border-red-900/30 bg-red-950/15';
+          if (tone === 'warning') return 'border-yellow-900/30 bg-yellow-950/15';
+          return 'border-purple-900/30 bg-purple-950/15';
+        };
+
+        return (
+          <div className="mb-6 rounded-lg border border-purple-800/40 bg-purple-950/10 p-4">
+            <div className="mb-4 flex items-center gap-2">
+              <ShieldAlert className="h-5 w-5 text-purple-400" />
+              <h2 className="text-base font-semibold text-purple-200">{rb.title}</h2>
+              <span className="ml-1 rounded-full border border-purple-700/50 bg-purple-900/30 px-2 py-0.5 text-xs font-medium text-purple-300">
+                {rb.statusLabel}
+              </span>
+            </div>
+
+            <p className="mb-4 text-xs leading-relaxed text-purple-300/80">{rb.summary}</p>
+
+            <div className="mb-3 flex flex-wrap gap-4 text-xs text-purple-400/70">
+              <span>{rb.taskRangeLabel}</span>
+              <span>기준: {rb.previousPreconditionsLabel} ({rb.previousPreconditionsCommit})</span>
+            </div>
+
+            <div className="space-y-4">
+              {/* Boundary Summary */}
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-purple-400">Boundary Summary</h4>
+                <div className="space-y-2">
+                  {rb.boundarySummaryItems.map((item, idx) => (
+                    <div key={idx} className={`rounded-md border p-3 ${toneBg(item.tone)}`}>
+                      <div className="flex items-start gap-2">
+                        <ShieldAlert className={`mt-0.5 h-4 w-4 shrink-0 ${toneColor(item.tone)}`} />
+                        <div>
+                          <p className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</p>
+                          <p className="mt-0.5 text-xs text-purple-300/70">{item.description}</p>
+                          <p className="mt-1 text-xs font-mono text-purple-400/60">{item.boundaryState}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Release Is Not Granted */}
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">Release Is Not Granted</h4>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {rb.releaseIsNotGrantedItems.map((item, idx) => (
+                    <div key={idx} className={`rounded-md border p-3 ${toneBg(item.tone)}`}>
+                      <div className="flex items-start gap-2">
+                        <Ban className={`mt-0.5 h-4 w-4 shrink-0 ${toneColor(item.tone)}`} />
+                        <div>
+                          <p className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</p>
+                          <p className="mt-0.5 text-xs text-purple-300/70">{item.description}</p>
+                          <p className="mt-1 text-xs font-mono text-purple-400/60">{item.notGrantedReason}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Preconditions Review Is Not Approval */}
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-yellow-400">Preconditions Review Is Not Approval</h4>
+                <div className="space-y-2">
+                  {rb.preconditionReviewNotApprovalItems.map((item, idx) => (
+                    <div key={idx} className={`rounded-md border p-3 ${toneBg(item.tone)}`}>
+                      <p className={`text-xs font-semibold ${toneColor(item.tone)}`}>{item.label}</p>
+                      <p className="mt-1 text-xs text-purple-300/70">{item.description}</p>
+                      <p className="mt-1 text-xs text-purple-300/70">
+                        <span className="font-medium text-purple-400">올바른 해석: </span>
+                        {item.correctInterpretation}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Blocked Release Path */}
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">Blocked Release Path</h4>
+                <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                  {rb.blockedReleasePathItems.map((item, idx) => (
+                    <div key={idx} className={`rounded-md border p-3 ${toneBg(item.tone)}`}>
+                      <div className="flex items-start gap-2">
+                        <Lock className={`mt-0.5 h-4 w-4 shrink-0 ${toneColor(item.tone)}`} />
+                        <div>
+                          <p className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</p>
+                          <p className="mt-0.5 text-xs text-purple-300/70">{item.description}</p>
+                          <p className="mt-1 text-xs font-mono text-purple-400/60">{item.blockedState}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Required Before Actual Release */}
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-yellow-400">Required Before Actual Release</h4>
+                <div className="space-y-2">
+                  {rb.requiredBeforeActualReleaseItems.map((item, idx) => (
+                    <div key={idx} className={`rounded-md border p-3 ${toneBg(item.tone)}`}>
+                      <div className="flex items-start gap-2">
+                        <CheckCircle2 className={`mt-0.5 h-4 w-4 shrink-0 ${toneColor(item.tone)}`} />
+                        <div>
+                          <p className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</p>
+                          <p className="mt-0.5 text-xs text-purple-300/70">{item.description}</p>
+                          <p className="mt-1 text-xs font-mono text-purple-400/60">{item.requiredEvidence}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Next Human Gate */}
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-purple-400">Next Human Gate</h4>
+                <div className="space-y-2">
+                  {rb.nextHumanGateItems.map((item, idx) => (
+                    <div key={idx} className={`rounded-md border p-3 ${toneBg(item.tone)}`}>
+                      <div className="flex items-start gap-2">
+                        <Circle className={`mt-0.5 h-4 w-4 shrink-0 ${toneColor(item.tone)}`} />
+                        <div>
+                          <p className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</p>
+                          <p className="mt-0.5 text-xs text-purple-300/70">{item.description}</p>
+                          <p className="mt-1 text-xs text-purple-400/60">담당: {item.nextOwner}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Still Forbidden */}
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">Still Forbidden</h4>
+                <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                  {rb.stillForbiddenItems.map((item, idx) => (
+                    <div key={idx} className="rounded-md border border-red-900/30 bg-red-950/15 p-2">
+                      <p className="text-xs font-medium text-red-300">{item.label}</p>
+                      <p className="mt-0.5 text-xs text-red-300/60">{item.description}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Final Notice */}
+              <div className="flex items-start gap-3 rounded-md border border-purple-900/30 bg-purple-950/15 p-4">
+                <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-purple-400" />
+                <div>
+                  <h5 className="text-sm font-medium text-purple-200">Release Boundary — Final Notice</h5>
+                  <p className="mt-1 text-xs leading-relaxed text-purple-300/80">{rb.finalNotice}</p>
                 </div>
               </div>
             </div>
