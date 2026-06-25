@@ -68,6 +68,7 @@ import { buildNaverApiTokenFirstTestSeparateApprovalFinalHoldNonReleaseSealView 
 import { buildNaverApiTokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffChecklistView } from '@/src/services/sku-keyword-final-approval-execution-naver-api-token-first-test-separate-approval-final-hold-non-release-handoff-checklist-view.service';
 import { buildNaverApiTokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffBoundaryView } from '@/src/services/sku-keyword-final-approval-execution-naver-api-token-first-test-separate-approval-final-hold-non-release-handoff-boundary-view.service';
 import { buildNaverApiTokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffNonReleaseSealView } from '@/src/services/sku-keyword-final-approval-execution-naver-api-token-first-test-separate-approval-final-hold-non-release-handoff-non-release-seal-view.service';
+import { buildNaverApiTokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffFinalReviewSummaryView } from '@/src/services/sku-keyword-final-approval-execution-naver-api-token-first-test-separate-approval-final-hold-non-release-handoff-final-review-summary-view.service';
 
 // Compute safe DB environment hint from DATABASE_URL without exposing the original value.
 // Returns a classification key, never the actual URL.
@@ -1157,6 +1158,7 @@ export async function GET(
       tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffChecklistView: buildNaverApiTokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffChecklistView(null),
       tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffBoundaryView: buildNaverApiTokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffBoundaryView(null),
       tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffNonReleaseSealView: buildNaverApiTokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffNonReleaseSealView(null),
+      tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffFinalReviewSummaryView: buildNaverApiTokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffFinalReviewSummaryView(null),
     };
 
     return NextResponse.json({ ok: true, job: responseJob });
