@@ -66,6 +66,7 @@ import { buildNaverApiTokenFirstTestSeparateApprovalFinalHoldReleasePrecondition
 import { buildNaverApiTokenFirstTestSeparateApprovalFinalHoldReleaseBoundaryView } from '@/src/services/sku-keyword-final-approval-execution-naver-api-token-first-test-separate-approval-final-hold-release-boundary-view.service';
 import { buildNaverApiTokenFirstTestSeparateApprovalFinalHoldNonReleaseSealView } from '@/src/services/sku-keyword-final-approval-execution-naver-api-token-first-test-separate-approval-final-hold-non-release-seal-view.service';
 import { buildNaverApiTokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffChecklistView } from '@/src/services/sku-keyword-final-approval-execution-naver-api-token-first-test-separate-approval-final-hold-non-release-handoff-checklist-view.service';
+import { buildNaverApiTokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffBoundaryView } from '@/src/services/sku-keyword-final-approval-execution-naver-api-token-first-test-separate-approval-final-hold-non-release-handoff-boundary-view.service';
 
 // Compute safe DB environment hint from DATABASE_URL without exposing the original value.
 // Returns a classification key, never the actual URL.
@@ -1153,6 +1154,7 @@ export async function GET(
       tokenFirstTestSeparateApprovalFinalHoldReleaseBoundaryView: buildNaverApiTokenFirstTestSeparateApprovalFinalHoldReleaseBoundaryView(null),
       tokenFirstTestSeparateApprovalFinalHoldNonReleaseSealView: buildNaverApiTokenFirstTestSeparateApprovalFinalHoldNonReleaseSealView(null),
       tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffChecklistView: buildNaverApiTokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffChecklistView(null),
+      tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffBoundaryView: buildNaverApiTokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffBoundaryView(null),
     };
 
     return NextResponse.json({ ok: true, job: responseJob });

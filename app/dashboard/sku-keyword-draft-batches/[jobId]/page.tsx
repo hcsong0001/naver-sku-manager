@@ -2854,6 +2854,23 @@ type DraftBatchJob = {
     stillForbiddenItems: Array<{ label: string; description: string; tone: 'blocked'; }>;
     finalNotice: string;
   } | null;
+  tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffBoundaryView?: {
+    title: string;
+    statusLabel: string;
+    statusTone: 'neutral' | 'warning' | 'blocked';
+    summary: string;
+    taskRangeLabel: string;
+    previousChecklistLabel: string;
+    previousChecklistCommit: string;
+    boundarySummaryItems: Array<{ label: string; description: string; boundaryState: string; tone: 'neutral' | 'warning' | 'blocked'; }>;
+    handoffIsNotReleaseItems: Array<{ label: string; description: string; notReleaseReason: string; tone: 'warning' | 'blocked'; }>;
+    checklistReviewNotApprovalItems: Array<{ label: string; description: string; correctInterpretation: string; tone: 'warning' | 'blocked'; }>;
+    blockedTransitionItems: Array<{ label: string; description: string; blockedState: string; tone: 'blocked'; }>;
+    requiredBeforeReleaseItems: Array<{ label: string; description: string; requiredEvidence: string; tone: 'warning' | 'blocked'; }>;
+    nextHumanReviewGateItems: Array<{ label: string; description: string; nextOwner: string; tone: 'neutral' | 'warning'; }>;
+    stillForbiddenItems: Array<{ label: string; description: string; tone: 'blocked'; }>;
+    finalNotice: string;
+  } | null;
 };
 
 type DraftBatchDetailResponse =
@@ -10295,6 +10312,365 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 <div>
                   <h5 className="text-sm font-medium text-purple-200">Non-Release Seal — Final Notice</h5>
                   <p className="mt-1 text-xs leading-relaxed text-purple-300/80">{ns.finalNotice}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 81: Final Hold Non-Release Handoff Checklist ───────────────── */}
+      {(() => {
+        const hc = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffChecklistView;
+        if (!hc) return null;
+
+        const toneColor = (tone: string) => {
+          if (tone === 'blocked') return 'text-red-400';
+          if (tone === 'warning') return 'text-yellow-400';
+          return 'text-purple-300';
+        };
+        const toneBg = (tone: string) => {
+          if (tone === 'blocked') return 'border-red-900/30 bg-red-950/15';
+          if (tone === 'warning') return 'border-yellow-900/30 bg-yellow-950/15';
+          return 'border-purple-900/30 bg-purple-950/15';
+        };
+
+        return (
+          <div className="mb-6 rounded-lg border border-purple-800/40 bg-purple-950/10 p-4">
+            <div className="mb-4 flex items-center gap-2">
+              <ClipboardList className="h-5 w-5 text-purple-400" />
+              <h2 className="text-base font-semibold text-purple-200">{hc.title}</h2>
+              <span className="ml-1 rounded-full border border-purple-700/50 bg-purple-900/30 px-2 py-0.5 text-xs font-medium text-purple-300">
+                {hc.statusLabel}
+              </span>
+            </div>
+
+            <p className="mb-4 text-xs leading-relaxed text-purple-300/80">{hc.summary}</p>
+
+            <div className="mb-3 flex flex-wrap gap-4 text-xs text-purple-400/70">
+              <span>{hc.taskRangeLabel}</span>
+              <span>기준: {hc.previousSealLabel} ({hc.previousSealCommit})</span>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-purple-400">
+                  인수인계 체크리스트 (Handoff Checklist)
+                </h4>
+                <div className="space-y-2">
+                  {hc.handoffChecklistItems.map((item, idx) => (
+                    <div key={idx} className={`rounded-md border p-3 ${toneBg(item.tone)}`}>
+                      <div className="flex items-start gap-2">
+                        <ListChecks className={`mt-0.5 h-4 w-4 shrink-0 ${toneColor(item.tone)}`} />
+                        <div>
+                          <p className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</p>
+                          <p className="mt-0.5 text-xs text-purple-300/70">{item.description}</p>
+                          <p className="mt-1 text-xs font-mono text-purple-400/60">{item.requiredCheck}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">
+                  보류 미해제 상태 (Non-Release State)
+                </h4>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {hc.nonReleaseStateItems.map((item, idx) => (
+                    <div key={idx} className={`rounded-md border p-3 ${toneBg(item.tone)}`}>
+                      <div className="flex items-start gap-2">
+                        <Lock className={`mt-0.5 h-4 w-4 shrink-0 ${toneColor(item.tone)}`} />
+                        <div>
+                          <p className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</p>
+                          <p className="mt-0.5 text-xs text-purple-300/70">{item.description}</p>
+                          <p className="mt-1 text-xs font-mono text-purple-400/60">{item.currentState}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-yellow-400">
+                  검토자 확인 사항 (Reviewer Confirmation)
+                </h4>
+                <div className="space-y-2">
+                  {hc.reviewerConfirmationItems.map((item, idx) => (
+                    <div key={idx} className={`rounded-md border p-3 ${toneBg(item.tone)}`}>
+                      <div className="flex items-start gap-2">
+                        <CheckCircle2 className={`mt-0.5 h-4 w-4 shrink-0 ${toneColor(item.tone)}`} />
+                        <div>
+                          <p className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</p>
+                          <p className="mt-0.5 text-xs text-purple-300/70">{item.description}</p>
+                          <p className="mt-1 text-xs font-mono text-purple-400/60">{item.reviewerMustConfirm}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">
+                  보류 해제 미허용 (Release Not Allowed)
+                </h4>
+                <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                  {hc.releaseNotAllowedItems.map((item, idx) => (
+                    <div key={idx} className={`rounded-md border p-3 ${toneBg(item.tone)}`}>
+                      <div className="flex items-start gap-2">
+                        <Ban className={`mt-0.5 h-4 w-4 shrink-0 ${toneColor(item.tone)}`} />
+                        <div>
+                          <p className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</p>
+                          <p className="mt-0.5 text-xs text-purple-300/70">{item.description}</p>
+                          <p className="mt-1 text-xs font-mono text-purple-400/60">{item.notAllowedReason}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-yellow-400">
+                  인수인계 오해 방지 (Misunderstanding Prevention)
+                </h4>
+                <div className="space-y-2">
+                  {hc.handoffMisunderstandingPreventionItems.map((item, idx) => (
+                    <div key={idx} className={`rounded-md border p-3 ${toneBg(item.tone)}`}>
+                      <p className={`text-xs font-semibold ${toneColor(item.tone)}`}>{item.label}</p>
+                      <p className="mt-1 text-xs text-red-300/70">
+                        <span className="font-medium text-red-400">오해: </span>
+                        {item.misunderstanding}
+                      </p>
+                      <p className="mt-0.5 text-xs text-purple-300/70">
+                        <span className="font-medium text-purple-400">올바른 해석: </span>
+                        {item.correctInterpretation}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-purple-400">
+                  다음 사람 검토 (Next Human Review)
+                </h4>
+                <div className="space-y-2">
+                  {hc.nextHumanReviewItems.map((item, idx) => (
+                    <div key={idx} className={`rounded-md border p-3 ${toneBg(item.tone)}`}>
+                      <div className="flex items-start gap-2">
+                        <Circle className={`mt-0.5 h-4 w-4 shrink-0 ${toneColor(item.tone)}`} />
+                        <div>
+                          <p className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</p>
+                          <p className="mt-0.5 text-xs text-purple-300/70">{item.description}</p>
+                          <p className="mt-1 text-xs text-purple-400/60">담당: {item.nextOwner}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">
+                  계속 금지 (Still Forbidden)
+                </h4>
+                <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                  {hc.stillForbiddenItems.map((item, idx) => (
+                    <div key={idx} className="rounded-md border border-red-900/30 bg-red-950/15 p-2">
+                      <p className="text-xs font-medium text-red-300">{item.label}</p>
+                      <p className="mt-0.5 text-xs text-red-300/60">{item.description}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3 rounded-md border border-purple-900/30 bg-purple-950/15 p-4">
+                <Info className="mt-0.5 h-5 w-5 shrink-0 text-purple-400" />
+                <div>
+                  <h5 className="text-sm font-medium text-purple-200">인수인계 체크리스트 — 최종 안내</h5>
+                  <p className="mt-1 text-xs leading-relaxed text-purple-300/80">{hc.finalNotice}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 82: Final Hold Non-Release Handoff Boundary ────────────────── */}
+      {(() => {
+        const hb = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffBoundaryView;
+        if (!hb) return null;
+
+        const toneColor = (tone: string) => {
+          if (tone === 'blocked') return 'text-red-400';
+          if (tone === 'warning') return 'text-yellow-400';
+          return 'text-purple-300';
+        };
+        const toneBg = (tone: string) => {
+          if (tone === 'blocked') return 'border-red-900/30 bg-red-950/15';
+          if (tone === 'warning') return 'border-yellow-900/30 bg-yellow-950/15';
+          return 'border-purple-900/30 bg-purple-950/15';
+        };
+
+        return (
+          <div className="mb-6 rounded-lg border border-red-800/40 bg-red-950/10 p-4">
+            <div className="mb-4 flex items-center gap-2">
+              <ShieldAlert className="h-5 w-5 text-red-400" />
+              <h2 className="text-base font-semibold text-red-200">{hb.title}</h2>
+              <span className="ml-1 rounded-full border border-red-700/50 bg-red-900/30 px-2 py-0.5 text-xs font-medium text-red-300">
+                {hb.statusLabel}
+              </span>
+            </div>
+
+            <p className="mb-4 text-xs leading-relaxed text-red-200/80">{hb.summary}</p>
+
+            <div className="mb-3 flex flex-wrap gap-4 text-xs text-red-300/70">
+              <span>{hb.taskRangeLabel}</span>
+              <span>기준: {hb.previousChecklistLabel} ({hb.previousChecklistCommit})</span>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-purple-400">
+                  경계 요약 (Boundary Summary)
+                </h4>
+                <div className="space-y-2">
+                  {hb.boundarySummaryItems.map((item, idx) => (
+                    <div key={idx} className={`rounded-md border p-3 ${toneBg(item.tone)}`}>
+                      <div className="flex items-start gap-2">
+                        <ShieldAlert className={`mt-0.5 h-4 w-4 shrink-0 ${toneColor(item.tone)}`} />
+                        <div>
+                          <p className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</p>
+                          <p className="mt-0.5 text-xs text-purple-300/70">{item.description}</p>
+                          <p className="mt-1 text-xs font-mono text-purple-400/60">{item.boundaryState}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">
+                  인수인계는 보류 해제가 아님 (Handoff Is Not Release)
+                </h4>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {hb.handoffIsNotReleaseItems.map((item, idx) => (
+                    <div key={idx} className={`rounded-md border p-3 ${toneBg(item.tone)}`}>
+                      <div className="flex items-start gap-2">
+                        <Ban className={`mt-0.5 h-4 w-4 shrink-0 ${toneColor(item.tone)}`} />
+                        <div>
+                          <p className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</p>
+                          <p className="mt-0.5 text-xs text-purple-300/70">{item.description}</p>
+                          <p className="mt-1 text-xs font-mono text-purple-400/60">{item.notReleaseReason}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-yellow-400">
+                  체크리스트 검토는 승인이 아님 (Checklist Review Is Not Approval)
+                </h4>
+                <div className="space-y-2">
+                  {hb.checklistReviewNotApprovalItems.map((item, idx) => (
+                    <div key={idx} className={`rounded-md border p-3 ${toneBg(item.tone)}`}>
+                      <p className={`text-xs font-semibold ${toneColor(item.tone)}`}>{item.label}</p>
+                      <p className="mt-1 text-xs text-purple-300/70">{item.description}</p>
+                      <p className="mt-1 text-xs text-purple-300/70">
+                        <span className="font-medium text-purple-400">올바른 해석: </span>
+                        {item.correctInterpretation}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">
+                  전환 차단 (Blocked Transition)
+                </h4>
+                <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                  {hb.blockedTransitionItems.map((item, idx) => (
+                    <div key={idx} className={`rounded-md border p-3 ${toneBg(item.tone)}`}>
+                      <div className="flex items-start gap-2">
+                        <Lock className={`mt-0.5 h-4 w-4 shrink-0 ${toneColor(item.tone)}`} />
+                        <div>
+                          <p className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</p>
+                          <p className="mt-0.5 text-xs text-purple-300/70">{item.description}</p>
+                          <p className="mt-1 text-xs font-mono text-purple-400/60">{item.blockedState}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-yellow-400">
+                  실제 해제 전 필수 조건 (Required Before Release)
+                </h4>
+                <div className="space-y-2">
+                  {hb.requiredBeforeReleaseItems.map((item, idx) => (
+                    <div key={idx} className={`rounded-md border p-3 ${toneBg(item.tone)}`}>
+                      <div className="flex items-start gap-2">
+                        <FileCheck className={`mt-0.5 h-4 w-4 shrink-0 ${toneColor(item.tone)}`} />
+                        <div>
+                          <p className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</p>
+                          <p className="mt-0.5 text-xs text-purple-300/70">{item.description}</p>
+                          <p className="mt-1 text-xs font-mono text-purple-400/60">{item.requiredEvidence}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-purple-400">
+                  다음 사람 검토 관문 (Next Human Review Gate)
+                </h4>
+                <div className="space-y-2">
+                  {hb.nextHumanReviewGateItems.map((item, idx) => (
+                    <div key={idx} className={`rounded-md border p-3 ${toneBg(item.tone)}`}>
+                      <div className="flex items-start gap-2">
+                        <Circle className={`mt-0.5 h-4 w-4 shrink-0 ${toneColor(item.tone)}`} />
+                        <div>
+                          <p className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</p>
+                          <p className="mt-0.5 text-xs text-purple-300/70">{item.description}</p>
+                          <p className="mt-1 text-xs text-purple-400/60">담당: {item.nextOwner}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">
+                  계속 금지 (Still Forbidden)
+                </h4>
+                <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                  {hb.stillForbiddenItems.map((item, idx) => (
+                    <div key={idx} className="rounded-md border border-red-900/30 bg-red-950/15 p-2">
+                      <p className="text-xs font-medium text-red-300">{item.label}</p>
+                      <p className="mt-0.5 text-xs text-red-300/60">{item.description}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3 rounded-md border border-red-900/40 bg-red-950/20 p-4">
+                <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-red-400" />
+                <div>
+                  <h5 className="text-sm font-medium text-red-200">인수인계 경계 — 최종 안내 (Final Notice)</h5>
+                  <p className="mt-1 text-xs leading-relaxed text-red-200/80">{hb.finalNotice}</p>
                 </div>
               </div>
             </div>
