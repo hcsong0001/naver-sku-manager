@@ -2751,6 +2751,23 @@ type DraftBatchJob = {
     stillForbiddenItems: Array<{ label: string; description: string; tone: 'blocked'; }>;
     finalNotice: string;
   } | null;
+  tokenFirstTestSeparateApprovalHumanReviewNonExecutionSealView?: {
+    title: string;
+    statusLabel: string;
+    statusTone: 'neutral' | 'warning' | 'blocked';
+    summary: string;
+    taskRangeLabel: string;
+    previousBoundaryLabel: string;
+    previousBoundaryCommit: string;
+    sealSummaryItems: Array<{ label: string; description: string; sealState: string; tone: 'neutral' | 'warning' | 'blocked'; }>;
+    nonExecutionSealItems: Array<{ label: string; description: string; sealedReason: string; tone: 'blocked'; }>;
+    humanReviewAftermathItems: Array<{ label: string; description: string; currentMeaning: string; tone: 'warning' | 'blocked'; }>;
+    releaseNotGrantedItems: Array<{ label: string; description: string; notGrantedState: string; tone: 'blocked'; }>;
+    separateApprovalRequiredItems: Array<{ label: string; description: string; requiredBeforeRelease: string; tone: 'warning' | 'blocked'; }>;
+    nextSafeReviewItems: Array<{ label: string; description: string; nextOwner: string; tone: 'neutral' | 'warning'; }>;
+    stillForbiddenItems: Array<{ label: string; description: string; tone: 'blocked'; }>;
+    finalNotice: string;
+  } | null;
 };
 
 type DraftBatchDetailResponse =
@@ -9325,6 +9342,180 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 <div>
                   <h5 className="text-sm font-medium text-indigo-200">Acceptance Boundary — Final Notice</h5>
                   <p className="mt-1 text-xs leading-relaxed text-indigo-300/80">{bd.finalNotice}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 76: Human Review Non-Execution Seal ─────────────────────────── */}
+      {(() => {
+        const ns = job.tokenFirstTestSeparateApprovalHumanReviewNonExecutionSealView;
+        if (!ns) return null;
+
+        const toneColor = (tone: string) => {
+          if (tone === 'blocked') return 'text-red-400';
+          if (tone === 'warning') return 'text-yellow-400';
+          return 'text-teal-300';
+        };
+        const toneBg = (tone: string) => {
+          if (tone === 'blocked') return 'border-red-900/30 bg-red-950/15';
+          if (tone === 'warning') return 'border-yellow-900/30 bg-yellow-950/15';
+          return 'border-teal-900/30 bg-teal-950/15';
+        };
+
+        return (
+          <div className="mb-6 rounded-lg border border-teal-800/40 bg-teal-950/10 p-4">
+            <div className="mb-4 flex items-center gap-2">
+              <Lock className="h-5 w-5 text-teal-400" />
+              <h2 className="text-base font-semibold text-teal-200">{ns.title}</h2>
+              <span className="ml-1 rounded-full border border-teal-700/50 bg-teal-900/30 px-2 py-0.5 text-xs font-medium text-teal-300">
+                {ns.statusLabel}
+              </span>
+            </div>
+
+            <p className="mb-4 text-xs leading-relaxed text-teal-300/80">{ns.summary}</p>
+
+            <div className="mb-3 flex flex-wrap gap-4 text-xs text-teal-400/70">
+              <span>{ns.taskRangeLabel}</span>
+              <span>기준: {ns.previousBoundaryLabel} ({ns.previousBoundaryCommit})</span>
+            </div>
+
+            <div className="space-y-4">
+              {/* Seal Summary */}
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-teal-400">Seal Summary</h4>
+                <div className="space-y-2">
+                  {ns.sealSummaryItems.map((item, idx) => (
+                    <div key={idx} className={`rounded-md border p-3 ${toneBg(item.tone)}`}>
+                      <div className="flex items-start gap-2">
+                        <Info className={`mt-0.5 h-4 w-4 shrink-0 ${toneColor(item.tone)}`} />
+                        <div>
+                          <p className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</p>
+                          <p className="mt-0.5 text-xs text-teal-300/70">{item.description}</p>
+                          <p className="mt-1 text-xs font-mono text-teal-400/60">{item.sealState}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Non-Execution Seal + Human Review Aftermath (2-column) */}
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">Non-Execution Seal</h4>
+                  <div className="space-y-2">
+                    {ns.nonExecutionSealItems.map((item, idx) => (
+                      <div key={idx} className="rounded-md border border-red-900/30 bg-red-950/15 p-3">
+                        <div className="flex items-start gap-2">
+                          <Lock className="mt-0.5 h-4 w-4 shrink-0 text-red-400" />
+                          <div>
+                            <p className="text-xs font-medium text-red-300">{item.label}</p>
+                            <p className="mt-0.5 text-xs text-red-300/60">{item.description}</p>
+                            <p className="mt-1 text-xs font-mono text-red-400/70">{item.sealedReason}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-yellow-400">Human Review Aftermath</h4>
+                  <div className="space-y-2">
+                    {ns.humanReviewAftermathItems.map((item, idx) => (
+                      <div key={idx} className={`rounded-md border p-3 ${toneBg(item.tone)}`}>
+                        <div className="flex items-start gap-2">
+                          <AlertTriangle className={`mt-0.5 h-4 w-4 shrink-0 ${toneColor(item.tone)}`} />
+                          <div>
+                            <p className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</p>
+                            <p className="mt-0.5 text-xs text-teal-300/70">{item.description}</p>
+                            <p className="mt-1 text-xs font-mono text-teal-400/60">{item.currentMeaning}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Release Not Granted */}
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">Release Not Granted</h4>
+                <div className="space-y-2">
+                  {ns.releaseNotGrantedItems.map((item, idx) => (
+                    <div key={idx} className="rounded-md border border-red-900/30 bg-red-950/15 p-3">
+                      <div className="flex items-start gap-2">
+                        <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-400" />
+                        <div className="flex-1">
+                          <p className="text-xs font-medium text-red-300">{item.label}</p>
+                          <p className="mt-0.5 text-xs text-red-300/60">{item.description}</p>
+                          <p className="mt-1 text-xs font-mono text-red-400/70">{item.notGrantedState}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Separate Approval Required */}
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-yellow-400">Separate Approval Required</h4>
+                <div className="space-y-2">
+                  {ns.separateApprovalRequiredItems.map((item, idx) => (
+                    <div key={idx} className={`rounded-md border p-3 ${toneBg(item.tone)}`}>
+                      <div className="flex items-start gap-2">
+                        <AlertTriangle className={`mt-0.5 h-4 w-4 shrink-0 ${toneColor(item.tone)}`} />
+                        <div>
+                          <p className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</p>
+                          <p className="mt-0.5 text-xs text-teal-300/70">{item.description}</p>
+                          <p className="mt-1 text-xs font-mono text-teal-400/60">{item.requiredBeforeRelease}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Next Safe Review */}
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-teal-400">Next Safe Review</h4>
+                <div className="space-y-2">
+                  {ns.nextSafeReviewItems.map((item, idx) => (
+                    <div key={idx} className={`rounded-md border p-3 ${toneBg(item.tone)}`}>
+                      <div className="flex items-start gap-2">
+                        <Circle className={`mt-0.5 h-4 w-4 shrink-0 ${toneColor(item.tone)}`} />
+                        <div>
+                          <p className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</p>
+                          <p className="mt-0.5 text-xs text-teal-300/70">{item.description}</p>
+                          <p className="mt-1 text-xs text-teal-400/60">담당: {item.nextOwner}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Still Forbidden */}
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">Still Forbidden</h4>
+                <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                  {ns.stillForbiddenItems.map((item, idx) => (
+                    <div key={idx} className="rounded-md border border-red-900/30 bg-red-950/15 p-2">
+                      <p className="text-xs font-medium text-red-300">{item.label}</p>
+                      <p className="mt-0.5 text-xs text-red-300/60">{item.description}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Final Notice */}
+              <div className="flex items-start gap-3 rounded-md border border-teal-900/30 bg-teal-950/15 p-4">
+                <Lock className="mt-0.5 h-5 w-5 shrink-0 text-teal-400" />
+                <div>
+                  <h5 className="text-sm font-medium text-teal-200">Non-Execution Seal — Final Notice</h5>
+                  <p className="mt-1 text-xs leading-relaxed text-teal-300/80">{ns.finalNotice}</p>
                 </div>
               </div>
             </div>
