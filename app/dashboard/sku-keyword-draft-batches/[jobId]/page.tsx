@@ -3121,6 +3121,24 @@ type DraftBatchJob = {
     stillForbiddenItems: Array<{ label: string; description: string; tone: 'blocked'; }>;
     finalNotice: string;
   } | null;
+  tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureBoundaryView?: {
+    title: string;
+    statusLabel: string;
+    statusTone: 'neutral' | 'warning' | 'blocked';
+    summary: string;
+    taskRangeLabel: string;
+    previousClosureSummaryLabel: string;
+    previousClosureSummaryCommit: string;
+    closureBoundarySummaryItems: Array<{ label: string; description: string; boundaryState: string; tone: 'neutral' | 'warning' | 'blocked'; }>;
+    closureSummaryIsNotReleaseItems: Array<{ label: string; description: string; notReleaseReason: string; tone: 'warning' | 'blocked'; }>;
+    closureReviewNotApprovalItems: Array<{ label: string; description: string; correctInterpretation: string; tone: 'warning' | 'blocked'; }>;
+    blockedTransitionItems: Array<{ label: string; description: string; blockedState: string; tone: 'blocked'; }>;
+    remainingNonReleaseItems: Array<{ label: string; description: string; remainingState: string; tone: 'blocked'; }>;
+    requiredBeforeAnyFutureTransitionItems: Array<{ label: string; description: string; requiredEvidence: string; tone: 'warning' | 'blocked'; }>;
+    nextSafeReviewItems: Array<{ label: string; description: string; nextOwner: string; tone: 'neutral' | 'warning'; }>;
+    stillForbiddenItems: Array<{ label: string; description: string; tone: 'blocked'; }>;
+    finalNotice: string;
+  } | null;
 };
 
 type DraftBatchDetailResponse =
@@ -13388,6 +13406,182 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 <div>
                   <h5 className="text-sm font-medium text-amber-200">Final Notice</h5>
                   <p className="mt-1 text-xs leading-relaxed text-amber-300/80">{frcs.finalNotice}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 97: Final Hold Non-Release Handoff Closure Final Status Seal Confirmation Final Review Closure Boundary ── */}
+      {(() => {
+        const frcb =
+          job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureBoundaryView;
+        if (!frcb) return null;
+
+        const toneColor = (tone: string) => {
+          if (tone === 'blocked') return 'text-red-400';
+          if (tone === 'warning') return 'text-yellow-400';
+          return 'text-orange-300';
+        };
+        const toneBg = (tone: string) => {
+          if (tone === 'blocked') return 'border-red-900/30 bg-red-950/15';
+          if (tone === 'warning') return 'border-yellow-900/30 bg-yellow-950/15';
+          return 'border-orange-900/30 bg-orange-950/15';
+        };
+
+        return (
+          <div className="mb-6 rounded-lg border border-orange-900/30 bg-orange-950/10 p-4">
+            <div className="mb-4 flex items-start justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="h-5 w-5 shrink-0 text-orange-400" />
+                <div>
+                  <h2 className="text-base font-semibold text-orange-100">{frcb.title}</h2>
+                  <p className="mt-0.5 text-xs text-orange-300/70">{frcb.taskRangeLabel}</p>
+                </div>
+              </div>
+              <span className="shrink-0 rounded-full border border-orange-700/40 bg-orange-900/30 px-2 py-0.5 text-xs font-medium text-orange-300">
+                {frcb.statusLabel}
+              </span>
+            </div>
+
+            <p className="mb-4 text-xs leading-relaxed text-orange-200/80">{frcb.summary}</p>
+
+            <div className="mb-4 rounded-md border border-orange-900/20 bg-orange-950/20 p-3">
+              <p className="text-xs text-orange-300/60">
+                <span className="font-medium text-orange-300">Previous Closure Summary:</span>{' '}
+                {frcb.previousClosureSummaryLabel}{' '}
+                <span className="font-mono text-orange-400/60">({frcb.previousClosureSummaryCommit})</span>
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-orange-400">Closure Boundary Summary</h4>
+                <div className="space-y-2">
+                  {frcb.closureBoundarySummaryItems.map((item, idx) => (
+                    <div key={idx} className={`rounded-md border p-3 ${toneBg(item.tone)}`}>
+                      <div className="flex items-start gap-2">
+                        <AlertTriangle className={`mt-0.5 h-4 w-4 shrink-0 ${toneColor(item.tone)}`} />
+                        <div>
+                          <p className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</p>
+                          <p className="mt-0.5 text-xs text-orange-300/70">{item.description}</p>
+                          <p className="mt-1 text-xs font-mono text-orange-400/60">{item.boundaryState}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">Closure Summary Is Not Release</h4>
+                  <div className="space-y-2">
+                    {frcb.closureSummaryIsNotReleaseItems.map((item, idx) => (
+                      <div key={idx} className={`rounded-md border p-3 ${toneBg(item.tone)}`}>
+                        <div className="flex items-start gap-2">
+                          <ShieldAlert className={`mt-0.5 h-4 w-4 shrink-0 ${toneColor(item.tone)}`} />
+                          <div>
+                            <p className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</p>
+                            <p className="mt-0.5 text-xs text-orange-300/70">{item.description}</p>
+                            <p className="mt-1 text-xs font-mono text-orange-400/60">{item.notReleaseReason}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">Closure Review Not Approval</h4>
+                  <div className="space-y-2">
+                    {frcb.closureReviewNotApprovalItems.map((item, idx) => (
+                      <div key={idx} className={`rounded-md border p-3 ${toneBg(item.tone)}`}>
+                        <div className="flex items-start gap-2">
+                          <ShieldAlert className={`mt-0.5 h-4 w-4 shrink-0 ${toneColor(item.tone)}`} />
+                          <div>
+                            <p className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</p>
+                            <p className="mt-0.5 text-xs text-orange-300/70">{item.description}</p>
+                            <p className="mt-1 text-xs font-mono text-orange-400/60">{item.correctInterpretation}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">Blocked Transition</h4>
+                  <div className="space-y-2">
+                    {frcb.blockedTransitionItems.map((item, idx) => (
+                      <div key={idx} className="rounded-md border border-red-900/30 bg-red-950/15 p-3">
+                        <p className="text-xs font-medium text-red-300">{item.label}</p>
+                        <p className="mt-0.5 text-xs text-red-300/70">{item.description}</p>
+                        <p className="mt-1 text-xs font-mono text-red-400/60">{item.blockedState}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">Remaining Non-Release</h4>
+                  <div className="space-y-2">
+                    {frcb.remainingNonReleaseItems.map((item, idx) => (
+                      <div key={idx} className="rounded-md border border-red-900/30 bg-red-950/15 p-3">
+                        <p className="text-xs font-medium text-red-300">{item.label}</p>
+                        <p className="mt-0.5 text-xs text-red-300/70">{item.description}</p>
+                        <p className="mt-1 text-xs font-mono text-red-400/60">{item.remainingState}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-orange-400">Required Before Any Future Transition</h4>
+                  <div className="space-y-2">
+                    {frcb.requiredBeforeAnyFutureTransitionItems.map((item, idx) => (
+                      <div key={idx} className={`rounded-md border p-3 ${toneBg(item.tone)}`}>
+                        <p className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</p>
+                        <p className="mt-0.5 text-xs text-orange-300/70">{item.description}</p>
+                        <p className="mt-1 text-xs font-mono text-orange-400/60">{item.requiredEvidence}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-orange-400">Next Safe Review</h4>
+                  <div className="space-y-2">
+                    {frcb.nextSafeReviewItems.map((item, idx) => (
+                      <div key={idx} className={`rounded-md border p-3 ${toneBg(item.tone)}`}>
+                        <p className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</p>
+                        <p className="mt-0.5 text-xs text-orange-300/70">{item.description}</p>
+                        <p className="mt-1 text-xs font-mono text-orange-400/60">{item.nextOwner}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">Still Forbidden</h4>
+                <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                  {frcb.stillForbiddenItems.map((item, idx) => (
+                    <div key={idx} className="rounded-md border border-red-900/30 bg-red-950/15 p-2">
+                      <p className="text-xs font-medium text-red-300">{item.label}</p>
+                      <p className="mt-0.5 text-xs text-red-300/60">{item.description}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3 rounded-md border border-orange-900/30 bg-orange-950/15 p-4">
+                <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-orange-400" />
+                <div>
+                  <h5 className="text-sm font-medium text-orange-200">Final Hold Non-Release Handoff Closure Final Status Seal Confirmation Final Review Closure Boundary — Final Notice</h5>
+                  <p className="mt-1 text-xs leading-relaxed text-orange-300/80">{frcb.finalNotice}</p>
                 </div>
               </div>
             </div>
