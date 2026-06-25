@@ -2906,6 +2906,23 @@ type DraftBatchJob = {
     stillForbiddenItems: Array<{ label: string; description: string; tone: 'blocked'; }>;
     finalNotice: string;
   } | null;
+  tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureGateView?: {
+    title: string;
+    statusLabel: string;
+    statusTone: 'neutral' | 'warning' | 'blocked';
+    summary: string;
+    taskRangeLabel: string;
+    previousSummaryLabel: string;
+    previousSummaryCommit: string;
+    closureGateSummaryItems: Array<{ label: string; description: string; gateState: string; tone: 'neutral' | 'warning' | 'blocked'; }>;
+    handoffClosureItems: Array<{ label: string; description: string; closureState: string; tone: 'warning' | 'blocked'; }>;
+    notReleaseCompletionItems: Array<{ label: string; description: string; notCompletionReason: string; tone: 'warning' | 'blocked'; }>;
+    remainingBlockedPathItems: Array<{ label: string; description: string; blockedState: string; tone: 'blocked'; }>;
+    requiredBeforeFutureTransitionItems: Array<{ label: string; description: string; requiredEvidence: string; tone: 'warning' | 'blocked'; }>;
+    nextSafeReviewItems: Array<{ label: string; description: string; nextOwner: string; tone: 'neutral' | 'warning'; }>;
+    stillForbiddenItems: Array<{ label: string; description: string; tone: 'blocked'; }>;
+    finalNotice: string;
+  } | null;
 };
 
 type DraftBatchDetailResponse =
@@ -11059,6 +11076,175 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 <div>
                   <h5 className="text-sm font-medium text-emerald-200">Final Hold Non-Release Handoff Final Review Summary — Final Notice</h5>
                   <p className="mt-1 text-xs leading-relaxed text-emerald-300/80">{fr.finalNotice}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 85: Final Hold Non-Release Handoff Closure Gate ──────────────── */}
+      {(() => {
+        const cg = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureGateView;
+        if (!cg) return null;
+
+        const toneColor = (tone: string) => {
+          if (tone === 'blocked') return 'text-red-400';
+          if (tone === 'warning') return 'text-yellow-400';
+          return 'text-fuchsia-300';
+        };
+        const toneBg = (tone: string) => {
+          if (tone === 'blocked') return 'border-red-900/30 bg-red-950/15';
+          if (tone === 'warning') return 'border-yellow-900/30 bg-yellow-950/15';
+          return 'border-fuchsia-900/30 bg-fuchsia-950/15';
+        };
+
+        return (
+          <div className="mb-6 rounded-lg border border-fuchsia-800/40 bg-fuchsia-950/10 p-4">
+            <div className="mb-4 flex items-center gap-2">
+              <ShieldCheck className="h-5 w-5 text-fuchsia-400" />
+              <h2 className="text-base font-semibold text-fuchsia-200">{cg.title}</h2>
+              <span className="ml-1 rounded-full border border-fuchsia-700/50 bg-fuchsia-900/30 px-2 py-0.5 text-xs font-medium text-fuchsia-300">
+                {cg.statusLabel}
+              </span>
+            </div>
+
+            <p className="mb-4 text-xs leading-relaxed text-fuchsia-300/80">{cg.summary}</p>
+
+            <div className="mb-3 flex flex-wrap gap-4 text-xs text-fuchsia-400/70">
+              <span>{cg.taskRangeLabel}</span>
+              <span>기준: {cg.previousSummaryLabel} ({cg.previousSummaryCommit})</span>
+            </div>
+
+            <div className="space-y-4">
+              {/* Closure Gate Summary */}
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-fuchsia-400">Closure Gate Summary</h4>
+                <div className="space-y-2">
+                  {cg.closureGateSummaryItems.map((item, idx) => (
+                    <div key={idx} className={`rounded-md border p-3 ${toneBg(item.tone)}`}>
+                      <div className="flex items-start gap-2">
+                        <Info className={`mt-0.5 h-4 w-4 shrink-0 ${toneColor(item.tone)}`} />
+                        <div>
+                          <p className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</p>
+                          <p className="mt-0.5 text-xs text-fuchsia-300/70">{item.description}</p>
+                          <p className="mt-1 text-xs font-mono text-fuchsia-400/60">{item.gateState}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Handoff Closure + Not Release Completion (2-column) */}
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-yellow-400">Handoff Closure</h4>
+                  <div className="space-y-2">
+                    {cg.handoffClosureItems.map((item, idx) => (
+                      <div key={idx} className={`rounded-md border p-3 ${toneBg(item.tone)}`}>
+                        <div className="flex items-start gap-2">
+                          <AlertTriangle className={`mt-0.5 h-4 w-4 shrink-0 ${toneColor(item.tone)}`} />
+                          <div>
+                            <p className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</p>
+                            <p className="mt-0.5 text-xs text-fuchsia-300/70">{item.description}</p>
+                            <p className="mt-1 text-xs font-mono text-fuchsia-400/60">{item.closureState}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">Not Release Completion</h4>
+                  <div className="space-y-2">
+                    {cg.notReleaseCompletionItems.map((item, idx) => (
+                      <div key={idx} className={`rounded-md border p-3 ${toneBg(item.tone)}`}>
+                        <div className="flex items-start gap-2">
+                          <AlertCircle className={`mt-0.5 h-4 w-4 shrink-0 ${toneColor(item.tone)}`} />
+                          <div>
+                            <p className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</p>
+                            <p className="mt-0.5 text-xs text-fuchsia-300/70">{item.description}</p>
+                            <p className="mt-1 text-xs font-mono text-fuchsia-400/60">{item.notCompletionReason}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Remaining Blocked Path */}
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">Remaining Blocked Path</h4>
+                <div className="space-y-2">
+                  {cg.remainingBlockedPathItems.map((item, idx) => (
+                    <div key={idx} className="rounded-md border border-red-900/30 bg-red-950/15 p-3">
+                      <p className="text-xs font-medium text-red-300">{item.label}</p>
+                      <p className="mt-0.5 text-xs text-red-300/70">{item.description}</p>
+                      <p className="mt-1 text-xs font-mono text-red-400/60">{item.blockedState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Required Before Future Transition + Next Safe Review (2-column) */}
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-yellow-400">Required Before Future Transition</h4>
+                  <div className="space-y-2">
+                    {cg.requiredBeforeFutureTransitionItems.map((item, idx) => (
+                      <div key={idx} className={`rounded-md border p-3 ${toneBg(item.tone)}`}>
+                        <div className="flex items-start gap-2">
+                          <CheckCircle2 className={`mt-0.5 h-4 w-4 shrink-0 ${toneColor(item.tone)}`} />
+                          <div>
+                            <p className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</p>
+                            <p className="mt-0.5 text-xs text-fuchsia-300/70">{item.description}</p>
+                            <p className="mt-1 text-xs font-mono text-fuchsia-400/60">{item.requiredEvidence}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-fuchsia-400">Next Safe Review</h4>
+                  <div className="space-y-2">
+                    {cg.nextSafeReviewItems.map((item, idx) => (
+                      <div key={idx} className={`rounded-md border p-3 ${toneBg(item.tone)}`}>
+                        <div className="flex items-start gap-2">
+                          <Circle className={`mt-0.5 h-4 w-4 shrink-0 ${toneColor(item.tone)}`} />
+                          <div>
+                            <p className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</p>
+                            <p className="mt-0.5 text-xs text-fuchsia-300/70">{item.description}</p>
+                            <p className="mt-1 text-xs text-fuchsia-400/60">담당: {item.nextOwner}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Still Forbidden */}
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">Still Forbidden</h4>
+                <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                  {cg.stillForbiddenItems.map((item, idx) => (
+                    <div key={idx} className="rounded-md border border-red-900/30 bg-red-950/15 p-2">
+                      <p className="text-xs font-medium text-red-300">{item.label}</p>
+                      <p className="mt-0.5 text-xs text-red-300/60">{item.description}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Final Notice */}
+              <div className="flex items-start gap-3 rounded-md border border-fuchsia-900/30 bg-fuchsia-950/15 p-4">
+                <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-fuchsia-400" />
+                <div>
+                  <h5 className="text-sm font-medium text-fuchsia-200">Final Hold Non-Release Handoff Closure Gate — Final Notice</h5>
+                  <p className="mt-1 text-xs leading-relaxed text-fuchsia-300/80">{cg.finalNotice}</p>
                 </div>
               </div>
             </div>
