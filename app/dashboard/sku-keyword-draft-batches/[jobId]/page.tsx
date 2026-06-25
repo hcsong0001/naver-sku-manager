@@ -3231,6 +3231,19 @@ type DraftBatchJob = {
     stillForbiddenItems: Array<{ label: string; description: string; tone: 'blocked'; }>;
     finalNotice: string;
   } | null;
+  tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalBoundaryView?: {
+    title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
+    taskRangeLabel: string; previousFinalSummaryLabel: string; previousFinalSummaryCommit: string;
+    finalBoundarySummaryItems: Array<{ label: string; description: string; boundaryState: string; tone: 'neutral' | 'warning' | 'blocked'; }>;
+    finalSummaryIsNotReleaseItems: Array<{ label: string; description: string; notReleaseReason: string; tone: 'warning' | 'blocked'; }>;
+    finalSummaryReviewNotApprovalItems: Array<{ label: string; description: string; correctInterpretation: string; tone: 'warning' | 'blocked'; }>;
+    blockedTransitionItems: Array<{ label: string; description: string; blockedState: string; tone: 'blocked'; }>;
+    remainingNonReleaseItems: Array<{ label: string; description: string; remainingState: string; tone: 'blocked'; }>;
+    requiredBeforeAnyFutureTransitionItems: Array<{ label: string; description: string; requiredEvidence: string; tone: 'warning' | 'blocked'; }>;
+    nextSafeReviewItems: Array<{ label: string; description: string; nextOwner: string; tone: 'neutral' | 'warning'; }>;
+    stillForbiddenItems: Array<{ label: string; description: string; tone: 'blocked'; }>;
+    finalNotice: string;
+  } | null;
 };
 
 type DraftBatchDetailResponse =
@@ -14507,6 +14520,161 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 <div>
                   <h5 className="text-sm font-medium text-indigo-200">Final Review Closure Status Final Summary — Final Notice</h5>
                   <p className="mt-1 text-xs leading-relaxed text-indigo-300/80">{fs102.finalNotice}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 103: Final Review Closure Status Final Boundary ─────────────── */}
+      {(() => {
+        const fb103 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalBoundaryView;
+        if (!fb103) return null;
+
+        const toneClass = (tone: 'neutral' | 'warning' | 'blocked') => {
+          if (tone === 'blocked') return 'text-red-300';
+          if (tone === 'warning') return 'text-yellow-300';
+          return 'text-cyan-300';
+        };
+        const toneBg = (tone: 'neutral' | 'warning' | 'blocked') => {
+          if (tone === 'blocked') return 'border-red-900/30 bg-red-950/10';
+          if (tone === 'warning') return 'border-yellow-900/30 bg-yellow-950/10';
+          return 'border-cyan-900/30 bg-cyan-950/10';
+        };
+
+        return (
+          <div className="mb-6 rounded-lg border border-cyan-900/40 bg-[#080f10] p-4">
+            {/* Header */}
+            <div className="mb-4 flex items-center gap-2">
+              <Lock className="h-4 w-4 shrink-0 text-cyan-400" />
+              <h2 className="text-sm font-semibold text-cyan-200">{fb103.title}</h2>
+              <span className="ml-auto rounded-full border border-cyan-800/50 px-2 py-0.5 text-xs text-cyan-400">
+                {fb103.statusLabel}
+              </span>
+            </div>
+            <p className="mb-1 text-xs text-cyan-300/70">{fb103.taskRangeLabel}</p>
+            <p className="mb-1 text-xs text-cyan-300/70">{fb103.previousFinalSummaryLabel} — {fb103.previousFinalSummaryCommit}</p>
+            <p className="mb-4 text-xs leading-relaxed text-cyan-300/60">{fb103.summary}</p>
+
+            <div className="space-y-4">
+              {/* Final Boundary Summary */}
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-cyan-400">Final Boundary Summary</h4>
+                <div className="space-y-2">
+                  {fb103.finalBoundarySummaryItems.map((item, i) => (
+                    <div key={i} className={`rounded-md border p-3 ${toneBg(item.tone)}`}>
+                      <p className={`text-xs font-medium ${toneClass(item.tone)}`}>{item.label}</p>
+                      <p className="mt-0.5 text-xs text-cyan-300/60">{item.description}</p>
+                      <p className={`mt-1 text-xs font-mono ${toneClass(item.tone)}`}>{item.boundaryState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Final Summary Is Not Release */}
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-yellow-400">Final Summary Is Not Release</h4>
+                <div className="space-y-2">
+                  {fb103.finalSummaryIsNotReleaseItems.map((item, i) => (
+                    <div key={i} className={`rounded-md border p-3 ${toneBg(item.tone)}`}>
+                      <p className={`text-xs font-medium ${toneClass(item.tone)}`}>{item.label}</p>
+                      <p className="mt-0.5 text-xs text-cyan-300/60">{item.description}</p>
+                      <p className={`mt-1 text-xs font-mono ${toneClass(item.tone)}`}>{item.notReleaseReason}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Final Summary Review Is Not Approval */}
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">Final Summary Review Is Not Approval</h4>
+                <div className="space-y-2">
+                  {fb103.finalSummaryReviewNotApprovalItems.map((item, i) => (
+                    <div key={i} className={`rounded-md border p-3 ${toneBg(item.tone)}`}>
+                      <p className={`text-xs font-medium ${toneClass(item.tone)}`}>{item.label}</p>
+                      <p className="mt-0.5 text-xs text-cyan-300/60">{item.description}</p>
+                      <p className={`mt-1 text-xs font-mono ${toneClass(item.tone)}`}>{item.correctInterpretation}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Blocked Transition */}
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">Blocked Transition</h4>
+                <div className="space-y-2">
+                  {fb103.blockedTransitionItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-red-900/30 bg-red-950/10 p-3">
+                      <p className="text-xs font-medium text-red-300">{item.label}</p>
+                      <p className="mt-0.5 text-xs text-red-300/60">{item.description}</p>
+                      <p className="mt-1 text-xs font-mono text-red-300">{item.blockedState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Remaining Non-Release */}
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">Remaining Non-Release</h4>
+                <div className="space-y-2">
+                  {fb103.remainingNonReleaseItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-red-900/30 bg-red-950/10 p-3">
+                      <p className="text-xs font-medium text-red-300">{item.label}</p>
+                      <p className="mt-0.5 text-xs text-red-300/60">{item.description}</p>
+                      <p className="mt-1 text-xs font-mono text-red-300">{item.remainingState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Required Before Any Future Transition */}
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-yellow-400">Required Before Any Future Transition</h4>
+                <div className="space-y-2">
+                  {fb103.requiredBeforeAnyFutureTransitionItems.map((item, i) => (
+                    <div key={i} className={`rounded-md border p-3 ${toneBg(item.tone)}`}>
+                      <p className={`text-xs font-medium ${toneClass(item.tone)}`}>{item.label}</p>
+                      <p className="mt-0.5 text-xs text-cyan-300/60">{item.description}</p>
+                      <p className={`mt-1 text-xs font-mono ${toneClass(item.tone)}`}>{item.requiredEvidence}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Next Safe Review */}
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-cyan-400">Next Safe Review</h4>
+                <div className="space-y-2">
+                  {fb103.nextSafeReviewItems.map((item, i) => (
+                    <div key={i} className={`rounded-md border p-3 ${toneBg(item.tone)}`}>
+                      <p className={`text-xs font-medium ${toneClass(item.tone)}`}>{item.label}</p>
+                      <p className="mt-0.5 text-xs text-cyan-300/60">{item.description}</p>
+                      <p className={`mt-1 text-xs font-mono ${toneClass(item.tone)}`}>{item.nextOwner}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Still Forbidden */}
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">Still Forbidden</h4>
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  {fb103.stillForbiddenItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-red-900/30 bg-red-950/10 p-3">
+                      <p className="text-xs font-medium text-red-300">{item.label}</p>
+                      <p className="mt-0.5 text-xs text-red-300/60">{item.description}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Final Notice */}
+              <div className="flex items-start gap-3 rounded-md border border-cyan-900/30 bg-cyan-950/15 p-4">
+                <Lock className="mt-0.5 h-5 w-5 shrink-0 text-cyan-400" />
+                <div>
+                  <h5 className="text-sm font-medium text-cyan-200">Final Review Closure Status Final Boundary — Final Notice</h5>
+                  <p className="mt-1 text-xs leading-relaxed text-cyan-300/80">{fb103.finalNotice}</p>
                 </div>
               </div>
             </div>
