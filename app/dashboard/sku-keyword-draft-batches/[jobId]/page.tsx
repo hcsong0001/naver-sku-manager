@@ -7,6 +7,7 @@ import {
   ArrowLeft,
   Ban,
   CheckCircle2,
+  ClipboardCheck,
   ClipboardList,
   FileJson,
   Loader2,
@@ -3333,6 +3334,19 @@ type DraftBatchJob = {
     releaseStillNotGrantedItems: Array<{ label: string; description: string; notGrantedReason: string; tone: 'blocked'; }>;
     transitionStillBlockedItems: Array<{ label: string; description: string; blockedState: string; tone: 'blocked'; }>;
     remainingNonReleaseItems: Array<{ label: string; description: string; remainingState: string; tone: 'blocked'; }>;
+    requiredBeforeAnyFutureTransitionItems: Array<{ label: string; description: string; requiredEvidence: string; tone: 'warning' | 'blocked'; }>;
+    nextSafeReviewItems: Array<{ label: string; description: string; nextOwner: string; tone: 'neutral' | 'warning'; }>;
+    stillForbiddenItems: Array<{ label: string; description: string; tone: 'blocked'; }>;
+    finalNotice: string;
+  } | null;
+  tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusFinalSummaryView?: {
+    title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
+    taskRangeLabel: string; previousFinalStatusSealLabel: string; previousFinalStatusSealCommit: string;
+    finalSummaryItems: Array<{ label: string; description: string; summaryState: string; tone: 'neutral' | 'warning' | 'blocked'; }>;
+    finalStatusFlowItems: Array<{ label: string; description: string; flowState: string; tone: 'neutral' | 'warning' | 'blocked'; }>;
+    nonReleaseFinalSummaryItems: Array<{ label: string; description: string; nonReleaseState: string; tone: 'blocked'; }>;
+    notReleaseApprovalItems: Array<{ label: string; description: string; notApprovalReason: string; tone: 'warning' | 'blocked'; }>;
+    transitionStillBlockedItems: Array<{ label: string; description: string; blockedState: string; tone: 'blocked'; }>;
     requiredBeforeAnyFutureTransitionItems: Array<{ label: string; description: string; requiredEvidence: string; tone: 'warning' | 'blocked'; }>;
     nextSafeReviewItems: Array<{ label: string; description: string; nextOwner: string; tone: 'neutral' | 'warning'; }>;
     stillForbiddenItems: Array<{ label: string; description: string; tone: 'blocked'; }>;
@@ -15846,6 +15860,154 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 <div>
                   <h5 className="text-sm font-medium text-violet-200">Final Review Closure Status Final Closure Final Status Non-Release Seal — Final Notice</h5>
                   <p className="mt-1 text-xs leading-relaxed text-rose-300/80">{fcsnrs110.finalNotice}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 111: Final Review Closure Status Final Closure Final Status Final Summary ─ */}
+      {(() => {
+        const fcsfs111 =
+          job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusFinalSummaryView;
+        if (!fcsfs111) return null;
+
+        const toneClass = (tone: 'neutral' | 'warning' | 'blocked') => {
+          if (tone === 'blocked') return 'text-teal-300';
+          if (tone === 'warning') return 'text-slate-300';
+          return 'text-cyan-300';
+        };
+        const toneBg = (tone: 'neutral' | 'warning' | 'blocked') => {
+          if (tone === 'blocked') return 'border-teal-900/30 bg-teal-950/10';
+          if (tone === 'warning') return 'border-slate-700/40 bg-slate-950/20';
+          return 'border-cyan-900/30 bg-cyan-950/10';
+        };
+
+        return (
+          <div className="mb-6 rounded-lg border border-teal-800/50 bg-[#071617] p-4">
+            <div className="mb-4 flex flex-wrap items-center gap-2">
+              <ClipboardCheck className="h-4 w-4 shrink-0 text-teal-400" />
+              <h2 className="min-w-0 flex-1 text-sm font-semibold text-teal-200">{fcsfs111.title}</h2>
+              <span className="max-w-full rounded-full border border-teal-700/60 px-2 py-0.5 text-center text-xs text-teal-300">
+                {fcsfs111.statusLabel}
+              </span>
+            </div>
+            <p className="mb-1 text-xs text-teal-300/70">{fcsfs111.taskRangeLabel}</p>
+            <p className="mb-1 text-xs text-teal-300/70">
+              {fcsfs111.previousFinalStatusSealLabel} — {fcsfs111.previousFinalStatusSealCommit}
+            </p>
+            <p className="mb-4 text-xs leading-relaxed text-teal-300/60">{fcsfs111.summary}</p>
+
+            <div className="space-y-4">
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-cyan-300">Final Summary</h4>
+                <div className="space-y-2">
+                  {fcsfs111.finalSummaryItems.map((item, i) => (
+                    <div key={i} className={`rounded-md border p-3 ${toneBg(item.tone)}`}>
+                      <p className={`text-xs font-medium ${toneClass(item.tone)}`}>{item.label}</p>
+                      <p className="mt-0.5 text-xs text-teal-300/60">{item.description}</p>
+                      <p className={`mt-1 text-xs font-mono ${toneClass(item.tone)}`}>{item.summaryState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-300">Final Status Flow</h4>
+                <div className="space-y-2">
+                  {fcsfs111.finalStatusFlowItems.map((item, i) => (
+                    <div key={i} className={`rounded-md border p-3 ${toneBg(item.tone)}`}>
+                      <p className={`text-xs font-medium ${toneClass(item.tone)}`}>{item.label}</p>
+                      <p className="mt-0.5 text-xs text-teal-300/60">{item.description}</p>
+                      <p className={`mt-1 text-xs font-mono ${toneClass(item.tone)}`}>{item.flowState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-teal-300">Non-Release Final Summary</h4>
+                <div className="space-y-2">
+                  {fcsfs111.nonReleaseFinalSummaryItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-teal-900/30 bg-teal-950/10 p-3">
+                      <p className="text-xs font-medium text-teal-300">{item.label}</p>
+                      <p className="mt-0.5 text-xs text-teal-300/60">{item.description}</p>
+                      <p className="mt-1 text-xs font-mono text-teal-300">{item.nonReleaseState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-300">Not Release Approval</h4>
+                <div className="space-y-2">
+                  {fcsfs111.notReleaseApprovalItems.map((item, i) => (
+                    <div key={i} className={`rounded-md border p-3 ${toneBg(item.tone)}`}>
+                      <p className={`text-xs font-medium ${toneClass(item.tone)}`}>{item.label}</p>
+                      <p className="mt-0.5 text-xs text-teal-300/60">{item.description}</p>
+                      <p className={`mt-1 text-xs font-mono ${toneClass(item.tone)}`}>{item.notApprovalReason}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-teal-300">Transition Still Blocked</h4>
+                <div className="space-y-2">
+                  {fcsfs111.transitionStillBlockedItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-teal-900/30 bg-teal-950/10 p-3">
+                      <p className="text-xs font-medium text-teal-300">{item.label}</p>
+                      <p className="mt-0.5 text-xs text-teal-300/60">{item.description}</p>
+                      <p className="mt-1 text-xs font-mono text-teal-300">{item.blockedState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-300">Required Before Any Future Transition</h4>
+                <div className="space-y-2">
+                  {fcsfs111.requiredBeforeAnyFutureTransitionItems.map((item, i) => (
+                    <div key={i} className={`rounded-md border p-3 ${toneBg(item.tone)}`}>
+                      <p className={`text-xs font-medium ${toneClass(item.tone)}`}>{item.label}</p>
+                      <p className="mt-0.5 text-xs text-teal-300/60">{item.description}</p>
+                      <p className={`mt-1 text-xs font-mono ${toneClass(item.tone)}`}>{item.requiredEvidence}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-cyan-300">Next Safe Review</h4>
+                <div className="space-y-2">
+                  {fcsfs111.nextSafeReviewItems.map((item, i) => (
+                    <div key={i} className={`rounded-md border p-3 ${toneBg(item.tone)}`}>
+                      <p className={`text-xs font-medium ${toneClass(item.tone)}`}>{item.label}</p>
+                      <p className="mt-0.5 text-xs text-teal-300/60">{item.description}</p>
+                      <p className={`mt-1 text-xs font-mono ${toneClass(item.tone)}`}>{item.nextOwner}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-teal-300">Still Forbidden</h4>
+                <div className="grid gap-2 md:grid-cols-2">
+                  {fcsfs111.stillForbiddenItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-teal-900/30 bg-teal-950/10 p-3">
+                      <p className="text-xs font-medium text-teal-300">{item.label}</p>
+                      <p className="mt-0.5 text-xs text-teal-300/60">{item.description}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3 rounded-md border border-slate-700/40 bg-slate-950/20 p-4">
+                <ClipboardCheck className="mt-0.5 h-5 w-5 shrink-0 text-slate-300" />
+                <div>
+                  <h5 className="text-sm font-medium text-slate-200">Final Review Closure Status Final Closure Final Status Final Summary — Final Notice</h5>
+                  <p className="mt-1 text-xs leading-relaxed text-teal-300/80">{fcsfs111.finalNotice}</p>
                 </div>
               </div>
             </div>
