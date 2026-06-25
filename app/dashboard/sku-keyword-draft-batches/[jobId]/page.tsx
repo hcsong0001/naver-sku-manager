@@ -3324,6 +3324,20 @@ type DraftBatchJob = {
     stillForbiddenItems: Array<{ label: string; description: string; tone: 'blocked'; }>;
     finalNotice: string;
   } | null;
+  tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusNonReleaseSealView?: {
+    title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
+    taskRangeLabel: string; previousFinalStatusBoundaryLabel: string; previousFinalStatusBoundaryCommit: string;
+    finalStatusSealSummaryItems: Array<{ label: string; description: string; sealState: string; tone: 'neutral' | 'warning' | 'blocked'; }>;
+    finalStatusBoundaryNonReleaseSealItems: Array<{ label: string; description: string; sealedState: string; tone: 'blocked'; }>;
+    boundaryAftermathItems: Array<{ label: string; description: string; currentMeaning: string; tone: 'warning' | 'blocked'; }>;
+    releaseStillNotGrantedItems: Array<{ label: string; description: string; notGrantedReason: string; tone: 'blocked'; }>;
+    transitionStillBlockedItems: Array<{ label: string; description: string; blockedState: string; tone: 'blocked'; }>;
+    remainingNonReleaseItems: Array<{ label: string; description: string; remainingState: string; tone: 'blocked'; }>;
+    requiredBeforeAnyFutureTransitionItems: Array<{ label: string; description: string; requiredEvidence: string; tone: 'warning' | 'blocked'; }>;
+    nextSafeReviewItems: Array<{ label: string; description: string; nextOwner: string; tone: 'neutral' | 'warning'; }>;
+    stillForbiddenItems: Array<{ label: string; description: string; tone: 'blocked'; }>;
+    finalNotice: string;
+  } | null;
 };
 
 type DraftBatchDetailResponse =
@@ -15671,6 +15685,167 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 <div>
                   <h5 className="text-sm font-medium text-orange-200">Final Review Closure Status Final Closure Final Status Boundary — Final Notice</h5>
                   <p className="mt-1 text-xs leading-relaxed text-amber-300/80">{fcsb109.finalNotice}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 110: Final Review Closure Status Final Closure Final Status Non-Release Seal ─ */}
+      {(() => {
+        const fcsnrs110 =
+          job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusNonReleaseSealView;
+        if (!fcsnrs110) return null;
+
+        const toneClass = (tone: 'neutral' | 'warning' | 'blocked') => {
+          if (tone === 'blocked') return 'text-rose-300';
+          if (tone === 'warning') return 'text-violet-300';
+          return 'text-fuchsia-300';
+        };
+        const toneBg = (tone: 'neutral' | 'warning' | 'blocked') => {
+          if (tone === 'blocked') return 'border-rose-900/30 bg-rose-950/10';
+          if (tone === 'warning') return 'border-violet-800/40 bg-violet-950/15';
+          return 'border-fuchsia-900/30 bg-fuchsia-950/10';
+        };
+
+        return (
+          <div className="mb-6 rounded-lg border border-rose-800/50 bg-[#14080f] p-4">
+            <div className="mb-4 flex flex-wrap items-center gap-2">
+              <Lock className="h-4 w-4 shrink-0 text-rose-400" />
+              <h2 className="min-w-0 flex-1 text-sm font-semibold text-rose-200">{fcsnrs110.title}</h2>
+              <span className="max-w-full rounded-full border border-rose-700/60 px-2 py-0.5 text-center text-xs text-rose-300">
+                {fcsnrs110.statusLabel}
+              </span>
+            </div>
+            <p className="mb-1 text-xs text-rose-300/70">{fcsnrs110.taskRangeLabel}</p>
+            <p className="mb-1 text-xs text-rose-300/70">
+              {fcsnrs110.previousFinalStatusBoundaryLabel} — {fcsnrs110.previousFinalStatusBoundaryCommit}
+            </p>
+            <p className="mb-4 text-xs leading-relaxed text-rose-300/60">{fcsnrs110.summary}</p>
+
+            <div className="space-y-4">
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-violet-300">Final Status Seal Summary</h4>
+                <div className="space-y-2">
+                  {fcsnrs110.finalStatusSealSummaryItems.map((item, i) => (
+                    <div key={i} className={`rounded-md border p-3 ${toneBg(item.tone)}`}>
+                      <p className={`text-xs font-medium ${toneClass(item.tone)}`}>{item.label}</p>
+                      <p className="mt-0.5 text-xs text-rose-300/60">{item.description}</p>
+                      <p className={`mt-1 text-xs font-mono ${toneClass(item.tone)}`}>{item.sealState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-fuchsia-300">Final Status Boundary Non-Release Seal</h4>
+                <div className="space-y-2">
+                  {fcsnrs110.finalStatusBoundaryNonReleaseSealItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-rose-900/30 bg-rose-950/10 p-3">
+                      <p className="text-xs font-medium text-rose-300">{item.label}</p>
+                      <p className="mt-0.5 text-xs text-rose-300/60">{item.description}</p>
+                      <p className="mt-1 text-xs font-mono text-rose-300">{item.sealedState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-violet-300">Boundary Aftermath</h4>
+                <div className="space-y-2">
+                  {fcsnrs110.boundaryAftermathItems.map((item, i) => (
+                    <div key={i} className={`rounded-md border p-3 ${toneBg(item.tone)}`}>
+                      <p className={`text-xs font-medium ${toneClass(item.tone)}`}>{item.label}</p>
+                      <p className="mt-0.5 text-xs text-rose-300/60">{item.description}</p>
+                      <p className={`mt-1 text-xs font-mono ${toneClass(item.tone)}`}>{item.currentMeaning}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-rose-300">Release Still Not Granted</h4>
+                <div className="space-y-2">
+                  {fcsnrs110.releaseStillNotGrantedItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-rose-900/30 bg-rose-950/10 p-3">
+                      <p className="text-xs font-medium text-rose-300">{item.label}</p>
+                      <p className="mt-0.5 text-xs text-rose-300/60">{item.description}</p>
+                      <p className="mt-1 text-xs font-mono text-rose-300">{item.notGrantedReason}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-rose-300">Transition Still Blocked</h4>
+                <div className="space-y-2">
+                  {fcsnrs110.transitionStillBlockedItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-rose-900/30 bg-rose-950/10 p-3">
+                      <p className="text-xs font-medium text-rose-300">{item.label}</p>
+                      <p className="mt-0.5 text-xs text-rose-300/60">{item.description}</p>
+                      <p className="mt-1 text-xs font-mono text-rose-300">{item.blockedState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-rose-300">Remaining Non-Release</h4>
+                <div className="space-y-2">
+                  {fcsnrs110.remainingNonReleaseItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-rose-900/30 bg-rose-950/10 p-3">
+                      <p className="text-xs font-medium text-rose-300">{item.label}</p>
+                      <p className="mt-0.5 text-xs text-rose-300/60">{item.description}</p>
+                      <p className="mt-1 text-xs font-mono text-rose-300">{item.remainingState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-violet-300">Required Before Any Future Transition</h4>
+                <div className="space-y-2">
+                  {fcsnrs110.requiredBeforeAnyFutureTransitionItems.map((item, i) => (
+                    <div key={i} className={`rounded-md border p-3 ${toneBg(item.tone)}`}>
+                      <p className={`text-xs font-medium ${toneClass(item.tone)}`}>{item.label}</p>
+                      <p className="mt-0.5 text-xs text-rose-300/60">{item.description}</p>
+                      <p className={`mt-1 text-xs font-mono ${toneClass(item.tone)}`}>{item.requiredEvidence}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-fuchsia-300">Next Safe Review</h4>
+                <div className="space-y-2">
+                  {fcsnrs110.nextSafeReviewItems.map((item, i) => (
+                    <div key={i} className={`rounded-md border p-3 ${toneBg(item.tone)}`}>
+                      <p className={`text-xs font-medium ${toneClass(item.tone)}`}>{item.label}</p>
+                      <p className="mt-0.5 text-xs text-rose-300/60">{item.description}</p>
+                      <p className={`mt-1 text-xs font-mono ${toneClass(item.tone)}`}>{item.nextOwner}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-rose-300">Still Forbidden</h4>
+                <div className="grid gap-2 md:grid-cols-2">
+                  {fcsnrs110.stillForbiddenItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-rose-900/30 bg-rose-950/10 p-3">
+                      <p className="text-xs font-medium text-rose-300">{item.label}</p>
+                      <p className="mt-0.5 text-xs text-rose-300/60">{item.description}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3 rounded-md border border-violet-800/40 bg-violet-950/20 p-4">
+                <Lock className="mt-0.5 h-5 w-5 shrink-0 text-violet-300" />
+                <div>
+                  <h5 className="text-sm font-medium text-violet-200">Final Review Closure Status Final Closure Final Status Non-Release Seal — Final Notice</h5>
+                  <p className="mt-1 text-xs leading-relaxed text-rose-300/80">{fcsnrs110.finalNotice}</p>
                 </div>
               </div>
             </div>
