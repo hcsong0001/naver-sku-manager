@@ -3780,6 +3780,7 @@ type DraftBatchJob = {
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionConnectionFeatureFlagPreparationView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionConnectionSafetyGatePreparationView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionConnectionReadinessAssessmentView?: any;
+  tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionConnectionRiskAssessmentView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -22865,6 +22866,105 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 <div>
                   <h5 className="text-sm font-medium text-red-200">Execution Connection Readiness Assessment — 최종 안내</h5>
                   <p className="mt-1 text-xs leading-relaxed text-red-200/80">{ecra158.finalNotice}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 159: Execution Connection Risk Assessment ────────────── */}
+      {(() => {
+        const ecra159 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionConnectionRiskAssessmentView;
+        if (!ecra159) return null;
+        const toneColor = (tone: 'neutral' | 'warning' | 'blocked') =>
+          tone === 'blocked' ? 'text-red-400' : tone === 'warning' ? 'text-amber-300' : 'text-slate-300';
+        return (
+          <div className="mb-6 rounded-lg border border-red-900/50 bg-[#0f0808] p-4">
+            <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-white">
+              <ShieldAlert className="h-5 w-5 text-red-500" />
+              {ecra159.title}
+            </h2>
+            <div className="mb-3 flex items-center gap-2">
+              <span className="rounded-full border border-red-700/50 bg-red-950/40 px-2 py-0.5 text-xs text-red-300">
+                {ecra159.statusLabel}
+              </span>
+            </div>
+            <p className="mb-4 text-xs leading-relaxed text-red-200/70">{ecra159.summary}</p>
+            <div className="mb-2 text-xs text-slate-500">{ecra159.taskRangeLabel}</div>
+            <div className="mb-1 text-xs text-slate-600">기준: {ecra159.previousExecutionConnectionReadinessAssessmentLabel} ({ecra159.previousExecutionConnectionReadinessAssessmentCommit})</div>
+            <div className="mt-4 space-y-4">
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-500">전체 Execution Connection 위험 평가</h4>
+                <div className="space-y-2">
+                  {ecra159.overallRiskAssessmentItems.map((item: any, i: number) => (
+                    <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-red-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.riskState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-400">시스템 레이어별 연결 위험 평가</h4>
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  {[...ecra159.workerConnectionRiskItems, ...ecra159.queueConnectionRiskItems, ...ecra159.adapterConnectionRiskItems, ...ecra159.runtimeEnvironmentRiskItems, ...ecra159.featureFlagSafetyGateRiskItems].map((item: any, i: number) => (
+                    <div key={i} className="rounded-md border border-amber-900/30 bg-amber-950/10 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-amber-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.riskState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-500">고위험 작업 차단 상태 (Token / Naver API / DB Write)</h4>
+                <div className="space-y-2">
+                  {ecra159.highRiskItems.map((item: any, i: number) => (
+                    <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-red-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.riskState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-orange-400">실제 연결 허용 불가 사유 (위험 평가)</h4>
+                <div className="space-y-2">
+                  {ecra159.executionNotAllowedReasonItems.map((item: any, i: number) => (
+                    <div key={i} className="rounded-md border border-orange-900/30 bg-orange-950/10 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-orange-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.riskState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-500">시스템 미연결 및 차단 유지 상태</h4>
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  {ecra159.disconnectedSystemItems.map((item: any, i: number) => (
+                    <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
+                      <div className="text-xs font-medium text-red-500">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-red-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.riskState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3 rounded-md border border-red-700/40 bg-red-950/20 p-4">
+                <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-red-500" />
+                <div>
+                  <h5 className="text-sm font-medium text-red-200">Execution Connection Risk Assessment — 최종 경고</h5>
+                  <p className="mt-1 text-xs leading-relaxed text-red-200/80">{ecra159.finalNotice}</p>
                 </div>
               </div>
             </div>
