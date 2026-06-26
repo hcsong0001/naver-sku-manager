@@ -3575,6 +3575,20 @@ type DraftBatchJob = {
     stillForbiddenItems: Array<{ label: string; description: string; tone: 'blocked'; }>;
     finalNotice: string;
   } | null;
+  tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionArchitecturePreConnectionChecklistView?: {
+    title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
+    taskRangeLabel: string; previousExecutionArchitectureConnectionBlockersLabel: string; previousExecutionArchitectureConnectionBlockersCommit: string;
+    preConnectionChecklistSummaryItems: Array<{ label: string; description: string; checklistState: string; tone: 'neutral' | 'warning' | 'blocked'; }>;
+    preConnectionChecklistItems: Array<{ label: string; description: string; checklistMeaning: string; tone: 'warning' | 'blocked'; }>;
+    approvalRequiredChecklistItems: Array<{ label: string; description: string; approvalState: string; tone: 'blocked'; }>;
+    boundaryRequiredChecklistItems: Array<{ label: string; description: string; boundaryState: string; tone: 'warning' | 'blocked'; }>;
+    internalCheckBeforeAnyConnectionItems: Array<{ label: string; description: string; requiredCheck: string; tone: 'warning' | 'blocked'; }>;
+    transitionStillBlockedItems: Array<{ label: string; description: string; blockedState: string; tone: 'blocked'; }>;
+    remainingChecklistStateItems: Array<{ label: string; description: string; remainingState: string; tone: 'blocked'; }>;
+    nextSafeReviewItems: Array<{ label: string; description: string; nextOwner: string; tone: 'neutral' | 'warning'; }>;
+    stillForbiddenItems: Array<{ label: string; description: string; tone: 'blocked'; }>;
+    finalNotice: string;
+  } | null;
 };
 
 type DraftBatchDetailResponse =
@@ -18618,6 +18632,156 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 <div>
                   <h5 className="text-sm font-medium text-rose-200">Execution Architecture Connection Blockers — 최종 안내</h5>
                   <p className="mt-1 text-xs leading-relaxed text-rose-200/80">{eacb127.finalNotice}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 128: Execution Architecture Pre-Connection Checklist ─ */}
+      {(() => {
+        const eapc128 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionArchitecturePreConnectionChecklistView;
+        if (!eapc128) return null;
+        const toneColor = (tone: 'neutral' | 'warning' | 'blocked') =>
+          tone === 'blocked' ? 'text-red-400' : tone === 'warning' ? 'text-pink-300' : 'text-slate-300';
+        return (
+          <div className="mb-6 rounded-lg border border-pink-900/40 bg-[#170c14] p-4">
+            <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-white">
+              <ShieldAlert className="h-5 w-5 text-pink-300" />
+              {eapc128.title}
+            </h2>
+            <div className="mb-3 flex items-center gap-2">
+              <span className="rounded-full border border-pink-700/50 bg-pink-950/40 px-2 py-0.5 text-xs text-pink-200">
+                {eapc128.statusLabel}
+              </span>
+            </div>
+            <p className="mb-4 text-xs leading-relaxed text-pink-200/70">{eapc128.summary}</p>
+            <div className="mb-2 text-xs text-slate-500">{eapc128.taskRangeLabel}</div>
+            <div className="mb-1 text-xs text-slate-600">기준: {eapc128.previousExecutionArchitectureConnectionBlockersLabel} ({eapc128.previousExecutionArchitectureConnectionBlockersCommit})</div>
+            <div className="mt-4 space-y-4">
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-pink-300">실제 연결 전 체크리스트 요약</h4>
+                <div className="space-y-2">
+                  {eapc128.preConnectionChecklistSummaryItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-pink-900/30 bg-pink-950/10 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-pink-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.checklistState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-pink-300">실제 연결 전 체크리스트</h4>
+                <div className="space-y-2">
+                  {eapc128.preConnectionChecklistItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-pink-900/30 bg-pink-950/10 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-pink-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.checklistMeaning}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">필수 승인 확인</h4>
+                <div className="space-y-2">
+                  {eapc128.approvalRequiredChecklistItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
+                      <div className="text-xs font-medium text-red-400">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-pink-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.approvalState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-pink-300">경계 확인 항목</h4>
+                <div className="space-y-2">
+                  {eapc128.boundaryRequiredChecklistItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-pink-900/30 bg-pink-950/10 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-pink-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.boundaryState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-pink-300">실제 연결 전 내부 확인</h4>
+                <div className="space-y-2">
+                  {eapc128.internalCheckBeforeAnyConnectionItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-pink-900/30 bg-pink-950/10 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-pink-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.requiredCheck}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 차단된 전환</h4>
+                <div className="space-y-2">
+                  {eapc128.transitionStillBlockedItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
+                      <div className="text-xs font-medium text-red-400">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-pink-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.blockedState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">유지 중인 체크리스트 상태</h4>
+                <div className="space-y-2">
+                  {eapc128.remainingChecklistStateItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
+                      <div className="text-xs font-medium text-red-400">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-pink-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.remainingState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">다음 내부 검토</h4>
+                <div className="space-y-2">
+                  {eapc128.nextSafeReviewItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-slate-700/30 bg-slate-900/20 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-slate-400/70">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.nextOwner}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 금지됨</h4>
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  {eapc128.stillForbiddenItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
+                      <div className="text-xs font-medium text-red-400">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-pink-200/60">{item.description}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3 rounded-md border border-pink-700/40 bg-pink-950/20 p-4">
+                <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-pink-300" />
+                <div>
+                  <h5 className="text-sm font-medium text-pink-200">Execution Architecture Pre-Connection Checklist — 최종 안내</h5>
+                  <p className="mt-1 text-xs leading-relaxed text-pink-200/80">{eapc128.finalNotice}</p>
                 </div>
               </div>
             </div>
