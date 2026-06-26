@@ -3659,6 +3659,19 @@ type DraftBatchJob = {
     stillForbiddenItems: Array<{ label: string; description: string; tone: 'blocked'; }>;
     finalNotice: string;
   } | null;
+  tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessSnapshotView?: {
+    title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
+    taskRangeLabel: string; previousExecutionArchitectureApprovalSubmissionHoldSealLabel: string; previousExecutionArchitectureApprovalSubmissionHoldSealCommit: string;
+    executionReadinessSnapshotSummaryItems: Array<{ label: string; description: string; snapshotState: string; tone: 'neutral' | 'warning' | 'blocked'; }>;
+    inactiveExecutionComponentItems: Array<{ label: string; description: string; inactiveState: string; tone: 'warning' | 'blocked'; }>;
+    approvalPendingComponentItems: Array<{ label: string; description: string; pendingState: string; tone: 'warning' | 'blocked'; }>;
+    blockedExecutionComponentItems: Array<{ label: string; description: string; blockedState: string; tone: 'blocked'; }>;
+    workerQueueReferenceReadinessItems: Array<{ label: string; description: string; referenceValue: string; tone: 'neutral' | 'warning' | 'blocked'; }>;
+    executionReadinessSnapshotBoundaryItems: Array<{ label: string; description: string; boundaryState: string; tone: 'warning' | 'blocked'; }>;
+    nextSafeReviewItems: Array<{ label: string; description: string; nextOwner: string; tone: 'neutral' | 'warning'; }>;
+    stillForbiddenItems: Array<{ label: string; description: string; tone: 'blocked'; }>;
+    finalNotice: string;
+  } | null;
 };
 
 type DraftBatchDetailResponse =
@@ -19602,6 +19615,143 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 <div>
                   <h5 className="text-sm font-medium text-blue-200">Execution Architecture Approval Submission Hold Seal — 최종 안내</h5>
                   <p className="mt-1 text-xs leading-relaxed text-blue-200/80">{eaashs133.finalNotice}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 134: Execution Readiness Snapshot ─ */}
+      {(() => {
+        const ers134 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessSnapshotView;
+        if (!ers134) return null;
+        const toneColor = (tone: 'neutral' | 'warning' | 'blocked') =>
+          tone === 'blocked' ? 'text-red-400' : tone === 'warning' ? 'text-emerald-300' : 'text-slate-300';
+        return (
+          <div className="mb-6 rounded-lg border border-emerald-900/40 bg-[#081411] p-4">
+            <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-white">
+              <ShieldAlert className="h-5 w-5 text-emerald-300" />
+              {ers134.title}
+            </h2>
+            <div className="mb-3 flex items-center gap-2">
+              <span className="rounded-full border border-emerald-700/50 bg-emerald-950/40 px-2 py-0.5 text-xs text-emerald-200">
+                {ers134.statusLabel}
+              </span>
+            </div>
+            <p className="mb-4 text-xs leading-relaxed text-emerald-200/70">{ers134.summary}</p>
+            <div className="mb-2 text-xs text-slate-500">{ers134.taskRangeLabel}</div>
+            <div className="mb-1 text-xs text-slate-600">기준: {ers134.previousExecutionArchitectureApprovalSubmissionHoldSealLabel} ({ers134.previousExecutionArchitectureApprovalSubmissionHoldSealCommit})</div>
+            <div className="mt-4 space-y-4">
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-emerald-300">실행 준비 상태 스냅샷 요약</h4>
+                <div className="space-y-2">
+                  {ers134.executionReadinessSnapshotSummaryItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-emerald-900/30 bg-emerald-950/10 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-emerald-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.snapshotState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-emerald-300">비활성 실행 구성 요소</h4>
+                <div className="space-y-2">
+                  {ers134.inactiveExecutionComponentItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-emerald-900/30 bg-emerald-950/10 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-emerald-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.inactiveState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-300">승인 대기 구성 요소</h4>
+                <div className="space-y-2">
+                  {ers134.approvalPendingComponentItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-amber-900/40 bg-amber-950/20 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-emerald-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.pendingState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">차단 중인 실행 구성 요소</h4>
+                <div className="space-y-2">
+                  {ers134.blockedExecutionComponentItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
+                      <div className="text-xs font-medium text-red-400">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-emerald-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.blockedState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-emerald-300">Worker / Queue 참조용 준비 메타데이터</h4>
+                <div className="space-y-2">
+                  {ers134.workerQueueReferenceReadinessItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-emerald-900/30 bg-emerald-950/10 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-emerald-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.referenceValue}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-emerald-300">스냅샷 경계 상태</h4>
+                <div className="space-y-2">
+                  {ers134.executionReadinessSnapshotBoundaryItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-emerald-900/30 bg-emerald-950/10 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-emerald-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.boundaryState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">다음 내부 검토</h4>
+                <div className="space-y-2">
+                  {ers134.nextSafeReviewItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-slate-700/30 bg-slate-900/20 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-slate-400/70">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.nextOwner}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 금지됨</h4>
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  {ers134.stillForbiddenItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
+                      <div className="text-xs font-medium text-red-400">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-emerald-200/60">{item.description}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3 rounded-md border border-emerald-700/40 bg-emerald-950/20 p-4">
+                <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-emerald-300" />
+                <div>
+                  <h5 className="text-sm font-medium text-emerald-200">Execution Readiness Snapshot — 최종 안내</h5>
+                  <p className="mt-1 text-xs leading-relaxed text-emerald-200/80">{ers134.finalNotice}</p>
                 </div>
               </div>
             </div>
