@@ -3725,6 +3725,19 @@ type DraftBatchJob = {
     stillForbiddenItems: Array<{ label: string; description: string; tone: 'blocked'; }>;
     finalNotice: string;
   } | null;
+  tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessQueuePayloadPreviewView?: {
+    title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
+    taskRangeLabel: string; previousExecutionReadinessWorkerContractLabel: string; previousExecutionReadinessWorkerContractCommit: string;
+    queuePayloadPreviewItems: Array<{ label: string; description: string; payloadValue: string; tone: 'neutral' | 'warning' | 'blocked'; }>;
+    workerContractReferenceItems: Array<{ label: string; description: string; contractValue: string; tone: 'neutral' | 'warning' | 'blocked'; }>;
+    executionBlockerItems: Array<{ label: string; description: string; blockedState: string; tone: 'blocked'; }>;
+    approvalPendingItems: Array<{ label: string; description: string; pendingState: string; tone: 'warning' | 'blocked'; }>;
+    snapshotSummaryItems: Array<{ label: string; description: string; snapshotState: string; tone: 'neutral' | 'warning' | 'blocked'; }>;
+    planPreviewSummaryItems: Array<{ label: string; description: string; planState: string; tone: 'neutral' | 'warning' | 'blocked'; }>;
+    riskReviewSummaryItems: Array<{ label: string; description: string; riskState: string; tone: 'warning' | 'blocked'; }>;
+    stillForbiddenItems: Array<{ label: string; description: string; tone: 'blocked'; }>;
+    finalNotice: string;
+  } | null;
 };
 
 type DraftBatchDetailResponse =
@@ -20366,6 +20379,143 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 <div>
                   <h5 className="text-sm font-medium text-cyan-200">Execution Readiness Worker Contract — 최종 안내</h5>
                   <p className="mt-1 text-xs leading-relaxed text-cyan-200/80">{erwc138.finalNotice}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 139: Execution Readiness Queue Payload Preview ─ */}
+      {(() => {
+        const erqpp139 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessQueuePayloadPreviewView;
+        if (!erqpp139) return null;
+        const toneColor = (tone: 'neutral' | 'warning' | 'blocked') =>
+          tone === 'blocked' ? 'text-red-400' : tone === 'warning' ? 'text-sky-300' : 'text-slate-300';
+        return (
+          <div className="mb-6 rounded-lg border border-sky-900/40 bg-[#061019] p-4">
+            <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-white">
+              <ShieldAlert className="h-5 w-5 text-sky-300" />
+              {erqpp139.title}
+            </h2>
+            <div className="mb-3 flex items-center gap-2">
+              <span className="rounded-full border border-sky-700/50 bg-sky-950/40 px-2 py-0.5 text-xs text-sky-200">
+                {erqpp139.statusLabel}
+              </span>
+            </div>
+            <p className="mb-4 text-xs leading-relaxed text-sky-200/70">{erqpp139.summary}</p>
+            <div className="mb-2 text-xs text-slate-500">{erqpp139.taskRangeLabel}</div>
+            <div className="mb-1 text-xs text-slate-600">기준: {erqpp139.previousExecutionReadinessWorkerContractLabel} ({erqpp139.previousExecutionReadinessWorkerContractCommit})</div>
+            <div className="mt-4 space-y-4">
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-sky-300">Queue에 전달될 예정인 실행 준비 정보</h4>
+                <div className="space-y-2">
+                  {erqpp139.queuePayloadPreviewItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-sky-900/30 bg-sky-950/10 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-sky-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.payloadValue}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-sky-300">Worker Contract 참조 요약</h4>
+                <div className="space-y-2">
+                  {erqpp139.workerContractReferenceItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-sky-900/30 bg-sky-950/10 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-sky-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.contractValue}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">실행 차단 상태</h4>
+                <div className="space-y-2">
+                  {erqpp139.executionBlockerItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
+                      <div className="text-xs font-medium text-red-400">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-sky-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.blockedState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-300">승인 대기 상태</h4>
+                <div className="space-y-2">
+                  {erqpp139.approvalPendingItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-amber-900/40 bg-amber-950/20 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-sky-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.pendingState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-sky-300">Snapshot 요약</h4>
+                <div className="space-y-2">
+                  {erqpp139.snapshotSummaryItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-sky-900/30 bg-sky-950/10 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-sky-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.snapshotState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-sky-300">Plan Preview 요약</h4>
+                <div className="space-y-2">
+                  {erqpp139.planPreviewSummaryItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-sky-900/30 bg-sky-950/10 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-sky-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.planState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-sky-300">Risk Review 요약</h4>
+                <div className="space-y-2">
+                  {erqpp139.riskReviewSummaryItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-sky-900/30 bg-sky-950/10 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-sky-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.riskState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 금지됨</h4>
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  {erqpp139.stillForbiddenItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
+                      <div className="text-xs font-medium text-red-400">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-sky-200/60">{item.description}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3 rounded-md border border-sky-700/40 bg-sky-950/20 p-4">
+                <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-sky-300" />
+                <div>
+                  <h5 className="text-sm font-medium text-sky-200">Execution Readiness Queue Payload Preview — 최종 안내</h5>
+                  <p className="mt-1 text-xs leading-relaxed text-sky-200/80">{erqpp139.finalNotice}</p>
                 </div>
               </div>
             </div>
