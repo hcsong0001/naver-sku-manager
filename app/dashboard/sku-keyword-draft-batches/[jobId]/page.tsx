@@ -25,6 +25,7 @@ import {
   ListChecks,
   Circle,
   Users,
+  Search,
 } from 'lucide-react';
 import type {
   SkuKeywordDraftBatchApproveRequest,
@@ -430,7 +431,7 @@ type NaverAuthTokenTestOnlySkeleton = {
   maxAllowedState: 'NAVER_AUTH_TOKEN_TEST_ONLY_PROVIDER_REGISTERED_BUT_DISABLED';
 };
 
-// Token Test Approval Audit 기록 ?�??
+// Token Test Approval Audit 기록 타입
 type NaverAuthTokenTestApprovalAuditRecord = {
   hasAudit: true;
   auditCode: string;
@@ -3782,6 +3783,7 @@ type DraftBatchJob = {
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionConnectionReadinessAssessmentView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionConnectionRiskAssessmentView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionConnectionRiskContainmentCertificationView?: any;
+  tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionConnectionNonExecutionAuditEvidenceView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -3834,9 +3836,9 @@ type FinalApprovalsListResponse =
 
 const ALLOWED_TARGET_TYPES = new Set(['SINGLE', 'OPTION', 'ADDITIONAL']);
 const WARNING_LABELS: Record<string, string> = {
-  CHANNEL_ID_UNAVAILABLE: '채널 ID ?�보 ?�음',
-  UPLOAD_OPTION_CURRENT_CONTEXT_PREVIEW: '?�로??Preview 기�? ?�재�??�용',
-  CURRENT_CONTEXT_STALE: '?�재 문맥???�래?�었?????�음',
+  CHANNEL_ID_UNAVAILABLE: '채널 ID 정보 없음',
+  UPLOAD_OPTION_CURRENT_CONTEXT_PREVIEW: '업로드 Preview 기준 현재값 사용',
+  CURRENT_CONTEXT_STALE: '현재 문맥이 오래되었을 수 있음',
 };
 
 function asRecord(value: unknown): Record<string, unknown> | null {
@@ -3924,40 +3926,40 @@ function detectVisibleWarningCodes(job: DraftBatchJob | null): string[] {
 }
 
 function getVisibleHardBlockers(job: DraftBatchJob | null): string[] {
-  if (!job) return ['Batch ?�보�??�직 불러?��? 못했?�니??'];
+  if (!job) return ['Batch 정보를 아직 불러오지 못했습니다.'];
 
   const blockers: string[] = [];
 
   if (job.status !== 'DRAFT') {
-    blockers.push(`?�재 Job ?�태가 DRAFT가 ?�닙?�다. (${job.status})`);
+    blockers.push(`현재 Job 상태가 DRAFT가 아닙니다. (${job.status})`);
   }
 
   if (job.itemCount <= 0 || job.items.length === 0) {
-    blockers.push('?�인??item???�습?�다.');
+    blockers.push('승인할 item이 없습니다.');
   }
 
   for (const item of job.items) {
     if (item.status !== 'DRAFT') {
-      blockers.push(`Item ${item.id} ?�태가 DRAFT가 ?�닙?�다. (${item.status})`);
+      blockers.push(`Item ${item.id} 상태가 DRAFT가 아닙니다. (${item.status})`);
     }
 
     if (!item.targetType || !ALLOWED_TARGET_TYPES.has(item.targetType)) {
-      blockers.push(`Item ${item.id}??targetType???�효?��? ?�습?�다.`);
+      blockers.push(`Item ${item.id}의 targetType이 유효하지 않습니다.`);
     }
 
     if (!item.targetId) {
-      blockers.push(`Item ${item.id}??targetId가 비어 ?�습?�다.`);
+      blockers.push(`Item ${item.id}의 targetId가 비어 있습니다.`);
     }
 
     if (!item.dryRunSummary) {
-      blockers.push(`Item ${item.id}??dry-run ?�약???�습?�다.`);
+      blockers.push(`Item ${item.id}의 dry-run 요약이 없습니다.`);
     } else {
       if ((item.dryRunSummary.blockedReasons?.length ?? 0) > 0) {
-        blockers.push(`Item ${item.id}??dry-run 차단 ?�유가 ?�아 ?�습?�다.`);
+        blockers.push(`Item ${item.id}에 dry-run 차단 사유가 남아 있습니다.`);
       }
 
       if (item.dryRunSummary.riskLevel === 'HIGH') {
-        blockers.push(`Item ${item.id}???�험?��? HIGH?�니??`);
+        blockers.push(`Item ${item.id}의 위험도가 HIGH입니다.`);
       }
 
       const before = item.dryRunSummary.before;
@@ -3967,32 +3969,32 @@ function getVisibleHardBlockers(job: DraftBatchJob | null): string[] {
       const hasStock = before?.stock !== null && before?.stock !== undefined
         && after?.stock !== null && after?.stock !== undefined;
       if (!hasPrice && !hasStock) {
-        blockers.push(`Item ${item.id}??before/after 비교값이 부족합?�다.`);
+        blockers.push(`Item ${item.id}의 before/after 비교값이 부족합니다.`);
       }
     }
 
     const requestPayload = asRecord(item.requestPayload);
     const candidate = asRecord(requestPayload?.candidate);
     if (!candidate) {
-      blockers.push(`Item ${item.id}??requestPayload.candidate가 ?�습?�다.`);
+      blockers.push(`Item ${item.id}의 requestPayload.candidate가 없습니다.`);
       continue;
     }
 
     if (asString(candidate.status) === 'NEEDS_CONTEXT') {
-      blockers.push(`Item ${item.id}가 NEEDS_CONTEXT ?�태?�니??`);
+      blockers.push(`Item ${item.id}가 NEEDS_CONTEXT 상태입니다.`);
     }
 
     const riskTypes = asStringArray(candidate.riskTypes);
     if (riskTypes.includes('CURRENT_PRICE_UNAVAILABLE')) {
-      blockers.push(`Item ${item.id}??CURRENT_PRICE_UNAVAILABLE???�아 ?�습?�다.`);
+      blockers.push(`Item ${item.id}에 CURRENT_PRICE_UNAVAILABLE이 남아 있습니다.`);
     }
     if (riskTypes.includes('CURRENT_STOCK_UNAVAILABLE')) {
-      blockers.push(`Item ${item.id}??CURRENT_STOCK_UNAVAILABLE???�아 ?�습?�다.`);
+      blockers.push(`Item ${item.id}에 CURRENT_STOCK_UNAVAILABLE이 남아 있습니다.`);
     }
 
     const reviewMessage = asString(candidate.reviewMessage) ?? '';
     if (reviewMessage.includes('매칭: optionValue')) {
-      blockers.push(`Item ${item.id}??optionValue fallback 매칭 ?�보?�니??`);
+      blockers.push(`Item ${item.id}는 optionValue fallback 매칭 후보입니다.`);
     }
   }
 
@@ -4059,7 +4061,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
       const data = (await response.json()) as DraftBatchDetailResponse;
 
       if (!response.ok || !data.ok) {
-        throw new Error(data.ok ? 'Batch ?�세 조회???�패?�습?�다.' : data.error || 'Batch ?�세 조회???�패?�습?�다.');
+        throw new Error(data.ok ? 'Batch 상세 조회에 실패했습니다.' : data.error || 'Batch 상세 조회에 실패했습니다.');
       }
 
       setJob(data.job);
@@ -4079,7 +4081,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         const data = (await response.json()) as DraftBatchDetailResponse;
 
         if (!response.ok || !data.ok) {
-          throw new Error(data.ok ? 'Batch ?�세 조회???�패?�습?�다.' : data.error || 'Batch ?�세 조회???�패?�습?�다.');
+          throw new Error(data.ok ? 'Batch 상세 조회에 실패했습니다.' : data.error || 'Batch 상세 조회에 실패했습니다.');
         }
 
         if (!cancelled) {
@@ -4104,7 +4106,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         const data = (await response.json()) as FinalApprovalsListResponse;
 
         if (!response.ok || !data.ok) {
-          throw new Error('error' in data && data.error ? data.error : 'FinalApproval 조회???�패?�습?�다.');
+          throw new Error('error' in data && data.error ? data.error : 'FinalApproval 조회에 실패했습니다.');
         }
 
         if (!cancelled) {
@@ -4181,7 +4183,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
       const data = (await response.json()) as SaveAuditResponse;
       if (!response.ok || !data.ok) {
         throw new Error(
-          !data.ok && data.error ? data.error : '?�인 기록 ?�?�에 ?�패?�습?�다.'
+          !data.ok && data.error ? data.error : '승인 기록 저장에 실패했습니다.'
         );
       }
 
@@ -4199,7 +4201,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
     }
   };
 
-  // Token Test Approval Audit ?�수 ??�� 목록
+  // Token Test Approval Audit 필수 항목 목록
   const TOKEN_TEST_APPROVAL_REQUIRED_ACKNOWLEDGEMENTS = [
     'CONFIRM_TOKEN_TEST_ONLY',
     'CONFIRM_NO_PRODUCT_UPDATE',
@@ -4217,29 +4219,29 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
 
   const TOKEN_TEST_APPROVAL_LABELS: Record<string, string> = {
     CONFIRM_TOKEN_TEST_ONLY:
-      '???�업?� token 발급 ?�스??기록만을 목적?�로 ?�니?? ?�제 token 발급?� ???�계?�서 ?�행?��? ?�습?�다.',
+      '이 작업은 token 발급 테스트 기록만을 목적으로 합니다. 실제 token 발급은 이 단계에서 실행되지 않습니다.',
     CONFIRM_NO_PRODUCT_UPDATE:
-      '???�업?� ?�품 ?�정 API?� ?�결?��? ?�습?�다. ?�마?�스?�어 ?�품/가�??�워?�는 변경되지 ?�습?�다.',
+      '이 작업은 상품 수정 API와 연결되지 않습니다. 스마트스토어 상품/가격/키워드는 변경되지 않습니다.',
     CONFIRM_NO_ENDPOINT_CALL_IN_THIS_STEP:
-      '???�계?�서 Naver API endpoint ?�출??발생?��? ?�습?�다.',
+      '이 단계에서 Naver API endpoint 호출이 발생하지 않습니다.',
     CONFIRM_NO_TOKEN_ISSUANCE_IN_THIS_STEP:
-      '???�계?�서 access token ?�는 refresh token??발급?��? ?�습?�다.',
+      '이 단계에서 access token 또는 refresh token이 발급되지 않습니다.',
     CONFIRM_TOKEN_WILL_NOT_BE_STORED:
-      '발급??token?� ?�?�되지 ?�습?�다. (???�계?�서??token??발급?��? ?�으므�??�?�도 ?�습?�다.)',
+      '발급된 token은 저장되지 않습니다. (이 단계에서는 token이 발급되지 않으므로 저장도 없습니다.)',
     CONFIRM_TOKEN_WILL_NOT_BE_DISPLAYED:
-      'access token, refresh token, client secret?� UI/로그???�시?��? ?�습?�다.',
+      'access token, refresh token, client secret은 UI/로그에 표시되지 않습니다.',
     CONFIRM_NO_AUTHORIZATION_HEADER_CREATED:
-      'Authorization header가 ?�성?��? ?�습?�다.',
+      'Authorization header가 생성되지 않습니다.',
     CONFIRM_NO_QUEUE_OR_WORKER:
-      'Queue enqueue ?�는 Worker ?�출???�습?�다.',
+      'Queue enqueue 또는 Worker 호출이 없습니다.',
     CONFIRM_NO_AUTOMATIC_RETRY:
-      '?�패 ???�동 ?�시?��? ?�습?�다.',
+      '실패 시 자동 재시도가 없습니다.',
     CONFIRM_SUCCESS_DOES_NOT_ENABLE_LIVE_EXECUTION:
-      '???�인 기록 ?�???�공??Live ?�행???�성?�하지 ?�습?�다.',
+      '이 승인 기록 저장 성공이 Live 실행을 활성화하지 않습니다.',
     CONFIRM_SEPARATE_APPROVAL_REQUIRED_FOR_REAL_TOKEN_TEST:
-      '?�제 token 발급 ?�스?��? ?�행?�려�?별도??추�? ?�용???�인???�요?�니??',
+      '실제 token 발급 테스트를 실행하려면 별도의 추가 사용자 승인이 필요합니다.',
     CONFIRM_SEPARATE_APPROVAL_REQUIRED_FOR_PRODUCT_UPDATE:
-      '?�품 ?�정 API ?�출???�해?�는 별도??추�? ?�용???�인???�요?�니??',
+      '상품 수정 API 호출을 위해서는 별도의 추가 사용자 승인이 필요합니다.',
   };
 
   const handleToggleTokenTestApprovalItem = (ack: string) => {
@@ -4252,7 +4254,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
     if (!job || tokenTestApprovalSaving) return;
     const currentActiveFinalApproval = finalApprovals?.find(a => a.status === 'ACTIVE') ?? null;
     if (!currentActiveFinalApproval) {
-      setTokenTestApprovalSaveError('ACTIVE ?�태??Final Approval???�습?�다.');
+      setTokenTestApprovalSaveError('ACTIVE 상태의 Final Approval이 없습니다.');
       return;
     }
 
@@ -4288,7 +4290,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
       const data = (await response.json()) as TokenTestApprovalResponse;
       if (!response.ok || !data.ok) {
         throw new Error(
-          !data.ok && data.error ? data.error : '?�인 기록 ?�?�에 ?�패?�습?�다.'
+          !data.ok && data.error ? data.error : '승인 기록 저장에 실패했습니다.'
         );
       }
 
@@ -4318,30 +4320,30 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
   const TERMINAL_JOB_STATUSES_UI = ['EXECUTED', 'PARTIAL_SUCCESS', 'FAILED', 'CANCELLED'];
   const finalApprovalBlockingReasons: string[] = [];
   if (!job) {
-    finalApprovalBlockingReasons.push("Batch ?�보�?불러?�는 중입?�다.");
+    finalApprovalBlockingReasons.push("Batch 정보를 불러오는 중입니다.");
   } else if (TERMINAL_JOB_STATUSES_UI.includes(job.status)) {
     finalApprovalBlockingReasons.push(
-      `?��? ?�행 기록???�는 BatchJob?�니??(?�태: ${job.status}). ?�전???�해 ?�실?��? 별도 ?�인 ?�름?�서�?가?�합?�다.`
+      `이미 실행 기록이 있는 BatchJob입니다 (상태: ${job.status}). 안전을 위해 재실행은 별도 승인 흐름에서만 가능합니다.`
     );
   } else if (job.status === 'EXECUTING') {
-    finalApprovalBlockingReasons.push("BatchJob???�재 ?�행 중입?�다. ?�시 ?�행?� ?�용?��? ?�습?�다.");
+    finalApprovalBlockingReasons.push("BatchJob이 현재 실행 중입니다. 동시 실행은 허용되지 않습니다.");
   } else if (job.status !== 'APPROVED') {
-    finalApprovalBlockingReasons.push("Batch ?�태가 APPROVED가 ?�닙?�다.");
+    finalApprovalBlockingReasons.push("Batch 상태가 APPROVED가 아닙니다.");
   }
   const allItemsReady = job?.items.every(item => item.status === 'READY') ?? false;
   const isTerminalJobStatus = job ? TERMINAL_JOB_STATUSES_UI.includes(job.status) || job.status === 'EXECUTING' : false;
   if (job && !allItemsReady && !isTerminalJobStatus) {
-    finalApprovalBlockingReasons.push("READY가 ?�닌 Item???�습?�다.");
+    finalApprovalBlockingReasons.push("READY가 아닌 Item이 있습니다.");
   }
   if (finalApprovalsLoading) {
-    finalApprovalBlockingReasons.push("FinalApproval 조회 중입?�다.");
+    finalApprovalBlockingReasons.push("FinalApproval 조회 중입니다.");
   }
   if (finalApprovalsError) {
-    finalApprovalBlockingReasons.push("FinalApproval 조회???�패?�습?�다.");
+    finalApprovalBlockingReasons.push("FinalApproval 조회에 실패했습니다.");
   }
   const activeFinalApproval = finalApprovals?.find(a => a.status === 'ACTIVE');
   if (activeFinalApproval) {
-    finalApprovalBlockingReasons.push("?��? ACTIVE 최종 ?�인 Artifact가 ?�습?�다.");
+    finalApprovalBlockingReasons.push("이미 ACTIVE 최종 승인 Artifact가 있습니다.");
   }
   const canCreateFinalApproval = finalApprovalBlockingReasons.length === 0;
 
@@ -4369,7 +4371,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         if ('blockedReasons' in data && Array.isArray(data.blockedReasons) && data.blockedReasons.length > 0) {
           throw new Error(data.blockedReasons.join(' / '));
         }
-        throw new Error('error' in data ? data.error || '?�인 처리???�패?�습?�다.' : '?�인 처리???�패?�습?�다.');
+        throw new Error('error' in data ? data.error || '승인 처리에 실패했습니다.' : '승인 처리에 실패했습니다.');
       }
 
       setApproveResult(data);
@@ -4410,15 +4412,15 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         if ('message' in data && typeof data.message === 'string') {
           throw new Error(data.message);
         }
-        throw new Error(`최종 ?�인 ?�성???�패?�습?�다. (${response.status})`);
+        throw new Error(`최종 승인 생성에 실패했습니다. (${response.status})`);
       }
 
       setFinalApprovalCreateSuccess(
-        'FinalApproval artifact가 ?�성?�었?�니?? ???�업?� ?�이�?API ?�출?�나 ?�행 ?�환???�행?��? ?�았?�니??'
+        'FinalApproval artifact가 생성되었습니다. 이 작업은 네이버 API 호출이나 실행 전환을 수행하지 않았습니다.'
       );
       setIsFinalApprovalModalOpen(false);
 
-      // ?�공 ??최종 ?�인 목록 ?�조??
+      // 성공 후 최종 승인 목록 재조회
       setFinalApprovalsLoading(true);
       const listResponse = await fetch(`/api/sku-matching/draft-batch/${job.id}/final-approvals`);
       const listData = await listResponse.json();
@@ -4437,7 +4439,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
     return (
       <div className="flex items-center gap-2 p-6 text-gray-400">
         <Loader2 className="h-4 w-4 animate-spin" />
-        <span>Batch ?�세�?불러?�는 중입?�다...</span>
+        <span>Batch 상세를 불러오는 중입니다...</span>
       </div>
     );
   }
@@ -4447,13 +4449,13 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
       <div className="p-6">
         <div className="flex items-start gap-3 rounded-lg border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-400">
           <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" />
-          <div>{error || 'Batch�?찾을 ???�습?�다.'}</div>
+          <div>{error || 'Batch를 찾을 수 없습니다.'}</div>
         </div>
         <Link
           href="/dashboard/sku-keyword-draft-batches"
           className="mt-4 inline-flex items-center text-sm text-indigo-400 hover:text-indigo-300"
         >
-          <ArrowLeft className="mr-1 h-4 w-4" /> 목록?�로 ?�아가�?
+          <ArrowLeft className="mr-1 h-4 w-4" /> 목록으로 돌아가기
         </Link>
       </div>
     );
@@ -4468,41 +4470,41 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         >
           <ArrowLeft className="mr-1 h-4 w-4" /> DRAFT Batch 목록
         </Link>
-        <h1 className="text-2xl font-bold tracking-tight text-white">Batch ?�세 검??/h1>
+        <h1 className="text-2xl font-bold tracking-tight text-white">Batch 상세 검토</h1>
         {job.status === 'DRAFT' ? (
           <div className="mt-2 rounded-md border border-amber-500/20 bg-amber-500/10 p-3 text-sm text-amber-200">
             <AlertTriangle className="mr-2 inline-block h-4 w-4" />
-            ???�면?�서??DRAFT Batch�?APPROVED ?�태로만 ?�환?????�습?�다. ?�이�?API ?�출?�나 ?�마?�스?�어 가�??�고 변경�? ?�행?��? ?�습?�다.
+            이 화면에서는 DRAFT Batch를 APPROVED 상태로만 전환할 수 있습니다. 네이버 API 호출이나 스마트스토어 가격/재고 변경은 수행하지 않습니다.
           </div>
         ) : job.status === 'APPROVED' ? (
           <div className="mt-2 rounded-md border border-emerald-500/20 bg-emerald-500/10 p-3 text-sm text-emerald-200">
             <CheckCircle2 className="mr-2 inline-block h-4 w-4" />
-            ??Batch??APPROVED ?�태?�니?? �?item?� READY ?�태�??�인?�었?�니?? ?�직 ?�이�?API ?�출?�나 ?�마?�스?�어 가�??�고 변경�? ?�행?��? ?�았?�니?? ?�제 ?�행 기능?� 별도 ?�계?�서�?구현?�니??
+            이 Batch는 APPROVED 상태입니다. 각 item은 READY 상태로 승인되었습니다. 아직 네이버 API 호출이나 스마트스토어 가격/재고 변경은 수행되지 않았습니다. 실제 실행 기능은 별도 단계에서만 구현됩니다.
           </div>
         ) : job.status === 'EXECUTED' ? (
           <div className="mt-2 rounded-md border border-emerald-500/20 bg-emerald-500/10 p-3 text-sm text-emerald-200">
             <CheckCircle2 className="mr-2 inline-block h-4 w-4" />
-            ??Batch??<strong className="text-white">EXECUTED</strong> ?�태?�니?? Worker ?�행???�료?�습?�다. ?�제 Naver API???�출?��? ?�았?�니??
+            이 Batch는 <strong className="text-white">EXECUTED</strong> 상태입니다. Worker 실행이 완료됐습니다. 실제 Naver API는 호출되지 않았습니다.
           </div>
         ) : job.status === 'PARTIAL_SUCCESS' ? (
           <div className="mt-2 rounded-md border border-orange-500/20 bg-orange-500/10 p-3 text-sm text-orange-200">
             <AlertTriangle className="mr-2 inline-block h-4 w-4" />
-            ??Batch??<strong className="text-white">PARTIAL_SUCCESS</strong> ?�태?�니?? ?��? ??���??�공?�습?�다. ?�단 ?�행 결과�??�인?�세??
+            이 Batch는 <strong className="text-white">PARTIAL_SUCCESS</strong> 상태입니다. 일부 항목만 성공했습니다. 하단 실행 결과를 확인하세요.
           </div>
         ) : job.status === 'FAILED' ? (
           <div className="mt-2 rounded-md border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-200">
             <AlertTriangle className="mr-2 inline-block h-4 w-4" />
-            ??Batch??<strong className="text-white">FAILED</strong> ?�태?�니?? ?�단 ?�행 결과�??�인?�세??
+            이 Batch는 <strong className="text-white">FAILED</strong> 상태입니다. 하단 실행 결과를 확인하세요.
           </div>
         ) : job.status === 'EXECUTING' ? (
           <div className="mt-2 rounded-md border border-amber-500/20 bg-amber-500/10 p-3 text-sm text-amber-200">
             <Loader2 className="mr-2 inline-block h-4 w-4 animate-spin" />
-            ??Batch??<strong className="text-white">EXECUTING</strong> ?�태?�니?? Worker가 ?�행 중입?�다.
+            이 Batch는 <strong className="text-white">EXECUTING</strong> 상태입니다. Worker가 실행 중입니다.
           </div>
         ) : (
           <div className="mt-2 rounded-md border border-emerald-500/20 bg-emerald-500/10 p-3 text-sm text-emerald-200">
             <CheckCircle2 className="mr-2 inline-block h-4 w-4" />
-            ??Batch???��? {job.status} ?�태?�니?? ???�면?�서???�행 버튼?�나 ?�이�?반영 버튼???�공?��? ?�습?�다.
+            이 Batch는 이미 {job.status} 상태입니다. 이 화면에서는 실행 버튼이나 네이버 반영 버튼을 제공하지 않습니다.
           </div>
         )}
       </div>
@@ -4513,17 +4515,17 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
           <p className="font-mono text-sm text-gray-300">{job.id}</p>
         </div>
         <div>
-          <p className="mb-1 text-xs text-gray-500">?�태</p>
+          <p className="mb-1 text-xs text-gray-500">상태</p>
           <span className={`rounded-full border px-2 py-0.5 text-xs font-semibold ${getStatusBadgeStyle(job.status)}`}>
             {job.status}
           </span>
         </div>
         <div>
-          <p className="mb-1 text-xs text-gray-500">??�� ??/p>
-          <p className="text-sm font-semibold text-white">{job.itemCount}�?/p>
+          <p className="mb-1 text-xs text-gray-500">항목 수</p>
+          <p className="text-sm font-semibold text-white">{job.itemCount}건</p>
         </div>
         <div>
-          <p className="mb-1 text-xs text-gray-500">?�성?�시</p>
+          <p className="mb-1 text-xs text-gray-500">생성일시</p>
           <p className="text-sm text-gray-400">{new Date(job.createdAt).toLocaleString()}</p>
         </div>
       </div>
@@ -4534,18 +4536,18 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-indigo-300" />
             <div className="space-y-3">
               <div>
-                <h2 className="text-base font-semibold text-white">?�인 ?�역</h2>
+                <h2 className="text-base font-semibold text-white">승인 영역</h2>
                 <p className="mt-1 text-sm text-gray-300">
-                  ???�업?� Batch�?<strong className="text-white">APPROVED</strong> ?�태로만 변경합?�다.
-                  �?item?� <strong className="text-white">READY</strong> ?�태�??�환?�니??
-                  ?�이�?API ?�출?�나 ?�마?�스?�어 가�??�고 변경�? ?�행?��? ?�습?�다.
-                  ?�제 ?�행?� 별도 ?�계?�서�?가?�합?�다.
+                  이 작업은 Batch를 <strong className="text-white">APPROVED</strong> 상태로만 변경합니다.
+                  각 item은 <strong className="text-white">READY</strong> 상태로 전환됩니다.
+                  네이버 API 호출이나 스마트스토어 가격/재고 변경은 수행하지 않습니다.
+                  실제 실행은 별도 단계에서만 가능합니다.
                 </p>
               </div>
 
               {visibleWarnings.length > 0 && (
                 <div className="rounded-md border border-amber-500/20 bg-amber-500/10 p-3 text-sm text-amber-100">
-                  <p className="font-semibold text-amber-300">?�인 ???�인??경고</p>
+                  <p className="font-semibold text-amber-300">승인 전 확인할 경고</p>
                   <ul className="mt-2 space-y-1">
                     {visibleWarnings.map((warningCode) => (
                       <li key={warningCode}>- {formatWarningCode(warningCode)}</li>
@@ -4556,7 +4558,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
 
               {hasVisibleHardBlockers && (
                 <div className="rounded-md border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-200">
-                  <p className="font-semibold text-red-300">?�면?�서 ?�인???�인 차단 ?�유</p>
+                  <p className="font-semibold text-red-300">화면에서 확인된 승인 차단 사유</p>
                   <ul className="mt-2 space-y-1">
                     {visibleHardBlockers.map((reason) => (
                       <li key={reason}>- {reason}</li>
@@ -4572,7 +4574,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                   onChange={(event) => setApproveChecked(event.target.checked)}
                   className="mt-0.5 h-4 w-4 rounded border-gray-500 bg-[#0f0f11] text-indigo-500"
                 />
-                <span>???�업?� ?�인 ?�태 ?�환�??�행?�며, ?�이�?API ?�출???�음???�인?�습?�다.</span>
+                <span>이 작업은 승인 상태 전환만 수행하며, 네이버 API 호출이 없음을 확인했습니다.</span>
               </label>
 
               <div className="flex flex-wrap items-center gap-3">
@@ -4585,14 +4587,14 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                   {approving ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      APPROVED ?�태�??�인 �?..
+                      APPROVED 상태로 승인 중...
                     </>
                   ) : (
-                    '검???�료 ???�인'
+                    '검토 완료 후 승인'
                   )}
                 </button>
                 <span className="text-xs text-gray-400">
-                  ?�인 ??DRAFT ?�용 목록?�서????Batch가 보이지 ?�을 ???�습?�다.
+                  승인 후 DRAFT 전용 목록에서는 이 Batch가 보이지 않을 수 있습니다.
                 </span>
               </div>
 
@@ -4604,14 +4606,14 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
 
               {approveResult?.ok && (
                 <div className="rounded-md border border-emerald-500/20 bg-emerald-500/10 p-3 text-sm text-emerald-100">
-                  <p className="font-semibold text-emerald-300">?�인 ?�료</p>
+                  <p className="font-semibold text-emerald-300">승인 완료</p>
                   <div className="mt-2 grid gap-2 sm:grid-cols-2">
                     <p>jobId: <span className="font-mono">{approveResult.jobId}</span></p>
                     <p>previousJobStatus: {approveResult.previousJobStatus}</p>
                     <p>nextJobStatus: {approveResult.nextJobStatus}</p>
                     <p>nextItemStatus: {approveResult.nextItemStatus}</p>
                     <p>itemCount: {approveResult.itemCount}</p>
-                    <p>?�이�?API ?�출 ?�음</p>
+                    <p>네이버 API 호출 없음</p>
                   </div>
                 </div>
               )}
@@ -4620,54 +4622,54 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         </div>
       )}
 
-      {/* FinalApproval ?�약 ?�시 ?�역 */}
+      {/* FinalApproval 요약 표시 영역 */}
       <div className="mb-6 rounded-lg border border-[#262629] bg-[#121214] p-4">
         <h2 className="mb-4 flex items-center gap-2 text-base font-semibold text-white">
           <FileJson className="h-5 w-5 text-indigo-400" />
-          최종 ?�인 Artifact
+          최종 승인 Artifact
         </h2>
 
         <div className="mb-4 rounded-md border border-blue-500/20 bg-blue-500/10 p-3 text-xs text-blue-200">
-          <p className="mb-1 font-semibold text-blue-300">?�행 모드 ?�내</p>
+          <p className="mb-1 font-semibold text-blue-300">실행 모드 안내</p>
           <ul className="space-y-0.5">
-            <li>?�재 ?�행?� Mock 모드?�니??</li>
-            <li>?�제 Naver API???�출?��? ?�습?�다.</li>
-            <li>가�??�고/?�품 ?�보???�제�?변경되지 ?�습?�다.</li>
+            <li>현재 실행은 Mock 모드입니다.</li>
+            <li>실제 Naver API는 호출되지 않습니다.</li>
+            <li>가격/재고/상품 정보는 실제로 변경되지 않습니다.</li>
           </ul>
         </div>
 
-        {/* ?�실??차단 ?�내 */}
+        {/* 재실행 차단 안내 */}
         {job && TERMINAL_JOB_STATUSES_UI.includes(job.status) && (
           <div className="mb-4 rounded-md border border-red-500/30 bg-red-500/10 p-3 text-sm">
             <p className="mb-1 flex items-center gap-1.5 font-semibold text-red-300">
               <AlertTriangle className="h-4 w-4 shrink-0" />
-              ?�실??차단??
+              재실행 차단됨
             </p>
             <p className="text-xs text-red-200">
-              ??BatchJob?� ?��? ?�행 기록???�습?�다. ?�전???�해 ?�실?��? 별도 ?�인 ?�름?�서�?가?�합?�다.
+              이 BatchJob은 이미 실행 기록이 있습니다. 안전을 위해 재실행은 별도 승인 흐름에서만 가능합니다.
             </p>
             <div className="mt-2 grid grid-cols-2 gap-x-4 gap-y-0.5 text-xs text-red-300">
               <div>
-                <span className="text-red-400">?�행 ?�태: </span>
+                <span className="text-red-400">실행 상태: </span>
                 <span className={`rounded-full border px-1.5 py-0.5 text-xs font-semibold ${getStatusBadgeStyle(job.status)}`}>
                   {job.status}
                 </span>
               </div>
               {job.executedAt && (
                 <div>
-                  <span className="text-red-400">?�행 ?�료 ?�각: </span>
+                  <span className="text-red-400">실행 완료 시각: </span>
                   <span>{new Date(job.executedAt).toLocaleString()}</span>
                 </div>
               )}
               {job.executionMetadata?.actorId && (
                 <div className="col-span-2">
-                  <span className="text-red-400">?�행 Actor: </span>
+                  <span className="text-red-400">실행 Actor: </span>
                   <span className="font-mono">{job.executionMetadata.actorId}</span>
                 </div>
               )}
               {job.executionMetadata?.executionMode && (
                 <div>
-                  <span className="text-red-400">?�행 모드: </span>
+                  <span className="text-red-400">실행 모드: </span>
                   <span className="font-mono">{job.executionMetadata.executionMode}</span>
                 </div>
               )}
@@ -4685,10 +4687,10 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
           <div className="mb-4 rounded-md border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-200">
             <p className="flex items-center gap-1.5 font-semibold text-amber-300">
               <Loader2 className="h-4 w-4 shrink-0 animate-spin" />
-              ?�행 �????�시 ?�행 차단??
+              실행 중 — 동시 실행 차단됨
             </p>
             <p className="mt-1 text-xs">
-              ?�재 Worker가 ??BatchJob???�행 중입?�다. ?�료 ??결과�??�인?�세??
+              현재 Worker가 이 BatchJob을 실행 중입니다. 완료 후 결과를 확인하세요.
             </p>
           </div>
         )}
@@ -4702,21 +4704,21 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         {finalApprovalsLoading ? (
           <div className="flex items-center gap-2 text-sm text-gray-400">
             <Loader2 className="h-4 w-4 animate-spin" />
-            <span>최종 ?�인 ?�력 조회 �?..</span>
+            <span>최종 승인 이력 조회 중...</span>
           </div>
         ) : finalApprovalsError ? (
           <div className="text-sm text-red-400">
-            조회 ?�러: {finalApprovalsError}
+            조회 에러: {finalApprovalsError}
           </div>
         ) : !finalApprovals || finalApprovals.length === 0 ? (
           <div className="space-y-4">
-            <div className="text-sm text-gray-400">최종 ?�인 Artifact가 ?�직 ?�습?�다.</div>
+            <div className="text-sm text-gray-400">최종 승인 Artifact가 아직 없습니다.</div>
             <div className="rounded-md border border-indigo-500/20 bg-indigo-500/10 p-3 text-sm text-indigo-200">
-              <p className="font-semibold text-indigo-300">최종 ?�인 ?�성 준�??�태</p>
+              <p className="font-semibold text-indigo-300">최종 승인 생성 준비 상태</p>
 
               {finalApprovalBlockingReasons.length > 0 ? (
                 <div className="mt-2 text-red-300">
-                  <p className="mb-1 text-xs">버튼??비활?�화???�유:</p>
+                  <p className="mb-1 text-xs">버튼이 비활성화된 사유:</p>
                   <ul className="list-inside list-disc text-sm">
                     {finalApprovalBlockingReasons.map((reason, idx) => (
                       <li key={idx}>{reason}</li>
@@ -4725,10 +4727,10 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 </div>
               ) : (
                 <p className="mt-2 text-sm text-emerald-300">
-                  모든 조건??충족?�었?�니?? ?�래 버튼???�러 ?�인 ?�인 ?�계�?진행?????�습?�다.
+                  모든 조건이 충족되었습니다. 아래 버튼을 눌러 승인 확인 단계를 진행할 수 있습니다.
                   <br />
                   <span className="text-xs text-gray-400">
-                    (?�버?�서 candidate, dryRunItem, ?�집 문맥 ?�을 ?�시 검증합?�다.)
+                    (서버에서 candidate, dryRunItem, 수집 문맥 등을 다시 검증합니다.)
                   </span>
                 </p>
               )}
@@ -4744,7 +4746,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                       : 'bg-slate-700 text-slate-300 opacity-70 cursor-not-allowed'
                   }`}
                 >
-                  {canCreateFinalApproval ? '최종 ?�인 Artifact ?�성 준�? : '최종 ?�인 Artifact ?�성 불�?'}
+                  {canCreateFinalApproval ? '최종 승인 Artifact 생성 준비' : '최종 승인 Artifact 생성 불가'}
                 </button>
               </div>
             </div>
@@ -4756,35 +4758,35 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             return (
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                 <div>
-                  <p className="mb-1 text-xs text-gray-500">?�태</p>
+                  <p className="mb-1 text-xs text-gray-500">상태</p>
                   <span className={`rounded-full border px-2 py-0.5 text-xs font-semibold ${targetApproval.status === 'ACTIVE' ? 'border-emerald-500/30 bg-emerald-500/20 text-emerald-300' : 'border-slate-500/30 bg-slate-500/20 text-slate-300'}`}>
                     {targetApproval.status}
                   </span>
                 </div>
                 <div>
-                  <p className="mb-1 text-xs text-gray-500">최종 ?�인 ?�각</p>
+                  <p className="mb-1 text-xs text-gray-500">최종 승인 시각</p>
                   <p className="text-sm text-gray-200">{new Date(targetApproval.finalApprovedAt).toLocaleString()}</p>
                 </div>
                 <div>
-                  <p className="mb-1 text-xs text-gray-500">검�?만료 ?�각</p>
+                  <p className="mb-1 text-xs text-gray-500">검증 만료 시각</p>
                   <p className="text-sm text-gray-200">{new Date(targetApproval.validationExpiresAt).toLocaleString()}</p>
                 </div>
                 <div>
-                  <p className="mb-1 text-xs text-gray-500">만료 ?��?</p>
+                  <p className="mb-1 text-xs text-gray-500">만료 여부</p>
                   <span className={`text-sm font-semibold ${isExpired ? 'text-red-400' : 'text-emerald-400'}`}>
-                    {isExpired ? '만료?? : '?�효'}
+                    {isExpired ? '만료됨' : '유효'}
                   </span>
                 </div>
                 <div>
-                  <p className="mb-1 text-xs text-gray-500">?�인??/p>
+                  <p className="mb-1 text-xs text-gray-500">승인자</p>
                   <p className="text-sm text-gray-200">{targetApproval.finalApprovedBy}</p>
                 </div>
                 <div>
-                  <p className="mb-1 text-xs text-gray-500">?�??item ??/p>
-                  <p className="text-sm text-gray-200">{targetApproval.itemCount}�?/p>
+                  <p className="mb-1 text-xs text-gray-500">대상 item 수</p>
+                  <p className="text-sm text-gray-200">{targetApproval.itemCount}개</p>
                 </div>
                 <div className="sm:col-span-2 lg:col-span-4">
-                  <p className="mb-1 text-xs text-gray-500">?�시 검�?(?�약)</p>
+                  <p className="mb-1 text-xs text-gray-500">해시 검증 (요약)</p>
                   <div className="grid grid-cols-2 gap-2 text-sm">
                     <div>
                       <span className="text-gray-500 mr-2">Payload:</span>
@@ -4798,11 +4800,11 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 </div>
                 <div className="sm:col-span-2 lg:col-span-4 mt-2">
                   <div className="rounded-md border border-amber-500/20 bg-amber-500/10 p-3 text-sm text-amber-100">
-                    <p className="font-semibold text-amber-300">최종 ?�인 ?�성 준�??�태</p>
+                    <p className="font-semibold text-amber-300">최종 승인 생성 준비 상태</p>
 
                     {finalApprovalBlockingReasons.length > 0 ? (
                       <div className="mt-2 text-red-300">
-                        <p className="mb-1 text-xs">버튼??비활?�화???�유:</p>
+                        <p className="mb-1 text-xs">버튼이 비활성화된 사유:</p>
                         <ul className="list-inside list-disc text-sm">
                           {finalApprovalBlockingReasons.map((reason, idx) => (
                             <li key={idx}>{reason}</li>
@@ -4811,7 +4813,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                       </div>
                     ) : (
                       <p className="mt-2 text-sm text-emerald-300">
-                        모든 조건??충족?�었?�니?? ?�래 버튼???�러 ?�인 ?�인 ?�계�?진행?????�습?�다.
+                        모든 조건이 충족되었습니다. 아래 버튼을 눌러 승인 확인 단계를 진행할 수 있습니다.
                       </p>
                     )}
 
@@ -4826,7 +4828,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                             : 'bg-slate-700 text-slate-300 opacity-70 cursor-not-allowed'
                         }`}
                       >
-                        {canCreateFinalApproval ? '최종 ?�인 Artifact ?�성 준�? : '최종 ?�인 Artifact ?�성 불�?'}
+                        {canCreateFinalApproval ? '최종 승인 Artifact 생성 준비' : '최종 승인 Artifact 생성 불가'}
                       </button>
                     </div>
                   </div>
@@ -4837,61 +4839,61 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         )}
       </div>
 
-      {/* ?�?� Live ?�일 ?�스?????��????�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?� */}
+      {/* ── Live 단일 테스트 전 점검표 ────────────────────────────────────────── */}
       {job.livePreflight && (
         <div className="mb-6 rounded-lg border border-[#262629] bg-[#121214] p-4">
           <h2 className="mb-4 flex items-center gap-2 text-base font-semibold text-white">
             <ShieldAlert className="h-5 w-5 text-amber-400" />
-            Live ?�일 ?�스?????��???
+            Live 단일 테스트 전 점검표
           </h2>
 
           <div className="mb-4 rounded-md border border-amber-500/20 bg-amber-500/10 p-3 text-xs text-amber-200">
             <p>
-              ?�재 ?�면?� ?�제 Naver API ?�출 ???��??�입?�다.
-              ???�계?�서???�품 ?�보가 변경되지 ?�으�? Live ?�출?� Safety Gate???�해 차단?�니??
+              현재 화면은 실제 Naver API 호출 전 점검용입니다.
+              이 단계에서는 상품 정보가 변경되지 않으며, Live 호출은 Safety Gate에 의해 차단됩니다.
             </p>
           </div>
 
-          {/* ?��? ?�약 */}
+          {/* 점검 요약 */}
           <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
             <div className="rounded-md border border-[#262629] bg-[#18181b] p-3">
-              <p className="mb-1 text-xs text-gray-500">?��? ?�태</p>
+              <p className="mb-1 text-xs text-gray-500">점검 상태</p>
               <p className={`text-xs font-semibold ${job.livePreflight.ready ? 'text-emerald-400' : 'text-red-400'}`}>
-                {job.livePreflight.ready ? '?��? 조건 충족' : '?��? 미완�?}
+                {job.livePreflight.ready ? '점검 조건 충족' : '점검 미완료'}
               </p>
             </div>
             <div className="rounded-md border border-[#262629] bg-[#18181b] p-3">
-              <p className="mb-1 text-xs text-gray-500">Naver API ?�출</p>
+              <p className="mb-1 text-xs text-gray-500">Naver API 호출</p>
               <p className={`text-xs font-semibold ${job.livePreflight.naverApiCalled ? 'text-red-400' : 'text-emerald-400'}`}>
-                {job.livePreflight.naverApiCalled ? '?�출??(?�인 ?�요)' : '?�직 ?�출?��? ?�음'}
+                {job.livePreflight.naverApiCalled ? '호출됨 (확인 필요)' : '아직 호출되지 않음'}
               </p>
             </div>
             <div className="rounded-md border border-[#262629] bg-[#18181b] p-3">
-              <p className="mb-1 text-xs text-gray-500">Live ?�행 가???��?</p>
-              <p className="text-xs font-semibold text-red-400">?�재??차단??/p>
+              <p className="mb-1 text-xs text-gray-500">Live 실행 가능 여부</p>
+              <p className="text-xs font-semibold text-red-400">현재는 차단됨</p>
             </div>
             <div className="rounded-md border border-[#262629] bg-[#18181b] p-3">
-              <p className="mb-1 text-xs text-gray-500">?��? ?�황</p>
+              <p className="mb-1 text-xs text-gray-500">점검 현황</p>
               <p className="text-xs">
                 <span className={job.livePreflight.summary.blockingCount > 0 ? 'text-red-400 font-semibold' : 'text-gray-400'}>
-                  차단 {job.livePreflight.summary.blockingCount}�?
+                  차단 {job.livePreflight.summary.blockingCount}건
                 </span>
                 {' · '}
                 <span className={job.livePreflight.summary.warningCount > 0 ? 'text-amber-400' : 'text-gray-400'}>
-                  ?�인 {job.livePreflight.summary.warningCount}�?
+                  확인 {job.livePreflight.summary.warningCount}건
                 </span>
                 {' · '}
-                <span className="text-emerald-400">?�과 {job.livePreflight.summary.passCount}�?/span>
+                <span className="text-emerald-400">통과 {job.livePreflight.summary.passCount}건</span>
               </p>
             </div>
           </div>
 
-          {/* 차단 ?�유 */}
+          {/* 차단 사유 */}
           {job.livePreflight.blockingReasons.length > 0 && (
             <div className="mb-4 rounded-md border border-red-500/20 bg-red-500/10 p-3 text-xs">
               <p className="mb-2 flex items-center gap-1.5 font-semibold text-red-300">
                 <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
-                차단 ?�유 ({job.livePreflight.blockingReasons.length}�?
+                차단 사유 ({job.livePreflight.blockingReasons.length}건)
               </p>
               <ul className="space-y-1">
                 {job.livePreflight.blockingReasons.map((reason, idx) => (
@@ -4903,9 +4905,9 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             </div>
           )}
 
-          {/* ??���??��? 결과 */}
+          {/* 항목별 점검 결과 */}
           <div className="mb-4 space-y-1.5">
-            <p className="mb-2 text-xs font-semibold text-gray-400">??���??��? 결과</p>
+            <p className="mb-2 text-xs font-semibold text-gray-400">항목별 점검 결과</p>
             {job.livePreflight.checklistItems.map(item => (
               <div
                 key={item.key}
@@ -4946,90 +4948,90 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             ))}
           </div>
 
-          {/* ?�음 ?�계 ?�내 */}
+          {/* 다음 단계 안내 */}
           <div className="rounded-md border border-gray-500/20 bg-gray-500/5 p-3 text-xs text-gray-400">
-            <p className="mb-1 font-semibold text-gray-300">?�음 ?�계 ?�내</p>
+            <p className="mb-1 font-semibold text-gray-300">다음 단계 안내</p>
             <p>
-              Live ?�일 ?�스?�는 별도 ?�인 ?�름�??�일 ?�스???�품 1�??�한 조건??준비된
-              ?�후?�만 진행?????�습?�다.
+              Live 단일 테스트는 별도 승인 흐름과 단일 테스트 상품 1건 제한 조건이 준비된
+              이후에만 진행할 수 있습니다.
             </p>
           </div>
         </div>
       )}
 
-      {/* ?�?� Live ?�일 ?�스???�인 준�??�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?� */}
+      {/* ── Live 단일 테스트 승인 준비 ────────────────────────────────────────── */}
       {job.liveSingleTestApproval && (
         <div className="mb-6 rounded-lg border border-[#262629] bg-[#121214] p-4">
           <h2 className="mb-4 flex items-center gap-2 text-base font-semibold text-white">
             <ShieldAlert className="h-5 w-5 text-indigo-400" />
-            Live ?�일 ?�스???�인 준�?
+            Live 단일 테스트 승인 준비
           </h2>
 
-          {/* ?�내 문구 */}
+          {/* 안내 문구 */}
           <div className="mb-4 rounded-md border border-indigo-500/20 bg-indigo-500/10 p-3 text-xs text-indigo-200">
-            <p className="mb-1 font-semibold text-indigo-300">?�인 준�??�계 ?�내</p>
+            <p className="mb-1 font-semibold text-indigo-300">승인 준비 단계 안내</p>
             <ul className="space-y-0.5">
-              <li>???�계???�제 Naver API ?�출 ???�인 준�??�계?�니??</li>
-              <li>?�재 ?�인?�도 ?�제 ?�이�??�품?� 변경되지 ?�습?�다.</li>
-              <li>Live ?�행?� 별도 ?�인�?추�? Safety Gate가 준비된 ?�후?�만 진행?�니??</li>
-              <li>?�영 DB / ?�영 Redis / ?�제 Naver API ?�출?� ?�직 비활?�화?�어 ?�습?�다.</li>
+              <li>이 단계는 실제 Naver API 호출 전 승인 준비 단계입니다.</li>
+              <li>현재 승인해도 실제 네이버 상품은 변경되지 않습니다.</li>
+              <li>Live 실행은 별도 승인과 추가 Safety Gate가 준비된 이후에만 진행합니다.</li>
+              <li>운영 DB / 운영 Redis / 실제 Naver API 호출은 아직 비활성화되어 있습니다.</li>
             </ul>
           </div>
 
-          {/* ?�인 준�??�태 ?�약 카드 */}
+          {/* 승인 준비 상태 요약 카드 */}
           <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
             <div className="rounded-md border border-[#262629] bg-[#18181b] p-3">
-              <p className="mb-1 text-xs text-gray-500">?�인 준�??�태</p>
+              <p className="mb-1 text-xs text-gray-500">승인 준비 상태</p>
               <p className={`text-xs font-semibold ${job.liveSingleTestApproval.approvalReady ? 'text-emerald-400' : 'text-amber-400'}`}>
-                {job.liveSingleTestApproval.approvalReady ? '준�??�료' : '준�?미완�?}
+                {job.liveSingleTestApproval.approvalReady ? '준비 완료' : '준비 미완료'}
               </p>
             </div>
             <div className="rounded-md border border-[#262629] bg-[#18181b] p-3">
-              <p className="mb-1 text-xs text-gray-500">Naver API ?�출</p>
-              <p className="text-xs font-semibold text-red-400">비활?�화 (??�� 차단)</p>
+              <p className="mb-1 text-xs text-gray-500">Naver API 호출</p>
+              <p className="text-xs font-semibold text-red-400">비활성화 (항상 차단)</p>
             </div>
             <div className="rounded-md border border-[#262629] bg-[#18181b] p-3">
-              <p className="mb-1 text-xs text-gray-500">Live ?�행 가???��?</p>
-              <p className="text-xs font-semibold text-red-400">비활?�화 (??�� 차단)</p>
+              <p className="mb-1 text-xs text-gray-500">Live 실행 가능 여부</p>
+              <p className="text-xs font-semibold text-red-400">비활성화 (항상 차단)</p>
             </div>
             <div className="rounded-md border border-[#262629] bg-[#18181b] p-3">
-              <p className="mb-1 text-xs text-gray-500">?��? ?�황</p>
+              <p className="mb-1 text-xs text-gray-500">점검 현황</p>
               <p className="text-xs">
                 <span className={job.liveSingleTestApproval.summary.blockingCount > 0 ? 'text-red-400 font-semibold' : 'text-gray-400'}>
-                  차단 {job.liveSingleTestApproval.summary.blockingCount}�?
+                  차단 {job.liveSingleTestApproval.summary.blockingCount}건
                 </span>
                 {' · '}
-                <span className="text-emerald-400">?�과 {job.liveSingleTestApproval.summary.passCount}�?/span>
+                <span className="text-emerald-400">통과 {job.liveSingleTestApproval.summary.passCount}건</span>
               </p>
             </div>
           </div>
 
-          {/* ?�???�보 카드 */}
+          {/* 대상 정보 카드 */}
           {job.liveSingleTestApproval.targetProductSummary && (
             <div className="mb-4 rounded-md border border-[#262629] bg-[#18181b] p-3 text-xs">
-              <p className="mb-2 font-semibold text-gray-300">?�??item ?�보</p>
+              <p className="mb-2 font-semibold text-gray-300">대상 item 정보</p>
               <div className="grid grid-cols-2 gap-x-4 gap-y-1 sm:grid-cols-3">
                 {job.liveSingleTestApproval.targetProductSummary.productName && (
                   <div className="col-span-2 sm:col-span-3">
-                    <span className="text-gray-500">?�품�? </span>
+                    <span className="text-gray-500">상품명: </span>
                     <span className="text-gray-200">{job.liveSingleTestApproval.targetProductSummary.productName}</span>
                   </div>
                 )}
                 {job.liveSingleTestApproval.targetProductSummary.channelProductNo && (
                   <div>
-                    <span className="text-gray-500">채널 ?�품번호: </span>
+                    <span className="text-gray-500">채널 상품번호: </span>
                     <span className="font-mono text-gray-300">{job.liveSingleTestApproval.targetProductSummary.channelProductNo}</span>
                   </div>
                 )}
                 {job.liveSingleTestApproval.targetProductSummary.targetType && (
                   <div>
-                    <span className="text-gray-500">?�???�형: </span>
+                    <span className="text-gray-500">대상 유형: </span>
                     <span className="text-gray-300">{job.liveSingleTestApproval.targetProductSummary.targetType}</span>
                   </div>
                 )}
                 {job.liveSingleTestApproval.targetProductSummary.changeType && (
                   <div>
-                    <span className="text-gray-500">변�??�형: </span>
+                    <span className="text-gray-500">변경 유형: </span>
                     <span className="font-semibold text-emerald-400">{job.liveSingleTestApproval.targetProductSummary.changeType}</span>
                   </div>
                 )}
@@ -5041,11 +5043,11 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 )}
                 {job.liveSingleTestApproval.targetProductSummary.priceChange && (
                   <div>
-                    <span className="text-gray-500">가�?변�??�정: </span>
+                    <span className="text-gray-500">가격 변경 예정: </span>
                     <span className="text-gray-400 line-through">
                       {String(job.liveSingleTestApproval.targetProductSummary.priceChange.before ?? '-')}
                     </span>
-                    {' ??'}
+                    {' → '}
                     <span className="font-semibold text-white">
                       {String(job.liveSingleTestApproval.targetProductSummary.priceChange.after ?? '-')}
                     </span>
@@ -5053,11 +5055,11 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 )}
                 {job.liveSingleTestApproval.targetProductSummary.stockChange && (
                   <div>
-                    <span className="text-gray-500">?�고 변�??�정: </span>
+                    <span className="text-gray-500">재고 변경 예정: </span>
                     <span className="text-gray-400 line-through">
                       {String(job.liveSingleTestApproval.targetProductSummary.stockChange.before ?? '-')}
                     </span>
-                    {' ??'}
+                    {' → '}
                     <span className="font-semibold text-white">
                       {String(job.liveSingleTestApproval.targetProductSummary.stockChange.after ?? '-')}
                     </span>
@@ -5067,12 +5069,12 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             </div>
           )}
 
-          {/* 차단 ?�유 */}
+          {/* 차단 사유 */}
           {job.liveSingleTestApproval.blockingReasons.length > 0 && (
             <div className="mb-4 rounded-md border border-red-500/20 bg-red-500/10 p-3 text-xs">
               <p className="mb-2 flex items-center gap-1.5 font-semibold text-red-300">
                 <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
-                차단 ?�유 ({job.liveSingleTestApproval.blockingReasons.length}�?
+                차단 사유 ({job.liveSingleTestApproval.blockingReasons.length}건)
               </p>
               <ul className="space-y-1">
                 {job.liveSingleTestApproval.blockingReasons.map((reason, idx) => (
@@ -5082,9 +5084,9 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             </div>
           )}
 
-          {/* ??���??��? 결과 */}
+          {/* 항목별 점검 결과 */}
           <div className="mb-4 space-y-1.5">
-            <p className="mb-2 text-xs font-semibold text-gray-400">??���??��? 결과</p>
+            <p className="mb-2 text-xs font-semibold text-gray-400">항목별 점검 결과</p>
             {job.liveSingleTestApproval.checklistItems.map(item => (
               <div
                 key={item.key}
@@ -5117,23 +5119,23 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             ))}
           </div>
 
-          {/* ?�수 ?�인 문구 (requiredAcknowledgements) */}
+          {/* 필수 확인 문구 (requiredAcknowledgements) */}
           {job.liveSingleTestApproval.requiredAcknowledgements.length > 0 && (
             <div className="mb-4 rounded-md border border-amber-500/20 bg-amber-500/10 p-3 text-xs">
               <p className="mb-2 font-semibold text-amber-300">
-                ?�수 ?�인 ??�� ({job.liveSingleTestApproval.requiredAcknowledgements.length}�????�제 Live ?�스???�계 ???�인 ?�요)
+                필수 확인 항목 ({job.liveSingleTestApproval.requiredAcknowledgements.length}건 — 실제 Live 테스트 단계 전 확인 필요)
               </p>
               <ul className="space-y-1.5 text-amber-100">
                 {job.liveSingleTestApproval.requiredAcknowledgements.map(ack => (
                   <li key={ack} className="flex items-start gap-2">
-                    <span className="mt-0.5 shrink-0 font-mono text-[9px] text-amber-400">[?�인 ?�요]</span>
+                    <span className="mt-0.5 shrink-0 font-mono text-[9px] text-amber-400">[확인 필요]</span>
                     <span>
-                      {ack === 'CONFIRM_SINGLE_ITEM_ONLY' && '?�제 Live ?�스?�는 ?�일 ?�품 1건으로만 ?�한?�니??'}
-                      {ack === 'CONFIRM_TARGET_PRODUCT_REVIEWED' && '?�???�품번호, ?�마?�스?�어, 변�??�정 payload�?직접 ?�인?�야 ?�니??'}
-                      {ack === 'CONFIRM_PAYLOAD_REVIEWED' && '?�제 변경될 가�??�고/?�워??값을 직접 검?�했?�니??'}
-                      {ack === 'CONFIRM_NAVER_API_STILL_DISABLED' && '?�영 DB / ?�영 Redis / ?�제 Naver API ?�출?� ?�직 비활?�화?�어 ?�습?�다.'}
-                      {ack === 'CONFIRM_LIVE_CAN_CHANGE_PRODUCT_LATER' && '?�제 Live ?�스???�계?�서???�이�??�마?�스?�어 ?�품 ?�보가 변경될 ???�습?�다.'}
-                      {ack === 'CONFIRM_NO_REPLAY_ALLOWED' && 'Live ?�행?� 별도 ?�인�?추�? Safety Gate가 준비된 ?�후?�만 진행?�니??'}
+                      {ack === 'CONFIRM_SINGLE_ITEM_ONLY' && '실제 Live 테스트는 단일 상품 1건으로만 제한됩니다.'}
+                      {ack === 'CONFIRM_TARGET_PRODUCT_REVIEWED' && '대상 상품번호, 스마트스토어, 변경 예정 payload를 직접 확인해야 합니다.'}
+                      {ack === 'CONFIRM_PAYLOAD_REVIEWED' && '실제 변경될 가격/재고/키워드 값을 직접 검토했습니다.'}
+                      {ack === 'CONFIRM_NAVER_API_STILL_DISABLED' && '운영 DB / 운영 Redis / 실제 Naver API 호출은 아직 비활성화되어 있습니다.'}
+                      {ack === 'CONFIRM_LIVE_CAN_CHANGE_PRODUCT_LATER' && '실제 Live 테스트 단계에서는 네이버 스마트스토어 상품 정보가 변경될 수 있습니다.'}
+                      {ack === 'CONFIRM_NO_REPLAY_ALLOWED' && 'Live 실행은 별도 승인과 추가 Safety Gate가 준비된 이후에만 진행합니다.'}
                     </span>
                   </li>
                 ))}
@@ -5141,29 +5143,29 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             </div>
           )}
 
-          {/* Live ?�행 비활?�화 배�? */}
+          {/* Live 실행 비활성화 배지 */}
           <div className="mb-4 flex items-center gap-3">
             <div className="inline-flex items-center rounded-md border border-red-500/30 bg-red-500/10 px-3 py-1.5 text-xs font-semibold text-red-300">
               <AlertTriangle className="mr-1.5 h-3.5 w-3.5" />
-              Live ?�행 비활?�화??
+              Live 실행 비활성화됨
             </div>
             <div className="inline-flex items-center rounded-md border border-gray-500/30 bg-gray-500/10 px-3 py-1.5 text-xs text-gray-400">
-              ?�인 준비만 가?????�제 Naver API ?�출 불�?
+              승인 준비만 가능 — 실제 Naver API 호출 불가
             </div>
           </div>
 
-          {/* ?�음 ?�계 ?�내 */}
+          {/* 다음 단계 안내 */}
           <div className="rounded-md border border-gray-500/20 bg-gray-500/5 p-3 text-xs text-gray-400">
-            <p className="mb-1 font-semibold text-gray-300">?�음 ?�계 ?�내</p>
+            <p className="mb-1 font-semibold text-gray-300">다음 단계 안내</p>
             <p>
-              ?�재 ?�계?�서???�제 Live ?�행??불�??�합?�다. ?�음 ?�계?�서 별도 ?�인 ?�름�?
-              ?�일 ?�스???�행 ?�한???�시 ?�인????Live Adapter 구현 ?��?�?결정?�세??
+              현재 단계에서는 실제 Live 실행이 불가능합니다. 다음 단계에서 별도 승인 흐름과
+              단일 테스트 실행 제한을 다시 확인한 뒤 Live Adapter 구현 여부를 결정하세요.
             </p>
           </div>
         </div>
       )}
 
-      {/* ?�?� Live ?�일 ?�스???�인 기록 ?�???�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?� */}
+      {/* ── Live 단일 테스트 승인 기록 저장 ──────────────────────────────────── */}
       {job.liveSingleTestApproval && (() => {
         const guard = job.liveSingleTestApproval!;
         const existingAudit = job.liveSingleTestApprovalAudit ?? null;
@@ -5183,26 +5185,26 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
           <div className="mb-6 rounded-lg border border-[#262629] bg-[#121214] p-4">
             <h2 className="mb-4 flex items-center gap-2 text-base font-semibold text-white">
               <ShieldAlert className="h-5 w-5 text-violet-400" />
-              Live ?�일 ?�스???�인 기록 ?�??
+              Live 단일 테스트 승인 기록 저장
             </h2>
 
-            {/* ?�내 문구 */}
+            {/* 안내 문구 */}
             <div className="mb-4 rounded-md border border-violet-500/20 bg-violet-500/10 p-3 text-xs text-violet-200">
-              <p className="mb-1 font-semibold text-violet-300">?�인 기록 ?�???�내</p>
+              <p className="mb-1 font-semibold text-violet-300">승인 기록 저장 안내</p>
               <ul className="space-y-0.5">
-                <li>??버튼?� ?�제 Naver API�??�출?��? ?�습?�다. ?�인 기록�??�?�합?�다.</li>
-                <li>?�인 기록???�?�해???�제 Live ?�행?� 계속 불�??�합?�다.</li>
-                <li>?�?�된 ?�인 기록?� 감사 추적(audit trail)?�으로만 ?�용?�니??</li>
-                <li>모든 ?�수 ?�인 ??��??체크 ???�??버튼???�릭?�세??</li>
+                <li>이 버튼은 실제 Naver API를 호출하지 않습니다. 승인 기록만 저장합니다.</li>
+                <li>승인 기록을 저장해도 실제 Live 실행은 계속 불가능합니다.</li>
+                <li>저장된 승인 기록은 감사 추적(audit trail)용으로만 사용됩니다.</li>
+                <li>모든 필수 확인 항목에 체크 후 저장 버튼을 클릭하세요.</li>
               </ul>
             </div>
 
-            {/* ?��? ?�?�된 audit record ?�시 */}
+            {/* 이미 저장된 audit record 표시 */}
             {(existingAudit || liveAuditSaveResult) && (
               <div className="mb-4 rounded-md border border-emerald-500/20 bg-emerald-500/10 p-3 text-xs">
                 <p className="mb-2 flex items-center gap-1.5 font-semibold text-emerald-300">
                   <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
-                  ?�인 기록 ?�???�료
+                  승인 기록 저장 완료
                 </p>
                 {(() => {
                   const audit = existingAudit ?? (liveAuditSaveResult ? {
@@ -5218,36 +5220,36 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                   return (
                     <div className="space-y-1 text-gray-300">
                       <div>
-                        <span className="text-gray-500">?�인 코드: </span>
+                        <span className="text-gray-500">승인 코드: </span>
                         <span className="font-mono text-xs text-emerald-300">{audit.auditCode}</span>
                       </div>
                       <div>
-                        <span className="text-gray-500">기록 ?�각: </span>
+                        <span className="text-gray-500">기록 시각: </span>
                         <span>{new Date(audit.recordedAt).toLocaleString()}</span>
                       </div>
                       {audit.actorId && (
                         <div>
-                          <span className="text-gray-500">?�인?? </span>
+                          <span className="text-gray-500">승인자: </span>
                           <span className="font-mono">{audit.actorId}</span>
                         </div>
                       )}
                       <div>
-                        <span className="text-gray-500">?�인 ??��: </span>
-                        <span>{audit.acknowledgedItems.length}�??�료</span>
+                        <span className="text-gray-500">확인 항목: </span>
+                        <span>{audit.acknowledgedItems.length}건 완료</span>
                       </div>
                         <div className="mt-2 flex flex-wrap gap-2">
                         <span className="inline-flex items-center rounded border border-red-500/30 bg-red-500/10 px-2 py-0.5 text-[10px] font-semibold text-red-300">
-                          Naver API ?�출 비활?�화??
+                          Naver API 호출 비활성화됨
                         </span>
                         <span className="inline-flex items-center rounded border border-red-500/30 bg-red-500/10 px-2 py-0.5 text-[10px] font-semibold text-red-300">
-                          Live ?�행 비활?�화??
+                          Live 실행 비활성화됨
                         </span>
                         <span className="inline-flex items-center rounded border border-gray-600/30 bg-gray-600/10 px-2 py-0.5 text-[10px] text-gray-400">
-                          ?�인 기록 ?�용 ???�행 ?�태 미전??
+                          승인 기록 전용 — 실행 상태 미전환
                         </span>
                       </div>
                       <p className="mt-2 text-[10px] text-gray-500">
-                        ??기록?� Live ?�일 ?�스?????�인 ??��???�??감사 기록?�니?? ??기록만으�??�제 Naver API ?�출?� ?�행?��? ?�습?�다.
+                        이 기록은 Live 단일 테스트 전 확인 항목에 대한 감사 기록입니다. 이 기록만으로 실제 Naver API 호출은 실행되지 않습니다.
                       </p>
                     </div>
                   );
@@ -5255,7 +5257,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
             )}
 
-            {/* 기록???�을 ??체크박스 + ?�??버튼 ?�시 */}
+            {/* 기록이 없을 때 체크박스 + 저장 버튼 표시 */}
             {!existingAudit && !liveAuditSaveResult && (
               <>
                 {/* Guard 차단 경고 */}
@@ -5263,24 +5265,24 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                   <div className="mb-4 rounded-md border border-red-500/20 bg-red-500/10 p-3 text-xs">
                     <p className="mb-1 flex items-center gap-1.5 font-semibold text-red-300">
                       <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
-                      ?�인 준�?Guard?�서 {guard.summary.blockingCount}건이 차단 중입?�다
+                      승인 준비 Guard에서 {guard.summary.blockingCount}건이 차단 중입니다
                     </p>
                     <p className="text-red-200">
-                      ?�의 "Live ?�일 ?�스???�인 준�? ?�션??차단 ?�유�?먼�? ?�결?�세??
+                      위의 "Live 단일 테스트 승인 준비" 섹션의 차단 사유를 먼저 해결하세요.
                     </p>
                   </div>
                 )}
 
-                {/* ?�수 ?�인 체크박스 */}
+                {/* 필수 확인 체크박스 */}
                 <div className="mb-4 space-y-2">
-                  <p className="mb-2 text-xs font-semibold text-gray-300">?�수 ?�인 ??�� (?�체 체크 ?�요)</p>
+                  <p className="mb-2 text-xs font-semibold text-gray-300">필수 확인 항목 (전체 체크 필요)</p>
                   {([
-                    { key: 'CONFIRM_SINGLE_ITEM_ONLY', label: '?�제 Live ?�스?�는 ?�일 ?�품 1건으로만 ?�한?�니??' },
-                    { key: 'CONFIRM_TARGET_PRODUCT_REVIEWED', label: '?�???�품번호, ?�마?�스?�어, 변�??�정 payload�?직접 ?�인?�습?�다.' },
-                    { key: 'CONFIRM_PAYLOAD_REVIEWED', label: '?�제 변경될 가�??�고/?�워??값을 직접 검?�했?�니??' },
-                    { key: 'CONFIRM_NAVER_API_STILL_DISABLED', label: '?�영 DB / ?�영 Redis / ?�제 Naver API ?�출?� ?�직 비활?�화?�어 ?�습?�다.' },
-                    { key: 'CONFIRM_LIVE_CAN_CHANGE_PRODUCT_LATER', label: '?�제 Live ?�스???�계?�서???�이�??�마?�스?�어 ?�품 ?�보가 변경될 ???�습?�다.' },
-                    { key: 'CONFIRM_NO_REPLAY_ALLOWED', label: 'Live ?�행?� 별도 ?�인�?추�? Safety Gate가 준비된 ?�후?�만 진행?�니??' },
+                    { key: 'CONFIRM_SINGLE_ITEM_ONLY', label: '실제 Live 테스트는 단일 상품 1건으로만 제한됩니다.' },
+                    { key: 'CONFIRM_TARGET_PRODUCT_REVIEWED', label: '대상 상품번호, 스마트스토어, 변경 예정 payload를 직접 확인했습니다.' },
+                    { key: 'CONFIRM_PAYLOAD_REVIEWED', label: '실제 변경될 가격/재고/키워드 값을 직접 검토했습니다.' },
+                    { key: 'CONFIRM_NAVER_API_STILL_DISABLED', label: '운영 DB / 운영 Redis / 실제 Naver API 호출은 아직 비활성화되어 있습니다.' },
+                    { key: 'CONFIRM_LIVE_CAN_CHANGE_PRODUCT_LATER', label: '실제 Live 테스트 단계에서는 네이버 스마트스토어 상품 정보가 변경될 수 있습니다.' },
+                    { key: 'CONFIRM_NO_REPLAY_ALLOWED', label: 'Live 실행은 별도 승인과 추가 Safety Gate가 준비된 이후에만 진행합니다.' },
                   ] as const).map(({ key, label }) => {
                     const checked = liveAuditCheckedItems.includes(key);
                     return (
@@ -5306,24 +5308,24 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                   })}
                 </div>
 
-                {/* 체크 ?�황 */}
+                {/* 체크 현황 */}
                 <div className="mb-4 flex items-center gap-2 text-xs">
                   <span className={liveAuditCheckedItems.length >= 6 ? 'text-violet-300 font-semibold' : 'text-gray-500'}>
-                    {liveAuditCheckedItems.length} / {LIVE_AUDIT_REQUIRED_ACKNOWLEDGEMENTS.length} ??�� ?�인??
+                    {liveAuditCheckedItems.length} / {LIVE_AUDIT_REQUIRED_ACKNOWLEDGEMENTS.length} 항목 확인됨
                   </span>
                   {!allAcked && (
-                    <span className="text-amber-400">??모든 ??��??체크?�야 ?�??가?�합?�다.</span>
+                    <span className="text-amber-400">— 모든 항목을 체크해야 저장 가능합니다.</span>
                   )}
                 </div>
 
-                {/* ?�???�류 */}
+                {/* 저장 오류 */}
                 {liveAuditSaveError && (
                   <div className="mb-4 rounded-md border border-red-500/20 bg-red-500/10 p-3 text-xs text-red-300">
-                    <span className="font-semibold">?�류: </span>{liveAuditSaveError}
+                    <span className="font-semibold">오류: </span>{liveAuditSaveError}
                   </div>
                 )}
 
-                {/* ?�??버튼 */}
+                {/* 저장 버튼 */}
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                   <button
                     type="button"
@@ -5336,21 +5338,21 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                     }`}
                   >
                     {liveAuditSaving && <Loader2 className="h-4 w-4 animate-spin" />}
-                    ?�인 기록 ?�??(?�제 Naver API 미호�?
+                    승인 기록 저장 (실제 Naver API 미호출)
                   </button>
                   <span className="text-xs text-gray-500">
-                    ??버튼?� ?�인 기록�??�?�합?�다 ???�제 ?�이�??�마?�스?�어 ?�품?� 변경되지 ?�습?�다.
+                    이 버튼은 승인 기록만 저장합니다 — 실제 네이버 스마트스토어 상품은 변경되지 않습니다.
                   </span>
                 </div>
 
-                {/* 비활???�유 */}
+                {/* 비활성 이유 */}
                 {!canSave && !liveAuditSaving && (
                   <div className="mt-3 text-xs text-gray-600">
-                    {!activeFa && <div>??ACTIVE Final Approval???�습?�다.</div>}
+                    {!activeFa && <div>• ACTIVE Final Approval이 없습니다.</div>}
                     {guard.summary.blockingCount > 0 && (
-                      <div>???�인 준�?Guard?�서 {guard.summary.blockingCount}건이 차단 중입?�다.</div>
+                      <div>• 승인 준비 Guard에서 {guard.summary.blockingCount}건이 차단 중입니다.</div>
                     )}
-                    {!allAcked && <div>???�수 ?�인 ??�� {LIVE_AUDIT_REQUIRED_ACKNOWLEDGEMENTS.length - liveAuditCheckedItems.filter(a => LIVE_AUDIT_REQUIRED_ACKNOWLEDGEMENTS.includes(a as typeof LIVE_AUDIT_REQUIRED_ACKNOWLEDGEMENTS[number])).length}개�? 미확???�태?�니??</div>}
+                    {!allAcked && <div>• 필수 확인 항목 {LIVE_AUDIT_REQUIRED_ACKNOWLEDGEMENTS.length - liveAuditCheckedItems.filter(a => LIVE_AUDIT_REQUIRED_ACKNOWLEDGEMENTS.includes(a as typeof LIVE_AUDIT_REQUIRED_ACKNOWLEDGEMENTS[number])).length}개가 미확인 상태입니다.</div>}
                   </div>
                 )}
               </>
@@ -5359,7 +5361,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� ?�경 / DB ?�전 ?�인 ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?� */}
+      {/* ── 환경 / DB 안전 확인 ─────────────────────────────────────────────── */}
       {job.environmentSafety && (() => {
         const env = job.environmentSafety!;
         const dbEnvColor: Record<string, string> = {
@@ -5372,76 +5374,76 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
           <div className="mb-6 rounded-lg border border-[#262629] bg-[#121214] p-4">
             <h2 className="mb-3 flex items-center gap-2 text-base font-semibold text-white">
               <ShieldAlert className="h-5 w-5 text-cyan-400" />
-              Live ?�행 ???�경 ?�전 ?��?
+              Live 실행 전 환경 안전 점검
               <span className={`ml-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold ${
                 env.allowed
                   ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300'
                   : 'border-red-500/30 bg-red-500/10 text-red-300'
               }`}>
-                {env.allowed ? '?�전 조건 충족' : '차단 ??�� ?�음'}
+                {env.allowed ? '안전 조건 충족' : '차단 항목 있음'}
               </span>
             </h2>
 
-            {/* ?�내 문구 */}
+            {/* 안내 문구 */}
             <div className="mb-4 rounded-md border border-cyan-500/20 bg-cyan-500/10 p-3 text-xs text-cyan-200">
-              <p className="mb-1 font-semibold text-cyan-300">?�경 ?��? ?�내</p>
-              <p className="mb-1">?�재 ?�면?� Live ?�행 ???�경 ?�전 ?��??�입?�다. ???�계?�서???�제 Naver API ?�출, Queue enqueue, Worker ?�행, ?�영 DB write가 모두 비활?�화?�어???�니??</p>
-              <p className="text-cyan-300/70">?�경 ?�보??보안???�문 URL?�나 secret???�시?��? ?�고 ?�전??분류값만 ?�시?�니??</p>
+              <p className="mb-1 font-semibold text-cyan-300">환경 점검 안내</p>
+              <p className="mb-1">현재 화면은 Live 실행 전 환경 안전 점검용입니다. 이 단계에서는 실제 Naver API 호출, Queue enqueue, Worker 실행, 운영 DB write가 모두 비활성화되어야 합니다.</p>
+              <p className="text-cyan-300/70">환경 정보는 보안상 원문 URL이나 secret을 표시하지 않고 안전한 분류값만 표시합니다.</p>
             </div>
 
-            {/* ?�경 ?�태 ?�약 */}
+            {/* 환경 상태 요약 */}
             <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
               <div className="rounded-md border border-[#262629] bg-[#18181b] p-2.5 text-center text-xs">
-                <p className="mb-1 text-gray-500">DB ?�경</p>
+                <p className="mb-1 text-gray-500">DB 환경</p>
                 <p className={`font-semibold font-mono ${dbEnvColor[env.databaseEnvironment] ?? 'text-gray-300'}`}>
                   {env.databaseEnvironment}
                 </p>
               </div>
               <div className="rounded-md border border-[#262629] bg-[#18181b] p-2.5 text-center text-xs">
-                <p className="mb-1 text-gray-500">Redis ?�경</p>
+                <p className="mb-1 text-gray-500">Redis 환경</p>
                 <p className={`font-semibold font-mono ${dbEnvColor[env.redisEnvironment] ?? 'text-gray-300'}`}>
                   {env.redisEnvironment}
                 </p>
               </div>
               <div className="rounded-md border border-[#262629] bg-[#18181b] p-2.5 text-center text-xs">
-                <p className="mb-1 text-gray-500">차단 ??��</p>
+                <p className="mb-1 text-gray-500">차단 항목</p>
                 <p className={`font-semibold ${env.blockingReasons.length > 0 ? 'text-red-400' : 'text-emerald-400'}`}>
-                  {env.blockingReasons.length}�?
+                  {env.blockingReasons.length}건
                 </p>
               </div>
               <div className="rounded-md border border-[#262629] bg-[#18181b] p-2.5 text-center text-xs">
-                <p className="mb-1 text-gray-500">경고 ??��</p>
+                <p className="mb-1 text-gray-500">경고 항목</p>
                 <p className={`font-semibold ${env.warnings.length > 0 ? 'text-amber-400' : 'text-gray-400'}`}>
-                  {env.warnings.length}�?
+                  {env.warnings.length}건
                 </p>
               </div>
             </div>
 
-            {/* ??�� false 강제 배�? */}
+            {/* 항상 false 강제 배지 */}
             <div className="mb-4 flex flex-wrap gap-2">
               <div className="inline-flex items-center rounded-md border border-red-500/30 bg-red-500/10 px-2.5 py-1 text-[10px] font-semibold text-red-300">
-                <X className="mr-1 h-3 w-3" /> Naver API ?�출 비활?�화
+                <X className="mr-1 h-3 w-3" /> Naver API 호출 비활성화
               </div>
               <div className="inline-flex items-center rounded-md border border-red-500/30 bg-red-500/10 px-2.5 py-1 text-[10px] font-semibold text-red-300">
-                <X className="mr-1 h-3 w-3" /> ?�영 DB write 차단
+                <X className="mr-1 h-3 w-3" /> 운영 DB write 차단
               </div>
               <div className="inline-flex items-center rounded-md border border-red-500/30 bg-red-500/10 px-2.5 py-1 text-[10px] font-semibold text-red-300">
-                <X className="mr-1 h-3 w-3" /> Queue 비활?�화
+                <X className="mr-1 h-3 w-3" /> Queue 비활성화
               </div>
               <div className="inline-flex items-center rounded-md border border-red-500/30 bg-red-500/10 px-2.5 py-1 text-[10px] font-semibold text-red-300">
-                <X className="mr-1 h-3 w-3" /> Worker 비활?�화
+                <X className="mr-1 h-3 w-3" /> Worker 비활성화
               </div>
               <div className="inline-flex items-center rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-[10px] font-semibold text-emerald-300">
-                <CheckCircle2 className="mr-1 h-3 w-3" /> Secret 비노�?
+                <CheckCircle2 className="mr-1 h-3 w-3" /> Secret 비노출
               </div>
             </div>
 
-            {/* 차단 ?�유 */}
+            {/* 차단 사유 */}
             {env.blockingReasons.length > 0 && (
               <div className="mb-4 rounded-md border border-red-500/20 bg-red-500/10 p-3 text-xs">
                 <p className="mb-2 flex items-center gap-1.5 font-semibold text-red-300">
                   <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
-                  차단 ?�유 ({env.blockingReasons.length}�?
+                  차단 사유 ({env.blockingReasons.length}건)
                 </p>
                 <ul className="space-y-1">
                   {env.blockingReasons.map((reason, idx) => (
@@ -5456,7 +5458,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="mb-4 rounded-md border border-amber-500/20 bg-amber-500/10 p-3 text-xs">
                 <p className="mb-2 flex items-center gap-1.5 font-semibold text-amber-300">
                   <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
-                  경고 ({env.warnings.length}�?
+                  경고 ({env.warnings.length}건)
                 </p>
                 <ul className="space-y-1">
                   {env.warnings.map((w, idx) => (
@@ -5466,9 +5468,9 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
             )}
 
-            {/* 체크리스??*/}
+            {/* 체크리스트 */}
             <div className="space-y-1.5">
-              <p className="mb-2 text-xs font-semibold text-gray-400">?�경 ?�전 체크리스??/p>
+              <p className="mb-2 text-xs font-semibold text-gray-400">환경 안전 체크리스트</p>
               {env.checklistItems.map(item => (
                 <div
                   key={item.key}
@@ -5501,9 +5503,9 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               ))}
             </div>
 
-            {/* ?�경 코드 */}
+            {/* 환경 코드 */}
             <div className="mt-3 rounded-md border border-gray-500/20 bg-gray-500/5 p-2 text-xs text-gray-400">
-              <span className="text-gray-500">?�경 코드: </span>
+              <span className="text-gray-500">환경 코드: </span>
               <span className="font-mono text-gray-300">{env.environmentCode}</span>
               <span className="mx-2 text-gray-600">|</span>
               <span>{env.environmentMessage}</span>
@@ -5512,47 +5514,47 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Live Adapter Skeleton ?�태 ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?� */}
+      {/* ── Live Adapter Skeleton 상태 ───────────────────────────────────────── */}
       {job.liveAdapterSkeletonStatus && (() => {
         const skel = job.liveAdapterSkeletonStatus!;
         return (
           <div className="mb-6 rounded-lg border border-[#262629] bg-[#121214] p-4">
             <h2 className="mb-3 flex items-center gap-2 text-base font-semibold text-white">
               <FileJson className="h-5 w-5 text-violet-400" />
-              Live Adapter 준�??�태 ???�제 ?�출 비활?�화
+              Live Adapter 준비 상태 — 실제 호출 비활성화
               <span className="ml-1 rounded-full border border-violet-500/30 bg-violet-500/10 px-2 py-0.5 text-[10px] font-semibold text-violet-300">
                 {skel.resultCode}
               </span>
             </h2>
 
-            {/* ?�내 */}
+            {/* 안내 */}
             <div className="mb-4 rounded-md border border-violet-500/20 bg-violet-500/10 p-3 text-xs text-violet-200">
               <p>{skel.resultMessage}</p>
             </div>
 
-            {/* ?�전 배�? */}
+            {/* 안전 배지 */}
             <div className="mb-4 flex flex-wrap gap-2">
               <span className="inline-flex items-center rounded-md border border-violet-500/30 bg-violet-500/10 px-2.5 py-1 text-[10px] font-semibold text-violet-300">
-                <X className="mr-1 h-3 w-3" /> Live Adapter skeleton�?존재
+                <X className="mr-1 h-3 w-3" /> Live Adapter skeleton만 존재
               </span>
               <span className="inline-flex items-center rounded-md border border-red-500/30 bg-red-500/10 px-2.5 py-1 text-[10px] font-semibold text-red-300">
-                <X className="mr-1 h-3 w-3" /> ?�제 ?�출 비활?�화
+                <X className="mr-1 h-3 w-3" /> 실제 호출 비활성화
               </span>
               <span className="inline-flex items-center rounded-md border border-red-500/30 bg-red-500/10 px-2.5 py-1 text-[10px] font-semibold text-red-300">
-                <X className="mr-1 h-3 w-3" /> HTTP ?�청 ?�음
+                <X className="mr-1 h-3 w-3" /> HTTP 요청 없음
               </span>
               <span className="inline-flex items-center rounded-md border border-red-500/30 bg-red-500/10 px-2.5 py-1 text-[10px] font-semibold text-red-300">
-                <X className="mr-1 h-3 w-3" /> Token ?�청 ?�음
+                <X className="mr-1 h-3 w-3" /> Token 요청 없음
               </span>
               <span className="inline-flex items-center rounded-md border border-red-500/30 bg-red-500/10 px-2.5 py-1 text-[10px] font-semibold text-red-300">
-                <X className="mr-1 h-3 w-3" /> Endpoint ?�출 ?�음
+                <X className="mr-1 h-3 w-3" /> Endpoint 호출 없음
               </span>
               <span className="inline-flex items-center rounded-md border border-red-500/30 bg-red-500/10 px-2.5 py-1 text-[10px] font-semibold text-red-300">
-                <X className="mr-1 h-3 w-3" /> Live ?�행 불�?
+                <X className="mr-1 h-3 w-3" /> Live 실행 불가
               </span>
             </div>
 
-            {/* ?�태 체크 그리??*/}
+            {/* 상태 체크 그리드 */}
             <div className="mb-4 grid grid-cols-2 gap-2 text-xs sm:grid-cols-3 lg:grid-cols-4">
               {[
                 { label: 'naverApiCalled', value: skel.naverApiCalled },
@@ -5575,14 +5577,14 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
 
             {/* maxAllowedState */}
             <div className="rounded-md border border-gray-600/20 bg-gray-600/5 p-2 text-xs text-gray-400">
-              <span className="text-gray-500">최�? ?�용 ?�태: </span>
+              <span className="text-gray-500">최대 허용 상태: </span>
               <span className="font-mono text-violet-300">{skel.maxAllowedState}</span>
             </div>
           </div>
         );
       })()}
 
-      {/* ?�?� Live ?�일 ?�스???�인 감사 ?�력 ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?� */}
+      {/* ── Live 단일 테스트 승인 감사 이력 ─────────────────────────────────── */}
       {job.liveSingleTestAuditHistory && (() => {
         const hist = job.liveSingleTestAuditHistory!;
         const latest = hist.latestAudit;
@@ -5590,49 +5592,49 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
           <div className="mb-6 rounded-lg border border-[#262629] bg-[#121214] p-4">
             <h2 className="mb-3 flex items-center gap-2 text-base font-semibold text-white">
               <FileJson className="h-5 w-5 text-indigo-400" />
-              Live ?�일 ?�스???�인 감사 ?�력
+              Live 단일 테스트 승인 감사 이력
               <span className={`ml-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold ${
                 hist.exists
                   ? 'border-indigo-500/30 bg-indigo-500/10 text-indigo-300'
                   : 'border-gray-600/30 bg-gray-600/10 text-gray-500'
               }`}>
-                {hist.exists ? `기록 ${hist.summary.totalRecords}�? : '기록 ?�음'}
+                {hist.exists ? `기록 ${hist.summary.totalRecords}건` : '기록 없음'}
               </span>
             </h2>
 
-            {/* ?�내 문구 */}
+            {/* 안내 문구 */}
             <div className="mb-4 rounded-md border border-indigo-500/20 bg-indigo-500/10 p-3 text-xs text-indigo-200">
-              <p className="mb-1">??감사 기록?� ?�인 ?�인 ?�력??뿐이�??�제 Naver API ?�출???�행?��? ?�습?�다.</p>
-              <p className="text-indigo-300/70">Live ?�행?� 별도 ?�계?�서 추�? Safety Gate?� 명시 ?�인 ?�에�?검?�합?�다.</p>
+              <p className="mb-1">이 감사 기록은 승인 확인 이력일 뿐이며 실제 Naver API 호출을 실행하지 않습니다.</p>
+              <p className="text-indigo-300/70">Live 실행은 별도 단계에서 추가 Safety Gate와 명시 승인 후에만 검토합니다.</p>
             </div>
 
-            {/* ?�전 ?�태 배�? */}
+            {/* 안전 상태 배지 */}
             <div className="mb-4 flex flex-wrap gap-2">
               <div className="inline-flex items-center rounded-md border border-red-500/30 bg-red-500/10 px-2.5 py-1 text-[10px] font-semibold text-red-300">
-                <X className="mr-1 h-3 w-3" /> Naver API ?�출 비활?�화
+                <X className="mr-1 h-3 w-3" /> Naver API 호출 비활성화
               </div>
               <div className="inline-flex items-center rounded-md border border-red-500/30 bg-red-500/10 px-2.5 py-1 text-[10px] font-semibold text-red-300">
-                <X className="mr-1 h-3 w-3" /> Live ?�행 비활?�화
+                <X className="mr-1 h-3 w-3" /> Live 실행 비활성화
               </div>
               <div className="inline-flex items-center rounded-md border border-red-500/30 bg-red-500/10 px-2.5 py-1 text-[10px] font-semibold text-red-300">
-                <X className="mr-1 h-3 w-3" /> ?�영 DB write 차단
+                <X className="mr-1 h-3 w-3" /> 운영 DB write 차단
               </div>
               <div className="inline-flex items-center rounded-md border border-red-500/30 bg-red-500/10 px-2.5 py-1 text-[10px] font-semibold text-red-300">
-                <X className="mr-1 h-3 w-3" /> Queue 비활?�화
+                <X className="mr-1 h-3 w-3" /> Queue 비활성화
               </div>
               <div className="inline-flex items-center rounded-md border border-red-500/30 bg-red-500/10 px-2.5 py-1 text-[10px] font-semibold text-red-300">
-                <X className="mr-1 h-3 w-3" /> Worker 비활?�화
+                <X className="mr-1 h-3 w-3" /> Worker 비활성화
               </div>
               <div className="inline-flex items-center rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-[10px] font-semibold text-emerald-300">
-                <CheckCircle2 className="mr-1 h-3 w-3" /> Secret 비노�?(조회 ?�용)
+                <CheckCircle2 className="mr-1 h-3 w-3" /> Secret 비노출 (조회 전용)
               </div>
             </div>
 
-            {/* 기록 ?�음 */}
+            {/* 기록 없음 */}
             {!hist.exists && (
               <div className="rounded-md border border-gray-600/20 bg-gray-600/5 p-3 text-xs text-gray-400">
-                <p className="font-semibold text-gray-300">?�인 감사 기록???�습?�다.</p>
-                <p className="mt-1">Live ?�일 ?�스???�인 기록 ?�???�션?�서 먼�? ?�수 ?�인 ??��??체크?�고 기록???�?�하?�요.</p>
+                <p className="font-semibold text-gray-300">승인 감사 기록이 없습니다.</p>
+                <p className="mt-1">Live 단일 테스트 승인 기록 저장 섹션에서 먼저 필수 확인 항목을 체크하고 기록을 저장하세요.</p>
               </div>
             )}
 
@@ -5641,54 +5643,54 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="mb-4 rounded-md border border-indigo-500/20 bg-indigo-500/5 p-4 text-xs">
                 <p className="mb-3 text-xs font-semibold text-indigo-300">최신 감사 기록</p>
 
-                {/* 기본 ?�보 */}
+                {/* 기본 정보 */}
                 <div className="mb-3 grid grid-cols-1 gap-y-1.5 sm:grid-cols-2">
                   <div>
-                    <span className="text-gray-500">?�인 코드: </span>
+                    <span className="text-gray-500">승인 코드: </span>
                     <span className="font-mono text-indigo-300">{latest.auditCode}</span>
                   </div>
                   <div>
-                    <span className="text-gray-500">?�태: </span>
+                    <span className="text-gray-500">상태: </span>
                     <span className={`font-semibold ${
                       latest.status === 'RECORDED_BUT_NOT_EXECUTABLE'
                         ? 'text-emerald-400'
                         : 'text-gray-400'
                     }`}>
                       {latest.status === 'RECORDED_BUT_NOT_EXECUTABLE'
-                        ? '기록 ?�료 (?�행 불�?)'
+                        ? '기록 완료 (실행 불가)'
                         : latest.status}
                     </span>
                   </div>
                   <div>
-                    <span className="text-gray-500">기록 ?�각: </span>
+                    <span className="text-gray-500">기록 시각: </span>
                     <span className="text-gray-200">
                       {latest.recordedAt ? new Date(latest.recordedAt).toLocaleString() : '-'}
                     </span>
                   </div>
                   <div>
-                    <span className="text-gray-500">?�인?? </span>
+                    <span className="text-gray-500">승인자: </span>
                     <span className="font-mono text-gray-200">{latest.actorId ?? '-'}</span>
                   </div>
                   <div>
                     <span className="text-gray-500">BatchJob ID: </span>
                     <span className="font-mono text-gray-400">
-                      {latest.batchJobId ? `${latest.batchJobId.substring(0, 16)}?? : '-'}
+                      {latest.batchJobId ? `${latest.batchJobId.substring(0, 16)}…` : '-'}
                     </span>
                   </div>
                   <div>
                     <span className="text-gray-500">FinalApproval ID: </span>
                     <span className="font-mono text-gray-400">
                       {latest.finalApprovalId
-                        ? `${latest.finalApprovalId.substring(0, 16)}??
+                        ? `${latest.finalApprovalId.substring(0, 16)}…`
                         : '-'}
                     </span>
                   </div>
                 </div>
 
-                {/* ?�???�품 ?�보 */}
+                {/* 대상 상품 정보 */}
                 {latest.targetProductSummary && (
                   <div className="mb-3 rounded-md border border-gray-600/20 bg-gray-600/5 p-2.5">
-                    <p className="mb-1.5 text-[10px] font-semibold text-gray-400">?�???�품 ?�보</p>
+                    <p className="mb-1.5 text-[10px] font-semibold text-gray-400">대상 상품 정보</p>
                     <div className="grid grid-cols-2 gap-x-4 gap-y-1">
                       {Object.entries(latest.targetProductSummary).map(([k, v]) =>
                         v !== null && v !== undefined ? (
@@ -5705,9 +5707,9 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 {/* acknowledgement 목록 */}
                 <div className="mb-3">
                   <p className="mb-1.5 text-[10px] font-semibold text-gray-400">
-                    ?�인 ??�� ({latest.acknowledgedItems.length}�??�료
+                    확인 항목 ({latest.acknowledgedItems.length}건 완료
                     {latest.missingAcknowledgements.length > 0
-                      ? ` / ${latest.missingAcknowledgements.length}�??�락`
+                      ? ` / ${latest.missingAcknowledgements.length}건 누락`
                       : ''})
                   </p>
                   <ul className="space-y-1">
@@ -5720,13 +5722,13 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                     {latest.missingAcknowledgements.map(ack => (
                       <li key={ack} className="flex items-center gap-1.5 text-amber-400">
                         <AlertTriangle className="h-3 w-3 shrink-0" />
-                        <span className="font-mono text-[10px]">{ack} (?�락)</span>
+                        <span className="font-mono text-[10px]">{ack} (누락)</span>
                       </li>
                     ))}
                   </ul>
                 </div>
 
-                {/* ?�행 불�? 배�? */}
+                {/* 실행 불가 배지 */}
                 <div className="mt-2 flex flex-wrap gap-2">
                   <span className="inline-flex items-center rounded border border-red-500/30 bg-red-500/10 px-2 py-0.5 text-[10px] font-semibold text-red-300">
                     naverApiCallAllowed: false
@@ -5752,7 +5754,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="mt-2 rounded-md border border-amber-500/20 bg-amber-500/10 p-2.5 text-xs">
                 <p className="mb-1 flex items-center gap-1 font-semibold text-amber-300">
                   <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
-                  경고 ({hist.warnings.length}�?
+                  경고 ({hist.warnings.length}건)
                 </p>
                 <ul className="space-y-0.5">
                   {hist.warnings.map((w, idx) => (
@@ -5764,40 +5766,40 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
 
             {/* maxAllowedState */}
             <div className="mt-3 rounded-md border border-gray-600/20 bg-gray-600/5 p-2 text-xs text-gray-400">
-              <span className="text-gray-500">최�? ?�용 ?�태: </span>
+              <span className="text-gray-500">최대 허용 상태: </span>
               <span className="font-mono text-gray-300">{hist.maxAllowedState}</span>
             </div>
 
-            {/* ?�체 감사 기록 ?�?�보??링크 */}
+            {/* 전체 감사 기록 대시보드 링크 */}
             <div className="mt-3 flex items-center justify-end">
               <Link
                 href="/dashboard/sku-keyword-final-approval-live-audits"
                 className="inline-flex items-center gap-1.5 rounded-md border border-indigo-500/30 bg-indigo-500/10 px-3 py-1.5 text-xs font-semibold text-indigo-300 hover:bg-indigo-500/20"
               >
                 <FileJson className="h-3.5 w-3.5" />
-                ?�체 감사 기록 ?�?�보????
+                전체 감사 기록 대시보드 →
               </Link>
             </div>
           </div>
         );
       })()}
 
-      {/* ?�?� Naver API ?�증?�보 ?�전 ?�인 ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?� */}
+      {/* ── Naver API 인증정보 안전 확인 ────────────────────────────────────── */}
       <div className="mb-6 rounded-lg border border-[#262629] bg-[#121214] p-4">
         <h2 className="mb-3 flex items-center gap-2 text-base font-semibold text-white">
           <ShieldAlert className="h-5 w-5 text-slate-400" />
-          Naver API ?�증?�보 ?�전 ?�인
+          Naver API 인증정보 안전 확인
         </h2>
 
         <div className="mb-3 rounded-md border border-slate-500/20 bg-slate-500/10 p-3 text-xs text-slate-300">
-          ???�션?� ?�증?�보??존재 ?��?�??�전???�태값으�??�시?�니?? secret, token, authorization header, endpoint URL?� ?�시?��? ?�으�? token 발급?�나 Naver API ?�출???�행?��? ?�습?�다.
+          이 섹션은 인증정보의 존재 여부만 안전한 상태값으로 표시합니다. secret, token, authorization header, endpoint URL은 표시하지 않으며, token 발급이나 Naver API 호출도 수행하지 않습니다.
         </div>
 
         {job.naverAuthConfigSafety ? (
           <div className="space-y-4">
-            {/* ?�증?�보 ?�태 ?�약 */}
+            {/* 인증정보 상태 요약 */}
             <div className="flex items-center gap-3">
-              <span className="text-sm text-gray-400">?�증?�보 ?�태:</span>
+              <span className="text-sm text-gray-400">인증정보 상태:</span>
               <span className={`rounded-full border px-2 py-0.5 text-xs font-semibold ${
                 job.naverAuthConfigSafety.authConfigStatus === 'CONFIGURED_BUT_BLOCKED'
                   ? 'border-amber-500/30 bg-amber-500/20 text-amber-300'
@@ -5811,17 +5813,17 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </span>
             </div>
 
-            {/* ?�전 배�? */}
+            {/* 안전 배지 */}
             <div>
-              <p className="mb-2 text-xs font-semibold text-gray-400">?�전 배�? (모두 비활?�화??</p>
+              <p className="mb-2 text-xs font-semibold text-gray-400">안전 배지 (모두 비활성화됨)</p>
               <div className="flex flex-wrap gap-2">
                 {[
-                  { label: 'Secret ?�문 비노�?, ok: !job.naverAuthConfigSafety.secretVisible },
-                  { label: 'Token 발급 비활?�화', ok: !job.naverAuthConfigSafety.tokenIssued },
-                  { label: '?�증?�보 ?�용 ????, ok: !job.naverAuthConfigSafety.credentialsUsed },
-                  { label: 'Authorization header ?�음', ok: !job.naverAuthConfigSafety.authorizationHeaderCreated },
-                  { label: 'Endpoint ?�출 ?�음', ok: !job.naverAuthConfigSafety.endpointCalled },
-                  { label: 'Naver API ?�출 비활?�화', ok: !job.naverAuthConfigSafety.naverApiCallAllowed },
+                  { label: 'Secret 원문 비노출', ok: !job.naverAuthConfigSafety.secretVisible },
+                  { label: 'Token 발급 비활성화', ok: !job.naverAuthConfigSafety.tokenIssued },
+                  { label: '인증정보 사용 안 함', ok: !job.naverAuthConfigSafety.credentialsUsed },
+                  { label: 'Authorization header 없음', ok: !job.naverAuthConfigSafety.authorizationHeaderCreated },
+                  { label: 'Endpoint 호출 없음', ok: !job.naverAuthConfigSafety.endpointCalled },
+                  { label: 'Naver API 호출 비활성화', ok: !job.naverAuthConfigSafety.naverApiCallAllowed },
                 ].map(({ label, ok }) => (
                   <span
                     key={label}
@@ -5838,7 +5840,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
             </div>
 
-            {/* ?�태 카드 */}
+            {/* 상태 카드 */}
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
               {[
                 { label: 'credentialConfigured', value: String(job.naverAuthConfigSafety.credentialConfigured) },
@@ -5865,10 +5867,10 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               ))}
             </div>
 
-            {/* 차단 ?�유 */}
+            {/* 차단 사유 */}
             {job.naverAuthConfigSafety.blockingReasons.length > 0 && (
               <div className="rounded-md border border-red-500/20 bg-red-500/10 p-3">
-                <p className="mb-1 text-xs font-semibold text-red-300">차단 ?�유</p>
+                <p className="mb-1 text-xs font-semibold text-red-300">차단 사유</p>
                 <ul className="space-y-0.5 text-xs text-red-200">
                   {job.naverAuthConfigSafety.blockingReasons.map((reason, i) => (
                     <li key={i}>- {reason}</li>
@@ -5896,34 +5898,34 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             </div>
           </div>
         ) : (
-          <div className="text-sm text-gray-400">?�증?�보 ?�전 ?�인 ?�보�?불러?�는 중입?�다...</div>
+          <div className="text-sm text-gray-400">인증정보 안전 확인 정보를 불러오는 중입니다...</div>
         )}
       </div>
 
-      {/* ?�?� Naver API Token Provider ?�태 ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?� */}
+      {/* ── Naver API Token Provider 상태 ──────────────────────────────────── */}
       {job.naverAuthTokenProviderStatus && (() => {
         const tp = job.naverAuthTokenProviderStatus!;
         return (
           <div className="mb-6 rounded-lg border border-[#262629] bg-[#121214] p-4">
             <h2 className="mb-3 flex items-center gap-2 text-base font-semibold text-white">
               <ShieldAlert className="h-5 w-5 text-rose-400" />
-              Token Provider 준�??�태 ??발급 비활?�화
+              Token Provider 준비 상태 — 발급 비활성화
               <span className="ml-1 rounded-full border border-rose-500/30 bg-rose-500/10 px-2 py-0.5 text-[10px] font-semibold text-rose-300">
                 {tp.resultCode}
               </span>
             </h2>
 
-            {/* ?�내 문구 */}
+            {/* 안내 문구 */}
             <div className="mb-4 rounded-md border border-rose-500/20 bg-rose-500/10 p-3 text-xs text-rose-200">
               <p>
-                ???�션?� Token Provider 구조가 준비되?��?�?token 발급??비활?�화?�어 ?�음???�시?�니??
-                ???�계?�서??access token 발급, refresh token ?�청, authorization header ?�성, Naver API ?�출???�행?��? ?�습?�다.
+                이 섹션은 Token Provider 구조가 준비되었지만 token 발급이 비활성화되어 있음을 표시합니다.
+                이 단계에서는 access token 발급, refresh token 요청, authorization header 생성, Naver API 호출을 수행하지 않습니다.
               </p>
             </div>
 
-            {/* Token Provider ?�태 ?�약 */}
+            {/* Token Provider 상태 요약 */}
             <div className="mb-4 flex items-center gap-3">
-              <span className="text-sm text-gray-400">Token Provider ?�태:</span>
+              <span className="text-sm text-gray-400">Token Provider 상태:</span>
               <span className="rounded-full border border-rose-500/30 bg-rose-500/10 px-2 py-0.5 text-xs font-semibold text-rose-300">
                 {tp.status}
               </span>
@@ -5932,19 +5934,19 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </span>
             </div>
 
-            {/* ?�전 배�? */}
+            {/* 안전 배지 */}
             <div className="mb-4">
-              <p className="mb-2 text-xs font-semibold text-gray-400">?�전 배�? (모두 비활?�화??</p>
+              <p className="mb-2 text-xs font-semibold text-gray-400">안전 배지 (모두 비활성화됨)</p>
               <div className="flex flex-wrap gap-2">
                 {[
-                  { label: 'Token 발급 비활?�화', ok: !tp.tokenIssued },
-                  { label: 'Refresh Token ?�청 ?�음', ok: !tp.refreshTokenRequested },
-                  { label: '?�증?�보 ?�용 ????, ok: !tp.credentialsUsed },
-                  { label: 'Authorization header ?�음', ok: !tp.authorizationHeaderCreated },
-                  { label: 'Endpoint ?�출 ?�음', ok: !tp.endpointCalled },
-                  { label: 'Naver API ?�출 비활?�화', ok: !tp.naverApiCallAllowed },
-                  { label: 'Token ?�???�음', ok: !tp.tokenStored },
-                  { label: 'Secret 비노�?, ok: !tp.secretVisible },
+                  { label: 'Token 발급 비활성화', ok: !tp.tokenIssued },
+                  { label: 'Refresh Token 요청 없음', ok: !tp.refreshTokenRequested },
+                  { label: '인증정보 사용 안 함', ok: !tp.credentialsUsed },
+                  { label: 'Authorization header 없음', ok: !tp.authorizationHeaderCreated },
+                  { label: 'Endpoint 호출 없음', ok: !tp.endpointCalled },
+                  { label: 'Naver API 호출 비활성화', ok: !tp.naverApiCallAllowed },
+                  { label: 'Token 저장 없음', ok: !tp.tokenStored },
+                  { label: 'Secret 비노출', ok: !tp.secretVisible },
                 ].map(({ label, ok }) => (
                   <span
                     key={label}
@@ -5961,7 +5963,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
             </div>
 
-            {/* ?�태 카드 */}
+            {/* 상태 카드 */}
             <div className="mb-4 grid grid-cols-2 gap-2 text-xs sm:grid-cols-3 lg:grid-cols-4">
               {[
                 { label: 'accessTokenRequested', value: String(tp.accessTokenRequested) },
@@ -5982,12 +5984,12 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               ))}
             </div>
 
-            {/* 차단/경고 ?�유 */}
+            {/* 차단/경고 사유 */}
             {tp.blockingReasons.length > 0 && (
               <div className="mb-4 rounded-md border border-red-500/20 bg-red-500/10 p-3 text-xs">
                 <p className="mb-2 flex items-center gap-1.5 font-semibold text-red-300">
                   <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
-                  차단 ?�유 ({tp.blockingReasons.length}�?
+                  차단 사유 ({tp.blockingReasons.length}건)
                 </p>
                 <ul className="space-y-1">
                   {tp.blockingReasons.map((reason, idx) => (
@@ -6000,7 +6002,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="mb-4 rounded-md border border-amber-500/20 bg-amber-500/10 p-3 text-xs">
                 <p className="mb-2 flex items-center gap-1.5 font-semibold text-amber-300">
                   <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
-                  경고 ({tp.warnings.length}�?
+                  경고 ({tp.warnings.length}건)
                 </p>
                 <ul className="space-y-1">
                   {tp.warnings.map((w, idx) => (
@@ -6012,14 +6014,14 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
 
             {/* maxAllowedState */}
             <div className="rounded-md border border-slate-500/20 bg-slate-500/10 p-2 text-xs text-gray-400">
-              <span className="text-gray-500">최�? ?�용 ?�태: </span>
+              <span className="text-gray-500">최대 허용 상태: </span>
               <span className="font-mono text-rose-300">{tp.maxAllowedState}</span>
             </div>
           </div>
         );
       })()}
 
-      {/* ?�?� Naver API Token Dry Permission Gate ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?� */}
+      {/* ── Naver API Token Dry Permission Gate ────────────────────────────── */}
       {job.naverAuthTokenDryPermissionGate && (() => {
         const gate = job.naverAuthTokenDryPermissionGate!;
         const statusColor = gate.dryCheckPassed
@@ -6046,23 +6048,23 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
           <div className="mb-6 rounded-lg border border-[#262629] bg-[#121214] p-4">
             <h2 className="mb-3 flex items-center gap-2 text-base font-semibold text-white">
               <ShieldAlert className={`h-5 w-5 ${statusColor}`} />
-              Token Dry Permission Gate ???�전 조건 ?��?
+              Token Dry Permission Gate — 사전 조건 점검
               <span className={`ml-1 rounded-full border ${borderColor} ${bgColor} px-2 py-0.5 text-[10px] font-semibold ${textColor}`}>
                 {gate.resultCode}
               </span>
             </h2>
 
-            {/* ?�내 문구 */}
+            {/* 안내 문구 */}
             <div className={`mb-4 rounded-md border ${borderColor} ${bgColor} p-3 text-xs ${textColor}`}>
               <p>
-                ???�션?� token 발급 ??dry-run ?��? 결과�??�시?�니??
-                모든 ?�행 조건??충족?�어??dryCheckPassed=true) ???�계?�서??token??발급?��? ?�습?�다.
+                이 섹션은 token 발급 전 dry-run 점검 결과를 표시합니다.
+                모든 선행 조건이 충족되어도(dryCheckPassed=true) 이 단계에서는 token을 발급하지 않습니다.
               </p>
             </div>
 
-            {/* ?�태 ?�약 */}
+            {/* 상태 요약 */}
             <div className="mb-4 flex flex-wrap items-center gap-3">
-              <span className="text-sm text-gray-400">Gate ?�태:</span>
+              <span className="text-sm text-gray-400">Gate 상태:</span>
               <span className={`rounded-full border ${borderColor} ${bgColor} px-2 py-0.5 text-xs font-semibold ${textColor}`}>
                 {gate.status}
               </span>
@@ -6074,19 +6076,19 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </span>
             </div>
 
-            {/* ?�전 배�? */}
+            {/* 안전 배지 */}
             <div className="mb-4">
-              <p className="mb-2 text-xs font-semibold text-gray-400">?�전 배�? (모두 비활?�화??</p>
+              <p className="mb-2 text-xs font-semibold text-gray-400">안전 배지 (모두 비활성화됨)</p>
               <div className="flex flex-wrap gap-2">
                 {[
                   { label: 'Token 발급 차단', ok: !gate.tokenIssued },
-                  { label: 'Token ?�청 차단', ok: !gate.tokenRequestAllowed },
-                  { label: 'Refresh Token ?�음', ok: !gate.refreshTokenRequested },
-                  { label: '?�증?�보 ?�용 ????, ok: !gate.credentialsUsed },
-                  { label: 'Authorization header ?�음', ok: !gate.authorizationHeaderCreated },
-                  { label: 'Endpoint ?�출 ?�음', ok: !gate.endpointCalled },
-                  { label: 'Naver API ?�출 차단', ok: !gate.naverApiCallAllowed },
-                  { label: 'Secret 비노�?, ok: !gate.secretVisible },
+                  { label: 'Token 요청 차단', ok: !gate.tokenRequestAllowed },
+                  { label: 'Refresh Token 없음', ok: !gate.refreshTokenRequested },
+                  { label: '인증정보 사용 안 함', ok: !gate.credentialsUsed },
+                  { label: 'Authorization header 없음', ok: !gate.authorizationHeaderCreated },
+                  { label: 'Endpoint 호출 없음', ok: !gate.endpointCalled },
+                  { label: 'Naver API 호출 차단', ok: !gate.naverApiCallAllowed },
+                  { label: 'Secret 비노출', ok: !gate.secretVisible },
                 ].map(({ label, ok }) => (
                   <span
                     key={label}
@@ -6103,7 +6105,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
             </div>
 
-            {/* ?�태 카드 */}
+            {/* 상태 카드 */}
             <div className="mb-4 grid grid-cols-2 gap-2 text-xs sm:grid-cols-3 lg:grid-cols-4">
               {[
                 { label: 'allowed', value: String(gate.allowed) },
@@ -6124,12 +6126,12 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               ))}
             </div>
 
-            {/* 차단 ?�유 */}
+            {/* 차단 사유 */}
             {gate.blockingReasons.length > 0 && (
               <div className="mb-4 rounded-md border border-red-500/20 bg-red-500/10 p-3 text-xs">
                 <p className="mb-2 flex items-center gap-1.5 font-semibold text-red-300">
                   <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
-                  차단 ?�유 ({gate.blockingReasons.length}�?
+                  차단 사유 ({gate.blockingReasons.length}건)
                 </p>
                 <ul className="space-y-1">
                   {gate.blockingReasons.map((reason, idx) => (
@@ -6139,12 +6141,12 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
             )}
 
-            {/* 검???�요 ?�유 */}
+            {/* 검토 필요 사유 */}
             {gate.needsReviewReasons.length > 0 && (
               <div className="mb-4 rounded-md border border-amber-500/20 bg-amber-500/10 p-3 text-xs">
                 <p className="mb-2 flex items-center gap-1.5 font-semibold text-amber-300">
                   <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
-                  검???�요 ({gate.needsReviewReasons.length}�?
+                  검토 필요 ({gate.needsReviewReasons.length}건)
                 </p>
                 <ul className="space-y-1">
                   {gate.needsReviewReasons.map((r, idx) => (
@@ -6159,7 +6161,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="mb-4 rounded-md border border-yellow-500/20 bg-yellow-500/10 p-3 text-xs">
                 <p className="mb-2 flex items-center gap-1.5 font-semibold text-yellow-300">
                   <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
-                  경고 ({gate.warnings.length}�?
+                  경고 ({gate.warnings.length}건)
                 </p>
                 <ul className="space-y-1">
                   {gate.warnings.map((w, idx) => (
@@ -6169,10 +6171,10 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
             )}
 
-            {/* 체크리스???�약 */}
+            {/* 체크리스트 요약 */}
             <div className="mb-4">
               <p className="mb-2 text-xs font-semibold text-gray-400">
-                ?��? ??�� ({gate.checklistItems.length}�?
+                점검 항목 ({gate.checklistItems.length}건)
               </p>
               <div className="space-y-1">
                 {gate.checklistItems.map((item) => (
@@ -6193,14 +6195,14 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
 
             {/* maxAllowedState */}
             <div className="rounded-md border border-slate-500/20 bg-slate-500/10 p-2 text-xs text-gray-400">
-              <span className="text-gray-500">최�? ?�용 ?�태: </span>
+              <span className="text-gray-500">최대 허용 상태: </span>
               <span className="font-mono text-indigo-300">{gate.maxAllowedState}</span>
             </div>
           </div>
         );
       })()}
 
-      {/* ?�?� Naver API Token Test-Only Skeleton ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?� */}
+      {/* ── Naver API Token Test-Only Skeleton ──────────────────────────────── */}
       {job.naverAuthTokenTestOnlySkeletonStatus && (() => {
         const sk = job.naverAuthTokenTestOnlySkeletonStatus!;
         const statusColor =
@@ -6215,13 +6217,13 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
           <div className={`mb-6 rounded-lg border p-4 ${statusColor}`}>
             <h2 className="mb-3 flex items-center gap-2 text-base font-semibold">
               <ShieldAlert className="h-5 w-5 shrink-0" />
-              Token Test-Only Skeleton ??코드 경로 준�??�인
+              Token Test-Only Skeleton — 코드 경로 준비 확인
               <span className="ml-auto rounded-full border px-2 py-0.5 text-xs font-semibold">
                 {sk.status}
               </span>
             </h2>
 
-            {/* ?�전 배�? */}
+            {/* 안전 배지 */}
             <div className="mb-4 flex flex-wrap gap-2 text-xs">
               <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-emerald-300">
                 testOnlyMode=true
@@ -6230,16 +6232,16 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 Token 발급 차단
               </span>
               <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-emerald-300">
-                Endpoint 미해??
+                Endpoint 미해석
               </span>
               <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-emerald-300">
-                HTTP Client ?�음
+                HTTP Client 없음
               </span>
               <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-emerald-300">
-                Secret 비노�?
+                Secret 비노출
               </span>
               <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-emerald-300">
-                Naver API ?�출 차단
+                Naver API 호출 차단
               </span>
             </div>
 
@@ -6250,7 +6252,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="mt-1 text-gray-300">{sk.resultMessage}</div>
             </div>
 
-            {/* ?�태 카드 */}
+            {/* 상태 카드 */}
             <div className="mb-4 grid grid-cols-2 gap-2 text-xs sm:grid-cols-3">
               {([
                 ['testOnlyMode', String(sk.testOnlyMode)],
@@ -6272,12 +6274,12 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               ))}
             </div>
 
-            {/* 차단 ?�유 */}
+            {/* 차단 사유 */}
             {sk.blockingReasons.length > 0 && (
               <div className="mb-4 rounded-md border border-red-500/20 bg-red-500/10 p-3 text-xs">
                 <p className="mb-2 flex items-center gap-1.5 font-semibold text-red-300">
                   <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
-                  차단 ?�유 ({sk.blockingReasons.length}�?
+                  차단 사유 ({sk.blockingReasons.length}건)
                 </p>
                 <ul className="space-y-1">
                   {sk.blockingReasons.map((r, idx) => (
@@ -6287,12 +6289,12 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
             )}
 
-            {/* 검???�요 */}
+            {/* 검토 필요 */}
             {sk.needsReviewReasons.length > 0 && (
               <div className="mb-4 rounded-md border border-amber-500/20 bg-amber-500/10 p-3 text-xs">
                 <p className="mb-2 flex items-center gap-1.5 font-semibold text-amber-300">
                   <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
-                  검???�요 ({sk.needsReviewReasons.length}�?
+                  검토 필요 ({sk.needsReviewReasons.length}건)
                 </p>
                 <ul className="space-y-1">
                   {sk.needsReviewReasons.map((r, idx) => (
@@ -6307,7 +6309,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="mb-4 rounded-md border border-yellow-500/20 bg-yellow-500/10 p-3 text-xs">
                 <p className="mb-2 flex items-center gap-1.5 font-semibold text-yellow-300">
                   <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
-                  경고 ({sk.warnings.length}�?
+                  경고 ({sk.warnings.length}건)
                 </p>
                 <ul className="space-y-1">
                   {sk.warnings.map((w, idx) => (
@@ -6317,10 +6319,10 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
             )}
 
-            {/* 체크리스??*/}
+            {/* 체크리스트 */}
             <div className="mb-4">
               <p className="mb-2 text-xs font-semibold text-gray-400">
-                ?��? ??�� ({sk.checklistItems.length}�?
+                점검 항목 ({sk.checklistItems.length}건)
               </p>
               <div className="space-y-1">
                 {sk.checklistItems.map((item) => (
@@ -6341,16 +6343,16 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
 
             {/* maxAllowedState */}
             <div className="rounded-md border border-slate-500/20 bg-slate-500/10 p-2 text-xs text-gray-400">
-              <span className="text-gray-500">최�? ?�용 ?�태: </span>
+              <span className="text-gray-500">최대 허용 상태: </span>
               <span className="font-mono text-indigo-300">{sk.maxAllowedState}</span>
             </div>
           </div>
         );
       })()}
 
-      {/* ?�?� 최초 Token 발급 ?�스???�인 기록 ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?� */}
+      {/* ── 최초 Token 발급 테스트 승인 기록 ────────────────────────────────── */}
       {(() => {
-        // 기존 ?�?�된 audit ?�인
+        // 기존 저장된 audit 확인
         const savedAudit = job.naverAuthTokenTestApprovalAudit;
         const hasExistingAudit = savedAudit && savedAudit.hasAudit === true;
         const existingAudit = hasExistingAudit ? (savedAudit as NaverAuthTokenTestApprovalAuditRecord) : null;
@@ -6367,32 +6369,32 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
           <div className="mb-6 rounded-lg border border-indigo-500/30 bg-indigo-500/5 p-4">
             <h2 className="mb-3 flex items-center gap-2 text-base font-semibold text-indigo-300">
               <ShieldAlert className="h-5 w-5 shrink-0" />
-              최초 Token 발급 ?�스?????�용???�인 기록
+              최초 Token 발급 테스트 전 사용자 승인 기록
               {hasExistingAudit && (
                 <span className="ml-auto rounded-full border border-emerald-500/30 bg-emerald-500/20 px-2 py-0.5 text-xs font-semibold text-emerald-300">
-                  기록 ?�료
+                  기록 완료
                 </span>
               )}
             </h2>
 
-            {/* ?�전 ?�내 배너 */}
+            {/* 안전 안내 배너 */}
             <div className="mb-4 rounded-md border border-amber-500/20 bg-amber-500/10 p-3 text-sm text-amber-200">
-              <p className="mb-1 font-semibold text-amber-300">???�전 ?�내 ?????�션?� ?�인 기록�??�?�합?�다</p>
+              <p className="mb-1 font-semibold text-amber-300">⚠ 안전 안내 — 이 섹션은 승인 기록만 저장합니다</p>
               <ul className="space-y-1 text-xs">
-                <li>?????�인 기록?� ?�제 token 발급???�행?��? ?�습?�다.</li>
-                <li>???�품 ?�정 API ?�출�??�결?��? ?�습?�다.</li>
-                <li>???�공?�도 Live ?�행???�성?�되지 ?�습?�다.</li>
-                <li>??Naver API endpoint URL?????�계?�서 resolve?��? ?�습?�다.</li>
-                <li>??HTTP client가 ?�성?��? ?�습?�다.</li>
-                <li>??Authorization header가 ?�성?��? ?�습?�다.</li>
+                <li>• 이 승인 기록은 실제 token 발급을 실행하지 않습니다.</li>
+                <li>• 상품 수정 API 호출과 연결되지 않습니다.</li>
+                <li>• 성공해도 Live 실행이 활성화되지 않습니다.</li>
+                <li>• Naver API endpoint URL이 이 단계에서 resolve되지 않습니다.</li>
+                <li>• HTTP client가 생성되지 않습니다.</li>
+                <li>• Authorization header가 생성되지 않습니다.</li>
               </ul>
             </div>
 
-            {/* ?�수 acknowledgement 체크박스 */}
+            {/* 필수 acknowledgement 체크박스 */}
             {!hasExistingAudit && (
               <div className="mb-4">
                 <p className="mb-2 text-xs font-semibold text-gray-400">
-                  ?�수 ?�인 ??�� ({tokenTestApprovalCheckedItems.length}/{TOKEN_TEST_APPROVAL_REQUIRED_ACKNOWLEDGEMENTS.length}�??�인??
+                  필수 확인 항목 ({tokenTestApprovalCheckedItems.length}/{TOKEN_TEST_APPROVAL_REQUIRED_ACKNOWLEDGEMENTS.length}건 확인됨)
                 </p>
                 <div className="space-y-2">
                   {TOKEN_TEST_APPROVAL_REQUIRED_ACKNOWLEDGEMENTS.map((ack) => (
@@ -6417,12 +6419,12 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
             )}
 
-            {/* ?�??버튼 */}
+            {/* 저장 버튼 */}
             {!hasExistingAudit && (
               <div className="mb-4">
                 {!currentActiveFinalApproval && (
                   <div className="mb-2 rounded-md border border-amber-500/20 bg-amber-500/10 p-2 text-xs text-amber-300">
-                    ??ACTIVE Final Approval???�습?�다. 먼�? 최종 ?�인 Artifact�??�성?�세??
+                    ⚠ ACTIVE Final Approval이 없습니다. 먼저 최종 승인 Artifact를 생성하세요.
                   </div>
                 )}
                 <button
@@ -6437,41 +6439,41 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                   }`}
                 >
                   {tokenTestApprovalSaving ? (
-                    <><Loader2 className="mr-2 inline-block h-4 w-4 animate-spin" />?�??�?..</>
+                    <><Loader2 className="mr-2 inline-block h-4 w-4 animate-spin" />저장 중...</>
                   ) : (
-                    '?�인 기록 ?�??(Token 발급 미실??'
+                    '승인 기록 저장 (Token 발급 미실행)'
                   )}
                 </button>
                 <p className="mt-1 text-[10px] text-gray-500">
-                  ??버튼?� ?�인 기록�??�?�합?�다. token 발급 버튼???�닙?�다. ?�증 ?�스??버튼???�닙?�다. Live ?�행 버튼???�닙?�다.
+                  이 버튼은 승인 기록만 저장합니다. token 발급 버튼이 아닙니다. 인증 테스트 버튼이 아닙니다. Live 실행 버튼이 아닙니다.
                 </p>
 
-                {/* ?�류 */}
+                {/* 오류 */}
                 {tokenTestApprovalSaveError && (
                   <div className="mt-2 rounded-md border border-red-500/20 bg-red-500/10 p-3 text-xs text-red-400">
-                    <span className="font-semibold">?�???�류: </span>{tokenTestApprovalSaveError}
+                    <span className="font-semibold">저장 오류: </span>{tokenTestApprovalSaveError}
                   </div>
                 )}
 
-                {/* ?�???�공 결과 (방금 ?�?? */}
+                {/* 저장 성공 결과 (방금 저장) */}
                 {tokenTestApprovalSaveResult && (
                   <div className="mt-2 rounded-md border border-emerald-500/20 bg-emerald-500/10 p-3 text-xs text-emerald-300">
-                    <p className="mb-1 font-semibold">???�인 기록 ?�???�료</p>
+                    <p className="mb-1 font-semibold">✓ 승인 기록 저장 완료</p>
                     <p><span className="text-gray-400">auditCode: </span><span className="font-mono">{tokenTestApprovalSaveResult.auditCode}</span></p>
                     <p><span className="text-gray-400">recordedAt: </span>{tokenTestApprovalSaveResult.recordedAt}</p>
-                    <p><span className="text-gray-400">acknowledgedItems: </span>{tokenTestApprovalSaveResult.acknowledgedItems.length}�?/p>
+                    <p><span className="text-gray-400">acknowledgedItems: </span>{tokenTestApprovalSaveResult.acknowledgedItems.length}건</p>
                     <p className="mt-1 text-[10px] text-emerald-400">{tokenTestApprovalSaveResult.message}</p>
                   </div>
                 )}
               </div>
             )}
 
-            {/* ?�?�된 audit ?�시 */}
+            {/* 저장된 audit 표시 */}
             {existingAudit && (
               <div className="mb-4 rounded-md border border-emerald-500/20 bg-emerald-500/10 p-4">
                 <p className="mb-3 flex items-center gap-2 text-sm font-semibold text-emerald-300">
                   <CheckCircle2 className="h-4 w-4 shrink-0" />
-                  ?�?�된 ?�인 기록
+                  저장된 승인 기록
                 </p>
                 <div className="mb-3 grid grid-cols-1 gap-2 text-xs sm:grid-cols-2">
                   <div className="rounded-md border border-[#262629] bg-[#18181b] p-2">
@@ -6488,7 +6490,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                   </div>
                   <div className="rounded-md border border-[#262629] bg-[#18181b] p-2">
                     <p className="text-gray-500">acknowledgedItems</p>
-                    <p className="mt-0.5 text-gray-200">{existingAudit.acknowledgedItems.length}�??�인??/p>
+                    <p className="mt-0.5 text-gray-200">{existingAudit.acknowledgedItems.length}건 확인됨</p>
                   </div>
                   <div className="rounded-md border border-[#262629] bg-[#18181b] p-2">
                     <p className="text-gray-500">maxAllowedState</p>
@@ -6503,7 +6505,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 {/* acknowledgedItems 목록 */}
                 {existingAudit.acknowledgedItems.length > 0 && (
                   <div className="mb-3">
-                    <p className="mb-1 text-xs font-semibold text-gray-400">?�인????�� ({existingAudit.acknowledgedItems.length}�?</p>
+                    <p className="mb-1 text-xs font-semibold text-gray-400">확인된 항목 ({existingAudit.acknowledgedItems.length}건)</p>
                     <div className="space-y-1">
                       {existingAudit.acknowledgedItems.map(item => (
                         <div key={item} className="flex items-center gap-2 rounded-sm px-2 py-1 text-xs">
@@ -6517,7 +6519,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
 
                 {/* false safety flags */}
                 <div className="mb-3">
-                  <p className="mb-1 text-xs font-semibold text-gray-400">?�전 ?�래�?(모두 false)</p>
+                  <p className="mb-1 text-xs font-semibold text-gray-400">안전 플래그 (모두 false)</p>
                   <div className="grid grid-cols-2 gap-1 text-xs sm:grid-cols-3">
                     {([
                       ['tokenRequestAllowed', existingAudit.tokenRequestAllowed],
@@ -6538,18 +6540,18 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
             )}
 
-            {/* ?�전 배�? */}
+            {/* 안전 배지 */}
             <div>
-              <p className="mb-2 text-xs font-semibold text-gray-400">?�전 배�?</p>
+              <p className="mb-2 text-xs font-semibold text-gray-400">안전 배지</p>
               <div className="flex flex-wrap gap-2">
                 {[
-                  'Token 발급 미실??,
-                  'Endpoint ?�출 ?�음',
-                  'HTTP client ?�음',
-                  'Authorization header ?�음',
-                  'Token ?�???�음',
-                  'Live ?�행 비활?�화',
-                  'Queue/Worker ?�음',
+                  'Token 발급 미실행',
+                  'Endpoint 호출 없음',
+                  'HTTP client 없음',
+                  'Authorization header 없음',
+                  'Token 저장 없음',
+                  'Live 실행 비활성화',
+                  'Queue/Worker 없음',
                 ].map(label => (
                   <span
                     key={label}
@@ -6565,7 +6567,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� 최초 Token 발급 ?�스??Safety Boundary ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?� */}
+      {/* ── 최초 Token 발급 테스트 Safety Boundary ───────────────────────────────── */}
       {(() => {
         const boundary = job.naverAuthTokenFirstTestSafetyBoundary ?? null;
         if (!boundary) return null;
@@ -6585,35 +6587,35 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         };
 
         const checkItemIcon = (status: 'PASS' | 'WARN' | 'BLOCKED' | 'NEEDS_REVIEW') => {
-          if (status === 'PASS') return '??;
-          if (status === 'WARN') return '??;
-          if (status === 'BLOCKED') return '??;
-          return '??;
+          if (status === 'PASS') return '✓';
+          if (status === 'WARN') return '⚠';
+          if (status === 'BLOCKED') return '✗';
+          return '…';
         };
 
         return (
           <div className="mb-6 rounded-lg border border-violet-500/30 bg-violet-500/5 p-4">
             <h2 className="mb-3 flex items-center gap-2 text-base font-semibold text-violet-300">
               <ShieldAlert className="h-5 w-5 shrink-0" />
-              최초 Token 발급 ?�스??Safety Boundary
+              최초 Token 발급 테스트 Safety Boundary
               <span className={`ml-auto rounded-full border px-2 py-0.5 text-xs font-semibold ${statusBadgeClass}`}>
                 {boundary.status}
               </span>
             </h2>
 
-            {/* ?�전 ?�내 배너 */}
+            {/* 안전 안내 배너 */}
             <div className="mb-4 rounded-md border border-amber-500/20 bg-amber-500/10 p-3 text-sm text-amber-200">
-              <p className="mb-1 font-semibold text-amber-300">???�전 ?�내 ????Boundary???�제 token 발급???�행?��? ?�습?�다</p>
+              <p className="mb-1 font-semibold text-amber-300">⚠ 안전 안내 — 이 Boundary는 실제 token 발급을 실행하지 않습니다</p>
               <ul className="space-y-1 text-xs">
-                <li>????Boundary???�제 token 발급???�행?��? ?�습?�다.</li>
-                <li>??ready ?�태?�도 ?�음 Task?�서 별도 명시 ?�인???�요?�니??</li>
-                <li>???�품 ?�정 API ?�출�??�결?��? ?�습?�다.</li>
-                <li>??Naver API endpoint URL?????�계?�서 resolve?��? ?�습?�다.</li>
-                <li>??HTTP client가 ?�성?��? ?�습?�다.</li>
+                <li>• 이 Boundary는 실제 token 발급을 실행하지 않습니다.</li>
+                <li>• ready 상태여도 다음 Task에서 별도 명시 승인이 필요합니다.</li>
+                <li>• 상품 수정 API 호출과 연결되지 않습니다.</li>
+                <li>• Naver API endpoint URL이 이 단계에서 resolve되지 않습니다.</li>
+                <li>• HTTP client가 생성되지 않습니다.</li>
               </ul>
             </div>
 
-            {/* ?�태 ?�약 카드 */}
+            {/* 상태 요약 카드 */}
             <div className="mb-4 grid grid-cols-1 gap-2 text-xs sm:grid-cols-2">
               <div className="rounded-md border border-[#262629] bg-[#18181b] p-3">
                 <p className="mb-1 text-gray-500">resultCode</p>
@@ -6630,8 +6632,8 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 </p>
                 <p className="mt-0.5 text-[10px] text-gray-500">
                   {boundary.readyForExplicitTokenTestApproval
-                    ? '?�음 Task?�서 별도 명시 ?�인 ??token 발급 ?�스??진행 가??
-                    : '조건 미충�???token 발급 ?�스???�재 차단'}
+                    ? '다음 Task에서 별도 명시 승인 시 token 발급 테스트 진행 가능'
+                    : '조건 미충족 — token 발급 테스트 현재 차단'}
                 </p>
               </div>
               <div className="rounded-md border border-[#262629] bg-[#18181b] p-3">
@@ -6655,23 +6657,23 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="rounded-md border border-[#262629] bg-[#18181b] p-3">
                 <p className="mb-1 text-gray-500">allowed</p>
                 <p className="font-semibold text-emerald-300">{String(boundary.allowed)}</p>
-                <p className="mt-0.5 text-[10px] text-gray-500">??�� false</p>
+                <p className="mt-0.5 text-[10px] text-gray-500">항상 false</p>
               </div>
             </div>
 
-            {/* ?�전 배�? */}
+            {/* 안전 배지 */}
             <div className="mb-4">
-              <p className="mb-2 text-xs font-semibold text-gray-400">?�전 배�? (모두 false 기보 보장)</p>
+              <p className="mb-2 text-xs font-semibold text-gray-400">안전 배지 (모두 false 기보 보장)</p>
               <div className="flex flex-wrap gap-2">
                 {[
-                  'Token ?�청 비활?�화',
-                  'Access Token ?�청 ?�음',
-                  'Endpoint 미해�?,
-                  'HTTP client ?�음',
-                  'Authorization header ?�음',
-                  'Token ?�???�음',
-                  'Live ?�행 비활?�화',
-                  'Queue/Worker ?�음',
+                  'Token 요청 비활성화',
+                  'Access Token 요청 없음',
+                  'Endpoint 미해결',
+                  'HTTP client 없음',
+                  'Authorization header 없음',
+                  'Token 저장 없음',
+                  'Live 실행 비활성화',
+                  'Queue/Worker 없음',
                 ].map(label => (
                   <span
                     key={label}
@@ -6684,10 +6686,10 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
             </div>
 
-            {/* 코어 체크리스??*/}
+            {/* 코어 체크리스트 */}
             {boundary.checklistItems.length > 0 && (
               <div className="mb-4">
-                <p className="mb-2 text-xs font-semibold text-gray-400">코어 체크리스??({boundary.checklistItems.length}??</p>
+                <p className="mb-2 text-xs font-semibold text-gray-400">코어 체크리스트 ({boundary.checklistItems.length}연)</p>
                 <div className="space-y-1">
                   {boundary.checklistItems.map((item) => (
                     <div
@@ -6707,25 +6709,25 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
             )}
 
-            {/* 차단 ?�유 */}
+            {/* 차단 사유 */}
             {boundary.blockingReasons.length > 0 && (
               <div className="mb-3 rounded-md border border-red-500/20 bg-red-500/10 p-3">
-                <p className="mb-1 text-xs font-semibold text-red-300">?�큰 ?�스??차단 ?�유 ({boundary.blockingReasons.length}�?</p>
+                <p className="mb-1 text-xs font-semibold text-red-300">토큰 테스트 차단 사유 ({boundary.blockingReasons.length}건)</p>
                 <ul className="space-y-1">
                   {boundary.blockingReasons.map((reason, idx) => (
-                    <li key={idx} className="text-xs text-red-200">??{reason}</li>
+                    <li key={idx} className="text-xs text-red-200">• {reason}</li>
                   ))}
                 </ul>
               </div>
             )}
 
-            {/* ?�인 ?�요 ?�유 */}
+            {/* 확인 필요 사유 */}
             {boundary.needsReviewReasons.length > 0 && (
               <div className="mb-3 rounded-md border border-amber-500/20 bg-amber-500/10 p-3">
-                <p className="mb-1 text-xs font-semibold text-amber-300">?�인 ?�요 ??�� ({boundary.needsReviewReasons.length}�?</p>
+                <p className="mb-1 text-xs font-semibold text-amber-300">확인 필요 항목 ({boundary.needsReviewReasons.length}건)</p>
                 <ul className="space-y-1">
                   {boundary.needsReviewReasons.map((reason, idx) => (
-                    <li key={idx} className="text-xs text-amber-200">??{reason}</li>
+                    <li key={idx} className="text-xs text-amber-200">• {reason}</li>
                   ))}
                 </ul>
               </div>
@@ -6734,24 +6736,24 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             {/* 경고 */}
             {boundary.warnings.length > 0 && (
               <div className="mb-3 rounded-md border border-slate-500/20 bg-slate-500/10 p-3">
-                <p className="mb-1 text-xs font-semibold text-slate-300">경고 ({boundary.warnings.length}�?</p>
+                <p className="mb-1 text-xs font-semibold text-slate-300">경고 ({boundary.warnings.length}건)</p>
                 <ul className="space-y-1">
                   {boundary.warnings.map((w, idx) => (
-                    <li key={idx} className="text-xs text-slate-200">??{w}</li>
+                    <li key={idx} className="text-xs text-slate-200">• {w}</li>
                   ))}
                 </ul>
               </div>
             )}
 
-            {/* ?�내 문구 */}
+            {/* 안내 문구 */}
             <p className="mt-2 text-[10px] text-gray-500">
-              ???�션?� 최초 token 발급 ?�스??직전 조건??최종 ?��??�니?? 모든 조건???�과?�어?????�계?�서??token??발급?��? ?�으�? ?�제 token 발급 ?�스?�는 ?�음 Task?�서 별도 명시 ?�인 ?�에�?진행?�니??
+              이 섹션은 최초 token 발급 테스트 직전 조건을 최종 점검합니다. 모든 조건이 통과되어도 이 단계에서는 token을 발급하지 않으며, 실제 token 발급 테스트는 다음 Task에서 별도 명시 승인 후에만 진행됩니다.
             </p>
           </div>
         );
       })()}
 
-      {/* ?�?� 최초 Token 발급 ?�스??Final Approval Audit ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?� */}
+      {/* ── 최초 Token 발급 테스트 Final Approval Audit ────────────────────────────── */}
       {(() => {
         const audit = job.naverAuthTokenFirstTestFinalApprovalAudit ?? null;
         if (!audit) return null;
@@ -6762,7 +6764,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
           <div className="mb-6 rounded-lg border border-fuchsia-500/30 bg-fuchsia-500/5 p-4">
             <h2 className="mb-3 flex items-center gap-2 text-base font-semibold text-fuchsia-300">
               <ShieldAlert className="h-5 w-5 shrink-0" />
-              최초 Token 발급 ?�스??최종 ?�인 (Final Approval)
+              최초 Token 발급 테스트 최종 승인 (Final Approval)
               {isRecorded ? (
                 <span className="ml-auto rounded-full border border-fuchsia-500/30 bg-fuchsia-500/20 px-2 py-0.5 text-xs font-semibold text-fuchsia-300">
                   RECORDED
@@ -6802,7 +6804,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 {/* acknowledgedKeys 목록 */}
                 {Array.isArray(audit.approvedAcknowledgementKeys) && audit.approvedAcknowledgementKeys.length > 0 && (
                   <div className="mb-3">
-                    <p className="mb-1 text-xs font-semibold text-gray-400">?�인???�의 ??�� ({audit.approvedAcknowledgementKeys.length}�?</p>
+                    <p className="mb-1 text-xs font-semibold text-gray-400">확인된 동의 항목 ({audit.approvedAcknowledgementKeys.length}건)</p>
                     <div className="space-y-1">
                       {audit.approvedAcknowledgementKeys.map(item => (
                         <div key={item} className="flex items-center gap-2 rounded-sm px-2 py-1 text-xs">
@@ -6816,7 +6818,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
 
                 {/* false safety flags */}
                 <div className="mb-3">
-                  <p className="mb-1 text-xs font-semibold text-gray-400">?�전 ?�래�?(모두 false)</p>
+                  <p className="mb-1 text-xs font-semibold text-gray-400">안전 플래그 (모두 false)</p>
                   <div className="grid grid-cols-2 gap-1 text-xs sm:grid-cols-3">
                     {([
                       ['tokenRequestAllowed', audit.tokenRequestAllowed],
@@ -6840,13 +6842,13 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
             )}
             <p className="mt-2 text-[10px] text-gray-500">
-              ???�션?� 최초 token 발급 ?�스?�의 최종 ?�인 기록(Read-only)???�시?�니?? ?�인??기록?�어???�제 발급 로직??비활?�화???�태?�을 보장?�니??
+              이 섹션은 최초 token 발급 테스트의 최종 승인 기록(Read-only)을 표시합니다. 승인이 기록되어도 실제 발급 로직이 비활성화된 상태임을 보장합니다.
             </p>
           </div>
         );
       })()}
 
-      {/* ?�?� Token First Test Review Hub Navigation ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?� */}
+      {/* ── Token First Test Review Hub Navigation ─────────────────────────────── */}
       {(() => {
         const hub = job.naverAuthTokenFirstTestReviewHubNavigationScreen;
         if (!hub) return null;
@@ -6862,10 +6864,10 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               {hub.description}
             </p>
 
-            {/* ?�널 목차 */}
+            {/* 패널 목차 */}
             <div className="mb-4 rounded-md border border-violet-500/15 bg-[#0d0a14] p-3">
               <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-violet-500">
-                ?�전 검???�널 목차 (�?{hub.totalPanelCount}�?
+                안전 검토 패널 목차 (총 {hub.totalPanelCount}개)
               </p>
               <div className="space-y-2">
                 {hub.navigationEntries.map((entry) => (
@@ -6886,14 +6888,14 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                       <p className="text-[11px] text-gray-500">{entry.panelDescription}</p>
                     </div>
                     <span className="shrink-0 rounded border border-gray-700/50 px-1.5 py-0.5 font-mono text-[9px] text-gray-600">
-                      ?�행불�?
+                      실행불가
                     </span>
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* ?�브 ?�내 */}
+            {/* 허브 안내 */}
             <div className="rounded-md border border-violet-500/15 bg-violet-500/5 p-3">
               <div className="flex items-start gap-2">
                 <Info className="mt-0.5 h-4 w-4 shrink-0 text-violet-400" />
@@ -6904,7 +6906,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Token First Test Review Section Layout ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?� */}
+      {/* ── Token First Test Review Section Layout ─────────────────────────────── */}
       {(() => {
         const layout = job.naverAuthTokenFirstTestReviewSectionLayoutScreen;
         if (!layout) return null;
@@ -6916,7 +6918,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               {layout.title}
             </h2>
 
-            {/* 검???�용 ?�역 경고 배너 */}
+            {/* 검토 전용 영역 경고 배너 */}
             <div className="mb-4 rounded-md border border-orange-500/40 bg-orange-500/10 px-4 py-3">
               <div className="flex items-start gap-2">
                 <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-orange-400" />
@@ -6931,10 +6933,10 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               {layout.sectionAreaDescription}
             </p>
 
-            {/* ?�션 구조 �?*/}
+            {/* 섹션 구조 맵 */}
             <div className="mb-4 rounded-md border border-orange-500/10 bg-[#100c08] p-3">
               <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-orange-600">
-                검???�션 구조 (�?{layout.sectionEntries.length}�?
+                검토 섹션 구조 (총 {layout.sectionEntries.length}개)
               </p>
               <div className="space-y-1.5">
                 {layout.sectionEntries.map((entry) => (
@@ -6954,7 +6956,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                         read-only
                       </span>
                       <span className="rounded border border-red-800/30 bg-red-900/10 px-1.5 py-0.5 text-[8px] text-red-600">
-                        ?�행불�?
+                        실행불가
                       </span>
                     </div>
                   </div>
@@ -6962,7 +6964,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
             </div>
 
-            {/* ?�이?�웃 ?�내 */}
+            {/* 레이아웃 안내 */}
             <div className="rounded-md border border-orange-500/15 bg-orange-500/5 p-3">
               <div className="flex items-start gap-2">
                 <Info className="mt-0.5 h-4 w-4 shrink-0 text-orange-400" />
@@ -6973,7 +6975,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Token First Test Readiness Screen ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?� */}
+      {/* ── Token First Test Readiness Screen ──────────────────────────────────────────────────────── */}
       {(() => {
         const readiness = job.naverAuthTokenFirstTestReadinessScreen;
         if (!readiness) return null;
@@ -7012,7 +7014,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
 
             {/* Safety Steps */}
             <div className="mb-4">
-              <p className="mb-2 text-xs font-semibold text-gray-400">?�전 계층 ?��? 결과</p>
+              <p className="mb-2 text-xs font-semibold text-gray-400">안전 계층 평가 결과</p>
               <div className="space-y-2">
                 {readiness.safetySteps.map((step) => (
                   <div key={step.key} className="flex flex-col gap-1 rounded-md border border-[#262629] bg-[#18181b] p-3 text-sm sm:flex-row sm:items-start sm:gap-4">
@@ -7040,7 +7042,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                       {step.reasons.length > 0 && (
                         <div className="mt-1 pl-1">
                           {step.reasons.map((r, i) => (
-                            <p key={i} className="text-[10px] text-red-400">??{r}</p>
+                            <p key={i} className="text-[10px] text-red-400">• {r}</p>
                           ))}
                         </div>
                       )}
@@ -7052,7 +7054,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
 
             {/* Safety Flags Review */}
             <div className="mb-3">
-              <p className="mb-1 text-xs font-semibold text-gray-400">강제 차단 ?�래�?검�?(?�체 false 보장)</p>
+              <p className="mb-1 text-xs font-semibold text-gray-400">강제 차단 플래그 검증 (전체 false 보장)</p>
               <div className="grid grid-cols-2 gap-1 text-xs sm:grid-cols-4">
                 {([
                   ['screenActionEnabled', readiness.screenActionEnabled],
@@ -7074,13 +7076,13 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
 
             {/* Why execution is blocked */}
             <div className="mb-3 rounded-md border border-amber-500/20 bg-amber-500/10 p-3">
-              <p className="mb-2 text-xs font-semibold text-amber-300">???�재 ?�행?????�는가?</p>
+              <p className="mb-2 text-xs font-semibold text-amber-300">왜 현재 실행할 수 없는가?</p>
               <ul className="space-y-1 text-xs text-amber-200">
-                <li>???�제 token 발급?� 별도 ?�용???�인 ?�에�?가?�합?�다.</li>
-                <li>???�제 Naver API ?�출?� 별도 ?�인???�요?�니??</li>
-                <li>???�영 DB write??별도 ?�인???�요?�니??</li>
-                <li>??가�??�고 변경�? 별도 ?�인???�요?�니??</li>
-                <li>???�재 ?�면?� ?�태 ?�인 ?�용?�니??</li>
+                <li>• 실제 token 발급은 별도 사용자 승인 후에만 가능합니다.</li>
+                <li>• 실제 Naver API 호출은 별도 승인이 필요합니다.</li>
+                <li>• 운영 DB write는 별도 승인이 필요합니다.</li>
+                <li>• 가격/재고 변경은 별도 승인이 필요합니다.</li>
+                <li>• 현재 화면은 상태 확인 전용입니다.</li>
               </ul>
             </div>
 
@@ -7088,7 +7090,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             {readiness.copyableSafetyReport && (
               <div className="mb-3">
                 <p className="mb-1 text-xs font-semibold text-gray-400">
-                  ?�전 보고??(read-only ???�스???�택 ??복사 가??
+                  안전 보고서 (read-only — 텍스트 선택 후 복사 가능)
                 </p>
                 <pre className="max-h-52 overflow-auto rounded-md border border-[#262629] bg-[#0a0a0c] p-3 text-xs text-gray-300 whitespace-pre-wrap cursor-text select-all leading-relaxed">
                   {readiness.copyableSafetyReport}
@@ -7098,22 +7100,22 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
 
             {/* Next Steps */}
             <div className="mb-3 rounded-md border border-indigo-500/20 bg-indigo-500/10 p-3">
-              <p className="mb-2 text-xs font-semibold text-indigo-300">?�음 ?�계 ?�내</p>
+              <p className="mb-2 text-xs font-semibold text-indigo-300">다음 단계 안내</p>
               <ul className="space-y-1 text-xs text-indigo-200">
-                <li>???�음 ?�계??별도 ?�용???�인 ??Test DB ?�는 명시???�전 ?�경?�서�?진행 가?�합?�다.</li>
-                <li>???�재 ?�면?�서???�행?????�습?�다.</li>
-                <li>???�제 token 발급 ?�청?� ?�직 구현?�어 ?��? ?�습?�다.</li>
+                <li>• 다음 단계는 별도 사용자 승인 후 Test DB 또는 명시된 안전 환경에서만 진행 가능합니다.</li>
+                <li>• 현재 화면에서는 실행할 수 없습니다.</li>
+                <li>• 실제 token 발급 요청은 아직 구현되어 있지 않습니다.</li>
               </ul>
             </div>
 
             <p className="mt-2 text-[10px] text-gray-500">
-              ???�면?� Read-only View Model???�더링하�??�제 API ?�출?�나 DB ?�기 ?�작??발생?��? ?�음??보장?�니??
+              이 화면은 Read-only View Model을 렌더링하며 실제 API 호출이나 DB 쓰기 동작이 발생하지 않음을 보장합니다.
             </p>
           </div>
         );
       })()}
 
-      {/* ?�?� Token First Test Final Confirmation Gate Screen ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?� */}
+      {/* ── Token First Test Final Confirmation Gate Screen ─────────────────────────────────────────── */}
       {(() => {
         const gate = job.naverAuthTokenFirstTestFinalConfirmationGateScreen;
         if (!gate) return null;
@@ -7129,7 +7131,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             </p>
 
             <div className="mb-4 rounded-md border border-red-500/20 bg-red-500/10 p-3">
-              <p className="mb-2 text-xs font-semibold text-red-300">?�약 카드</p>
+              <p className="mb-2 text-xs font-semibold text-red-300">요약 카드</p>
               <div className="grid grid-cols-2 gap-2 text-[11px] text-red-200 md:grid-cols-4">
                 <div className="rounded border border-red-500/10 bg-red-950/30 p-2">
                   <div className="text-red-400">Display Only</div>
@@ -7159,7 +7161,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             </div>
 
             <div className="mb-4 rounded-md border border-red-500/20 bg-[#121214] p-3">
-              <p className="mb-2 text-sm font-semibold text-gray-300">?�인 체크리스??/p>
+              <p className="mb-2 text-sm font-semibold text-gray-300">확인 체크리스트</p>
               <ul className="space-y-2">
                 {gate.checklist.map((item) => (
                   <li key={item.id} className="flex items-start gap-2 text-xs text-gray-400">
@@ -7175,13 +7177,13 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <span className="text-xs text-gray-300">{gate.warningMessage}</span>
             </div>
             <p className="mt-3 text-[10px] text-gray-500 text-right">
-              ???�역?� 컴포?�트 격리�??�한 display-only ?�역?�며 ?�행 버튼???�함?��? ?�습?�다.
+              이 영역은 컴포넌트 격리를 위한 display-only 영역이며 실행 버튼을 포함하지 않습니다.
             </p>
           </div>
         );
       })()}
 
-      {/* ?�?� Token First Test Action Lock Screen ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?� */}
+      {/* ── Token First Test Action Lock Screen ─────────────────────────────────────────────────── */}
       {(() => {
         const lock = job.naverAuthTokenFirstTestActionLockScreen;
         if (!lock) return null;
@@ -7197,7 +7199,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             </p>
 
             <div className="mb-4 rounded-md border border-purple-500/20 bg-purple-500/10 p-3">
-              <p className="mb-2 text-xs font-semibold text-purple-300">Action Lock ?�약 카드</p>
+              <p className="mb-2 text-xs font-semibold text-purple-300">Action Lock 요약 카드</p>
               <div className="grid grid-cols-2 gap-2 text-[11px] text-purple-200 md:grid-cols-4">
                 <div className="rounded border border-purple-500/10 bg-purple-950/30 p-2">
                   <div className="text-purple-400">Action Locked</div>
@@ -7235,7 +7237,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             </div>
 
             <div className="mb-4 rounded-md border border-purple-500/20 bg-[#121214] p-3">
-              <p className="mb-2 text-sm font-semibold text-gray-300">?�금 ?�유 목록</p>
+              <p className="mb-2 text-sm font-semibold text-gray-300">잠금 사유 목록</p>
               <ul className="space-y-2">
                 {lock.lockReasons.map((item) => (
                   <li key={item.id} className="flex items-start gap-2 text-xs text-gray-400">
@@ -7254,7 +7256,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Token First Test Safety Review Screen ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?� */}
+      {/* ── Token First Test Safety Review Screen ─────────────────────────────────────────────────── */}
       {(() => {
         const review = job.naverAuthTokenFirstTestSafetyReviewScreen;
         if (!review) return null;
@@ -7271,7 +7273,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             </p>
 
             <div className="mb-4 rounded-md border border-amber-500/20 bg-amber-500/10 p-3">
-              <p className="mb-2 text-xs font-semibold text-amber-300">Safety Review ?�약 카드</p>
+              <p className="mb-2 text-xs font-semibold text-amber-300">Safety Review 요약 카드</p>
               <div className="grid grid-cols-2 gap-2 text-[11px] text-amber-200 md:grid-cols-4">
                 <div className="rounded border border-amber-500/10 bg-amber-950/30 p-2">
                   <div className="text-amber-400">Execution Locked</div>
@@ -7293,7 +7295,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             </div>
 
             <div className="mb-4 rounded-md border border-amber-500/20 bg-[#121214] p-3">
-              <p className="mb-2 text-sm font-semibold text-gray-300">?�전 ?�태 리뷰 ??��</p>
+              <p className="mb-2 text-sm font-semibold text-gray-300">안전 상태 리뷰 항목</p>
               <ul className="space-y-2">
                 {review.reviewItems.map((item) => (
                   <li key={item.id} className="flex items-start gap-2 text-xs text-gray-400">
@@ -7312,7 +7314,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Token First Test Safe Next Step Guide Screen ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?� */}
+      {/* ── Token First Test Safe Next Step Guide Screen ───────────────────────── */}
       {(() => {
         const guide = job.naverAuthTokenFirstTestSafeNextStepGuideScreen;
         if (!guide) return null;
@@ -7328,17 +7330,17 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               {guide.description}
             </p>
 
-            {/* ?�재 ?�계 ?�태 배�? */}
+            {/* 현재 단계 상태 배지 */}
             <div className="mb-4 flex flex-wrap items-center gap-2">
               <span className="rounded-full border border-violet-500/30 bg-violet-500/10 px-3 py-1 text-xs font-semibold text-violet-300">
-                ?�재 ?�계: {guide.currentPhaseLabel}
+                현재 단계: {guide.currentPhaseLabel}
               </span>
               <span className="rounded-full border border-red-500/30 bg-red-500/10 px-3 py-1 text-xs font-semibold text-red-400">
-                Token 발급 ?�스???�행: ?�직 불�?
+                Token 발급 테스트 실행: 아직 불가
               </span>
             </div>
 
-            {/* ?�행 불�? ?�유 */}
+            {/* 실행 불가 이유 */}
             <div className="mb-4 rounded-md border border-red-500/20 bg-red-500/5 p-3">
               <div className="flex items-start gap-2">
                 <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-red-400" />
@@ -7346,9 +7348,9 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
             </div>
 
-            {/* ?�료???�전 ?�계 */}
+            {/* 완료된 안전 단계 */}
             <div className="mb-4 rounded-md border border-violet-500/20 bg-[#121214] p-3">
-              <p className="mb-3 text-sm font-semibold text-gray-300">?�료???�전 ?�계</p>
+              <p className="mb-3 text-sm font-semibold text-gray-300">완료된 안전 단계</p>
               <ol className="space-y-2">
                 {guide.completedSteps.map((step) => (
                   <li key={step.step} className="flex items-start gap-2 text-xs">
@@ -7364,9 +7366,9 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </ol>
             </div>
 
-            {/* 별도 ?�인 ?�요 ??�� */}
+            {/* 별도 승인 필요 항목 */}
             <div className="mb-4 rounded-md border border-amber-500/20 bg-amber-500/5 p-3">
-              <p className="mb-3 text-sm font-semibold text-amber-300">?�음 ?�계�??�어가�??�한 별도 ?�인 ??��</p>
+              <p className="mb-3 text-sm font-semibold text-amber-300">다음 단계로 넘어가기 위한 별도 승인 항목</p>
               <ul className="space-y-2">
                 {guide.pendingApprovalItems.map((item) => (
                   <li key={item.id} className="flex items-start gap-2 text-xs text-gray-400">
@@ -7379,7 +7381,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </ul>
             </div>
 
-            {/* ?�음 ?�계 ?�내 */}
+            {/* 다음 단계 안내 */}
             <div className="rounded-md border border-gray-500/20 bg-gray-500/5 p-3">
               <p className="mb-1 text-xs font-semibold text-gray-300">{guide.nextPhaseLabel}</p>
               <p className="text-xs text-gray-400">{guide.nextPhaseGuide}</p>
@@ -7388,7 +7390,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Token First Test Separate Approval Packet Screen ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?� */}
+      {/* ── Token First Test Separate Approval Packet Screen ──────────────────── */}
       {(() => {
         const packet = job.naverAuthTokenFirstTestSeparateApprovalPacketScreen;
         if (!packet) return null;
@@ -7404,26 +7406,26 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               {packet.description}
             </p>
 
-            {/* ?�재 ?�행 ?�금 ?�태 */}
+            {/* 현재 실행 잠금 상태 */}
             <div className="mb-4 rounded-md border border-red-500/30 bg-red-500/10 p-3">
               <div className="flex items-start gap-2">
                 <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-red-400" />
                 <div>
-                  <p className="mb-1 text-xs font-semibold text-red-300">?�재 ?�행 ?�금 ?�태</p>
+                  <p className="mb-1 text-xs font-semibold text-red-300">현재 실행 잠금 상태</p>
                   <p className="text-xs text-red-200">{packet.currentLockStatus}</p>
                 </div>
               </div>
             </div>
 
-            {/* ?�제 token 발급 ?�스??불�? ?�유 */}
+            {/* 실제 token 발급 테스트 불가 이유 */}
             <div className="mb-4 rounded-md border border-amber-500/20 bg-amber-500/5 p-3">
-              <p className="mb-1 text-xs font-semibold text-amber-300">?�제 Token 발급 ?�스??불�? ?�유</p>
+              <p className="mb-1 text-xs font-semibold text-amber-300">실제 Token 발급 테스트 불가 이유</p>
               <p className="text-xs text-amber-200">{packet.tokenTestNotAllowedReason}</p>
             </div>
 
-            {/* ?�험 범위 */}
+            {/* 위험 범위 */}
             <div className="mb-4 rounded-md border border-rose-500/20 bg-[#121214] p-3">
-              <p className="mb-3 text-sm font-semibold text-gray-300">별도 ?�인 ???�인?�야 ???�험 범위</p>
+              <p className="mb-3 text-sm font-semibold text-gray-300">별도 승인 시 확인해야 할 위험 범위</p>
               <ul className="space-y-2">
                 {packet.riskScopeItems.map((item) => (
                   <li key={item.id} className="flex items-start gap-2 text-xs text-gray-400">
@@ -7436,9 +7438,9 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </ul>
             </div>
 
-            {/* ?�인??체크리스??*/}
+            {/* 승인자 체크리스트 */}
             <div className="mb-4 rounded-md border border-indigo-500/20 bg-indigo-500/5 p-3">
-              <p className="mb-3 text-sm font-semibold text-indigo-300">?�인???�인 체크리스??(read-only)</p>
+              <p className="mb-3 text-sm font-semibold text-indigo-300">승인자 확인 체크리스트 (read-only)</p>
               <ul className="space-y-2">
                 {packet.approverChecklist.map((item) => (
                   <li key={item.id} className="flex items-start gap-2 text-xs">
@@ -7451,9 +7453,9 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </ul>
             </div>
 
-            {/* 금�? ??�� */}
+            {/* 금지 항목 */}
             <div className="mb-4 rounded-md border border-gray-600/20 bg-gray-900/30 p-3">
-              <p className="mb-3 text-xs font-semibold text-gray-400">?�재 ???�면?�서 ?�전??금�?????��</p>
+              <p className="mb-3 text-xs font-semibold text-gray-400">현재 이 화면에서 여전히 금지된 항목</p>
               <div className="flex flex-wrap gap-2">
                 {packet.prohibitedItems.map((item) => (
                   <span
@@ -7467,7 +7469,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
             </div>
 
-            {/* ?�인 ?�내 */}
+            {/* 승인 안내 */}
             <div className="rounded-md border border-gray-500/20 bg-gray-500/5 p-3">
               <div className="flex items-start gap-2">
                 <Info className="mt-0.5 h-4 w-4 shrink-0 text-gray-400" />
@@ -7478,7 +7480,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Token First Test Approval Evidence Timeline Screen ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?� */}
+      {/* ── Token First Test Approval Evidence Timeline Screen ─────────────────── */}
       {(() => {
         const timeline = job.naverAuthTokenFirstTestApprovalEvidenceTimelineScreen;
         if (!timeline) return null;
@@ -7494,26 +7496,26 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               {timeline.description}
             </p>
 
-            {/* ?�체 ?�행 ?�금 ?�태 */}
+            {/* 전체 실행 잠금 상태 */}
             <div className="mb-4 rounded-md border border-red-500/30 bg-red-500/10 p-3">
               <div className="flex items-start gap-2">
                 <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-red-400" />
                 <div>
-                  <p className="mb-1 text-xs font-semibold text-red-300">?�체 ?�행 ?�금 ?�태</p>
+                  <p className="mb-1 text-xs font-semibold text-red-300">전체 실행 잠금 상태</p>
                   <p className="text-xs text-red-200">{timeline.overallLockStatus}</p>
                 </div>
               </div>
             </div>
 
-            {/* token 발급 ?�스??차단 ?�유 */}
+            {/* token 발급 테스트 차단 이유 */}
             <div className="mb-4 rounded-md border border-amber-500/20 bg-amber-500/5 p-3">
-              <p className="mb-1 text-xs font-semibold text-amber-300">?�제 Token 발급 ?�스??차단 ?�유</p>
+              <p className="mb-1 text-xs font-semibold text-amber-300">실제 Token 발급 테스트 차단 이유</p>
               <p className="text-xs text-amber-200">{timeline.tokenTestBlockedReason}</p>
             </div>
 
             {/* Evidence Timeline Steps */}
             <div className="mb-4 space-y-3">
-              <p className="text-sm font-semibold text-gray-300">?�전 검???�계 Evidence Timeline</p>
+              <p className="text-sm font-semibold text-gray-300">안전 검토 단계 Evidence Timeline</p>
               {timeline.timelineSteps.map((step) => (
                 <div
                   key={step.id}
@@ -7530,11 +7532,11 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                   </div>
 
                   <div className="mb-2">
-                    <p className="mb-1 text-[9px] font-semibold uppercase tracking-wider text-gray-500">?�인???�전 조건</p>
+                    <p className="mb-1 text-[9px] font-semibold uppercase tracking-wider text-gray-500">확인된 안전 조건</p>
                     <ul className="space-y-0.5">
                       {step.confirmedSafetyConditions.map((cond, i) => (
                         <li key={i} className="flex items-start gap-1.5 text-[11px] text-gray-400">
-                          <span className="mt-0.5 shrink-0 text-green-500">??/span>
+                          <span className="mt-0.5 shrink-0 text-green-500">✓</span>
                           <span>{cond}</span>
                         </li>
                       ))}
@@ -7542,7 +7544,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                   </div>
 
                   <div>
-                    <p className="mb-1 text-[9px] font-semibold uppercase tracking-wider text-gray-500">?�전???�긴 ?�행 조건</p>
+                    <p className="mb-1 text-[9px] font-semibold uppercase tracking-wider text-gray-500">여전히 잠긴 실행 조건</p>
                     <div className="flex flex-wrap gap-1.5">
                       {step.stillLockedConditions.map((locked, i) => (
                         <span
@@ -7558,7 +7560,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               ))}
             </div>
 
-            {/* ?�인 ?�내 */}
+            {/* 승인 안내 */}
             <div className="rounded-md border border-gray-500/20 bg-gray-500/5 p-3">
               <div className="flex items-start gap-2">
                 <Info className="mt-0.5 h-4 w-4 shrink-0 text-gray-400" />
@@ -7569,7 +7571,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Token First Test Approval Console Screen ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?� */}
+      {/* ── Token First Test Approval Console Screen ───────────────────────────── */}
       {(() => {
         const console_ = job.naverAuthTokenFirstTestApprovalConsoleScreen;
         if (!console_) return null;
@@ -7585,14 +7587,14 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               {console_.description}
             </p>
 
-            {/* ?�체 ?�태 ?�약 배너 */}
+            {/* 전체 상태 요약 배너 */}
             <div className="mb-4 rounded-md border border-slate-600/40 bg-slate-800/40 px-4 py-3">
               <p className="text-xs font-semibold text-slate-300">{console_.overallStatus}</p>
             </div>
 
-            {/* ?�태 ?�약 ??�� */}
+            {/* 상태 요약 항목 */}
             <div className="mb-4 rounded-md border border-slate-600/20 bg-[#0d0f12] p-3">
-              <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-500">?�재 ?�태 ?�약</p>
+              <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-500">현재 상태 요약</p>
               <div className="space-y-2">
                 {console_.summaryItems.map((item) => (
                   <div key={item.id} className="flex items-start gap-3 text-xs">
@@ -7604,10 +7606,10 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
             </div>
 
-            {/* ?�료???�전 검???�름 */}
+            {/* 완료된 안전 검토 흐름 */}
             <div className="mb-4 rounded-md border border-slate-600/20 bg-[#0d0f12] p-3">
               <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-500">
-                ?�료???�전 검???�름 ({console_.completedFlowSteps.length}�?
+                완료된 안전 검토 흐름 ({console_.completedFlowSteps.length}개)
               </p>
               <div className="flex flex-wrap gap-2">
                 {console_.completedFlowSteps.map((step) => (
@@ -7615,20 +7617,20 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                     key={step.id}
                     className="flex items-center gap-1.5 rounded border border-slate-700/50 bg-slate-800/40 px-2 py-1"
                   >
-                    <span className="text-[9px] font-bold text-green-500">??/span>
+                    <span className="text-[9px] font-bold text-green-500">✓</span>
                     <span className="font-mono text-[9px] text-slate-400">{step.stepKey}</span>
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* ?�음 ?�요 ?�동 */}
+            {/* 다음 필요 행동 */}
             <div className="mb-4 rounded-md border border-amber-500/20 bg-amber-500/5 p-3">
-              <p className="mb-1 text-xs font-semibold text-amber-300">?�음 ?�요 ?�동</p>
+              <p className="mb-1 text-xs font-semibold text-amber-300">다음 필요 행동</p>
               <p className="text-xs text-amber-200">{console_.nextRequiredAction}</p>
             </div>
 
-            {/* 콘솔 ?�내 */}
+            {/* 콘솔 안내 */}
             <div className="rounded-md border border-slate-500/20 bg-slate-500/5 p-3">
               <div className="flex items-start gap-2">
                 <Info className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
@@ -7639,7 +7641,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Token First Test Separate Approval Request Draft ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?� */}
+      {/* ── Token First Test Separate Approval Request Draft ────────────────────── */}
       {(() => {
         const draft = job.naverAuthTokenFirstTestSeparateApprovalRequestDraftScreen;
         if (!draft) return null;
@@ -7662,22 +7664,22 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
             </div>
 
-            {/* ?�재 ?�태 ?�약 */}
+            {/* 현재 상태 요약 */}
             <div className="mb-4 rounded-md border border-indigo-500/15 bg-indigo-900/10 px-3 py-2">
-              <p className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-indigo-500">?�재 ?�태</p>
+              <p className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-indigo-500">현재 상태</p>
               <p className="text-xs font-mono text-indigo-300">{draft.currentStatusSummary}</p>
             </div>
 
-            {/* ?�직 ?�행 불�????�유 */}
+            {/* 아직 실행 불가인 이유 */}
             <div className="mb-4 rounded-md border border-indigo-500/15 bg-indigo-900/10 px-3 py-2">
-              <p className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-indigo-500">?�행 불�? ?�유</p>
+              <p className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-indigo-500">실행 불가 이유</p>
               <p className="text-xs text-indigo-300/80">{draft.whyNotAllowedYet}</p>
             </div>
 
-            {/* 별도 ?�인 ?�청 초안 ?�션 6�?*/}
+            {/* 별도 승인 요청 초안 섹션 6개 */}
             <div className="mb-4 rounded-md border border-indigo-500/10 bg-[#08080f] p-3">
               <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-indigo-600">
-                별도 ?�인 ?�청 초안 ?�용 (�?{draft.approvalRequestSections.length}�??�션)
+                별도 승인 요청 초안 내용 (총 {draft.approvalRequestSections.length}개 섹션)
               </p>
               <div className="space-y-2">
                 {draft.approvalRequestSections.map((section) => (
@@ -7697,22 +7699,22 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
             </div>
 
-            {/* ?�전??금�?????�� */}
+            {/* 여전히 금지된 항목 */}
             <div className="mb-4 rounded-md border border-red-500/10 bg-red-900/5 p-3">
               <p className="mb-2 text-xs font-semibold text-red-500/80">
-                ?�인 ?�후?�도 ?�전??금�?????�� ({draft.stillProhibitedItems.length}�?
+                승인 이후에도 여전히 금지된 항목 ({draft.stillProhibitedItems.length}개)
               </p>
               <ul className="space-y-1">
                 {draft.stillProhibitedItems.map((item, idx) => (
                   <li key={idx} className="flex items-start gap-2 text-[11px] text-gray-500">
-                    <span className="mt-0.5 shrink-0 text-red-600">??/span>
+                    <span className="mt-0.5 shrink-0 text-red-600">✕</span>
                     <span>{item}</span>
                   </li>
                 ))}
               </ul>
             </div>
 
-            {/* 초안 ?�내 */}
+            {/* 초안 안내 */}
             <div className="rounded-md border border-indigo-500/15 bg-indigo-500/5 p-3">
               <div className="flex items-start gap-2">
                 <Info className="mt-0.5 h-4 w-4 shrink-0 text-indigo-400" />
@@ -7723,7 +7725,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Token First Test Approval Readiness Checklist ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?� */}
+      {/* ── Token First Test Approval Readiness Checklist ───────────────────────── */}
       {(() => {
         const checklist = job.naverAuthTokenFirstTestApprovalReadinessChecklistScreen;
         if (!checklist) return null;
@@ -7735,7 +7737,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               {checklist.title}
             </h2>
 
-            {/* 체크리스???�내 배너 */}
+            {/* 체크리스트 안내 배너 */}
             <div className="mb-4 rounded-md border border-teal-500/40 bg-teal-500/10 px-4 py-3">
               <div className="flex items-start gap-2">
                 <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-teal-400" />
@@ -7746,10 +7748,10 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
             </div>
 
-            {/* 체크리스????�� */}
+            {/* 체크리스트 항목 */}
             <div className="mb-4 rounded-md border border-teal-500/10 bg-[#040f0f] p-3">
               <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-teal-600">
-                ?�인 준�??�태 ??�� (�?{checklist.checklistItems.length}�?
+                승인 준비 상태 항목 (총 {checklist.checklistItems.length}개)
               </p>
               <div className="space-y-2">
                 {checklist.checklistItems.map((item) => (
@@ -7765,7 +7767,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                   >
                     <div className="mb-1.5 flex items-center gap-2">
                       <span className="shrink-0 text-sm">
-                        {item.checkStatus === 'CONFIRMED' ? '?? : item.checkStatus === 'LOCKED' ? '?��' : '??}
+                        {item.checkStatus === 'CONFIRMED' ? '✔' : item.checkStatus === 'LOCKED' ? '🔒' : '○'}
                       </span>
                       <p className={`text-[11px] font-semibold ${
                         item.checkStatus === 'CONFIRMED'
@@ -7786,7 +7788,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
             </div>
 
-            {/* 체크리스???�내 */}
+            {/* 체크리스트 안내 */}
             <div className="rounded-md border border-teal-500/15 bg-teal-500/5 p-3">
               <div className="flex items-start gap-2">
                 <Info className="mt-0.5 h-4 w-4 shrink-0 text-teal-400" />
@@ -7797,7 +7799,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Token First Test Approval Decision Summary ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?� */}
+      {/* ── Token First Test Approval Decision Summary ──────────────────────────── */}
       {(() => {
         const summary = job.naverAuthTokenFirstTestApprovalDecisionSummaryScreen;
         if (!summary) return null;
@@ -7817,26 +7819,26 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                   <p className="mb-1 text-xs font-bold text-amber-300">{summary.summaryLabel}</p>
                   <div className="flex flex-wrap gap-3 mt-2">
                     <div className="rounded border border-red-700/40 bg-red-900/20 px-3 py-1.5">
-                      <p className="text-[9px] font-semibold uppercase tracking-wider text-red-500/70 mb-0.5">?�재 결론</p>
+                      <p className="text-[9px] font-semibold uppercase tracking-wider text-red-500/70 mb-0.5">현재 결론</p>
                       <p className="text-sm font-bold text-red-400">{summary.currentDecision}</p>
                     </div>
                     <div className="rounded border border-amber-700/40 bg-amber-900/20 px-3 py-1.5">
-                      <p className="text-[9px] font-semibold uppercase tracking-wider text-amber-500/70 mb-0.5">?�재 ?�계</p>
+                      <p className="text-[9px] font-semibold uppercase tracking-wider text-amber-500/70 mb-0.5">현재 단계</p>
                       <p className="text-sm font-bold text-amber-400">{summary.currentPhase}</p>
                     </div>
                     <div className="rounded border border-gray-700/40 bg-gray-800/20 px-3 py-1.5">
-                      <p className="text-[9px] font-semibold uppercase tracking-wider text-gray-500/70 mb-0.5">검???�료 ?�널</p>
-                      <p className="text-sm font-bold text-gray-300">{summary.reviewedPanelCount}�?(모두 read-only)</p>
+                      <p className="text-[9px] font-semibold uppercase tracking-wider text-gray-500/70 mb-0.5">검토 완료 패널</p>
+                      <p className="text-sm font-bold text-gray-300">{summary.reviewedPanelCount}개 (모두 read-only)</p>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* 결론 ??�� ?�약 */}
+            {/* 결론 항목 요약 */}
             <div className="mb-4 rounded-md border border-amber-500/10 bg-[#0f0a00] p-3">
               <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-amber-600">
-                ?�재 ?�태 ??�� (�?{summary.decisionItems.length}�?
+                현재 상태 항목 (총 {summary.decisionItems.length}개)
               </p>
               <div className="space-y-1.5">
                 {summary.decisionItems.map((item) => (
@@ -7849,9 +7851,9 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                     </span>
                     <p className="min-w-0 flex-1 text-[11px] font-medium text-gray-400">{item.itemLabel}</p>
                     <span className={`shrink-0 rounded px-2 py-0.5 text-[10px] font-semibold ${
-                      item.currentState.includes('불�?') || item.currentState.includes('차단') || item.currentState.includes('?��?')
+                      item.currentState.includes('불가') || item.currentState.includes('차단') || item.currentState.includes('유지')
                         ? 'bg-red-900/20 text-red-400 border border-red-800/30'
-                        : item.currentState.includes('?�료')
+                        : item.currentState.includes('완료')
                           ? 'bg-green-900/20 text-green-400 border border-green-800/30'
                           : 'bg-amber-900/20 text-amber-400 border border-amber-800/30'
                     }`}>
@@ -7865,7 +7867,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
             </div>
 
-            {/* 최종 ?�내 */}
+            {/* 최종 안내 */}
             <div className="rounded-md border border-amber-500/15 bg-amber-500/5 p-3">
               <div className="flex items-start gap-2">
                 <Info className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" />
@@ -7876,7 +7878,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Token First Test Separate Approval Boundary ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?� */}
+      {/* ── Token First Test Separate Approval Boundary ─────────────────────────── */}
       {(() => {
         const boundary = job.naverAuthTokenFirstTestSeparateApprovalBoundaryScreen;
         if (!boundary) return null;
@@ -7888,7 +7890,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               {boundary.title}
             </h2>
 
-            {/* 경계 ?�내 배너 */}
+            {/* 경계 안내 배너 */}
             <div className="mb-4 rounded-md border border-zinc-500/30 bg-zinc-500/10 px-4 py-3">
               <div className="flex items-start gap-2">
                 <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-zinc-400" />
@@ -7899,7 +7901,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
             </div>
 
-            {/* ?�인 ?�후 ?�내 */}
+            {/* 승인 이후 안내 */}
             <div className="mb-4 rounded-md border border-zinc-600/20 bg-zinc-800/20 px-3 py-2.5">
               <div className="flex items-start gap-2">
                 <Info className="mt-0.5 h-4 w-4 shrink-0 text-zinc-500" />
@@ -7907,12 +7909,12 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
             </div>
 
-            {/* 2-column layout: ?�용 / 금�? */}
+            {/* 2-column layout: 허용 / 금지 */}
             <div className="mb-4 grid grid-cols-1 gap-3 md:grid-cols-2">
-              {/* ?�용???�업 */}
+              {/* 허용된 작업 */}
               <div className="rounded-md border border-green-700/25 bg-green-950/10 p-3">
                 <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-green-500">
-                  ??{boundary.allowedZoneTitle}
+                  ✔ {boundary.allowedZoneTitle}
                 </p>
                 <div className="space-y-1.5">
                   {boundary.allowedItems.map((item) => (
@@ -7924,10 +7926,10 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 </div>
               </div>
 
-              {/* 금�????�업 */}
+              {/* 금지된 작업 */}
               <div className="rounded-md border border-red-700/25 bg-red-950/10 p-3">
                 <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-red-500">
-                  ??{boundary.prohibitedZoneTitle}
+                  ✕ {boundary.prohibitedZoneTitle}
                 </p>
                 <div className="space-y-1.5">
                   {boundary.prohibitedItems.map((item) => (
@@ -7940,7 +7942,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
             </div>
 
-            {/* 경계 ?�내 */}
+            {/* 경계 안내 */}
             <div className="rounded-md border border-zinc-600/15 bg-zinc-500/5 p-3">
               <div className="flex items-start gap-2">
                 <Info className="mt-0.5 h-4 w-4 shrink-0 text-zinc-500" />
@@ -7951,7 +7953,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Token First Test Approval Handoff Summary ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?� */}
+      {/* ── Token First Test Approval Handoff Summary ───────────────────────────── */}
       {(() => {
         const handoff = job.naverAuthTokenFirstTestApprovalHandoffSummaryScreen;
         if (!handoff) return null;
@@ -7963,7 +7965,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               {handoff.title}
             </h2>
 
-            {/* ?�수?�계 ?�내 배너 */}
+            {/* 인수인계 안내 배너 */}
             <div className="mb-4 rounded-md border border-sky-500/25 bg-sky-500/10 px-4 py-3">
               <div className="flex items-start gap-2">
                 <Info className="mt-0.5 h-4 w-4 shrink-0 text-sky-400" />
@@ -7974,7 +7976,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
             </div>
 
-            {/* ?�재 ?�태 ?�약 카드 */}
+            {/* 현재 상태 요약 카드 */}
             <div className="mb-4 grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3">
               {handoff.summaryItems.map((item) => (
                 <div
@@ -7989,10 +7991,10 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               ))}
             </div>
 
-            {/* ?�음 ?�업???�인 ??�� */}
+            {/* 다음 작업자 확인 항목 */}
             <div className="mb-4">
               <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-sky-400">
-                ?�음 ?�업???�인 ??��
+                다음 작업자 확인 항목
               </p>
               <div className="space-y-1.5">
                 {handoff.nextActionItems.map((item) => (
@@ -8007,10 +8009,10 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
             </div>
 
-            {/* ?��? 금�? ??�� */}
+            {/* 절대 금지 항목 */}
             <div className="mb-4">
               <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-red-500">
-                별도 ?�인 ?�까지 ?��? ?��? 말아??????��
+                별도 승인 전까지 절대 하지 말아야 할 항목
               </p>
               <div className="space-y-1.5">
                 {handoff.absoluteProhibitionItems.map((item) => (
@@ -8025,7 +8027,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
             </div>
 
-            {/* ?�약 ?�내 */}
+            {/* 요약 안내 */}
             <div className="rounded-md border border-sky-600/15 bg-sky-500/5 p-3">
               <div className="flex items-start gap-2">
                 <Info className="mt-0.5 h-4 w-4 shrink-0 text-sky-600" />
@@ -8036,7 +8038,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Token First Test Approval Handoff Verification ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?� */}
+      {/* ── Token First Test Approval Handoff Verification ──────────────────────── */}
       {(() => {
         const verification = job.naverAuthTokenFirstTestApprovalHandoffVerificationScreen;
         if (!verification) return null;
@@ -8048,7 +8050,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               {verification.title}
             </h2>
 
-            {/* 검�??�내 배너 */}
+            {/* 검증 안내 배너 */}
             <div className="mb-4 rounded-md border border-indigo-500/25 bg-indigo-500/10 px-4 py-3">
               <div className="flex items-start gap-2">
                 <Info className="mt-0.5 h-4 w-4 shrink-0 text-indigo-400" />
@@ -8059,19 +8061,19 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
             </div>
 
-            {/* 최종 결론 ?�태 */}
+            {/* 최종 결론 상태 */}
             <div className="mb-4 flex flex-wrap gap-3">
               <div className="rounded border border-indigo-700/40 bg-indigo-900/20 px-3 py-1.5">
                 <p className="text-[9px] font-semibold uppercase tracking-wider text-indigo-500/70 mb-0.5">최종 결론</p>
                 <p className="text-sm font-bold text-indigo-300">{verification.currentConclusion}</p>
               </div>
               <div className="rounded border border-indigo-700/40 bg-indigo-900/20 px-3 py-1.5">
-                <p className="text-[9px] font-semibold uppercase tracking-wider text-indigo-500/70 mb-0.5">?�재 ?�계</p>
+                <p className="text-[9px] font-semibold uppercase tracking-wider text-indigo-500/70 mb-0.5">현재 단계</p>
                 <p className="text-sm font-bold text-indigo-300">{verification.currentPhase}</p>
               </div>
             </div>
 
-            {/* ?�태 검�???�� 카드 */}
+            {/* 상태 검증 항목 카드 */}
             <div className="mb-4 grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3">
               {verification.verificationItems.map((item) => (
                 <div
@@ -8086,10 +8088,10 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               ))}
             </div>
 
-            {/* 최종 ?�인 리스??*/}
+            {/* 최종 확인 리스트 */}
             <div className="mb-4">
               <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-indigo-400">
-                최종 검�??�인 ??��
+                최종 검증 확인 항목
               </p>
               <div className="space-y-1.5">
                 {verification.verificationCheckItems.map((item) => (
@@ -8104,7 +8106,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
             </div>
 
-            {/* 검�??�약 ?�내 */}
+            {/* 검증 요약 안내 */}
             <div className="rounded-md border border-indigo-600/15 bg-indigo-500/5 p-3">
               <div className="flex items-start gap-2">
                 <Info className="mt-0.5 h-4 w-4 shrink-0 text-indigo-600" />
@@ -8115,7 +8117,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Token First Test Manual Approval Checklist Alignment ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?� */}
+      {/* ── Token First Test Manual Approval Checklist Alignment ────────────────── */}
       {(() => {
         const alignment = job.naverAuthTokenFirstTestManualApprovalChecklistAlignmentScreen;
         if (!alignment) return null;
@@ -8127,7 +8129,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               {alignment.title}
             </h2>
 
-            {/* ?�내 배너 */}
+            {/* 안내 배너 */}
             <div className="mb-4 rounded-md border border-fuchsia-500/25 bg-fuchsia-500/10 px-4 py-3">
               <div className="flex items-start gap-2">
                 <Info className="mt-0.5 h-4 w-4 shrink-0 text-fuchsia-400" />
@@ -8138,19 +8140,19 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
             </div>
 
-            {/* ?�결 ?�태 ?�약 */}
+            {/* 연결 상태 요약 */}
             <div className="mb-4 flex flex-wrap gap-3">
               <div className="rounded border border-fuchsia-700/40 bg-fuchsia-900/20 px-3 py-1.5">
-                <p className="text-[9px] font-semibold uppercase tracking-wider text-fuchsia-500/70 mb-0.5">?�재 ?�계</p>
+                <p className="text-[9px] font-semibold uppercase tracking-wider text-fuchsia-500/70 mb-0.5">현재 단계</p>
                 <p className="text-sm font-bold text-fuchsia-300">{alignment.currentPhase}</p>
               </div>
               <div className="rounded border border-fuchsia-700/40 bg-fuchsia-900/20 px-3 py-1.5">
-                <p className="text-[9px] font-semibold uppercase tracking-wider text-fuchsia-500/70 mb-0.5">?�음 ?�계 ?�보</p>
+                <p className="text-[9px] font-semibold uppercase tracking-wider text-fuchsia-500/70 mb-0.5">다음 단계 정보</p>
                 <p className="text-sm font-bold text-fuchsia-300">{alignment.nextStepContext}</p>
               </div>
             </div>
 
-            {/* ?�렬(Alignment) 검????�� */}
+            {/* 정렬(Alignment) 검토 항목 */}
             <div className="mb-4 grid grid-cols-1 gap-2 sm:grid-cols-3">
               {alignment.alignmentItems.map((item) => (
                 <div
@@ -8165,10 +8167,10 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               ))}
             </div>
 
-            {/* 체크리스??명확???�명 (Clarifications) */}
+            {/* 체크리스트 명확화 설명 (Clarifications) */}
             <div className="mb-4">
               <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-fuchsia-400">
-                ?�단 체크리스??명확????��
+                하단 체크리스트 명확화 항목
               </p>
               <div className="space-y-1.5">
                 {alignment.checklistClarificationItems.map((item) => (
@@ -8183,7 +8185,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
             </div>
 
-            {/* ?�약 ?�내 */}
+            {/* 요약 안내 */}
             <div className="rounded-md border border-fuchsia-600/15 bg-fuchsia-500/5 p-3">
               <div className="flex items-start gap-2">
                 <Info className="mt-0.5 h-4 w-4 shrink-0 text-fuchsia-600" />
@@ -8194,10 +8196,10 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Manual Approval Checklist ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?� */}
+      {/* ── Manual Approval Checklist ──────────────────────────────────────────── */}
       <ManualApprovalChecklistPanel jobId={job.id} readinessStatus={job.status} />
 
-      {/* ?�?� Token First Test Manual Approval Final Seal ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?� */}
+      {/* ── Token First Test Manual Approval Final Seal ─────────────────────────── */}
       {(() => {
         const finalSeal = job.naverAuthTokenFirstTestManualApprovalFinalSealScreen;
         if (!finalSeal) return null;
@@ -8209,7 +8211,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               {finalSeal.title}
             </h2>
 
-            {/* 최종 결론 ?�태 배너 */}
+            {/* 최종 결론 상태 배너 */}
             <div className="mb-5 flex items-start gap-3 rounded-md border border-rose-600/40 bg-rose-900/30 p-4">
               <Lock className="mt-0.5 h-5 w-5 shrink-0 text-rose-500" />
               <div>
@@ -8222,19 +8224,19 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
             </div>
 
-            {/* ?�재 ?�계 ?�약 */}
+            {/* 현재 단계 요약 */}
             <div className="mb-5 flex flex-wrap gap-4 border-l-2 border-rose-700/50 pl-3">
               <div>
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-rose-500/70 mb-0.5">?�재 ?�계</p>
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-rose-500/70 mb-0.5">현재 단계</p>
                 <p className="text-sm font-bold text-rose-300">{finalSeal.currentPhase}</p>
               </div>
               <div>
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-rose-500/70 mb-0.5">?�음 ?�계 ?�보</p>
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-rose-500/70 mb-0.5">다음 단계 정보</p>
                 <p className="text-sm font-bold text-rose-300">{finalSeal.nextStepContext}</p>
               </div>
             </div>
 
-            {/* 개별 봉인 ??�� (Seal Items) */}
+            {/* 개별 봉인 항목 (Seal Items) */}
             <div className="mb-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
               {finalSeal.sealItems.map((item) => (
                 <div
@@ -8249,11 +8251,11 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               ))}
             </div>
 
-            {/* 명확????�� (Clarifications) */}
+            {/* 명확화 항목 (Clarifications) */}
             <div className="mb-5">
               <h3 className="mb-3 text-[11px] font-bold uppercase tracking-wider text-rose-400 flex items-center gap-1.5">
                 <AlertCircle className="h-3.5 w-3.5" />
-                최종 봉인 명확????��
+                최종 봉인 명확화 항목
               </h3>
               <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                 {finalSeal.sealClarificationItems.map((item) => (
@@ -8268,7 +8270,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
             </div>
 
-            {/* ?�약 ?�내 */}
+            {/* 요약 안내 */}
             <div className="rounded-md border-l-4 border-rose-600 bg-rose-500/10 p-3">
               <p className="text-xs font-medium leading-relaxed text-rose-300/90">
                 {finalSeal.sealSummaryNote}
@@ -8434,7 +8436,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="rounded border border-amber-700/60 bg-amber-800/20 p-4">
                 <h4 className="mb-2 flex items-center gap-2 text-sm font-bold text-amber-300">
                   <ShieldAlert className="h-4 w-4" />
-                  기본 ?�칙
+                  기본 원칙
                 </h4>
                 <p className="text-sm leading-relaxed text-amber-100/90">{criteriaReview.safetyFirstPrinciple}</p>
               </div>
@@ -8518,7 +8520,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
 
               {/* Satisfied Criteria Items */}
               <div>
-                <h4 className="mb-3 text-sm font-semibold text-emerald-300">충족??조건</h4>
+                <h4 className="mb-3 text-sm font-semibold text-emerald-300">충족된 조건</h4>
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   {gapAnalysis.satisfiedCriteriaItems.map((item) => (
                     <div key={item.id} className="flex items-start gap-2 rounded border border-emerald-900/40 bg-emerald-950/20 p-3">
@@ -8534,7 +8536,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
 
               {/* Unsatisfied Criteria Items */}
               <div>
-                <h4 className="mb-3 text-sm font-semibold text-amber-300">미충�?조건</h4>
+                <h4 className="mb-3 text-sm font-semibold text-amber-300">미충족 조건</h4>
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   {gapAnalysis.unsatisfiedCriteriaItems.map((item) => (
                     <div key={item.id} className="flex items-start gap-2 rounded border border-amber-900/40 bg-amber-950/20 p-3">
@@ -8550,7 +8552,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
 
               {/* Blocking Gap Items */}
               <div>
-                <h4 className="mb-3 text-sm font-semibold text-rose-300">?�재 ?�인 불�? ?�유 (Blocking Gaps)</h4>
+                <h4 className="mb-3 text-sm font-semibold text-rose-300">현재 승인 불가 사유 (Blocking Gaps)</h4>
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   {gapAnalysis.blockingGapItems.map((item) => (
                     <div key={item.id} className="flex items-start gap-2 rounded border border-rose-900/40 bg-rose-950/20 p-3">
@@ -8566,7 +8568,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
 
               {/* Still Forbidden Items */}
               <div>
-                <h4 className="mb-3 text-sm font-semibold text-slate-300">?�전???�한?�는 ?�항 (Safety Guard)</h4>
+                <h4 className="mb-3 text-sm font-semibold text-slate-300">여전히 제한되는 사항 (Safety Guard)</h4>
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   {gapAnalysis.stillForbiddenItems.map((item) => (
                     <div key={item.id} className="rounded border border-slate-700/60 bg-slate-800/40 p-3">
@@ -8581,7 +8583,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="mt-6 flex items-start gap-3 rounded-md border border-blue-900/30 bg-blue-950/20 p-4">
                 <Info className="mt-0.5 h-5 w-5 shrink-0 text-blue-400" />
                 <div>
-                  <h5 className="text-sm font-medium text-blue-200">?�음 ?�계 ?�내 (Next Step)</h5>
+                  <h5 className="text-sm font-medium text-blue-200">다음 단계 안내 (Next Step)</h5>
                   <p className="mt-1 text-xs leading-relaxed text-blue-300/80">
                     {gapAnalysis.nextStepLabel}
                   </p>
@@ -8625,7 +8627,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 <div>
                   <h4 className="mb-3 text-sm font-semibold text-rose-400 flex items-center gap-2">
                     <X className="h-4 w-4" />
-                    High Risk (고위???�인)
+                    High Risk (고위험 요인)
                   </h4>
                   <div className="grid grid-cols-1 gap-3">
                     {riskMatrix.highRiskItems.map((item) => (
@@ -8638,11 +8640,11 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                         </div>
                         <div className="flex w-full flex-col gap-2 sm:w-2/3">
                           <div className="rounded bg-rose-900/20 p-2">
-                            <p className="text-[10px] font-semibold text-rose-400/80">차단 ?�유</p>
+                            <p className="text-[10px] font-semibold text-rose-400/80">차단 사유</p>
                             <p className="text-[11px] leading-relaxed text-rose-100/90">{item.blockingReason}</p>
                           </div>
                           <div className="rounded bg-emerald-900/10 p-2 border border-emerald-900/20">
-                            <p className="text-[10px] font-semibold text-emerald-500/80">?�화 조건</p>
+                            <p className="text-[10px] font-semibold text-emerald-500/80">완화 조건</p>
                             <p className="text-[11px] leading-relaxed text-emerald-200/90">{item.mitigationCondition}</p>
                           </div>
                         </div>
@@ -8657,7 +8659,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 <div>
                   <h4 className="mb-3 text-sm font-semibold text-amber-400 flex items-center gap-2">
                     <AlertCircle className="h-4 w-4" />
-                    Medium Risk (중위???�인)
+                    Medium Risk (중위험 요인)
                   </h4>
                   <div className="grid grid-cols-1 gap-3">
                     {riskMatrix.mediumRiskItems.map((item) => (
@@ -8670,11 +8672,11 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                         </div>
                         <div className="flex w-full flex-col gap-2 sm:w-2/3">
                           <div className="rounded bg-amber-900/10 p-2">
-                            <p className="text-[10px] font-semibold text-amber-500/80">?�한 ?�유</p>
+                            <p className="text-[10px] font-semibold text-amber-500/80">제한 사유</p>
                             <p className="text-[11px] leading-relaxed text-amber-100/90">{item.blockingReason}</p>
                           </div>
                           <div className="rounded bg-emerald-900/10 p-2 border border-emerald-900/20">
-                            <p className="text-[10px] font-semibold text-emerald-500/80">?�화 조건</p>
+                            <p className="text-[10px] font-semibold text-emerald-500/80">완화 조건</p>
                             <p className="text-[11px] leading-relaxed text-emerald-200/90">{item.mitigationCondition}</p>
                           </div>
                         </div>
@@ -8689,7 +8691,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 <div>
                   <h4 className="mb-3 text-sm font-semibold text-blue-400 flex items-center gap-2">
                     <Info className="h-4 w-4" />
-                    Low Risk (?�?�험 ?�인)
+                    Low Risk (저위험 요인)
                   </h4>
                   <div className="grid grid-cols-1 gap-3">
                     {riskMatrix.lowRiskItems.map((item) => (
@@ -8702,11 +8704,11 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                         </div>
                         <div className="flex w-full flex-col gap-2 sm:w-2/3">
                           <div className="rounded bg-blue-900/10 p-2">
-                            <p className="text-[10px] font-semibold text-blue-400/80">주의 ?�유</p>
+                            <p className="text-[10px] font-semibold text-blue-400/80">주의 사유</p>
                             <p className="text-[11px] leading-relaxed text-blue-100/90">{item.blockingReason}</p>
                           </div>
                           <div className="rounded bg-emerald-900/10 p-2 border border-emerald-900/20">
-                            <p className="text-[10px] font-semibold text-emerald-500/80">?�화 가?�드</p>
+                            <p className="text-[10px] font-semibold text-emerald-500/80">완화 가이드</p>
                             <p className="text-[11px] leading-relaxed text-emerald-200/90">{item.mitigationCondition}</p>
                           </div>
                         </div>
@@ -8718,7 +8720,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
 
               {/* Still Forbidden Items */}
               <div>
-                <h4 className="mb-3 text-sm font-semibold text-slate-300">지??금�? ??�� (Always Forbidden)</h4>
+                <h4 className="mb-3 text-sm font-semibold text-slate-300">지속 금지 항목 (Always Forbidden)</h4>
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   {riskMatrix.stillForbiddenItems.map((item) => (
                     <div key={item.id} className="rounded border border-slate-700/60 bg-slate-800/40 p-3">
@@ -8733,7 +8735,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="mt-6 flex items-start gap-3 rounded-md border border-indigo-900/30 bg-indigo-950/20 p-4">
                 <Info className="mt-0.5 h-5 w-5 shrink-0 text-indigo-400" />
                 <div>
-                  <h5 className="text-sm font-medium text-indigo-200">?�음 ?�계 ?�내 (Next Step)</h5>
+                  <h5 className="text-sm font-medium text-indigo-200">다음 단계 안내 (Next Step)</h5>
                   <p className="mt-1 text-xs leading-relaxed text-indigo-300/80">
                     {riskMatrix.nextStepLabel}
                   </p>
@@ -8777,7 +8779,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 <div>
                   <h4 className="mb-3 text-sm font-semibold text-rose-400 flex items-center gap-2">
                     <X className="h-4 w-4" />
-                    High Risk ?�화 조건 (고위???�인)
+                    High Risk 완화 조건 (고위험 요인)
                   </h4>
                   <div className="grid grid-cols-1 gap-3">
                     {mitigationPlan.highRiskMitigationItems.map((item: any) => (
@@ -8795,7 +8797,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                         </div>
                         <div className="flex w-full flex-col gap-2 sm:w-2/3">
                           <div className="rounded bg-emerald-900/10 p-2 border border-emerald-900/20">
-                            <p className="text-[10px] font-semibold text-emerald-500/80">?�요???�화 조건</p>
+                            <p className="text-[10px] font-semibold text-emerald-500/80">필요한 완화 조건</p>
                             <p className="text-[11px] leading-relaxed text-emerald-200/90">{item.mitigationRequirement}</p>
                           </div>
                         </div>
@@ -8810,7 +8812,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 <div>
                   <h4 className="mb-3 text-sm font-semibold text-amber-400 flex items-center gap-2">
                     <AlertCircle className="h-4 w-4" />
-                    Medium Risk ?�화 조건 (중위???�인)
+                    Medium Risk 완화 조건 (중위험 요인)
                   </h4>
                   <div className="grid grid-cols-1 gap-3">
                     {mitigationPlan.mediumRiskMitigationItems.map((item: any) => (
@@ -8828,7 +8830,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                         </div>
                         <div className="flex w-full flex-col gap-2 sm:w-2/3">
                           <div className="rounded bg-emerald-900/10 p-2 border border-emerald-900/20">
-                            <p className="text-[10px] font-semibold text-emerald-500/80">?�요???�화 조건</p>
+                            <p className="text-[10px] font-semibold text-emerald-500/80">필요한 완화 조건</p>
                             <p className="text-[11px] leading-relaxed text-emerald-200/90">{item.mitigationRequirement}</p>
                           </div>
                         </div>
@@ -8843,7 +8845,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 <div>
                   <h4 className="mb-3 text-sm font-semibold text-blue-400 flex items-center gap-2">
                     <Info className="h-4 w-4" />
-                    Low Risk ?�화 조건 (?�?�험 ?�인)
+                    Low Risk 완화 조건 (저위험 요인)
                   </h4>
                   <div className="grid grid-cols-1 gap-3">
                     {mitigationPlan.lowRiskMitigationItems.map((item: any) => (
@@ -8861,7 +8863,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                         </div>
                         <div className="flex w-full flex-col gap-2 sm:w-2/3">
                           <div className="rounded bg-emerald-900/10 p-2 border border-emerald-900/20">
-                            <p className="text-[10px] font-semibold text-emerald-500/80">?�요???�화 조건</p>
+                            <p className="text-[10px] font-semibold text-emerald-500/80">필요한 완화 조건</p>
                             <p className="text-[11px] leading-relaxed text-emerald-200/90">{item.mitigationRequirement}</p>
                           </div>
                         </div>
@@ -8873,7 +8875,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
 
               {/* Post Mitigation Still Forbidden Items */}
               <div>
-                <h4 className="mb-3 text-sm font-semibold text-slate-300">?�화 ?�에??지??금�??�는 ??�� (Post-Mitigation Still Forbidden)</h4>
+                <h4 className="mb-3 text-sm font-semibold text-slate-300">완화 후에도 지속 금지되는 항목 (Post-Mitigation Still Forbidden)</h4>
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   {mitigationPlan.postMitigationStillForbiddenItems.map((item: any) => (
                     <div key={item.id} className="rounded border border-slate-700/60 bg-slate-800/40 p-3">
@@ -8887,7 +8889,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               {/* Still Blocking Items (Status summary) */}
               {mitigationPlan.stillBlockingItems.length > 0 && (
                 <div className="mt-4 rounded-md bg-amber-950/30 p-3 border border-amber-900/30">
-                  <p className="text-xs font-semibold text-amber-400 mb-2">?�재 차단 ?�약</p>
+                  <p className="text-xs font-semibold text-amber-400 mb-2">현재 차단 요약</p>
                   <ul className="list-disc pl-5 text-[11px] text-amber-200/80 space-y-1">
                     {mitigationPlan.stillBlockingItems.map((item: any) => (
                       <li key={item.id}>{item.blockingLabel}: {item.blockingDetail}</li>
@@ -8900,7 +8902,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="mt-6 flex items-start gap-3 rounded-md border border-indigo-900/30 bg-indigo-950/20 p-4">
                 <Info className="mt-0.5 h-5 w-5 shrink-0 text-indigo-400" />
                 <div>
-                  <h5 className="text-sm font-medium text-indigo-200">?�음 ?�계 ?�내 (Next Step)</h5>
+                  <h5 className="text-sm font-medium text-indigo-200">다음 단계 안내 (Next Step)</h5>
                   <p className="mt-1 text-xs leading-relaxed text-indigo-300/80">
                     {mitigationPlan.nextStepLabel}
                   </p>
@@ -8959,7 +8961,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                           </span>
                         </div>
                         <div className="mt-3 rounded bg-red-950/50 p-2 border border-red-900/40">
-                          <p className="text-[10px] font-semibold text-red-500/80 mb-1">차단?�는 기능</p>
+                          <p className="text-[10px] font-semibold text-red-500/80 mb-1">차단되는 기능</p>
                           <p className="text-[11px] font-medium text-red-200/90">{item.forbiddenFunction}</p>
                         </div>
                       </div>
@@ -8973,7 +8975,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 <div>
                   <h4 className="mb-3 text-sm font-semibold text-rose-400 flex items-center gap-2">
                     <X className="h-4 w-4" />
-                    ?�화 불�????�구 차단 ??�� (Unresolved Blockers)
+                    완화 불가능 영구 차단 항목 (Unresolved Blockers)
                   </h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {finalBlocker.unresolvedBlockerItems.map((item: any) => (
@@ -8991,7 +8993,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 <div>
                   <h4 className="mb-3 text-sm font-semibold text-amber-400 flex items-center gap-2">
                     <AlertCircle className="h-4 w-4" />
-                    별도 ?�인 ?�까지 지??차단?�는 기능 (Still Forbidden)
+                    별도 승인 전까지 지속 차단되는 기능 (Still Forbidden)
                   </h4>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     {finalBlocker.stillForbiddenItems.map((item: any) => (
@@ -9007,7 +9009,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               {/* Release Requirement Items */}
               {finalBlocker.releaseRequirementItems.length > 0 && (
                 <div className="mt-4 rounded-md bg-indigo-950/30 p-3 border border-indigo-900/30">
-                  <p className="text-xs font-semibold text-indigo-400 mb-2">?�스???�행???�한 최소 ?�구 조건</p>
+                  <p className="text-xs font-semibold text-indigo-400 mb-2">테스트 실행을 위한 최소 요구 조건</p>
                   <ul className="list-disc pl-5 text-[11px] text-indigo-200/80 space-y-1">
                     {finalBlocker.releaseRequirementItems.map((item: any) => (
                       <li key={item.id}>
@@ -9022,7 +9024,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="mt-6 flex items-start gap-3 rounded-md border border-emerald-900/30 bg-emerald-950/20 p-4">
                 <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-400" />
                 <div>
-                  <h5 className="text-sm font-medium text-emerald-200">?�음 ?�계 ?�내 (Next Step)</h5>
+                  <h5 className="text-sm font-medium text-emerald-200">다음 단계 안내 (Next Step)</h5>
                   <p className="mt-1 text-xs leading-relaxed text-emerald-300/80">
                     {finalBlocker.nextStepLabel}
                   </p>
@@ -9066,7 +9068,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 <div>
                   <h4 className="mb-3 text-sm font-semibold text-indigo-300 flex items-center gap-2">
                     <Target className="h-4 w-4" />
-                    ?�인 ?�청 목적 (Request Purpose)
+                    승인 요청 목적 (Request Purpose)
                   </h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {requestPacket.requestPurposeItems.map((item: any) => (
@@ -9084,7 +9086,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 <div>
                   <h4 className="mb-3 text-sm font-semibold text-sky-300 flex items-center gap-2">
                     <Maximize className="h-4 w-4" />
-                    ?��? ?�청 ?�??�?범위 (Request Scope)
+                    허가 요청 대상 및 범위 (Request Scope)
                   </h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {requestPacket.requestScopeItems.map((item: any) => (
@@ -9102,7 +9104,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 <div>
                   <h4 className="mb-3 text-sm font-semibold text-teal-300 flex items-center gap-2">
                     <FileCheck className="h-4 w-4" />
-                    첨�? 증거�??�약 (Evidence Packet)
+                    첨부 증거물 요약 (Evidence Packet)
                   </h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {requestPacket.evidencePacketItems.map((item: any) => (
@@ -9120,7 +9122,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 <div>
                   <h4 className="mb-3 text-sm font-semibold text-amber-400 flex items-center gap-2">
                     <AlertTriangle className="h-4 w-4" />
-                    ?�인 ???��??�는 강력???�약?�항 (Still Forbidden)
+                    승인 전 유지되는 강력한 제약사항 (Still Forbidden)
                   </h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
                     {requestPacket.stillForbiddenItems.map((item: any) => (
@@ -9138,7 +9140,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 <div className="mt-4 rounded-md bg-slate-900/50 p-4 border border-slate-700">
                   <h4 className="text-xs font-semibold text-slate-300 mb-3 flex items-center gap-2">
                     <ListChecks className="h-4 w-4 text-slate-400" />
-                    ?�출 ???�인 ?�항 (Pre-submission Checklist)
+                    제출 전 확인 사항 (Pre-submission Checklist)
                   </h4>
                   <ul className="space-y-2">
                     {requestPacket.preSubmissionCheckItems.map((item: any) => (
@@ -9159,7 +9161,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="mt-6 flex items-start gap-3 rounded-md border border-fuchsia-900/30 bg-fuchsia-950/20 p-4">
                 <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-fuchsia-400" />
                 <div>
-                  <h5 className="text-sm font-medium text-fuchsia-200">?�음 ?�계 ?�내 (Next Step)</h5>
+                  <h5 className="text-sm font-medium text-fuchsia-200">다음 단계 안내 (Next Step)</h5>
                   <p className="mt-1 text-xs leading-relaxed text-fuchsia-300/80">
                     {requestPacket.nextStepLabel}
                   </p>
@@ -9197,24 +9199,24 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             </div>
 
             <div className="space-y-5 p-5">
-              {/* 미제�??�태 배너 */}
+              {/* 미제출 상태 배너 */}
               <div className="rounded-md border border-violet-700/30 bg-violet-950/30 px-4 py-3">
                 <div className="flex items-start gap-2">
                   <Info className="mt-0.5 h-4 w-4 shrink-0 text-violet-400" />
                   <div>
-                    <p className="text-xs font-bold text-violet-300">?�인 ?�청 미제�??�태 (read-only ?�전검???�용)</p>
+                    <p className="text-xs font-bold text-violet-300">승인 요청 미제출 상태 (read-only 사전검토 전용)</p>
                     <p className="mt-1 text-[10px] leading-relaxed text-violet-300/70">
-                      ?�킷 참조 커밋: {preReview.requestPacketCommit} | ???�면?� ?�행 ?�면???�닙?�다. ?�인 ?�청 ?�출 기능???�습?�다.
+                      패킷 참조 커밋: {preReview.requestPacketCommit} | 이 화면은 실행 화면이 아닙니다. 승인 요청 제출 기능이 없습니다.
                     </p>
                   </div>
                 </div>
               </div>
 
-              {/* ?�킷 검???�태 */}
+              {/* 패킷 검토 상태 */}
               {preReview.packetReviewItems.length > 0 && (
                 <div>
                   <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-violet-400">
-                    ?�인 ?�청???�킷 검???�태
+                    승인 요청서 패킷 검토 상태
                   </h4>
                   <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                     {preReview.packetReviewItems.map((item: any) => (
@@ -9228,13 +9230,13 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 </div>
               )}
 
-              {/* 2-column: ?�락 가????�� / ?�해 방�? ??�� */}
+              {/* 2-column: 누락 가능 항목 / 오해 방지 항목 */}
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                {/* ?�출 ???�락 가????�� */}
+                {/* 제출 전 누락 가능 항목 */}
                 {preReview.missingBeforeSubmissionItems.length > 0 && (
                   <div>
                     <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-amber-400">
-                      ?�출 ???�락 가????��
+                      제출 전 누락 가능 항목
                     </h4>
                     <div className="space-y-2">
                       {preReview.missingBeforeSubmissionItems.map((item: any) => (
@@ -9247,11 +9249,11 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                   </div>
                 )}
 
-                {/* ?�해 방�? ??�� */}
+                {/* 오해 방지 항목 */}
                 {preReview.misunderstandingPreventionItems.length > 0 && (
                   <div>
                     <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-sky-400">
-                      ?�출 ???�해 방�? ??��
+                      제출 전 오해 방지 항목
                     </h4>
                     <div className="space-y-2">
                       {preReview.misunderstandingPreventionItems.map((item: any) => (
@@ -9265,11 +9267,11 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 )}
               </div>
 
-              {/* ?�험 ?�확????�� */}
+              {/* 위험 재확인 항목 */}
               {preReview.riskRecheckItems.length > 0 && (
                 <div>
                   <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-red-400">
-                    ?�출 ???�험 ?�확????��
+                    제출 전 위험 재확인 항목
                   </h4>
                   <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                     {preReview.riskRecheckItems.map((item: any) => (
@@ -9287,11 +9289,11 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 </div>
               )}
 
-              {/* ?�전??금�??�는 ??�� */}
+              {/* 여전히 금지되는 항목 */}
               {preReview.stillForbiddenItems.length > 0 && (
                 <div>
                   <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-rose-500">
-                    ?�전??금�??�는 ??�� (?�인 ?�·후 공통)
+                    여전히 금지되는 항목 (승인 전·후 공통)
                   </h4>
                   <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3">
                     {preReview.stillForbiddenItems.map((item: any) => (
@@ -9305,11 +9307,11 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 </div>
               )}
 
-              {/* ?�음 ?�계 */}
+              {/* 다음 단계 */}
               <div className="flex items-start gap-3 rounded-md border border-violet-900/30 bg-violet-950/20 p-4">
                 <Info className="mt-0.5 h-5 w-5 shrink-0 text-violet-400" />
                 <div>
-                  <h5 className="text-sm font-medium text-violet-200">?�전검???�내</h5>
+                  <h5 className="text-sm font-medium text-violet-200">사전검토 안내</h5>
                   <p className="mt-1 text-xs leading-relaxed text-violet-300/80">{preReview.nextStepLabel}</p>
                 </div>
               </div>
@@ -9354,16 +9356,16 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 <div className="flex items-start gap-2">
                   <Info className="mt-0.5 h-4 w-4 shrink-0 text-rose-400" />
                   <p className="text-[10px] leading-relaxed text-rose-300/70">
-                    ?�전검??참조 커밋: {decision.preSubmissionReviewCommit} | ?�인 ?�청 ?�출 ?�음 | ???�면???�출 기능 ?�음
+                    사전검토 참조 커밋: {decision.preSubmissionReviewCommit} | 승인 요청 제출 없음 | 이 화면에 제출 기능 없음
                   </p>
                 </div>
               </div>
 
-              {/* ?�단 ?�약 카드 */}
+              {/* 판단 요약 카드 */}
               {decision.readinessDecisionItems.length > 0 && (
                 <div>
                   <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-rose-400">
-                    ?�출 준�??�단 ?�약
+                    제출 준비 판단 요약
                   </h4>
                   <div className="space-y-2">
                     {decision.readinessDecisionItems.map((item: any) => (
@@ -9381,13 +9383,13 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 </div>
               )}
 
-              {/* 2-column: ?�출 보류 ?�유 / ?�소 ?�요 ??�� */}
+              {/* 2-column: 제출 보류 사유 / 해소 필요 항목 */}
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                {/* ?�출 보류 ?�유 */}
+                {/* 제출 보류 사유 */}
                 {decision.submissionBlockedReasonItems.length > 0 && (
                   <div>
                     <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-amber-400">
-                      ?�출 보류 ?�유
+                      제출 보류 사유
                     </h4>
                     <div className="space-y-2">
                       {decision.submissionBlockedReasonItems.map((item: any) => (
@@ -9400,11 +9402,11 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                   </div>
                 )}
 
-                {/* ?�출 ???�소 ?�요 ??�� */}
+                {/* 제출 전 해소 필요 항목 */}
                 {decision.unresolvedBeforeSubmissionItems.length > 0 && (
                   <div>
                     <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-orange-400">
-                      ?�출 ???�소 ?�요 ??��
+                      제출 전 해소 필요 항목
                     </h4>
                     <div className="space-y-2">
                       {decision.unresolvedBeforeSubmissionItems.map((item: any) => (
@@ -9418,11 +9420,11 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 )}
               </div>
 
-              {/* ?�출 ?�에???�전??금�??�는 ??�� */}
+              {/* 제출 후에도 여전히 금지되는 항목 */}
               {decision.postSubmissionStillForbiddenItems.length > 0 && (
                 <div>
                   <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-red-500">
-                    ?�출 ?�후?�도 ?�전??금�? (추�? ?�제 ?�계 ?�요)
+                    제출 이후에도 여전히 금지 (추가 해제 단계 필요)
                   </h4>
                   <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3">
                     {decision.postSubmissionStillForbiddenItems.map((item: any) => (
@@ -9440,11 +9442,11 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 </div>
               )}
 
-              {/* ?�음 ?�계 ?�내 */}
+              {/* 다음 단계 안내 */}
               <div className="flex items-start gap-3 rounded-md border border-rose-900/30 bg-rose-950/15 p-4">
                 <Info className="mt-0.5 h-5 w-5 shrink-0 text-rose-400" />
                 <div>
-                  <h5 className="text-sm font-medium text-rose-200">?�출 준�??�단 ?�내</h5>
+                  <h5 className="text-sm font-medium text-rose-200">제출 준비 판단 안내</h5>
                   <p className="mt-1 text-xs leading-relaxed text-rose-300/80">{decision.nextStepLabel}</p>
                 </div>
               </div>
@@ -9453,7 +9455,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 71: Separate Approval Submission Decision Seal ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?� */}
+      {/* ── Task 71: Separate Approval Submission Decision Seal ───────────────── */}
       {(() => {
         const seal = job.naverAuthTokenFirstTestSeparateApprovalSubmissionDecisionSealScreen;
         if (!seal || !seal.submissionDecisionSealReviewOnly) return null;
@@ -9489,16 +9491,16 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 <div className="flex items-start gap-2">
                   <Info className="mt-0.5 h-4 w-4 shrink-0 text-violet-400" />
                   <p className="text-[10px] leading-relaxed text-violet-300/70">
-                    ?�출 준�??�단 참조 커밋: {seal.submissionReadinessDecisionCommit} | ?�인 ?�청 ?�출 ?�음 | ?�행 ?�제 ?�음 | ???�면???�?�·제출·실??기능 ?�음
+                    제출 준비 판단 참조 커밋: {seal.submissionReadinessDecisionCommit} | 승인 요청 제출 없음 | 실행 해제 없음 | 이 화면에 저장·제출·실행 기능 없음
                   </p>
                 </div>
               </div>
 
-              {/* 봉인 ?�단 카드 */}
+              {/* 봉인 판단 카드 */}
               {seal.decisionSealItems.length > 0 && (
                 <div>
                   <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-violet-400">
-                    ?�출 ?�단 봉인 ?�용
+                    제출 판단 봉인 내용
                   </h4>
                   <div className="space-y-2">
                     {seal.decisionSealItems.map((item: any) => (
@@ -9516,13 +9518,13 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 </div>
               )}
 
-              {/* 2-column: ?�출 ?�전??차단 / ?�전??금�? ?�약 */}
+              {/* 2-column: 제출 여전히 차단 / 여전히 금지 요약 */}
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                {/* ?�출 ?�전??차단 */}
+                {/* 제출 여전히 차단 */}
                 {seal.submissionStillBlockedItems.length > 0 && (
                   <div>
                     <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-amber-400">
-                      ?�출 ?�전??차단 ?�유
+                      제출 여전히 차단 사유
                     </h4>
                     <div className="space-y-2">
                       {seal.submissionStillBlockedItems.map((item: any) => (
@@ -9535,11 +9537,11 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                   </div>
                 )}
 
-                {/* 봉인 ?�후?�도 ?�전??금�? ?�약 */}
+                {/* 봉인 이후에도 여전히 금지 요약 */}
                 {seal.stillForbiddenItems.length > 0 && (
                   <div>
                     <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-red-500">
-                      봉인 ?�후?�도 금�? ?��?
+                      봉인 이후에도 금지 유지
                     </h4>
                     <div className="space-y-2">
                       {seal.stillForbiddenItems.map((item: any) => (
@@ -9556,11 +9558,11 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 )}
               </div>
 
-              {/* ?�행 ?�전??금�? */}
+              {/* 실행 여전히 금지 */}
               {seal.executionStillForbiddenItems.length > 0 && (
                 <div>
                   <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-red-500">
-                    ?�행 ?�전??금�? (추�? ?�제 ?�계 ?�요)
+                    실행 여전히 금지 (추가 해제 단계 필요)
                   </h4>
                   <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3">
                     {seal.executionStillForbiddenItems.map((item: any) => (
@@ -9578,11 +9580,11 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 </div>
               )}
 
-              {/* ?�음 ?�계 ?�내 */}
+              {/* 다음 단계 안내 */}
               {seal.nextStepItems.length > 0 && (
                 <div>
                   <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-400">
-                    ?�음 ?�계 ?�내 (?�행 불허)
+                    다음 단계 안내 (실행 불허)
                   </h4>
                   <div className="space-y-2">
                     {seal.nextStepItems.map((item: any) => (
@@ -9595,11 +9597,11 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 </div>
               )}
 
-              {/* 봉인 ?�내 */}
+              {/* 봉인 안내 */}
               <div className="flex items-start gap-3 rounded-md border border-violet-900/30 bg-violet-950/15 p-4">
                 <Info className="mt-0.5 h-5 w-5 shrink-0 text-violet-400" />
                 <div>
-                  <h5 className="text-sm font-medium text-violet-200">?�출 ?�단 봉인 ?�내</h5>
+                  <h5 className="text-sm font-medium text-violet-200">제출 판단 봉인 안내</h5>
                   <p className="mt-1 text-xs leading-relaxed text-violet-300/80">{seal.nextStepLabel}</p>
                 </div>
               </div>
@@ -9608,7 +9610,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 72: Separate Approval Final Closure Gate ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?� */}
+      {/* ── Task 72: Separate Approval Final Closure Gate ─────────────────────── */}
       {(() => {
         const gate = job.tokenFirstTestSeparateApprovalFinalClosureGateView;
         if (!gate) return null;
@@ -9643,22 +9645,22 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             </div>
 
             <div className="space-y-5 p-5">
-              {/* ?�약 박스 */}
+              {/* 요약 박스 */}
               <div className="rounded-md border border-rose-700/25 bg-rose-950/20 px-4 py-3">
                 <div className="flex items-start gap-2">
                   <Info className="mt-0.5 h-4 w-4 shrink-0 text-rose-400" />
                   <div>
                     <p className="text-[11px] leading-relaxed text-rose-300/80">{gate.summary}</p>
-                    <p className="mt-1 text-[10px] text-rose-400/60">Task 71 기�? 커밋: {gate.task71Commit} | ?�인 ?�청 ?�출 ?�음 | token 발급 ?�음 | ?�행 버튼 ?�음</p>
+                    <p className="mt-1 text-[10px] text-rose-400/60">Task 71 기준 커밋: {gate.task71Commit} | 승인 요청 제출 없음 | token 발급 없음 | 실행 버튼 없음</p>
                   </div>
                 </div>
               </div>
 
-              {/* Final Closure Gate ??�� */}
+              {/* Final Closure Gate 항목 */}
               {gate.finalClosureGateItems.length > 0 && (
                 <div>
                   <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-rose-400">
-                    Final Closure Gate ??Task 41~71 ?�름 ?�약
+                    Final Closure Gate — Task 41~71 흐름 요약
                   </h4>
                   <div className="space-y-2">
                     {gate.finalClosureGateItems.map((item, idx) => (
@@ -9674,12 +9676,12 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 </div>
               )}
 
-              {/* 2-column: Read-only ?�인 / Release 차단 ?�유 */}
+              {/* 2-column: Read-only 확인 / Release 차단 사유 */}
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 {gate.readOnlyClosureChecks.length > 0 && (
                   <div>
                     <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-emerald-400">
-                      Read-only ?�름 ?�인
+                      Read-only 흐름 확인
                     </h4>
                     <div className="space-y-2">
                       {gate.readOnlyClosureChecks.map((item, idx) => (
@@ -9698,7 +9700,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 {gate.releaseBlockedReasons.length > 0 && (
                   <div>
                     <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-red-500">
-                      Release 차단 ?�유
+                      Release 차단 사유
                     </h4>
                     <div className="space-y-2">
                       {gate.releaseBlockedReasons.map((item, idx) => (
@@ -9715,11 +9717,11 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 )}
               </div>
 
-              {/* ?�음 ?�람 검????�� */}
+              {/* 다음 사람 검토 항목 */}
               {gate.nextHumanReviewItems.length > 0 && (
                 <div>
                   <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-400">
-                    ?�음 ?�람 검????�� (?�행 불허)
+                    다음 사람 검토 항목 (실행 불허)
                   </h4>
                   <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                     {gate.nextHumanReviewItems.map((item, idx) => (
@@ -9732,11 +9734,11 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 </div>
               )}
 
-              {/* ?�전??금�? ?��? */}
+              {/* 여전히 금지 유지 */}
               {gate.stillForbiddenItems.length > 0 && (
                 <div>
                   <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-red-500">
-                    Final Closure Gate ?�후?�도 금�? ?��?
+                    Final Closure Gate 이후에도 금지 유지
                   </h4>
                   <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3">
                     {gate.stillForbiddenItems.map((item, idx) => (
@@ -9754,15 +9756,15 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 </div>
               )}
 
-              {/* 최종 ?�내 */}
+              {/* 최종 안내 */}
               <div className="flex items-start gap-3 rounded-md border border-rose-900/30 bg-rose-950/15 p-4">
                 <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-rose-400" />
                 <div>
-                  <h5 className="text-sm font-medium text-rose-200">Final Closure Gate ?�내</h5>
+                  <h5 className="text-sm font-medium text-rose-200">Final Closure Gate 안내</h5>
                   <p className="mt-1 text-xs leading-relaxed text-rose-300/80">
-                    ???�널?� ?�제 ?�출/?�행?�로 ?�어가�???read-only 검???�름??최종 봉인?�니??
-                    ?�재 ?�태?�서???�인 ?�청 ?�출, token 발급, Naver API ?�출, Queue/Worker ?�행, ?�영 DB write가 ?�용?��? ?�습?�다.
-                    ?�음 ?�계???�람??별도 ?�인 ?��? 검?�입?�다.
+                    이 패널은 실제 제출/실행으로 넘어가기 전 read-only 검토 흐름을 최종 봉인합니다.
+                    현재 상태에서는 승인 요청 제출, token 발급, Naver API 호출, Queue/Worker 실행, 운영 DB write가 허용되지 않습니다.
+                    다음 단계는 사람의 별도 승인 여부 검토입니다.
                   </p>
                 </div>
               </div>
@@ -9771,7 +9773,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 73: Separate Approval Final Closure Handoff Summary ?�?�?�?�?�?�?�?�?�?�?�?�?�?� */}
+      {/* ── Task 73: Separate Approval Final Closure Handoff Summary ────────────── */}
       {(() => {
         const hs = job.tokenFirstTestSeparateApprovalFinalClosureHandoffSummaryView;
         if (!hs) return null;
@@ -9805,20 +9807,20 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             </div>
 
             <div className="space-y-5 p-5">
-              {/* ?�약 박스 */}
+              {/* 요약 박스 */}
               <div className="rounded-md border border-amber-700/25 bg-amber-950/20 px-4 py-3">
                 <div className="flex items-start gap-2">
                   <Info className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" />
                   <div>
                     <p className="text-[11px] leading-relaxed text-amber-300/80">{hs.summary}</p>
                     <p className="mt-1 text-[10px] text-amber-400/60">
-                      {hs.taskRangeLabel} | ?�전 게이?? {hs.previousGateLabel} ({hs.previousGateCommit})
+                      {hs.taskRangeLabel} | 이전 게이트: {hs.previousGateLabel} ({hs.previousGateCommit})
                     </p>
                   </div>
                 </div>
               </div>
 
-              {/* Handoff Summary ??�� */}
+              {/* Handoff Summary 항목 */}
               {hs.handoffSummaryItems.length > 0 && (
                 <div>
                   <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-amber-400">
@@ -9875,7 +9877,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                           <div>
                             <p className="text-[10px] font-semibold">{item.label}</p>
                             <p className="mt-0.5 text-[9px] leading-relaxed opacity-70">{item.reason}</p>
-                            <p className="mt-0.5 text-[9px] opacity-50">?�요 ?�점: {item.requiredBefore}</p>
+                            <p className="mt-0.5 text-[9px] opacity-50">필요 시점: {item.requiredBefore}</p>
                           </div>
                         </div>
                       ))}
@@ -9888,7 +9890,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               {hs.notReleasedItems.length > 0 && (
                 <div>
                   <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-red-500">
-                    Not Released Yet ???�행 미해????��
+                    Not Released Yet — 실행 미해제 항목
                   </h4>
                   <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3">
                     {hs.notReleasedItems.map((item, idx) => (
@@ -9911,14 +9913,14 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               {hs.nextHandoffItems.length > 0 && (
                 <div>
                   <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-400">
-                    Next Handoff Items ???�람 ?�수?�계 ??��
+                    Next Handoff Items — 사람 인수인계 항목
                   </h4>
                   <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                     {hs.nextHandoffItems.map((item, idx) => (
                       <div key={idx} className={`rounded border px-3 py-2.5 ${toneColor(item.tone)}`}>
                         <p className="mb-0.5 text-[11px] font-semibold">{item.label}</p>
                         <p className="text-[10px] leading-relaxed opacity-70">{item.description}</p>
-                        <p className="mt-1 text-[9px] opacity-50">?�당: {item.owner}</p>
+                        <p className="mt-1 text-[9px] opacity-50">담당: {item.owner}</p>
                       </div>
                     ))}
                   </div>
@@ -9929,7 +9931,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               {hs.stillForbiddenItems.length > 0 && (
                 <div>
                   <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-red-500">
-                    Still Forbidden ??Handoff Summary ?�후?�도 금�? ?��?
+                    Still Forbidden — Handoff Summary 이후에도 금지 유지
                   </h4>
                   <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3">
                     {hs.stillForbiddenItems.map((item, idx) => (
@@ -9960,7 +9962,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 74: Human Review Acceptance Checklist ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?� */}
+      {/* ── Task 74: Human Review Acceptance Checklist ───────────────────────── */}
       {(() => {
         const cl = job.tokenFirstTestSeparateApprovalHumanReviewAcceptanceChecklistView;
         if (!cl) return null;
@@ -9994,14 +9996,14 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             </div>
 
             <div className="space-y-5 p-5">
-              {/* ?�약 박스 */}
+              {/* 요약 박스 */}
               <div className="rounded-md border border-cyan-700/25 bg-cyan-950/20 px-4 py-3">
                 <div className="flex items-start gap-2">
                   <Info className="mt-0.5 h-4 w-4 shrink-0 text-cyan-400" />
                   <div>
                     <p className="text-[11px] leading-relaxed text-cyan-300/80">{cl.summary}</p>
                     <p className="mt-1 text-[10px] text-cyan-400/60">
-                      {cl.taskRangeLabel} | ?�전 ?�수?�계: {cl.previousHandoffLabel} ({cl.previousHandoffCommit})
+                      {cl.taskRangeLabel} | 이전 인수인계: {cl.previousHandoffLabel} ({cl.previousHandoffCommit})
                     </p>
                   </div>
                 </div>
@@ -10011,7 +10013,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               {cl.acceptanceChecklistItems.length > 0 && (
                 <div>
                   <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-cyan-400">
-                    Acceptance Checklist ??검???�락 ???�인 ??��
+                    Acceptance Checklist — 검토 수락 전 확인 항목
                   </h4>
                   <div className="space-y-2">
                     {cl.acceptanceChecklistItems.map((item, idx) => (
@@ -10023,7 +10025,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                             <span className="rounded bg-slate-800/40 px-1.5 py-0.5 text-[9px] opacity-70">{item.currentState}</span>
                           </div>
                           <p className="mt-0.5 text-[10px] leading-relaxed opacity-70">{item.description}</p>
-                          <p className="mt-0.5 text-[9px] opacity-50">?�요 ?�태: {item.requiredState}</p>
+                          <p className="mt-0.5 text-[9px] opacity-50">필요 상태: {item.requiredState}</p>
                         </div>
                       </div>
                     ))}
@@ -10036,7 +10038,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 {cl.reviewerAwarenessItems.length > 0 && (
                   <div>
                     <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-amber-400">
-                      Reviewer Awareness ??검?�자 ?��? ?�요
+                      Reviewer Awareness — 검토자 인지 필요
                     </h4>
                     <div className="space-y-2">
                       {cl.reviewerAwarenessItems.map((item, idx) => (
@@ -10056,7 +10058,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 {cl.acceptanceBlockedItems.length > 0 && (
                   <div>
                     <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-red-500">
-                      Acceptance Blocked ???�락 차단 ?�유
+                      Acceptance Blocked — 수락 차단 사유
                     </h4>
                     <div className="space-y-2">
                       {cl.acceptanceBlockedItems.map((item, idx) => (
@@ -10078,7 +10080,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               {cl.evidenceReviewItems.length > 0 && (
                 <div>
                   <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-emerald-400">
-                    Evidence Review ??근거 검??
+                    Evidence Review — 근거 검토
                   </h4>
                   <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                     {cl.evidenceReviewItems.map((item, idx) => (
@@ -10099,7 +10101,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               {cl.notApprovalItems.length > 0 && (
                 <div>
                   <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-red-500">
-                    Not Approval ?????�면?� ?�인 부?��? ?�님
+                    Not Approval — 이 화면은 승인 부여가 아님
                   </h4>
                   <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                     {cl.notApprovalItems.map((item, idx) => (
@@ -10122,14 +10124,14 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               {cl.nextReviewPreparationItems.length > 0 && (
                 <div>
                   <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-400">
-                    Next Review Preparation ???�음 검??준�???��
+                    Next Review Preparation — 다음 검토 준비 항목
                   </h4>
                   <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                     {cl.nextReviewPreparationItems.map((item, idx) => (
                       <div key={idx} className={`rounded border px-3 py-2.5 ${toneColor(item.tone)}`}>
                         <p className="mb-0.5 text-[11px] font-semibold">{item.label}</p>
                         <p className="text-[10px] leading-relaxed opacity-70">{item.description}</p>
-                        <p className="mt-1 text-[9px] opacity-50">?�당: {item.nextOwner}</p>
+                        <p className="mt-1 text-[9px] opacity-50">담당: {item.nextOwner}</p>
                       </div>
                     ))}
                   </div>
@@ -10140,7 +10142,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               {cl.stillForbiddenItems.length > 0 && (
                 <div>
                   <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-red-500">
-                    Still Forbidden ??체크리스???�후?�도 금�? ?��?
+                    Still Forbidden — 체크리스트 이후에도 금지 유지
                   </h4>
                   <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3">
                     {cl.stillForbiddenItems.map((item, idx) => (
@@ -10162,7 +10164,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-3 rounded-md border border-cyan-900/30 bg-cyan-950/15 p-4">
                 <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-cyan-400" />
                 <div>
-                  <h5 className="text-sm font-medium text-cyan-200">Human Review Checklist ??Final Notice</h5>
+                  <h5 className="text-sm font-medium text-cyan-200">Human Review Checklist — Final Notice</h5>
                   <p className="mt-1 text-xs leading-relaxed text-cyan-300/80">{cl.finalNotice}</p>
                 </div>
               </div>
@@ -10171,7 +10173,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 75: Human Review Acceptance Boundary ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?� */}
+      {/* ── Task 75: Human Review Acceptance Boundary ───────────────────────── */}
       {(() => {
         const bd = job.tokenFirstTestSeparateApprovalHumanReviewAcceptanceBoundaryView;
         if (!bd) return null;
@@ -10205,14 +10207,14 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             </div>
 
             <div className="space-y-5 p-5">
-              {/* ?�약 박스 */}
+              {/* 요약 박스 */}
               <div className="rounded-md border border-indigo-700/25 bg-indigo-950/20 px-4 py-3">
                 <div className="flex items-start gap-2">
                   <Info className="mt-0.5 h-4 w-4 shrink-0 text-indigo-400" />
                   <div>
                     <p className="text-[11px] leading-relaxed text-indigo-300/80">{bd.summary}</p>
                     <p className="mt-1 text-[10px] text-indigo-400/60">
-                      {bd.taskRangeLabel} | ?�전 체크리스?? {bd.previousChecklistLabel} ({bd.previousChecklistCommit})
+                      {bd.taskRangeLabel} | 이전 체크리스트: {bd.previousChecklistLabel} ({bd.previousChecklistCommit})
                     </p>
                   </div>
                 </div>
@@ -10222,7 +10224,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               {bd.boundarySummaryItems.length > 0 && (
                 <div>
                   <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-indigo-400">
-                    Boundary Summary ??검???�락 경계
+                    Boundary Summary — 검토 수락 경계
                   </h4>
                   <div className="space-y-2">
                     {bd.boundarySummaryItems.map((item, idx) => (
@@ -10246,7 +10248,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 {bd.acceptanceIsNotApprovalItems.length > 0 && (
                   <div>
                     <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-red-500">
-                      Acceptance Is Not Approval ???�락 ???�인 부??
+                      Acceptance Is Not Approval — 수락 ≠ 승인 부여
                     </h4>
                     <div className="space-y-2">
                       {bd.acceptanceIsNotApprovalItems.map((item, idx) => (
@@ -10266,7 +10268,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 {bd.nonExecutionBoundaryItems.length > 0 && (
                   <div>
                     <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-red-500">
-                      Non-Execution Boundary ???�행 비실??경계
+                      Non-Execution Boundary — 실행 비실행 경계
                     </h4>
                     <div className="space-y-2">
                       {bd.nonExecutionBoundaryItems.map((item, idx) => (
@@ -10288,7 +10290,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               {bd.requiredBeforeReleaseItems.length > 0 && (
                 <div>
                   <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-amber-400">
-                    Required Before Release ???�행 ???�수 조건
+                    Required Before Release — 실행 전 필수 조건
                   </h4>
                   <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                     {bd.requiredBeforeReleaseItems.map((item, idx) => (
@@ -10297,7 +10299,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                         <div>
                           <p className="text-[10px] font-semibold">{item.label}</p>
                           <p className="mt-0.5 text-[9px] leading-relaxed opacity-70">{item.description}</p>
-                          <p className="mt-0.5 text-[9px] opacity-50">?�요 근거: {item.requiredEvidence}</p>
+                          <p className="mt-0.5 text-[9px] opacity-50">필요 근거: {item.requiredEvidence}</p>
                         </div>
                       </div>
                     ))}
@@ -10309,14 +10311,14 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               {bd.reviewerMisunderstandingPreventionItems.length > 0 && (
                 <div>
                   <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-amber-400">
-                    Misunderstanding Prevention ???�해 방�?
+                    Misunderstanding Prevention — 오해 방지
                   </h4>
                   <div className="space-y-2">
                     {bd.reviewerMisunderstandingPreventionItems.map((item, idx) => (
                       <div key={idx} className={`rounded border px-3 py-2.5 ${toneColor(item.tone)}`}>
                         <p className="mb-0.5 text-[10px] font-semibold">{item.label}</p>
-                        <p className="text-[9px] opacity-60">?�해: {item.misunderstanding}</p>
-                        <p className="mt-0.5 text-[9px] font-medium opacity-80">?�바�??�석: {item.correctInterpretation}</p>
+                        <p className="text-[9px] opacity-60">오해: {item.misunderstanding}</p>
+                        <p className="mt-0.5 text-[9px] font-medium opacity-80">올바른 해석: {item.correctInterpretation}</p>
                       </div>
                     ))}
                   </div>
@@ -10327,14 +10329,14 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               {bd.nextHumanDecisionItems.length > 0 && (
                 <div>
                   <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-400">
-                    Next Human Decision ???�음 ?�람 ?�단 ??��
+                    Next Human Decision — 다음 사람 판단 항목
                   </h4>
                   <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                     {bd.nextHumanDecisionItems.map((item, idx) => (
                       <div key={idx} className={`rounded border px-3 py-2.5 ${toneColor(item.tone)}`}>
                         <p className="mb-0.5 text-[11px] font-semibold">{item.label}</p>
                         <p className="text-[10px] leading-relaxed opacity-70">{item.description}</p>
-                        <p className="mt-1 text-[9px] opacity-50">?�당: {item.nextOwner}</p>
+                        <p className="mt-1 text-[9px] opacity-50">담당: {item.nextOwner}</p>
                       </div>
                     ))}
                   </div>
@@ -10345,7 +10347,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               {bd.stillForbiddenItems.length > 0 && (
                 <div>
                   <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-red-500">
-                    Still Forbidden ??경계 ?�시 ?�후?�도 금�? ?��?
+                    Still Forbidden — 경계 표시 이후에도 금지 유지
                   </h4>
                   <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3">
                     {bd.stillForbiddenItems.map((item, idx) => (
@@ -10367,7 +10369,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-3 rounded-md border border-indigo-900/30 bg-indigo-950/15 p-4">
                 <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-indigo-400" />
                 <div>
-                  <h5 className="text-sm font-medium text-indigo-200">Acceptance Boundary ??Final Notice</h5>
+                  <h5 className="text-sm font-medium text-indigo-200">Acceptance Boundary — Final Notice</h5>
                   <p className="mt-1 text-xs leading-relaxed text-indigo-300/80">{bd.finalNotice}</p>
                 </div>
               </div>
@@ -10376,7 +10378,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 76: Human Review Non-Execution Seal ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?� */}
+      {/* ── Task 76: Human Review Non-Execution Seal ─────────────────────────── */}
       {(() => {
         const ns = job.tokenFirstTestSeparateApprovalHumanReviewNonExecutionSealView;
         if (!ns) return null;
@@ -10406,7 +10408,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
 
             <div className="mb-3 flex flex-wrap gap-4 text-xs text-teal-400/70">
               <span>{ns.taskRangeLabel}</span>
-              <span>기�?: {ns.previousBoundaryLabel} ({ns.previousBoundaryCommit})</span>
+              <span>기준: {ns.previousBoundaryLabel} ({ns.previousBoundaryCommit})</span>
             </div>
 
             <div className="space-y-4">
@@ -10516,7 +10518,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                         <div>
                           <p className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</p>
                           <p className="mt-0.5 text-xs text-teal-300/70">{item.description}</p>
-                          <p className="mt-1 text-xs text-teal-400/60">?�당: {item.nextOwner}</p>
+                          <p className="mt-1 text-xs text-teal-400/60">담당: {item.nextOwner}</p>
                         </div>
                       </div>
                     </div>
@@ -10541,7 +10543,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-3 rounded-md border border-teal-900/30 bg-teal-950/15 p-4">
                 <Lock className="mt-0.5 h-5 w-5 shrink-0 text-teal-400" />
                 <div>
-                  <h5 className="text-sm font-medium text-teal-200">Non-Execution Seal ??Final Notice</h5>
+                  <h5 className="text-sm font-medium text-teal-200">Non-Execution Seal — Final Notice</h5>
                   <p className="mt-1 text-xs leading-relaxed text-teal-300/80">{ns.finalNotice}</p>
                 </div>
               </div>
@@ -10550,7 +10552,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 77: Human Review Final Hold Summary ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?� */}
+      {/* ── Task 77: Human Review Final Hold Summary ──────────────────────────── */}
       {(() => {
         const fh = job.tokenFirstTestSeparateApprovalHumanReviewFinalHoldSummaryView;
         if (!fh) return null;
@@ -10580,7 +10582,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
 
             <div className="mb-3 flex flex-wrap gap-4 text-xs text-orange-400/70">
               <span>{fh.taskRangeLabel}</span>
-              <span>기�?: {fh.previousSealLabel} ({fh.previousSealCommit})</span>
+              <span>기준: {fh.previousSealLabel} ({fh.previousSealCommit})</span>
             </div>
 
             <div className="space-y-4">
@@ -10690,7 +10692,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                         <div>
                           <p className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</p>
                           <p className="mt-0.5 text-xs text-orange-300/70">{item.description}</p>
-                          <p className="mt-1 text-xs text-orange-400/60">?�당: {item.nextOwner}</p>
+                          <p className="mt-1 text-xs text-orange-400/60">담당: {item.nextOwner}</p>
                         </div>
                       </div>
                     </div>
@@ -10715,7 +10717,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-3 rounded-md border border-orange-900/30 bg-orange-950/15 p-4">
                 <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-orange-400" />
                 <div>
-                  <h5 className="text-sm font-medium text-orange-200">Final Hold Summary ??Final Notice</h5>
+                  <h5 className="text-sm font-medium text-orange-200">Final Hold Summary — Final Notice</h5>
                   <p className="mt-1 text-xs leading-relaxed text-orange-300/80">{fh.finalNotice}</p>
                 </div>
               </div>
@@ -10724,7 +10726,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 78: Final Hold Release Preconditions Review ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?� */}
+      {/* ── Task 78: Final Hold Release Preconditions Review ──────────────────── */}
       {(() => {
         const pr = job.tokenFirstTestSeparateApprovalFinalHoldReleasePreconditionsReviewView;
         if (!pr) return null;
@@ -10754,7 +10756,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
 
             <div className="mb-3 flex flex-wrap gap-4 text-xs text-purple-400/70">
               <span>{pr.taskRangeLabel}</span>
-              <span>기�?: {pr.previousHoldLabel} ({pr.previousHoldCommit})</span>
+              <span>기준: {pr.previousHoldLabel} ({pr.previousHoldCommit})</span>
             </div>
 
             <div className="space-y-4">
@@ -10842,11 +10844,11 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                     <div key={idx} className={`rounded-md border p-3 ${toneBg(item.tone)}`}>
                       <p className={`text-xs font-semibold ${toneColor(item.tone)}`}>{item.label}</p>
                       <p className="mt-1 text-xs text-red-300/70">
-                        <span className="font-medium text-red-400">?�해: </span>
+                        <span className="font-medium text-red-400">오해: </span>
                         {item.misunderstanding}
                       </p>
                       <p className="mt-0.5 text-xs text-purple-300/70">
-                        <span className="font-medium text-purple-400">?�바�??�석: </span>
+                        <span className="font-medium text-purple-400">올바른 해석: </span>
                         {item.correctInterpretation}
                       </p>
                     </div>
@@ -10865,7 +10867,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                         <div>
                           <p className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</p>
                           <p className="mt-0.5 text-xs text-purple-300/70">{item.description}</p>
-                          <p className="mt-1 text-xs text-purple-400/60">?�당: {item.nextOwner}</p>
+                          <p className="mt-1 text-xs text-purple-400/60">담당: {item.nextOwner}</p>
                         </div>
                       </div>
                     </div>
@@ -10890,7 +10892,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-3 rounded-md border border-purple-900/30 bg-purple-950/15 p-4">
                 <Info className="mt-0.5 h-5 w-5 shrink-0 text-purple-400" />
                 <div>
-                  <h5 className="text-sm font-medium text-purple-200">Release Preconditions Review ??Final Notice</h5>
+                  <h5 className="text-sm font-medium text-purple-200">Release Preconditions Review — Final Notice</h5>
                   <p className="mt-1 text-xs leading-relaxed text-purple-300/80">{pr.finalNotice}</p>
                 </div>
               </div>
@@ -10899,7 +10901,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 79: Final Hold Release Boundary ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?� */}
+      {/* ── Task 79: Final Hold Release Boundary ──────────────────────────────── */}
       {(() => {
         const rb = job.tokenFirstTestSeparateApprovalFinalHoldReleaseBoundaryView;
         if (!rb) return null;
@@ -10929,7 +10931,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
 
             <div className="mb-3 flex flex-wrap gap-4 text-xs text-purple-400/70">
               <span>{rb.taskRangeLabel}</span>
-              <span>기�?: {rb.previousPreconditionsLabel} ({rb.previousPreconditionsCommit})</span>
+              <span>기준: {rb.previousPreconditionsLabel} ({rb.previousPreconditionsCommit})</span>
             </div>
 
             <div className="space-y-4">
@@ -10980,7 +10982,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                       <p className={`text-xs font-semibold ${toneColor(item.tone)}`}>{item.label}</p>
                       <p className="mt-1 text-xs text-purple-300/70">{item.description}</p>
                       <p className="mt-1 text-xs text-purple-300/70">
-                        <span className="font-medium text-purple-400">?�바�??�석: </span>
+                        <span className="font-medium text-purple-400">올바른 해석: </span>
                         {item.correctInterpretation}
                       </p>
                     </div>
@@ -11037,7 +11039,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                         <div>
                           <p className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</p>
                           <p className="mt-0.5 text-xs text-purple-300/70">{item.description}</p>
-                          <p className="mt-1 text-xs text-purple-400/60">?�당: {item.nextOwner}</p>
+                          <p className="mt-1 text-xs text-purple-400/60">담당: {item.nextOwner}</p>
                         </div>
                       </div>
                     </div>
@@ -11062,7 +11064,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-3 rounded-md border border-purple-900/30 bg-purple-950/15 p-4">
                 <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-purple-400" />
                 <div>
-                  <h5 className="text-sm font-medium text-purple-200">Release Boundary ??Final Notice</h5>
+                  <h5 className="text-sm font-medium text-purple-200">Release Boundary — Final Notice</h5>
                   <p className="mt-1 text-xs leading-relaxed text-purple-300/80">{rb.finalNotice}</p>
                 </div>
               </div>
@@ -11071,7 +11073,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 80: Final Hold Non-Release Seal ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?� */}
+      {/* ── Task 80: Final Hold Non-Release Seal ─────────────────────────────── */}
       {(() => {
         const ns = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseSealView;
         if (!ns) return null;
@@ -11101,7 +11103,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
 
             <div className="mb-3 flex flex-wrap gap-4 text-xs text-purple-400/70">
               <span>{ns.taskRangeLabel}</span>
-              <span>기�?: {ns.previousBoundaryLabel} ({ns.previousBoundaryCommit})</span>
+              <span>기준: {ns.previousBoundaryLabel} ({ns.previousBoundaryCommit})</span>
             </div>
 
             <div className="space-y-4">
@@ -11171,7 +11173,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                       <p className={`text-xs font-semibold ${toneColor(item.tone)}`}>{item.label}</p>
                       <p className="mt-1 text-xs text-purple-300/70">{item.description}</p>
                       <p className="mt-1 text-xs text-purple-300/70">
-                        <span className="font-medium text-purple-400">?�재 ?��?: </span>
+                        <span className="font-medium text-purple-400">현재 의미: </span>
                         {item.currentMeaning}
                       </p>
                     </div>
@@ -11209,7 +11211,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                         <div>
                           <p className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</p>
                           <p className="mt-0.5 text-xs text-purple-300/70">{item.description}</p>
-                          <p className="mt-1 text-xs text-purple-400/60">?�당: {item.nextOwner}</p>
+                          <p className="mt-1 text-xs text-purple-400/60">담당: {item.nextOwner}</p>
                         </div>
                       </div>
                     </div>
@@ -11234,7 +11236,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-3 rounded-md border border-purple-900/30 bg-purple-950/15 p-4">
                 <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-purple-400" />
                 <div>
-                  <h5 className="text-sm font-medium text-purple-200">Non-Release Seal ??Final Notice</h5>
+                  <h5 className="text-sm font-medium text-purple-200">Non-Release Seal — Final Notice</h5>
                   <p className="mt-1 text-xs leading-relaxed text-purple-300/80">{ns.finalNotice}</p>
                 </div>
               </div>
@@ -11243,7 +11245,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 81: Final Hold Non-Release Handoff Checklist ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?� */}
+      {/* ── Task 81: Final Hold Non-Release Handoff Checklist ───────────────── */}
       {(() => {
         const hc = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffChecklistView;
         if (!hc) return null;
@@ -11273,13 +11275,13 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
 
             <div className="mb-3 flex flex-wrap gap-4 text-xs text-purple-400/70">
               <span>{hc.taskRangeLabel}</span>
-              <span>기�?: {hc.previousSealLabel} ({hc.previousSealCommit})</span>
+              <span>기준: {hc.previousSealLabel} ({hc.previousSealCommit})</span>
             </div>
 
             <div className="space-y-4">
               <div>
                 <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-purple-400">
-                  ?�수?�계 체크리스??(Handoff Checklist)
+                  인수인계 체크리스트 (Handoff Checklist)
                 </h4>
                 <div className="space-y-2">
                   {hc.handoffChecklistItems.map((item, idx) => (
@@ -11299,7 +11301,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
 
               <div>
                 <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">
-                  보류 미해???�태 (Non-Release State)
+                  보류 미해제 상태 (Non-Release State)
                 </h4>
                 <div className="grid gap-2 sm:grid-cols-2">
                   {hc.nonReleaseStateItems.map((item, idx) => (
@@ -11319,7 +11321,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
 
               <div>
                 <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-yellow-400">
-                  검?�자 ?�인 ?�항 (Reviewer Confirmation)
+                  검토자 확인 사항 (Reviewer Confirmation)
                 </h4>
                 <div className="space-y-2">
                   {hc.reviewerConfirmationItems.map((item, idx) => (
@@ -11339,7 +11341,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
 
               <div>
                 <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">
-                  보류 ?�제 미허??(Release Not Allowed)
+                  보류 해제 미허용 (Release Not Allowed)
                 </h4>
                 <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                   {hc.releaseNotAllowedItems.map((item, idx) => (
@@ -11359,18 +11361,18 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
 
               <div>
                 <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-yellow-400">
-                  ?�수?�계 ?�해 방�? (Misunderstanding Prevention)
+                  인수인계 오해 방지 (Misunderstanding Prevention)
                 </h4>
                 <div className="space-y-2">
                   {hc.handoffMisunderstandingPreventionItems.map((item, idx) => (
                     <div key={idx} className={`rounded-md border p-3 ${toneBg(item.tone)}`}>
                       <p className={`text-xs font-semibold ${toneColor(item.tone)}`}>{item.label}</p>
                       <p className="mt-1 text-xs text-red-300/70">
-                        <span className="font-medium text-red-400">?�해: </span>
+                        <span className="font-medium text-red-400">오해: </span>
                         {item.misunderstanding}
                       </p>
                       <p className="mt-0.5 text-xs text-purple-300/70">
-                        <span className="font-medium text-purple-400">?�바�??�석: </span>
+                        <span className="font-medium text-purple-400">올바른 해석: </span>
                         {item.correctInterpretation}
                       </p>
                     </div>
@@ -11380,7 +11382,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
 
               <div>
                 <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-purple-400">
-                  ?�음 ?�람 검??(Next Human Review)
+                  다음 사람 검토 (Next Human Review)
                 </h4>
                 <div className="space-y-2">
                   {hc.nextHumanReviewItems.map((item, idx) => (
@@ -11390,7 +11392,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                         <div>
                           <p className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</p>
                           <p className="mt-0.5 text-xs text-purple-300/70">{item.description}</p>
-                          <p className="mt-1 text-xs text-purple-400/60">?�당: {item.nextOwner}</p>
+                          <p className="mt-1 text-xs text-purple-400/60">담당: {item.nextOwner}</p>
                         </div>
                       </div>
                     </div>
@@ -11400,7 +11402,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
 
               <div>
                 <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">
-                  계속 금�? (Still Forbidden)
+                  계속 금지 (Still Forbidden)
                 </h4>
                 <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                   {hc.stillForbiddenItems.map((item, idx) => (
@@ -11415,7 +11417,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-3 rounded-md border border-purple-900/30 bg-purple-950/15 p-4">
                 <Info className="mt-0.5 h-5 w-5 shrink-0 text-purple-400" />
                 <div>
-                  <h5 className="text-sm font-medium text-purple-200">?�수?�계 체크리스????최종 ?�내</h5>
+                  <h5 className="text-sm font-medium text-purple-200">인수인계 체크리스트 — 최종 안내</h5>
                   <p className="mt-1 text-xs leading-relaxed text-purple-300/80">{hc.finalNotice}</p>
                 </div>
               </div>
@@ -11424,7 +11426,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 82: Final Hold Non-Release Handoff Boundary ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?� */}
+      {/* ── Task 82: Final Hold Non-Release Handoff Boundary ────────────────── */}
       {(() => {
         const hb = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffBoundaryView;
         if (!hb) return null;
@@ -11454,13 +11456,13 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
 
             <div className="mb-3 flex flex-wrap gap-4 text-xs text-red-300/70">
               <span>{hb.taskRangeLabel}</span>
-              <span>기�?: {hb.previousChecklistLabel} ({hb.previousChecklistCommit})</span>
+              <span>기준: {hb.previousChecklistLabel} ({hb.previousChecklistCommit})</span>
             </div>
 
             <div className="space-y-4">
               <div>
                 <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-purple-400">
-                  경계 ?�약 (Boundary Summary)
+                  경계 요약 (Boundary Summary)
                 </h4>
                 <div className="space-y-2">
                   {hb.boundarySummaryItems.map((item, idx) => (
@@ -11480,7 +11482,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
 
               <div>
                 <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">
-                  ?�수?�계??보류 ?�제가 ?�님 (Handoff Is Not Release)
+                  인수인계는 보류 해제가 아님 (Handoff Is Not Release)
                 </h4>
                 <div className="grid gap-2 sm:grid-cols-2">
                   {hb.handoffIsNotReleaseItems.map((item, idx) => (
@@ -11500,7 +11502,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
 
               <div>
                 <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-yellow-400">
-                  체크리스??검?�는 ?�인???�님 (Checklist Review Is Not Approval)
+                  체크리스트 검토는 승인이 아님 (Checklist Review Is Not Approval)
                 </h4>
                 <div className="space-y-2">
                   {hb.checklistReviewNotApprovalItems.map((item, idx) => (
@@ -11508,7 +11510,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                       <p className={`text-xs font-semibold ${toneColor(item.tone)}`}>{item.label}</p>
                       <p className="mt-1 text-xs text-purple-300/70">{item.description}</p>
                       <p className="mt-1 text-xs text-purple-300/70">
-                        <span className="font-medium text-purple-400">?�바�??�석: </span>
+                        <span className="font-medium text-purple-400">올바른 해석: </span>
                         {item.correctInterpretation}
                       </p>
                     </div>
@@ -11518,7 +11520,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
 
               <div>
                 <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">
-                  ?�환 차단 (Blocked Transition)
+                  전환 차단 (Blocked Transition)
                 </h4>
                 <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                   {hb.blockedTransitionItems.map((item, idx) => (
@@ -11538,7 +11540,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
 
               <div>
                 <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-yellow-400">
-                  ?�제 ?�제 ???�수 조건 (Required Before Release)
+                  실제 해제 전 필수 조건 (Required Before Release)
                 </h4>
                 <div className="space-y-2">
                   {hb.requiredBeforeReleaseItems.map((item, idx) => (
@@ -11558,7 +11560,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
 
               <div>
                 <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-purple-400">
-                  ?�음 ?�람 검??관�?(Next Human Review Gate)
+                  다음 사람 검토 관문 (Next Human Review Gate)
                 </h4>
                 <div className="space-y-2">
                   {hb.nextHumanReviewGateItems.map((item, idx) => (
@@ -11568,7 +11570,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                         <div>
                           <p className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</p>
                           <p className="mt-0.5 text-xs text-purple-300/70">{item.description}</p>
-                          <p className="mt-1 text-xs text-purple-400/60">?�당: {item.nextOwner}</p>
+                          <p className="mt-1 text-xs text-purple-400/60">담당: {item.nextOwner}</p>
                         </div>
                       </div>
                     </div>
@@ -11578,7 +11580,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
 
               <div>
                 <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">
-                  계속 금�? (Still Forbidden)
+                  계속 금지 (Still Forbidden)
                 </h4>
                 <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                   {hb.stillForbiddenItems.map((item, idx) => (
@@ -11593,7 +11595,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-3 rounded-md border border-red-900/40 bg-red-950/20 p-4">
                 <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-red-400" />
                 <div>
-                  <h5 className="text-sm font-medium text-red-200">?�수?�계 경계 ??최종 ?�내 (Final Notice)</h5>
+                  <h5 className="text-sm font-medium text-red-200">인수인계 경계 — 최종 안내 (Final Notice)</h5>
                   <p className="mt-1 text-xs leading-relaxed text-red-200/80">{hb.finalNotice}</p>
                 </div>
               </div>
@@ -11602,7 +11604,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 83: Final Hold Non-Release Handoff Non-Release Seal ?�?�?�?�?�?�?�?�?�?�?�?� */}
+      {/* ── Task 83: Final Hold Non-Release Handoff Non-Release Seal ──────────── */}
       {(() => {
         const hs =
           job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffNonReleaseSealView;
@@ -11634,14 +11636,14 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             <div className="mb-3 flex flex-wrap gap-4 text-xs text-red-300/70">
               <span>{hs.taskRangeLabel}</span>
               <span>
-                기�?: {hs.previousBoundaryLabel} ({hs.previousBoundaryCommit})
+                기준: {hs.previousBoundaryLabel} ({hs.previousBoundaryCommit})
               </span>
             </div>
 
             <div className="space-y-4">
               <div>
                 <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-purple-400">
-                  봉인 ?�약 (Seal Summary)
+                  봉인 요약 (Seal Summary)
                 </h4>
                 <div className="space-y-2">
                   {hs.sealSummaryItems.map((item, idx) => (
@@ -11661,7 +11663,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
 
               <div>
                 <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">
-                  ?�수?�계 ?�후 보류 미해??봉인 (Handoff Non-Release Seal)
+                  인수인계 이후 보류 미해제 봉인 (Handoff Non-Release Seal)
                 </h4>
                 <div className="grid gap-2 sm:grid-cols-2">
                   {hs.handoffNonReleaseSealItems.map((item, idx) => (
@@ -11681,7 +11683,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
 
               <div>
                 <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-yellow-400">
-                  경계 ?�인 ?�후 ?��? (Boundary Confirmation Aftermath)
+                  경계 확인 이후 의미 (Boundary Confirmation Aftermath)
                 </h4>
                 <div className="space-y-2">
                   {hs.boundaryConfirmationAftermathItems.map((item, idx) => (
@@ -11689,7 +11691,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                       <p className={`text-xs font-semibold ${toneColor(item.tone)}`}>{item.label}</p>
                       <p className="mt-1 text-xs text-purple-300/70">{item.description}</p>
                       <p className="mt-1 text-xs text-purple-300/70">
-                        <span className="font-medium text-purple-400">?�재 ?��?: </span>
+                        <span className="font-medium text-purple-400">현재 의미: </span>
                         {item.currentMeaning}
                       </p>
                     </div>
@@ -11699,7 +11701,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
 
               <div>
                 <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">
-                  ?�직 부?�되지 ?�음 (Release Still Not Granted)
+                  아직 부여되지 않음 (Release Still Not Granted)
                 </h4>
                 <div className="grid gap-2 sm:grid-cols-2">
                   {hs.releaseStillNotGrantedItems.map((item, idx) => (
@@ -11719,7 +11721,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
 
               <div>
                 <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-yellow-400">
-                  ?�제 ?�제 ???�요 ??�� (Required Before Any Release)
+                  실제 해제 전 필요 항목 (Required Before Any Release)
                 </h4>
                 <div className="space-y-2">
                   {hs.requiredBeforeAnyReleaseItems.map((item, idx) => (
@@ -11730,7 +11732,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                           <p className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</p>
                           <p className="mt-0.5 text-xs text-purple-300/70">{item.description}</p>
                           <p className="mt-1 text-xs text-purple-300/70">
-                            <span className="font-medium text-purple-400">?�요 근거: </span>
+                            <span className="font-medium text-purple-400">필요 근거: </span>
                             {item.requiredEvidence}
                           </p>
                         </div>
@@ -11742,7 +11744,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
 
               <div>
                 <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-purple-400">
-                  ?�음 ?�전 검??(Next Safe Human Review)
+                  다음 안전 검토 (Next Safe Human Review)
                 </h4>
                 <div className="grid gap-2 sm:grid-cols-2">
                   {hs.nextSafeHumanReviewItems.map((item, idx) => (
@@ -11762,7 +11764,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
 
               <div>
                 <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">
-                  계속 금�???(Still Forbidden)
+                  계속 금지됨 (Still Forbidden)
                 </h4>
                 <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                   {hs.stillForbiddenItems.map((item, idx) => (
@@ -11777,7 +11779,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-3 rounded-md border border-purple-900/30 bg-purple-950/15 p-4">
                 <Info className="mt-0.5 h-5 w-5 shrink-0 text-purple-400" />
                 <div>
-                  <h5 className="text-sm font-medium text-purple-200">보류 미해??봉인 ??최종 ?�내</h5>
+                  <h5 className="text-sm font-medium text-purple-200">보류 미해제 봉인 — 최종 안내</h5>
                   <p className="mt-1 text-xs leading-relaxed text-purple-300/80">{hs.finalNotice}</p>
                 </div>
               </div>
@@ -11786,7 +11788,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 84: Final Hold Non-Release Handoff Final Review Summary ?�?�?�?�?�?�?�?� */}
+      {/* ── Task 84: Final Hold Non-Release Handoff Final Review Summary ──────── */}
       {(() => {
         const fr = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffFinalReviewSummaryView;
         if (!fr) return null;
@@ -11816,7 +11818,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
 
             <div className="mb-3 flex flex-wrap gap-4 text-xs text-emerald-400/70">
               <span>{fr.taskRangeLabel}</span>
-              <span>기�?: {fr.previousSealLabel} ({fr.previousSealCommit})</span>
+              <span>기준: {fr.previousSealLabel} ({fr.previousSealCommit})</span>
             </div>
 
             <div className="space-y-4">
@@ -11920,7 +11922,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                           <div>
                             <p className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</p>
                             <p className="mt-0.5 text-xs text-emerald-300/70">{item.description}</p>
-                            <p className="mt-1 text-xs text-emerald-400/60">?�당: {item.nextOwner}</p>
+                            <p className="mt-1 text-xs text-emerald-400/60">담당: {item.nextOwner}</p>
                           </div>
                         </div>
                       </div>
@@ -11946,7 +11948,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-3 rounded-md border border-emerald-900/30 bg-emerald-950/15 p-4">
                 <Info className="mt-0.5 h-5 w-5 shrink-0 text-emerald-400" />
                 <div>
-                  <h5 className="text-sm font-medium text-emerald-200">Final Hold Non-Release Handoff Final Review Summary ??Final Notice</h5>
+                  <h5 className="text-sm font-medium text-emerald-200">Final Hold Non-Release Handoff Final Review Summary — Final Notice</h5>
                   <p className="mt-1 text-xs leading-relaxed text-emerald-300/80">{fr.finalNotice}</p>
                 </div>
               </div>
@@ -11955,7 +11957,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 85: Final Hold Non-Release Handoff Closure Gate ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?� */}
+      {/* ── Task 85: Final Hold Non-Release Handoff Closure Gate ──────────────── */}
       {(() => {
         const cg = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureGateView;
         if (!cg) return null;
@@ -11985,7 +11987,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
 
             <div className="mb-3 flex flex-wrap gap-4 text-xs text-fuchsia-400/70">
               <span>{cg.taskRangeLabel}</span>
-              <span>기�?: {cg.previousSummaryLabel} ({cg.previousSummaryCommit})</span>
+              <span>기준: {cg.previousSummaryLabel} ({cg.previousSummaryCommit})</span>
             </div>
 
             <div className="space-y-4">
@@ -12089,7 +12091,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                           <div>
                             <p className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</p>
                             <p className="mt-0.5 text-xs text-fuchsia-300/70">{item.description}</p>
-                            <p className="mt-1 text-xs text-fuchsia-400/60">?�당: {item.nextOwner}</p>
+                            <p className="mt-1 text-xs text-fuchsia-400/60">담당: {item.nextOwner}</p>
                           </div>
                         </div>
                       </div>
@@ -12115,7 +12117,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-3 rounded-md border border-fuchsia-900/30 bg-fuchsia-950/15 p-4">
                 <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-fuchsia-400" />
                 <div>
-                  <h5 className="text-sm font-medium text-fuchsia-200">Final Hold Non-Release Handoff Closure Gate ??Final Notice</h5>
+                  <h5 className="text-sm font-medium text-fuchsia-200">Final Hold Non-Release Handoff Closure Gate — Final Notice</h5>
                   <p className="mt-1 text-xs leading-relaxed text-fuchsia-300/80">{cg.finalNotice}</p>
                 </div>
               </div>
@@ -12124,7 +12126,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 86: Final Hold Non-Release Handoff Closure Non-Release Seal ?�?�?�?�?�?�?� */}
+      {/* ── Task 86: Final Hold Non-Release Handoff Closure Non-Release Seal ─────── */}
       {(() => {
         const ns = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureNonReleaseSealView;
         if (!ns) return null;
@@ -12154,7 +12156,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
 
             <div className="mb-3 flex flex-wrap gap-4 text-xs text-lime-400/70">
               <span>{ns.taskRangeLabel}</span>
-              <span>기�?: {ns.previousClosureGateLabel} ({ns.previousClosureGateCommit})</span>
+              <span>기준: {ns.previousClosureGateLabel} ({ns.previousClosureGateCommit})</span>
             </div>
 
             <div className="space-y-4">
@@ -12258,7 +12260,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                           <div>
                             <p className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</p>
                             <p className="mt-0.5 text-xs text-lime-300/70">{item.description}</p>
-                            <p className="mt-1 text-xs text-lime-400/60">?�당: {item.nextOwner}</p>
+                            <p className="mt-1 text-xs text-lime-400/60">담당: {item.nextOwner}</p>
                           </div>
                         </div>
                       </div>
@@ -12284,7 +12286,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-3 rounded-md border border-lime-900/30 bg-lime-950/15 p-4">
                 <Lock className="mt-0.5 h-5 w-5 shrink-0 text-lime-400" />
                 <div>
-                  <h5 className="text-sm font-medium text-lime-200">Final Hold Non-Release Handoff Closure Non-Release Seal ??Final Notice</h5>
+                  <h5 className="text-sm font-medium text-lime-200">Final Hold Non-Release Handoff Closure Non-Release Seal — Final Notice</h5>
                   <p className="mt-1 text-xs leading-relaxed text-lime-300/80">{ns.finalNotice}</p>
                 </div>
               </div>
@@ -12293,7 +12295,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 87: Final Hold Non-Release Handoff Closure Final Status Summary ?�?� */}
+      {/* ── Task 87: Final Hold Non-Release Handoff Closure Final Status Summary ── */}
       {(() => {
         const fs = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSummaryView;
         if (!fs) return null;
@@ -12323,7 +12325,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
 
             <div className="mb-3 flex flex-wrap gap-4 text-xs text-green-400/70">
               <span>{fs.taskRangeLabel}</span>
-              <span>기�?: {fs.previousSealLabel} ({fs.previousSealCommit})</span>
+              <span>기준: {fs.previousSealLabel} ({fs.previousSealCommit})</span>
             </div>
 
             <div className="space-y-4">
@@ -12427,7 +12429,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                           <div>
                             <p className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</p>
                             <p className="mt-0.5 text-xs text-green-300/70">{item.description}</p>
-                            <p className="mt-1 text-xs text-green-400/60">?�당: {item.nextOwner}</p>
+                            <p className="mt-1 text-xs text-green-400/60">담당: {item.nextOwner}</p>
                           </div>
                         </div>
                       </div>
@@ -12453,7 +12455,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-3 rounded-md border border-green-900/30 bg-green-950/15 p-4">
                 <FileText className="mt-0.5 h-5 w-5 shrink-0 text-green-400" />
                 <div>
-                  <h5 className="text-sm font-medium text-green-200">Final Hold Non-Release Handoff Closure Final Status Summary ??Final Notice</h5>
+                  <h5 className="text-sm font-medium text-green-200">Final Hold Non-Release Handoff Closure Final Status Summary — Final Notice</h5>
                   <p className="mt-1 text-xs leading-relaxed text-green-300/80">{fs.finalNotice}</p>
                 </div>
               </div>
@@ -12462,7 +12464,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 88: Final Hold Non-Release Handoff Closure Final Status Boundary ?�?� */}
+      {/* ── Task 88: Final Hold Non-Release Handoff Closure Final Status Boundary ── */}
       {(() => {
         const fb = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusBoundaryView;
         if (!fb) return null;
@@ -12492,7 +12494,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
 
             <div className="mb-3 flex flex-wrap gap-4 text-xs text-rose-400/70">
               <span>{fb.taskRangeLabel}</span>
-              <span>기�?: {fb.previousSummaryLabel} ({fb.previousSummaryCommit})</span>
+              <span>기준: {fb.previousSummaryLabel} ({fb.previousSummaryCommit})</span>
             </div>
 
             <div className="space-y-4">
@@ -12596,7 +12598,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                           <div>
                             <p className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</p>
                             <p className="mt-0.5 text-xs text-rose-300/70">{item.description}</p>
-                            <p className="mt-1 text-xs text-rose-400/60">?�당: {item.nextOwner}</p>
+                            <p className="mt-1 text-xs text-rose-400/60">담당: {item.nextOwner}</p>
                           </div>
                         </div>
                       </div>
@@ -12622,7 +12624,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-3 rounded-md border border-rose-900/30 bg-rose-950/15 p-4">
                 <AlertOctagon className="mt-0.5 h-5 w-5 shrink-0 text-rose-400" />
                 <div>
-                  <h5 className="text-sm font-medium text-rose-200">Final Hold Non-Release Handoff Closure Final Status Boundary ??Final Notice</h5>
+                  <h5 className="text-sm font-medium text-rose-200">Final Hold Non-Release Handoff Closure Final Status Boundary — Final Notice</h5>
                   <p className="mt-1 text-xs leading-relaxed text-rose-300/80">{fb.finalNotice}</p>
                 </div>
               </div>
@@ -12631,7 +12633,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 89: Final Hold Non-Release Handoff Closure Final Status Non-Release Seal ?�?� */}
+      {/* ── Task 89: Final Hold Non-Release Handoff Closure Final Status Non-Release Seal ── */}
       {(() => {
         const nrs = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusNonReleaseSealView;
         if (!nrs) return null;
@@ -12661,7 +12663,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
 
             <div className="mb-3 flex flex-wrap gap-4 text-xs text-violet-400/70">
               <span>{nrs.taskRangeLabel}</span>
-              <span>기�?: {nrs.previousBoundaryLabel} ({nrs.previousBoundaryCommit})</span>
+              <span>기준: {nrs.previousBoundaryLabel} ({nrs.previousBoundaryCommit})</span>
             </div>
 
             <div className="space-y-4">
@@ -12779,7 +12781,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                           <div>
                             <p className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</p>
                             <p className="mt-0.5 text-xs text-violet-300/70">{item.description}</p>
-                            <p className="mt-1 text-xs text-violet-400/60">?�당: {item.nextOwner}</p>
+                            <p className="mt-1 text-xs text-violet-400/60">담당: {item.nextOwner}</p>
                           </div>
                         </div>
                       </div>
@@ -12805,7 +12807,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-3 rounded-md border border-violet-900/30 bg-violet-950/15 p-4">
                 <Lock className="mt-0.5 h-5 w-5 shrink-0 text-violet-400" />
                 <div>
-                  <h5 className="text-sm font-medium text-violet-200">Final Hold Non-Release Handoff Closure Final Status Non-Release Seal ??Final Notice</h5>
+                  <h5 className="text-sm font-medium text-violet-200">Final Hold Non-Release Handoff Closure Final Status Non-Release Seal — Final Notice</h5>
                   <p className="mt-1 text-xs leading-relaxed text-violet-300/80">{nrs.finalNotice}</p>
                 </div>
               </div>
@@ -12814,7 +12816,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 90: Final Hold Non-Release Handoff Closure Final Status Seal Confirmation Summary ?�?� */}
+      {/* ── Task 90: Final Hold Non-Release Handoff Closure Final Status Seal Confirmation Summary ── */}
       {(() => {
         const sc = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationSummaryView;
         if (!sc) return null;
@@ -12844,7 +12846,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
 
             <div className="mb-3 flex flex-wrap gap-4 text-xs text-teal-400/70">
               <span>{sc.taskRangeLabel}</span>
-              <span>기�?: {sc.previousSealLabel} ({sc.previousSealCommit})</span>
+              <span>기준: {sc.previousSealLabel} ({sc.previousSealCommit})</span>
             </div>
 
             <div className="space-y-4">
@@ -12962,7 +12964,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                           <div>
                             <p className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</p>
                             <p className="mt-0.5 text-xs text-teal-300/70">{item.description}</p>
-                            <p className="mt-1 text-xs text-teal-400/60">?�당: {item.nextOwner}</p>
+                            <p className="mt-1 text-xs text-teal-400/60">담당: {item.nextOwner}</p>
                           </div>
                         </div>
                       </div>
@@ -12988,7 +12990,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-3 rounded-md border border-teal-900/30 bg-teal-950/15 p-4">
                 <ClipboardList className="mt-0.5 h-5 w-5 shrink-0 text-teal-400" />
                 <div>
-                  <h5 className="text-sm font-medium text-teal-200">Final Hold Non-Release Handoff Closure Final Status Seal Confirmation Summary ??Final Notice</h5>
+                  <h5 className="text-sm font-medium text-teal-200">Final Hold Non-Release Handoff Closure Final Status Seal Confirmation Summary — Final Notice</h5>
                   <p className="mt-1 text-xs leading-relaxed text-teal-300/80">{sc.finalNotice}</p>
                 </div>
               </div>
@@ -12997,7 +12999,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 91: Final Hold Non-Release Handoff Closure Final Status Seal Confirmation Boundary ?�?� */}
+      {/* ── Task 91: Final Hold Non-Release Handoff Closure Final Status Seal Confirmation Boundary ── */}
       {(() => {
         const sb = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationBoundaryView;
         if (!sb) return null;
@@ -13027,7 +13029,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
 
             <div className="mb-3 flex flex-wrap gap-4 text-xs text-amber-400/70">
               <span>{sb.taskRangeLabel}</span>
-              <span>기�?: {sb.previousSummaryLabel} ({sb.previousSummaryCommit})</span>
+              <span>기준: {sb.previousSummaryLabel} ({sb.previousSummaryCommit})</span>
             </div>
 
             <div className="space-y-4">
@@ -13165,7 +13167,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-3 rounded-md border border-amber-900/30 bg-amber-950/15 p-4">
                 <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-amber-400" />
                 <div>
-                  <h5 className="text-sm font-medium text-amber-200">Final Hold Non-Release Handoff Closure Final Status Seal Confirmation Boundary ??Final Notice</h5>
+                  <h5 className="text-sm font-medium text-amber-200">Final Hold Non-Release Handoff Closure Final Status Seal Confirmation Boundary — Final Notice</h5>
                   <p className="mt-1 text-xs leading-relaxed text-amber-300/80">{sb.finalNotice}</p>
                 </div>
               </div>
@@ -13174,7 +13176,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 92: Final Hold Non-Release Handoff Closure Final Status Seal Confirmation Non-Release Seal ?�?� */}
+      {/* ── Task 92: Final Hold Non-Release Handoff Closure Final Status Seal Confirmation Non-Release Seal ── */}
       {(() => {
         const sns = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationNonReleaseSealView;
         if (!sns) return null;
@@ -13204,7 +13206,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
 
             <div className="mb-3 flex flex-wrap gap-4 text-xs text-amber-400/70">
               <span>{sns.taskRangeLabel}</span>
-              <span>기�?: {sns.previousBoundaryLabel} ({sns.previousBoundaryCommit})</span>
+              <span>기준: {sns.previousBoundaryLabel} ({sns.previousBoundaryCommit})</span>
             </div>
 
             <div className="space-y-4">
@@ -13355,7 +13357,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-3 rounded-md border border-amber-900/30 bg-amber-950/15 p-4">
                 <ClipboardList className="mt-0.5 h-5 w-5 shrink-0 text-amber-400" />
                 <div>
-                  <h5 className="text-sm font-medium text-amber-200">Final Hold Non-Release Handoff Closure Final Status Seal Confirmation Non-Release Seal ??Final Notice</h5>
+                  <h5 className="text-sm font-medium text-amber-200">Final Hold Non-Release Handoff Closure Final Status Seal Confirmation Non-Release Seal — Final Notice</h5>
                   <p className="mt-1 text-xs leading-relaxed text-amber-300/80">{sns.finalNotice}</p>
                 </div>
               </div>
@@ -13364,7 +13366,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 93: Final Hold Non-Release Handoff Closure Final Status Seal Confirmation Final Review Summary ?�?� */}
+      {/* ── Task 93: Final Hold Non-Release Handoff Closure Final Status Seal Confirmation Final Review Summary ── */}
       {(() => {
         const frs = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewSummaryView;
         if (!frs) return null;
@@ -13394,12 +13396,12 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
 
             <div className="mb-3 flex flex-wrap gap-4 text-xs text-amber-400/70">
               <span>{frs.taskRangeLabel}</span>
-              <span>기�?: {frs.previousSealLabel} ({frs.previousSealCommit})</span>
+              <span>기준: {frs.previousSealLabel} ({frs.previousSealCommit})</span>
             </div>
 
             <div className="space-y-4">
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-400">최종 검???�약 (Final Review Summary)</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-400">최종 검토 요약 (Final Review Summary)</h4>
                 <div className="space-y-2">
                   {frs.finalReviewSummaryItems.map((item, idx) => (
                     <div key={idx} className={`rounded-md border p-3 ${toneBg(item.tone)}`}>
@@ -13418,7 +13420,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
 
               <div className="grid gap-4 md:grid-cols-2">
                 <div>
-                  <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-400">봉인 ?�인 ?�름 (Seal Confirmation Flow)</h4>
+                  <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-400">봉인 확인 흐름 (Seal Confirmation Flow)</h4>
                   <div className="space-y-2">
                     {frs.sealConfirmationFlowItems.map((item, idx) => (
                       <div key={idx} className={`rounded-md border p-3 ${toneBg(item.tone)}`}>
@@ -13435,7 +13437,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                   </div>
                 </div>
                 <div>
-                  <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">보류 미해???�태 (Non-Release State)</h4>
+                  <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">보류 미해제 상태 (Non-Release State)</h4>
                   <div className="space-y-2">
                     {frs.nonReleaseStateItems.map((item, idx) => (
                       <div key={idx} className="rounded-md border border-red-900/30 bg-red-950/15 p-3">
@@ -13450,7 +13452,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
 
               <div className="grid gap-4 md:grid-cols-2">
                 <div>
-                  <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">보류 ?�제 ?�인 ?�님 (Not Release Approval)</h4>
+                  <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">보류 해제 승인 아님 (Not Release Approval)</h4>
                   <div className="space-y-2">
                     {frs.notReleaseApprovalItems.map((item, idx) => (
                       <div key={idx} className={`rounded-md border p-3 ${toneBg(item.tone)}`}>
@@ -13467,7 +13469,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                   </div>
                 </div>
                 <div>
-                  <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">?�환 계속 차단 (Transition Still Blocked)</h4>
+                  <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">전환 계속 차단 (Transition Still Blocked)</h4>
                   <div className="space-y-2">
                     {frs.transitionStillBlockedItems.map((item, idx) => (
                       <div key={idx} className="rounded-md border border-red-900/30 bg-red-950/15 p-3">
@@ -13482,7 +13484,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
 
               <div className="grid gap-4 md:grid-cols-2">
                 <div>
-                  <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-yellow-400">?�후 ?�환 ???�요 ??�� (Required Before Any Future Transition)</h4>
+                  <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-yellow-400">향후 전환 전 필요 항목 (Required Before Any Future Transition)</h4>
                   <div className="space-y-2">
                     {frs.requiredBeforeAnyFutureTransitionItems.map((item, idx) => (
                       <div key={idx} className={`rounded-md border p-3 ${toneBg(item.tone)}`}>
@@ -13499,7 +13501,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                   </div>
                 </div>
                 <div>
-                  <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-400">?�음 ?�전 검??(Next Safe Review)</h4>
+                  <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-400">다음 안전 검토 (Next Safe Review)</h4>
                   <div className="space-y-2">
                     {frs.nextSafeReviewItems.map((item, idx) => (
                       <div key={idx} className={`rounded-md border p-3 ${toneBg(item.tone)}`}>
@@ -13513,7 +13515,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 금�???(Still Forbidden)</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 금지됨 (Still Forbidden)</h4>
                 <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                   {frs.stillForbiddenItems.map((item, idx) => (
                     <div key={idx} className="rounded-md border border-red-900/30 bg-red-950/15 p-2">
@@ -13527,7 +13529,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-3 rounded-md border border-amber-900/30 bg-amber-950/15 p-4">
                 <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-amber-400" />
                 <div>
-                  <h5 className="text-sm font-medium text-amber-200">최종 ?�림 (Final Notice)</h5>
+                  <h5 className="text-sm font-medium text-amber-200">최종 알림 (Final Notice)</h5>
                   <p className="mt-1 text-xs leading-relaxed text-amber-300/80">{frs.finalNotice}</p>
                 </div>
               </div>
@@ -13536,7 +13538,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 94: Final Hold Non-Release Handoff Closure Final Status Seal Confirmation Final Review Boundary ?�?� */}
+      {/* ── Task 94: Final Hold Non-Release Handoff Closure Final Status Seal Confirmation Final Review Boundary ── */}
       {(() => {
         const frb = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewBoundaryView;
         if (!frb) return null;
@@ -13566,7 +13568,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
 
             <div className="mb-3 flex flex-wrap gap-4 text-xs text-amber-400/70">
               <span>{frb.taskRangeLabel}</span>
-              <span>기�?: {frb.previousSummaryLabel} ({frb.previousSummaryCommit})</span>
+              <span>기준: {frb.previousSummaryLabel} ({frb.previousSummaryCommit})</span>
             </div>
 
             <div className="space-y-4">
@@ -13708,7 +13710,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 95: Final Hold Non-Release Handoff Closure Final Status Seal Confirmation Final Review Non-Release Seal ?�?� */}
+      {/* ── Task 95: Final Hold Non-Release Handoff Closure Final Status Seal Confirmation Final Review Non-Release Seal ── */}
       {(() => {
         const frnrs =
           job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewNonReleaseSealView;
@@ -13740,7 +13742,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             <div className="mb-3 flex flex-wrap gap-4 text-xs text-red-400/70">
               <span>{frnrs.taskRangeLabel}</span>
               <span>
-                기�?: {frnrs.previousBoundaryLabel} ({frnrs.previousBoundaryCommit})
+                기준: {frnrs.previousBoundaryLabel} ({frnrs.previousBoundaryCommit})
               </span>
             </div>
 
@@ -13896,7 +13898,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 96: Final Hold Non-Release Handoff Closure Final Status Seal Confirmation Final Review Closure Summary ?�?� */}
+      {/* ── Task 96: Final Hold Non-Release Handoff Closure Final Status Seal Confirmation Final Review Closure Summary ── */}
       {(() => {
         const frcs =
           job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureSummaryView;
@@ -13927,7 +13929,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
 
             <div className="mb-3 flex flex-wrap gap-4 text-xs text-amber-400/70">
               <span>{frcs.taskRangeLabel}</span>
-              <span>기�?: {frcs.previousSealLabel} ({frcs.previousSealCommit})</span>
+              <span>기준: {frcs.previousSealLabel} ({frcs.previousSealCommit})</span>
             </div>
 
             <div className="space-y-4">
@@ -14069,7 +14071,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 97: Final Hold Non-Release Handoff Closure Final Status Seal Confirmation Final Review Closure Boundary ?�?� */}
+      {/* ── Task 97: Final Hold Non-Release Handoff Closure Final Status Seal Confirmation Final Review Closure Boundary ── */}
       {(() => {
         const frcb =
           job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureBoundaryView;
@@ -14236,7 +14238,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-3 rounded-md border border-orange-900/30 bg-orange-950/15 p-4">
                 <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-orange-400" />
                 <div>
-                  <h5 className="text-sm font-medium text-orange-200">Final Hold Non-Release Handoff Closure Final Status Seal Confirmation Final Review Closure Boundary ??Final Notice</h5>
+                  <h5 className="text-sm font-medium text-orange-200">Final Hold Non-Release Handoff Closure Final Status Seal Confirmation Final Review Closure Boundary — Final Notice</h5>
                   <p className="mt-1 text-xs leading-relaxed text-orange-300/80">{frcb.finalNotice}</p>
                 </div>
               </div>
@@ -14245,7 +14247,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 98: Final Hold Non-Release Handoff Closure Final Status Seal Confirmation Final Review Closure Non-Release Seal ?�?� */}
+      {/* ── Task 98: Final Hold Non-Release Handoff Closure Final Status Seal Confirmation Final Review Closure Non-Release Seal ── */}
       {(() => {
         const frcnrs =
           job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureNonReleaseSealView;
@@ -14415,7 +14417,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-3 rounded-md border border-purple-900/30 bg-purple-950/15 p-4">
                 <Lock className="mt-0.5 h-5 w-5 shrink-0 text-purple-400" />
                 <div>
-                  <h5 className="text-sm font-medium text-purple-200">Final Hold Non-Release Handoff Closure Final Status Seal Confirmation Final Review Closure Non-Release Seal ??Final Notice</h5>
+                  <h5 className="text-sm font-medium text-purple-200">Final Hold Non-Release Handoff Closure Final Status Seal Confirmation Final Review Closure Non-Release Seal — Final Notice</h5>
                   <p className="mt-1 text-xs leading-relaxed text-purple-300/80">{frcnrs.finalNotice}</p>
                 </div>
               </div>
@@ -14424,7 +14426,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 99: Final Review Closure Status Summary ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?� */}
+      {/* ── Task 99: Final Review Closure Status Summary ──────────────────────── */}
       {(() => {
         const ss = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusSummaryView;
         if (!ss) return null;
@@ -14577,7 +14579,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-3 rounded-md border border-teal-900/30 bg-teal-950/15 p-4">
                 <Lock className="mt-0.5 h-5 w-5 shrink-0 text-teal-400" />
                 <div>
-                  <h5 className="text-sm font-medium text-teal-200">Final Review Closure Status Summary ??Final Notice</h5>
+                  <h5 className="text-sm font-medium text-teal-200">Final Review Closure Status Summary — Final Notice</h5>
                   <p className="mt-1 text-xs leading-relaxed text-teal-300/80">{ss.finalNotice}</p>
                 </div>
               </div>
@@ -14586,7 +14588,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 100: Final Review Closure Status Boundary ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?� */}
+      {/* ── Task 100: Final Review Closure Status Boundary ───────────────────── */}
       {(() => {
         const sb = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusBoundaryView;
         if (!sb) return null;
@@ -14739,7 +14741,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-3 rounded-md border border-amber-900/30 bg-amber-950/15 p-4">
                 <Lock className="mt-0.5 h-5 w-5 shrink-0 text-amber-400" />
                 <div>
-                  <h5 className="text-sm font-medium text-amber-200">Final Review Closure Status Boundary ??Final Notice</h5>
+                  <h5 className="text-sm font-medium text-amber-200">Final Review Closure Status Boundary — Final Notice</h5>
                   <p className="mt-1 text-xs leading-relaxed text-amber-300/80">{sb.finalNotice}</p>
                 </div>
               </div>
@@ -14748,7 +14750,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 101: Final Review Closure Status Non-Release Seal ?�?�?�?�?�?�?�?�?�?�?�?�?� */}
+      {/* ── Task 101: Final Review Closure Status Non-Release Seal ───────────── */}
       {(() => {
         const nrs101 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusNonReleaseSealView;
         if (!nrs101) return null;
@@ -14911,7 +14913,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-3 rounded-md border border-rose-900/30 bg-rose-950/15 p-4">
                 <Lock className="mt-0.5 h-5 w-5 shrink-0 text-rose-400" />
                 <div>
-                  <h5 className="text-sm font-medium text-rose-200">Final Review Closure Status Non-Release Seal ??Final Notice</h5>
+                  <h5 className="text-sm font-medium text-rose-200">Final Review Closure Status Non-Release Seal — Final Notice</h5>
                   <p className="mt-1 text-xs leading-relaxed text-rose-300/80">{nrs101.finalNotice}</p>
                 </div>
               </div>
@@ -14920,7 +14922,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 102: Final Review Closure Status Final Summary ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?� */}
+      {/* ── Task 102: Final Review Closure Status Final Summary ──────────────── */}
       {(() => {
         const fs102 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalSummaryView;
         if (!fs102) return null;
@@ -15069,7 +15071,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-3 rounded-md border border-indigo-900/30 bg-indigo-950/15 p-4">
                 <Lock className="mt-0.5 h-5 w-5 shrink-0 text-indigo-400" />
                 <div>
-                  <h5 className="text-sm font-medium text-indigo-200">Final Review Closure Status Final Summary ??Final Notice</h5>
+                  <h5 className="text-sm font-medium text-indigo-200">Final Review Closure Status Final Summary — Final Notice</h5>
                   <p className="mt-1 text-xs leading-relaxed text-indigo-300/80">{fs102.finalNotice}</p>
                 </div>
               </div>
@@ -15078,7 +15080,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 103: Final Review Closure Status Final Boundary ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?� */}
+      {/* ── Task 103: Final Review Closure Status Final Boundary ─────────────── */}
       {(() => {
         const fb103 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalBoundaryView;
         if (!fb103) return null;
@@ -15105,7 +15107,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </span>
             </div>
             <p className="mb-1 text-xs text-cyan-300/70">{fb103.taskRangeLabel}</p>
-            <p className="mb-1 text-xs text-cyan-300/70">{fb103.previousFinalSummaryLabel} ??{fb103.previousFinalSummaryCommit}</p>
+            <p className="mb-1 text-xs text-cyan-300/70">{fb103.previousFinalSummaryLabel} — {fb103.previousFinalSummaryCommit}</p>
             <p className="mb-4 text-xs leading-relaxed text-cyan-300/60">{fb103.summary}</p>
 
             <div className="space-y-4">
@@ -15224,7 +15226,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-3 rounded-md border border-cyan-900/30 bg-cyan-950/15 p-4">
                 <Lock className="mt-0.5 h-5 w-5 shrink-0 text-cyan-400" />
                 <div>
-                  <h5 className="text-sm font-medium text-cyan-200">Final Review Closure Status Final Boundary ??Final Notice</h5>
+                  <h5 className="text-sm font-medium text-cyan-200">Final Review Closure Status Final Boundary — Final Notice</h5>
                   <p className="mt-1 text-xs leading-relaxed text-cyan-300/80">{fb103.finalNotice}</p>
                 </div>
               </div>
@@ -15233,7 +15235,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 104: Final Review Closure Status Final Non-Release Seal ?�?�?�?�?�?�?� */}
+      {/* ── Task 104: Final Review Closure Status Final Non-Release Seal ─────── */}
       {(() => {
         const fnrs104 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalNonReleaseSealView;
         if (!fnrs104) return null;
@@ -15260,7 +15262,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </span>
             </div>
             <p className="mb-1 text-xs text-violet-300/70">{fnrs104.taskRangeLabel}</p>
-            <p className="mb-1 text-xs text-violet-300/70">{fnrs104.previousFinalBoundaryLabel} ??{fnrs104.previousFinalBoundaryCommit}</p>
+            <p className="mb-1 text-xs text-violet-300/70">{fnrs104.previousFinalBoundaryLabel} — {fnrs104.previousFinalBoundaryCommit}</p>
             <p className="mb-4 text-xs leading-relaxed text-violet-300/60">{fnrs104.summary}</p>
 
             <div className="space-y-4">
@@ -15393,7 +15395,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-3 rounded-md border border-violet-900/30 bg-violet-950/15 p-4">
                 <Lock className="mt-0.5 h-5 w-5 shrink-0 text-violet-400" />
                 <div>
-                  <h5 className="text-sm font-medium text-violet-200">Final Review Closure Status Final Non-Release Seal ??Final Notice</h5>
+                  <h5 className="text-sm font-medium text-violet-200">Final Review Closure Status Final Non-Release Seal — Final Notice</h5>
                   <p className="mt-1 text-xs leading-relaxed text-violet-300/80">{fnrs104.finalNotice}</p>
                 </div>
               </div>
@@ -15402,7 +15404,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 105: Final Review Closure Status Final Closure Summary ?�?�?�?�?�?�?� */}
+      {/* ── Task 105: Final Review Closure Status Final Closure Summary ─────── */}
       {(() => {
         const fcs105 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureSummaryView;
         if (!fcs105) return null;
@@ -15428,7 +15430,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </span>
             </div>
             <p className="mb-1 text-xs text-slate-300/70">{fcs105.taskRangeLabel}</p>
-            <p className="mb-1 text-xs text-slate-300/70">{fcs105.previousFinalSealLabel} ??{fcs105.previousFinalSealCommit}</p>
+            <p className="mb-1 text-xs text-slate-300/70">{fcs105.previousFinalSealLabel} — {fcs105.previousFinalSealCommit}</p>
             <p className="mb-4 text-xs leading-relaxed text-slate-300/60">{fcs105.summary}</p>
 
             <div className="space-y-4">
@@ -15538,7 +15540,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-3 rounded-md border border-slate-700/50 bg-slate-950/30 p-4">
                 <Lock className="mt-0.5 h-5 w-5 shrink-0 text-slate-400" />
                 <div>
-                  <h5 className="text-sm font-medium text-slate-200">Final Review Closure Status Final Closure Summary ??Final Notice</h5>
+                  <h5 className="text-sm font-medium text-slate-200">Final Review Closure Status Final Closure Summary — Final Notice</h5>
                   <p className="mt-1 text-xs leading-relaxed text-slate-300/80">{fcs105.finalNotice}</p>
                 </div>
               </div>
@@ -15547,7 +15549,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 106: Final Review Closure Status Final Closure Boundary ?�?�?�?�?�?� */}
+      {/* ── Task 106: Final Review Closure Status Final Closure Boundary ────── */}
       {(() => {
         const fcb106 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureBoundaryView;
         if (!fcb106) return null;
@@ -15574,7 +15576,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             </div>
             <p className="mb-1 text-xs text-amber-300/70">{fcb106.taskRangeLabel}</p>
             <p className="mb-1 text-xs text-amber-300/70">
-              {fcb106.previousFinalClosureSummaryLabel} ??{fcb106.previousFinalClosureSummaryCommit}
+              {fcb106.previousFinalClosureSummaryLabel} — {fcb106.previousFinalClosureSummaryCommit}
             </p>
             <p className="mb-4 text-xs leading-relaxed text-amber-300/60">{fcb106.summary}</p>
 
@@ -15685,7 +15687,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-3 rounded-md border border-amber-800/40 bg-amber-950/20 p-4">
                 <Lock className="mt-0.5 h-5 w-5 shrink-0 text-amber-400" />
                 <div>
-                  <h5 className="text-sm font-medium text-amber-200">Final Review Closure Status Final Closure Boundary ??Final Notice</h5>
+                  <h5 className="text-sm font-medium text-amber-200">Final Review Closure Status Final Closure Boundary — Final Notice</h5>
                   <p className="mt-1 text-xs leading-relaxed text-amber-300/80">{fcb106.finalNotice}</p>
                 </div>
               </div>
@@ -15694,7 +15696,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 107: Final Review Closure Status Final Closure Non-Release Seal ?� */}
+      {/* ── Task 107: Final Review Closure Status Final Closure Non-Release Seal ─ */}
       {(() => {
         const fcns107 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureNonReleaseSealView;
         if (!fcns107) return null;
@@ -15721,7 +15723,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             </div>
             <p className="mb-1 text-xs text-rose-300/70">{fcns107.taskRangeLabel}</p>
             <p className="mb-1 text-xs text-rose-300/70">
-              {fcns107.previousFinalClosureBoundaryLabel} ??{fcns107.previousFinalClosureBoundaryCommit}
+              {fcns107.previousFinalClosureBoundaryLabel} — {fcns107.previousFinalClosureBoundaryCommit}
             </p>
             <p className="mb-4 text-xs leading-relaxed text-rose-300/60">{fcns107.summary}</p>
 
@@ -15845,7 +15847,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-3 rounded-md border border-violet-800/40 bg-violet-950/20 p-4">
                 <Lock className="mt-0.5 h-5 w-5 shrink-0 text-violet-300" />
                 <div>
-                  <h5 className="text-sm font-medium text-violet-200">Final Review Closure Status Final Closure Non-Release Seal ??Final Notice</h5>
+                  <h5 className="text-sm font-medium text-violet-200">Final Review Closure Status Final Closure Non-Release Seal — Final Notice</h5>
                   <p className="mt-1 text-xs leading-relaxed text-rose-300/80">{fcns107.finalNotice}</p>
                 </div>
               </div>
@@ -15854,7 +15856,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 108: Final Review Closure Status Final Closure Final Status Summary ?� */}
+      {/* ── Task 108: Final Review Closure Status Final Closure Final Status Summary ─ */}
       {(() => {
         const fcss108 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusSummaryView;
         if (!fcss108) return null;
@@ -15881,7 +15883,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             </div>
             <p className="mb-1 text-xs text-emerald-300/70">{fcss108.taskRangeLabel}</p>
             <p className="mb-1 text-xs text-emerald-300/70">
-              {fcss108.previousFinalClosureSealLabel} ??{fcss108.previousFinalClosureSealCommit}
+              {fcss108.previousFinalClosureSealLabel} — {fcss108.previousFinalClosureSealCommit}
             </p>
             <p className="mb-4 text-xs leading-relaxed text-emerald-300/60">{fcss108.summary}</p>
 
@@ -15992,7 +15994,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-3 rounded-md border border-teal-800/40 bg-teal-950/20 p-4">
                 <Lock className="mt-0.5 h-5 w-5 shrink-0 text-teal-300" />
                 <div>
-                  <h5 className="text-sm font-medium text-teal-200">Final Review Closure Status Final Closure Final Status Summary ??Final Notice</h5>
+                  <h5 className="text-sm font-medium text-teal-200">Final Review Closure Status Final Closure Final Status Summary — Final Notice</h5>
                   <p className="mt-1 text-xs leading-relaxed text-emerald-300/80">{fcss108.finalNotice}</p>
                 </div>
               </div>
@@ -16001,7 +16003,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 109: Final Review Closure Status Final Closure Final Status Boundary ?� */}
+      {/* ── Task 109: Final Review Closure Status Final Closure Final Status Boundary ─ */}
       {(() => {
         const fcsb109 =
           job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusBoundaryView;
@@ -16029,7 +16031,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             </div>
             <p className="mb-1 text-xs text-amber-300/70">{fcsb109.taskRangeLabel}</p>
             <p className="mb-1 text-xs text-amber-300/70">
-              {fcsb109.previousFinalStatusSummaryLabel} ??{fcsb109.previousFinalStatusSummaryCommit}
+              {fcsb109.previousFinalStatusSummaryLabel} — {fcsb109.previousFinalStatusSummaryCommit}
             </p>
             <p className="mb-4 text-xs leading-relaxed text-amber-300/60">{fcsb109.summary}</p>
 
@@ -16140,7 +16142,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-3 rounded-md border border-orange-800/40 bg-orange-950/20 p-4">
                 <Lock className="mt-0.5 h-5 w-5 shrink-0 text-orange-300" />
                 <div>
-                  <h5 className="text-sm font-medium text-orange-200">Final Review Closure Status Final Closure Final Status Boundary ??Final Notice</h5>
+                  <h5 className="text-sm font-medium text-orange-200">Final Review Closure Status Final Closure Final Status Boundary — Final Notice</h5>
                   <p className="mt-1 text-xs leading-relaxed text-amber-300/80">{fcsb109.finalNotice}</p>
                 </div>
               </div>
@@ -16149,7 +16151,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 110: Final Review Closure Status Final Closure Final Status Non-Release Seal ?� */}
+      {/* ── Task 110: Final Review Closure Status Final Closure Final Status Non-Release Seal ─ */}
       {(() => {
         const fcsnrs110 =
           job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusNonReleaseSealView;
@@ -16177,7 +16179,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             </div>
             <p className="mb-1 text-xs text-rose-300/70">{fcsnrs110.taskRangeLabel}</p>
             <p className="mb-1 text-xs text-rose-300/70">
-              {fcsnrs110.previousFinalStatusBoundaryLabel} ??{fcsnrs110.previousFinalStatusBoundaryCommit}
+              {fcsnrs110.previousFinalStatusBoundaryLabel} — {fcsnrs110.previousFinalStatusBoundaryCommit}
             </p>
             <p className="mb-4 text-xs leading-relaxed text-rose-300/60">{fcsnrs110.summary}</p>
 
@@ -16301,7 +16303,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-3 rounded-md border border-violet-800/40 bg-violet-950/20 p-4">
                 <Lock className="mt-0.5 h-5 w-5 shrink-0 text-violet-300" />
                 <div>
-                  <h5 className="text-sm font-medium text-violet-200">Final Review Closure Status Final Closure Final Status Non-Release Seal ??Final Notice</h5>
+                  <h5 className="text-sm font-medium text-violet-200">Final Review Closure Status Final Closure Final Status Non-Release Seal — Final Notice</h5>
                   <p className="mt-1 text-xs leading-relaxed text-rose-300/80">{fcsnrs110.finalNotice}</p>
                 </div>
               </div>
@@ -16310,7 +16312,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 111: Final Review Closure Status Final Closure Final Status Final Summary ?� */}
+      {/* ── Task 111: Final Review Closure Status Final Closure Final Status Final Summary ─ */}
       {(() => {
         const fcsfs111 =
           job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusFinalSummaryView;
@@ -16338,7 +16340,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             </div>
             <p className="mb-1 text-xs text-teal-300/70">{fcsfs111.taskRangeLabel}</p>
             <p className="mb-1 text-xs text-teal-300/70">
-              {fcsfs111.previousFinalStatusSealLabel} ??{fcsfs111.previousFinalStatusSealCommit}
+              {fcsfs111.previousFinalStatusSealLabel} — {fcsfs111.previousFinalStatusSealCommit}
             </p>
             <p className="mb-4 text-xs leading-relaxed text-teal-300/60">{fcsfs111.summary}</p>
 
@@ -16449,7 +16451,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-3 rounded-md border border-slate-700/40 bg-slate-950/20 p-4">
                 <ClipboardCheck className="mt-0.5 h-5 w-5 shrink-0 text-slate-300" />
                 <div>
-                  <h5 className="text-sm font-medium text-slate-200">Final Review Closure Status Final Closure Final Status Final Summary ??Final Notice</h5>
+                  <h5 className="text-sm font-medium text-slate-200">Final Review Closure Status Final Closure Final Status Final Summary — Final Notice</h5>
                   <p className="mt-1 text-xs leading-relaxed text-teal-300/80">{fcsfs111.finalNotice}</p>
                 </div>
               </div>
@@ -16458,7 +16460,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 112: Final Closure Final Status Final Boundary ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?� */}
+      {/* ── Task 112: Final Closure Final Status Final Boundary ──────────────── */}
       {(() => {
         const fcfsb112 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusFinalBoundaryView;
         if (!fcfsb112) return null;
@@ -16477,7 +16479,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             </div>
             <p className="mb-4 text-xs leading-relaxed text-amber-200/70">{fcfsb112.summary}</p>
             <div className="mb-2 text-xs text-slate-500">{fcfsb112.taskRangeLabel}</div>
-            <div className="mb-1 text-xs text-slate-600">기�?: {fcfsb112.previousFinalSummaryLabel} ({fcfsb112.previousFinalSummaryCommit})</div>
+            <div className="mb-1 text-xs text-slate-600">기준: {fcfsb112.previousFinalSummaryLabel} ({fcfsb112.previousFinalSummaryCommit})</div>
             <div className="mt-4 space-y-4">
 
               <div>
@@ -16586,7 +16588,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-3 rounded-md border border-amber-700/40 bg-amber-950/20 p-4">
                 <ClipboardCheck className="mt-0.5 h-5 w-5 shrink-0 text-amber-300" />
                 <div>
-                  <h5 className="text-sm font-medium text-amber-200">Final Review Closure Status Final Closure Final Status Final Boundary ??Final Notice</h5>
+                  <h5 className="text-sm font-medium text-amber-200">Final Review Closure Status Final Closure Final Status Final Boundary — Final Notice</h5>
                   <p className="mt-1 text-xs leading-relaxed text-amber-300/80">{fcfsb112.finalNotice}</p>
                 </div>
               </div>
@@ -16595,7 +16597,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 113: Final Closure Final Status Final Non-Release Seal ?�?�?�?�?�?�?�?� */}
+      {/* ── Task 113: Final Closure Final Status Final Non-Release Seal ──────── */}
       {(() => {
         const fcfsnrs113 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusFinalNonReleaseSealView;
         if (!fcfsnrs113) return null;
@@ -16614,7 +16616,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             </div>
             <p className="mb-4 text-xs leading-relaxed text-rose-200/70">{fcfsnrs113.summary}</p>
             <div className="mb-2 text-xs text-slate-500">{fcfsnrs113.taskRangeLabel}</div>
-            <div className="mb-1 text-xs text-slate-600">기�?: {fcfsnrs113.previousFinalBoundaryLabel} ({fcfsnrs113.previousFinalBoundaryCommit})</div>
+            <div className="mb-1 text-xs text-slate-600">기준: {fcfsnrs113.previousFinalBoundaryLabel} ({fcfsnrs113.previousFinalBoundaryCommit})</div>
             <div className="mt-4 space-y-4">
 
               <div>
@@ -16736,7 +16738,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-3 rounded-md border border-rose-700/40 bg-rose-950/20 p-4">
                 <ClipboardCheck className="mt-0.5 h-5 w-5 shrink-0 text-rose-300" />
                 <div>
-                  <h5 className="text-sm font-medium text-rose-200">Final Review Closure Status Final Closure Final Status Final Non-Release Seal ??Final Notice</h5>
+                  <h5 className="text-sm font-medium text-rose-200">Final Review Closure Status Final Closure Final Status Final Non-Release Seal — Final Notice</h5>
                   <p className="mt-1 text-xs leading-relaxed text-rose-300/80">{fcfsnrs113.finalNotice}</p>
                 </div>
               </div>
@@ -16745,7 +16747,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 114: Final Closure Final Status Final Non-Release Lock ?�?�?�?�?�?�?�?� */}
+      {/* ── Task 114: Final Closure Final Status Final Non-Release Lock ──────── */}
       {(() => {
         const fcfsnrl114 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusFinalNonReleaseLockView;
         if (!fcfsnrl114) return null;
@@ -16764,7 +16766,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             </div>
             <p className="mb-4 text-xs leading-relaxed text-violet-200/70">{fcfsnrl114.summary}</p>
             <div className="mb-2 text-xs text-slate-500">{fcfsnrl114.taskRangeLabel}</div>
-            <div className="mb-1 text-xs text-slate-600">기�?: {fcfsnrl114.previousFinalNonReleaseSealLabel} ({fcfsnrl114.previousFinalNonReleaseSealCommit})</div>
+            <div className="mb-1 text-xs text-slate-600">기준: {fcfsnrl114.previousFinalNonReleaseSealLabel} ({fcfsnrl114.previousFinalNonReleaseSealCommit})</div>
             <div className="mt-4 space-y-4">
 
               <div>
@@ -16886,7 +16888,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-3 rounded-md border border-violet-700/40 bg-violet-950/20 p-4">
                 <ClipboardCheck className="mt-0.5 h-5 w-5 shrink-0 text-violet-300" />
                 <div>
-                  <h5 className="text-sm font-medium text-violet-200">Final Review Closure Status Final Closure Final Status Final Non-Release Lock ??Final Notice</h5>
+                  <h5 className="text-sm font-medium text-violet-200">Final Review Closure Status Final Closure Final Status Final Non-Release Lock — Final Notice</h5>
                   <p className="mt-1 text-xs leading-relaxed text-violet-300/80">{fcfsnrl114.finalNotice}</p>
                 </div>
               </div>
@@ -16895,7 +16897,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 115: Final Closure Final Status Final Non-Release Verification ?�?� */}
+      {/* ── Task 115: Final Closure Final Status Final Non-Release Verification ── */}
       {(() => {
         const fcfsnrv115 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusFinalNonReleaseVerificationView;
         if (!fcfsnrv115) return null;
@@ -16914,7 +16916,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             </div>
             <p className="mb-4 text-xs leading-relaxed text-indigo-200/70">{fcfsnrv115.summary}</p>
             <div className="mb-2 text-xs text-slate-500">{fcfsnrv115.taskRangeLabel}</div>
-            <div className="mb-1 text-xs text-slate-600">기�?: {fcfsnrv115.previousFinalNonReleaseLockLabel} ({fcfsnrv115.previousFinalNonReleaseLockCommit})</div>
+            <div className="mb-1 text-xs text-slate-600">기준: {fcfsnrv115.previousFinalNonReleaseLockLabel} ({fcfsnrv115.previousFinalNonReleaseLockCommit})</div>
             <div className="mt-4 space-y-4">
 
               <div>
@@ -17036,7 +17038,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-3 rounded-md border border-indigo-700/40 bg-indigo-950/20 p-4">
                 <ClipboardCheck className="mt-0.5 h-5 w-5 shrink-0 text-indigo-300" />
                 <div>
-                  <h5 className="text-sm font-medium text-indigo-200">Final Review Closure Status Final Closure Final Status Final Non-Release Verification ??Final Notice</h5>
+                  <h5 className="text-sm font-medium text-indigo-200">Final Review Closure Status Final Closure Final Status Final Non-Release Verification — Final Notice</h5>
                   <p className="mt-1 text-xs leading-relaxed text-indigo-300/80">{fcfsnrv115.finalNotice}</p>
                 </div>
               </div>
@@ -17045,7 +17047,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 116: Final Closure Final Status Final Non-Release Audit ?�?�?�?�?�?�?�?� */}
+      {/* ── Task 116: Final Closure Final Status Final Non-Release Audit ──────── */}
       {(() => {
         const fcfsnra116 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusFinalNonReleaseAuditView;
         if (!fcfsnra116) return null;
@@ -17064,7 +17066,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             </div>
             <p className="mb-4 text-xs leading-relaxed text-cyan-200/70">{fcfsnra116.summary}</p>
             <div className="mb-2 text-xs text-slate-500">{fcfsnra116.taskRangeLabel}</div>
-            <div className="mb-1 text-xs text-slate-600">기�?: {fcfsnra116.previousFinalNonReleaseVerificationLabel} ({fcfsnra116.previousFinalNonReleaseVerificationCommit})</div>
+            <div className="mb-1 text-xs text-slate-600">기준: {fcfsnra116.previousFinalNonReleaseVerificationLabel} ({fcfsnra116.previousFinalNonReleaseVerificationCommit})</div>
             <div className="mt-4 space-y-4">
 
               <div>
@@ -17186,7 +17188,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-3 rounded-md border border-cyan-700/40 bg-cyan-950/20 p-4">
                 <ClipboardCheck className="mt-0.5 h-5 w-5 shrink-0 text-cyan-300" />
                 <div>
-                  <h5 className="text-sm font-medium text-cyan-200">Final Review Closure Status Final Closure Final Status Final Non-Release Audit ??Final Notice</h5>
+                  <h5 className="text-sm font-medium text-cyan-200">Final Review Closure Status Final Closure Final Status Final Non-Release Audit — Final Notice</h5>
                   <p className="mt-1 text-xs leading-relaxed text-cyan-300/80">{fcfsnra116.finalNotice}</p>
                 </div>
               </div>
@@ -17195,7 +17197,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 117: Final Closure Final Status Final Non-Release Evidence ?�?�?�?�?� */}
+      {/* ── Task 117: Final Closure Final Status Final Non-Release Evidence ───── */}
       {(() => {
         const fcfsnre117 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusFinalNonReleaseEvidenceView;
         if (!fcfsnre117) return null;
@@ -17214,11 +17216,11 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             </div>
             <p className="mb-4 text-xs leading-relaxed text-emerald-200/70">{fcfsnre117.summary}</p>
             <div className="mb-2 text-xs text-slate-500">{fcfsnre117.taskRangeLabel}</div>
-            <div className="mb-1 text-xs text-slate-600">기�?: {fcfsnre117.previousFinalNonReleaseAuditLabel} ({fcfsnre117.previousFinalNonReleaseAuditCommit})</div>
+            <div className="mb-1 text-xs text-slate-600">기준: {fcfsnre117.previousFinalNonReleaseAuditLabel} ({fcfsnre117.previousFinalNonReleaseAuditCommit})</div>
             <div className="mt-4 space-y-4">
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-emerald-300">최종 증빙 ?�약</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-emerald-300">최종 증빙 요약</h4>
                 <div className="space-y-2">
                   {fcfsnre117.finalEvidenceSummaryItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-emerald-900/30 bg-emerald-950/10 p-3">
@@ -17231,7 +17233,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">?�계�?증빙</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">단계별 증빙</h4>
                 <div className="space-y-2">
                   {fcfsnre117.stageEvidenceItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -17257,7 +17259,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">미�???권한</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">미부여 권한</h4>
                 <div className="space-y-2">
                   {fcfsnre117.releaseStillNotGrantedItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -17270,7 +17272,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">차단???�환</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">차단된 전환</h4>
                 <div className="space-y-2">
                   {fcfsnre117.transitionStillBlockedItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -17283,7 +17285,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">?��? 중인 Non-Release ?�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">유지 중인 Non-Release 상태</h4>
                 <div className="space-y-2">
                   {fcfsnre117.remainingNonReleaseItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -17296,7 +17298,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-emerald-300">?�제 ?�행 ???�요 증빙</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-emerald-300">실제 실행 전 필요 증빙</h4>
                 <div className="space-y-2">
                   {fcfsnre117.requiredBeforeAnyActualExecutionItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-emerald-900/30 bg-emerald-950/10 p-3">
@@ -17309,7 +17311,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">?�음 ?�전 검??/h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">다음 안전 검토</h4>
                 <div className="space-y-2">
                   {fcfsnre117.nextSafeReviewItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-slate-700/30 bg-slate-900/20 p-3">
@@ -17322,7 +17324,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 금�???/h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 금지됨</h4>
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                   {fcfsnre117.stillForbiddenItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -17336,7 +17338,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-3 rounded-md border border-emerald-700/40 bg-emerald-950/20 p-4">
                 <ClipboardCheck className="mt-0.5 h-5 w-5 shrink-0 text-emerald-300" />
                 <div>
-                  <h5 className="text-sm font-medium text-emerald-200">Final Review Closure Status Final Closure Final Status Final Non-Release Evidence ??최종 ?�내</h5>
+                  <h5 className="text-sm font-medium text-emerald-200">Final Review Closure Status Final Closure Final Status Final Non-Release Evidence — 최종 안내</h5>
                   <p className="mt-1 text-xs leading-relaxed text-emerald-200/80">{fcfsnre117.finalNotice}</p>
                 </div>
               </div>
@@ -17345,7 +17347,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 118: Final Closure Final Status Final Non-Release Certification ?� */}
+      {/* ── Task 118: Final Closure Final Status Final Non-Release Certification ─ */}
       {(() => {
         const fcfsnrc118 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusFinalNonReleaseCertificationView;
         if (!fcfsnrc118) return null;
@@ -17364,11 +17366,11 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             </div>
             <p className="mb-4 text-xs leading-relaxed text-sky-200/70">{fcfsnrc118.summary}</p>
             <div className="mb-2 text-xs text-slate-500">{fcfsnrc118.taskRangeLabel}</div>
-            <div className="mb-1 text-xs text-slate-600">기�?: {fcfsnrc118.previousFinalNonReleaseEvidenceLabel} ({fcfsnrc118.previousFinalNonReleaseEvidenceCommit})</div>
+            <div className="mb-1 text-xs text-slate-600">기준: {fcfsnrc118.previousFinalNonReleaseEvidenceLabel} ({fcfsnrc118.previousFinalNonReleaseEvidenceCommit})</div>
             <div className="mt-4 space-y-4">
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-sky-300">최종 ?�태 ?�증 ?�약</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-sky-300">최종 상태 인증 요약</h4>
                 <div className="space-y-2">
                   {fcfsnrc118.finalCertificationSummaryItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-sky-900/30 bg-sky-950/10 p-3">
@@ -17381,7 +17383,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">?�계�??�증</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">단계별 인증</h4>
                 <div className="space-y-2">
                   {fcfsnrc118.stageCertificationItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -17394,7 +17396,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-sky-300">?�증 분류</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-sky-300">인증 분류</h4>
                 <div className="space-y-2">
                   {fcfsnrc118.certificationClassificationItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-sky-900/30 bg-sky-950/10 p-3">
@@ -17407,7 +17409,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">미�???권한</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">미부여 권한</h4>
                 <div className="space-y-2">
                   {fcfsnrc118.releaseStillNotGrantedItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -17420,7 +17422,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">차단???�환</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">차단된 전환</h4>
                 <div className="space-y-2">
                   {fcfsnrc118.transitionStillBlockedItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -17433,7 +17435,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">?��? 중인 Non-Release ?�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">유지 중인 Non-Release 상태</h4>
                 <div className="space-y-2">
                   {fcfsnrc118.remainingNonReleaseItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -17446,7 +17448,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-sky-300">?�제 ?�행 ???�요 증빙</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-sky-300">실제 실행 전 필요 증빙</h4>
                 <div className="space-y-2">
                   {fcfsnrc118.requiredBeforeAnyActualExecutionItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-sky-900/30 bg-sky-950/10 p-3">
@@ -17459,7 +17461,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">?�음 ?�전 검??/h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">다음 안전 검토</h4>
                 <div className="space-y-2">
                   {fcfsnrc118.nextSafeReviewItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-slate-700/30 bg-slate-900/20 p-3">
@@ -17472,7 +17474,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 금�???/h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 금지됨</h4>
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                   {fcfsnrc118.stillForbiddenItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -17486,7 +17488,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-3 rounded-md border border-sky-700/40 bg-sky-950/20 p-4">
                 <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-sky-300" />
                 <div>
-                  <h5 className="text-sm font-medium text-sky-200">Final Review Closure Status Final Closure Final Status Final Non-Release Certification ??최종 ?�내</h5>
+                  <h5 className="text-sm font-medium text-sky-200">Final Review Closure Status Final Closure Final Status Final Non-Release Certification — 최종 안내</h5>
                   <p className="mt-1 text-xs leading-relaxed text-sky-200/80">{fcfsnrc118.finalNotice}</p>
                 </div>
               </div>
@@ -17495,7 +17497,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 119: Final Closure Final Status Final Non-Release Final Confirmation ?� */}
+      {/* ── Task 119: Final Closure Final Status Final Non-Release Final Confirmation ─ */}
       {(() => {
         const fcfsnrfc119 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusFinalNonReleaseFinalConfirmationView;
         if (!fcfsnrfc119) return null;
@@ -17514,11 +17516,11 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             </div>
             <p className="mb-4 text-xs leading-relaxed text-violet-200/70">{fcfsnrfc119.summary}</p>
             <div className="mb-2 text-xs text-slate-500">{fcfsnrfc119.taskRangeLabel}</div>
-            <div className="mb-1 text-xs text-slate-600">기�?: {fcfsnrfc119.previousFinalNonReleaseCertificationLabel} ({fcfsnrfc119.previousFinalNonReleaseCertificationCommit})</div>
+            <div className="mb-1 text-xs text-slate-600">기준: {fcfsnrfc119.previousFinalNonReleaseCertificationLabel} ({fcfsnrfc119.previousFinalNonReleaseCertificationCommit})</div>
             <div className="mt-4 space-y-4">
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-violet-300">최종 ?�인 ?�약</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-violet-300">최종 확인 요약</h4>
                 <div className="space-y-2">
                   {fcfsnrfc119.finalConfirmationSummaryItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-violet-900/30 bg-violet-950/10 p-3">
@@ -17531,7 +17533,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">?�계�?최종 ?�인</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">단계별 최종 확인</h4>
                 <div className="space-y-2">
                   {fcfsnrfc119.stageConfirmationItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -17544,7 +17546,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-violet-300">최종 ?�인 분류</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-violet-300">최종 확인 분류</h4>
                 <div className="space-y-2">
                   {fcfsnrfc119.finalConfirmationClassificationItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-violet-900/30 bg-violet-950/10 p-3">
@@ -17557,7 +17559,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">미�???권한</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">미부여 권한</h4>
                 <div className="space-y-2">
                   {fcfsnrfc119.releaseStillNotGrantedItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -17570,7 +17572,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">차단???�환</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">차단된 전환</h4>
                 <div className="space-y-2">
                   {fcfsnrfc119.transitionStillBlockedItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -17583,7 +17585,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">?��? 중인 Non-Release ?�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">유지 중인 Non-Release 상태</h4>
                 <div className="space-y-2">
                   {fcfsnrfc119.remainingNonReleaseItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -17596,7 +17598,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-violet-300">?�제 ?�행 ???�요 증빙</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-violet-300">실제 실행 전 필요 증빙</h4>
                 <div className="space-y-2">
                   {fcfsnrfc119.requiredBeforeAnyActualExecutionItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-violet-900/30 bg-violet-950/10 p-3">
@@ -17609,7 +17611,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">?�음 ?�전 검??/h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">다음 안전 검토</h4>
                 <div className="space-y-2">
                   {fcfsnrfc119.nextSafeReviewItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-slate-700/30 bg-slate-900/20 p-3">
@@ -17622,7 +17624,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 금�???/h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 금지됨</h4>
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                   {fcfsnrfc119.stillForbiddenItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -17636,7 +17638,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-3 rounded-md border border-violet-700/40 bg-violet-950/20 p-4">
                 <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-violet-300" />
                 <div>
-                  <h5 className="text-sm font-medium text-violet-200">Final Review Closure Status Final Closure Final Status Final Non-Release Final Confirmation ??최종 ?�내</h5>
+                  <h5 className="text-sm font-medium text-violet-200">Final Review Closure Status Final Closure Final Status Final Non-Release Final Confirmation — 최종 안내</h5>
                   <p className="mt-1 text-xs leading-relaxed text-violet-200/80">{fcfsnrfc119.finalNotice}</p>
                 </div>
               </div>
@@ -17645,7 +17647,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 120: Final Closure Final Status Final Non-Release Release Guard ?� */}
+      {/* ── Task 120: Final Closure Final Status Final Non-Release Release Guard ─ */}
       {(() => {
         const fcfsnrg120 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusFinalNonReleaseReleaseGuardView;
         if (!fcfsnrg120) return null;
@@ -17664,11 +17666,11 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             </div>
             <p className="mb-4 text-xs leading-relaxed text-amber-200/70">{fcfsnrg120.summary}</p>
             <div className="mb-2 text-xs text-slate-500">{fcfsnrg120.taskRangeLabel}</div>
-            <div className="mb-1 text-xs text-slate-600">기�?: {fcfsnrg120.previousFinalNonReleaseFinalConfirmationLabel} ({fcfsnrg120.previousFinalNonReleaseFinalConfirmationCommit})</div>
+            <div className="mb-1 text-xs text-slate-600">기준: {fcfsnrg120.previousFinalNonReleaseFinalConfirmationLabel} ({fcfsnrg120.previousFinalNonReleaseFinalConfirmationCommit})</div>
             <div className="mt-4 space-y-4">
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-300">최종 보호 ?�약</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-300">최종 보호 요약</h4>
                 <div className="space-y-2">
                   {fcfsnrg120.finalReleaseGuardSummaryItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-amber-900/30 bg-amber-950/10 p-3">
@@ -17681,7 +17683,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">?�계�?보호??/h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">단계별 보호선</h4>
                 <div className="space-y-2">
                   {fcfsnrg120.stageReleaseGuardItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -17694,7 +17696,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-300">보호??분류</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-300">보호선 분류</h4>
                 <div className="space-y-2">
                   {fcfsnrg120.releaseGuardClassificationItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-amber-900/30 bg-amber-950/10 p-3">
@@ -17707,7 +17709,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">미�???권한</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">미부여 권한</h4>
                 <div className="space-y-2">
                   {fcfsnrg120.releaseStillNotGrantedItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -17720,7 +17722,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">차단???�환</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">차단된 전환</h4>
                 <div className="space-y-2">
                   {fcfsnrg120.transitionStillBlockedItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -17733,7 +17735,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">?��? 중인 Non-Release ?�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">유지 중인 Non-Release 상태</h4>
                 <div className="space-y-2">
                   {fcfsnrg120.remainingNonReleaseItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -17746,7 +17748,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-300">?�제 ?�행 ???�요 증빙</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-300">실제 실행 전 필요 증빙</h4>
                 <div className="space-y-2">
                   {fcfsnrg120.requiredBeforeAnyActualExecutionItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-amber-900/30 bg-amber-950/10 p-3">
@@ -17759,7 +17761,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">?�음 ?�전 검??/h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">다음 안전 검토</h4>
                 <div className="space-y-2">
                   {fcfsnrg120.nextSafeReviewItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-slate-700/30 bg-slate-900/20 p-3">
@@ -17772,7 +17774,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 금�???/h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 금지됨</h4>
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                   {fcfsnrg120.stillForbiddenItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -17786,7 +17788,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-3 rounded-md border border-amber-700/40 bg-amber-950/20 p-4">
                 <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-amber-300" />
                 <div>
-                  <h5 className="text-sm font-medium text-amber-200">Final Review Closure Status Final Closure Final Status Final Non-Release Release Guard ??최종 ?�내</h5>
+                  <h5 className="text-sm font-medium text-amber-200">Final Review Closure Status Final Closure Final Status Final Non-Release Release Guard — 최종 안내</h5>
                   <p className="mt-1 text-xs leading-relaxed text-amber-200/80">{fcfsnrg120.finalNotice}</p>
                 </div>
               </div>
@@ -17795,7 +17797,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 121: Final Closure Final Status Final Non-Release Transition Readiness ?� */}
+      {/* ── Task 121: Final Closure Final Status Final Non-Release Transition Readiness ─ */}
       {(() => {
         const fcfsntr121 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusFinalNonReleaseTransitionReadinessView;
         if (!fcfsntr121) return null;
@@ -17814,11 +17816,11 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             </div>
             <p className="mb-4 text-xs leading-relaxed text-sky-200/70">{fcfsntr121.summary}</p>
             <div className="mb-2 text-xs text-slate-500">{fcfsntr121.taskRangeLabel}</div>
-            <div className="mb-1 text-xs text-slate-600">기�?: {fcfsntr121.previousFinalNonReleaseReleaseGuardLabel} ({fcfsntr121.previousFinalNonReleaseReleaseGuardCommit})</div>
+            <div className="mb-1 text-xs text-slate-600">기준: {fcfsntr121.previousFinalNonReleaseReleaseGuardLabel} ({fcfsntr121.previousFinalNonReleaseReleaseGuardCommit})</div>
             <div className="mt-4 space-y-4">
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-sky-300">?�환 준�??�약</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-sky-300">전환 준비 요약</h4>
                 <div className="space-y-2">
                   {fcfsntr121.finalTransitionReadinessSummaryItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-sky-900/30 bg-sky-950/10 p-3">
@@ -17831,7 +17833,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">?�계�??�환 ?�인</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">단계별 전환 확인</h4>
                 <div className="space-y-2">
                   {fcfsntr121.stageTransitionReadinessItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -17844,7 +17846,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-sky-300">?�환 ???�태 분류</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-sky-300">전환 전 상태 분류</h4>
                 <div className="space-y-2">
                   {fcfsntr121.transitionReadinessClassificationItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-sky-900/30 bg-sky-950/10 p-3">
@@ -17857,7 +17859,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">미�???권한</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">미부여 권한</h4>
                 <div className="space-y-2">
                   {fcfsntr121.releaseStillNotGrantedItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -17870,7 +17872,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 차단???�환</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 차단된 전환</h4>
                 <div className="space-y-2">
                   {fcfsntr121.transitionStillBlockedItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -17883,7 +17885,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">?��? 중인 ?�환 ???�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">유지 중인 전환 전 상태</h4>
                 <div className="space-y-2">
                   {fcfsntr121.remainingPreTransitionItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -17896,7 +17898,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-sky-300">?�제 ?�행 ???�요 증빙</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-sky-300">실제 실행 전 필요 증빙</h4>
                 <div className="space-y-2">
                   {fcfsntr121.requiredBeforeAnyActualExecutionItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-sky-900/30 bg-sky-950/10 p-3">
@@ -17909,7 +17911,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">?�음 ?�전 검??/h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">다음 안전 검토</h4>
                 <div className="space-y-2">
                   {fcfsntr121.nextSafeReviewItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-slate-700/30 bg-slate-900/20 p-3">
@@ -17922,7 +17924,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 금�???/h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 금지됨</h4>
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                   {fcfsntr121.stillForbiddenItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -17936,7 +17938,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-3 rounded-md border border-sky-700/40 bg-sky-950/20 p-4">
                 <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-sky-300" />
                 <div>
-                  <h5 className="text-sm font-medium text-sky-200">Final Review Closure Status Final Closure Final Status Final Non-Release Transition Readiness ??최종 ?�내</h5>
+                  <h5 className="text-sm font-medium text-sky-200">Final Review Closure Status Final Closure Final Status Final Non-Release Transition Readiness — 최종 안내</h5>
                   <p className="mt-1 text-xs leading-relaxed text-sky-200/80">{fcfsntr121.finalNotice}</p>
                 </div>
               </div>
@@ -17945,7 +17947,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 122: Final Closure Final Status Final Non-Release Readiness Review ?� */}
+      {/* ── Task 122: Final Closure Final Status Final Non-Release Readiness Review ─ */}
       {(() => {
         const fcfsnrr122 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusFinalNonReleaseReadinessReviewView;
         if (!fcfsnrr122) return null;
@@ -17964,11 +17966,11 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             </div>
             <p className="mb-4 text-xs leading-relaxed text-emerald-200/70">{fcfsnrr122.summary}</p>
             <div className="mb-2 text-xs text-slate-500">{fcfsnrr122.taskRangeLabel}</div>
-            <div className="mb-1 text-xs text-slate-600">기�?: {fcfsnrr122.previousFinalNonReleaseTransitionReadinessLabel} ({fcfsnrr122.previousFinalNonReleaseTransitionReadinessCommit})</div>
+            <div className="mb-1 text-xs text-slate-600">기준: {fcfsnrr122.previousFinalNonReleaseTransitionReadinessLabel} ({fcfsnrr122.previousFinalNonReleaseTransitionReadinessCommit})</div>
             <div className="mt-4 space-y-4">
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-emerald-300">?�환 준�?검???�약</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-emerald-300">전환 준비 검토 요약</h4>
                 <div className="space-y-2">
                   {fcfsnrr122.finalReadinessReviewSummaryItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-emerald-900/30 bg-emerald-950/10 p-3">
@@ -17981,7 +17983,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">?�계�?준�?검??/h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">단계별 준비 검토</h4>
                 <div className="space-y-2">
                   {fcfsnrr122.stageReadinessReviewItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -17994,7 +17996,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-emerald-300">준�??�태 분류</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-emerald-300">준비 상태 분류</h4>
                 <div className="space-y-2">
                   {fcfsnrr122.readinessReviewClassificationItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-emerald-900/30 bg-emerald-950/10 p-3">
@@ -18007,7 +18009,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">미�???권한</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">미부여 권한</h4>
                 <div className="space-y-2">
                   {fcfsnrr122.releaseStillNotGrantedItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -18020,7 +18022,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 차단???�환</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 차단된 전환</h4>
                 <div className="space-y-2">
                   {fcfsnrr122.transitionStillBlockedItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -18033,7 +18035,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">?��? 중인 준�?검???�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">유지 중인 준비 검토 상태</h4>
                 <div className="space-y-2">
                   {fcfsnrr122.remainingReadinessReviewItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -18046,7 +18048,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-emerald-300">?�제 ?�행 ???�요 증빙</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-emerald-300">실제 실행 전 필요 증빙</h4>
                 <div className="space-y-2">
                   {fcfsnrr122.requiredBeforeAnyActualExecutionItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-emerald-900/30 bg-emerald-950/10 p-3">
@@ -18059,7 +18061,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">?�음 ?�전 검??/h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">다음 안전 검토</h4>
                 <div className="space-y-2">
                   {fcfsnrr122.nextSafeReviewItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-slate-700/30 bg-slate-900/20 p-3">
@@ -18072,7 +18074,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 금�???/h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 금지됨</h4>
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                   {fcfsnrr122.stillForbiddenItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -18086,7 +18088,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-3 rounded-md border border-emerald-700/40 bg-emerald-950/20 p-4">
                 <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-emerald-300" />
                 <div>
-                  <h5 className="text-sm font-medium text-emerald-200">Final Review Closure Status Final Closure Final Status Final Non-Release Readiness Review ??최종 ?�내</h5>
+                  <h5 className="text-sm font-medium text-emerald-200">Final Review Closure Status Final Closure Final Status Final Non-Release Readiness Review — 최종 안내</h5>
                   <p className="mt-1 text-xs leading-relaxed text-emerald-200/80">{fcfsnrr122.finalNotice}</p>
                 </div>
               </div>
@@ -18095,7 +18097,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 123: Execution Gate ?� */}
+      {/* ── Task 123: Execution Gate ─ */}
       {(() => {
         const egr123 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionGateView;
         if (!egr123) return null;
@@ -18114,11 +18116,11 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             </div>
             <p className="mb-4 text-xs leading-relaxed text-orange-200/70">{egr123.summary}</p>
             <div className="mb-2 text-xs text-slate-500">{egr123.taskRangeLabel}</div>
-            <div className="mb-1 text-xs text-slate-600">기�?: {egr123.previousReadinessReviewLabel} ({egr123.previousReadinessReviewCommit})</div>
+            <div className="mb-1 text-xs text-slate-600">기준: {egr123.previousReadinessReviewLabel} ({egr123.previousReadinessReviewCommit})</div>
             <div className="mt-4 space-y-4">
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-orange-300">?�행 게이???�약</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-orange-300">실행 게이트 요약</h4>
                 <div className="space-y-2">
                   {egr123.executionGateSummaryItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-orange-900/30 bg-orange-950/10 p-3">
@@ -18131,7 +18133,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">?�계�?게이???�인</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">단계별 게이트 확인</h4>
                 <div className="space-y-2">
                   {egr123.stageExecutionGateItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -18144,7 +18146,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-orange-300">게이???�태 분류</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-orange-300">게이트 상태 분류</h4>
                 <div className="space-y-2">
                   {egr123.executionGateClassificationItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-orange-900/30 bg-orange-950/10 p-3">
@@ -18157,7 +18159,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">미�???권한</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">미부여 권한</h4>
                 <div className="space-y-2">
                   {egr123.releaseStillNotGrantedItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -18170,7 +18172,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 차단???�환</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 차단된 전환</h4>
                 <div className="space-y-2">
                   {egr123.transitionStillBlockedItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -18183,7 +18185,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">?��? 중인 게이???�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">유지 중인 게이트 상태</h4>
                 <div className="space-y-2">
                   {egr123.remainingExecutionGateItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -18196,7 +18198,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-orange-300">?�제 ?�행 ???�요 증빙</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-orange-300">실제 실행 전 필요 증빙</h4>
                 <div className="space-y-2">
                   {egr123.requiredBeforeAnyActualExecutionItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-orange-900/30 bg-orange-950/10 p-3">
@@ -18209,7 +18211,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">?�음 ?�전 검??/h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">다음 안전 검토</h4>
                 <div className="space-y-2">
                   {egr123.nextSafeReviewItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-slate-700/30 bg-slate-900/20 p-3">
@@ -18222,7 +18224,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 금�???/h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 금지됨</h4>
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                   {egr123.stillForbiddenItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -18236,7 +18238,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-3 rounded-md border border-orange-700/40 bg-orange-950/20 p-4">
                 <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-orange-300" />
                 <div>
-                  <h5 className="text-sm font-medium text-orange-200">Execution Gate ??최종 ?�내</h5>
+                  <h5 className="text-sm font-medium text-orange-200">Execution Gate — 최종 안내</h5>
                   <p className="mt-1 text-xs leading-relaxed text-orange-200/80">{egr123.finalNotice}</p>
                 </div>
               </div>
@@ -18245,7 +18247,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 124: Execution Preconditions ?� */}
+      {/* ── Task 124: Execution Preconditions ─ */}
       {(() => {
         const epr124 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionPreconditionsView;
         if (!epr124) return null;
@@ -18264,11 +18266,11 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             </div>
             <p className="mb-4 text-xs leading-relaxed text-teal-200/70">{epr124.summary}</p>
             <div className="mb-2 text-xs text-slate-500">{epr124.taskRangeLabel}</div>
-            <div className="mb-1 text-xs text-slate-600">기�?: {epr124.previousExecutionGateLabel} ({epr124.previousExecutionGateCommit})</div>
+            <div className="mb-1 text-xs text-slate-600">기준: {epr124.previousExecutionGateLabel} ({epr124.previousExecutionGateCommit})</div>
             <div className="mt-4 space-y-4">
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-teal-300">?�행 ?�제조건 ?�약</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-teal-300">실행 전제조건 요약</h4>
                 <div className="space-y-2">
                   {epr124.executionPreconditionsSummaryItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-teal-900/30 bg-teal-950/10 p-3">
@@ -18281,7 +18283,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">?�계�??�제조건 ?�인</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">단계별 전제조건 확인</h4>
                 <div className="space-y-2">
                   {epr124.stageExecutionPreconditionsItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -18294,7 +18296,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-teal-300">?�제조건 ?�태 분류</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-teal-300">전제조건 상태 분류</h4>
                 <div className="space-y-2">
                   {epr124.executionPreconditionsClassificationItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-teal-900/30 bg-teal-950/10 p-3">
@@ -18307,7 +18309,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">미�???권한</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">미부여 권한</h4>
                 <div className="space-y-2">
                   {epr124.releaseStillNotGrantedItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -18320,7 +18322,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 차단???�환</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 차단된 전환</h4>
                 <div className="space-y-2">
                   {epr124.transitionStillBlockedItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -18333,7 +18335,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">?��? 중인 ?�제조건 ?�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">유지 중인 전제조건 상태</h4>
                 <div className="space-y-2">
                   {epr124.remainingExecutionPreconditionsItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -18346,7 +18348,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-teal-300">?�제 ?�행 ???�요 증빙</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-teal-300">실제 실행 전 필요 증빙</h4>
                 <div className="space-y-2">
                   {epr124.requiredBeforeAnyActualExecutionItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-teal-900/30 bg-teal-950/10 p-3">
@@ -18359,7 +18361,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">?�음 ?�전 검??/h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">다음 안전 검토</h4>
                 <div className="space-y-2">
                   {epr124.nextSafeReviewItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-slate-700/30 bg-slate-900/20 p-3">
@@ -18372,7 +18374,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 금�???/h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 금지됨</h4>
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                   {epr124.stillForbiddenItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -18386,7 +18388,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-3 rounded-md border border-teal-700/40 bg-teal-950/20 p-4">
                 <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-teal-300" />
                 <div>
-                  <h5 className="text-sm font-medium text-teal-200">Execution Preconditions ??최종 ?�내</h5>
+                  <h5 className="text-sm font-medium text-teal-200">Execution Preconditions — 최종 안내</h5>
                   <p className="mt-1 text-xs leading-relaxed text-teal-200/80">{epr124.finalNotice}</p>
                 </div>
               </div>
@@ -18395,7 +18397,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 125: Execution Architecture Readiness Review ?� */}
+      {/* ── Task 125: Execution Architecture Readiness Review ─ */}
       {(() => {
         const earr125 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionArchitectureReadinessReviewView;
         if (!earr125) return null;
@@ -18414,11 +18416,11 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             </div>
             <p className="mb-4 text-xs leading-relaxed text-cyan-200/70">{earr125.summary}</p>
             <div className="mb-2 text-xs text-slate-500">{earr125.taskRangeLabel}</div>
-            <div className="mb-1 text-xs text-slate-600">기�?: {earr125.previousExecutionPreconditionsLabel} ({earr125.previousExecutionPreconditionsCommit})</div>
+            <div className="mb-1 text-xs text-slate-600">기준: {earr125.previousExecutionPreconditionsLabel} ({earr125.previousExecutionPreconditionsCommit})</div>
             <div className="mt-4 space-y-4">
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-cyan-300">?�행 ?�키?�처 ?�약</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-cyan-300">실행 아키텍처 요약</h4>
                 <div className="space-y-2">
                   {earr125.executionArchitectureSummaryItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-cyan-900/30 bg-cyan-950/10 p-3">
@@ -18431,7 +18433,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-cyan-300">?�재 준비된 ?�행 구성 ?�소</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-cyan-300">현재 준비된 실행 구성 요소</h4>
                 <div className="space-y-2">
                   {earr125.preparedExecutionArchitectureItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-cyan-900/30 bg-cyan-950/10 p-3">
@@ -18444,7 +18446,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">?�직 ?�결?��? ?��? 구성 ?�소</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">아직 연결되지 않은 구성 요소</h4>
                 <div className="space-y-2">
                   {earr125.stillDisconnectedExecutionArchitectureItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -18457,7 +18459,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">별도 ?�인 ???�힌 ??��</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">별도 승인 전 닫힌 항목</h4>
                 <div className="space-y-2">
                   {earr125.approvalLockedArchitectureItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -18470,7 +18472,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-cyan-300">Worker / Queue / Live Adapter ???��? ?�인</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-cyan-300">Worker / Queue / Live Adapter 전 내부 확인</h4>
                 <div className="space-y-2">
                   {earr125.internalCheckBeforeWorkerQueueAdapterItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-cyan-900/30 bg-cyan-950/10 p-3">
@@ -18483,7 +18485,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 차단???�환</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 차단된 전환</h4>
                 <div className="space-y-2">
                   {earr125.transitionStillBlockedItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -18496,7 +18498,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">?��? 중인 ?�키?�처 준�??�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">유지 중인 아키텍처 준비 상태</h4>
                 <div className="space-y-2">
                   {earr125.remainingArchitectureReadinessItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -18509,7 +18511,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">?�음 ?��? 검??/h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">다음 내부 검토</h4>
                 <div className="space-y-2">
                   {earr125.nextSafeReviewItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-slate-700/30 bg-slate-900/20 p-3">
@@ -18522,7 +18524,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 금�???/h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 금지됨</h4>
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                   {earr125.stillForbiddenItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -18536,7 +18538,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-3 rounded-md border border-cyan-700/40 bg-cyan-950/20 p-4">
                 <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-cyan-300" />
                 <div>
-                  <h5 className="text-sm font-medium text-cyan-200">Execution Architecture Readiness Review ??최종 ?�내</h5>
+                  <h5 className="text-sm font-medium text-cyan-200">Execution Architecture Readiness Review — 최종 안내</h5>
                   <p className="mt-1 text-xs leading-relaxed text-cyan-200/80">{earr125.finalNotice}</p>
                 </div>
               </div>
@@ -18545,7 +18547,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 126: Execution Architecture Isolation Check ?� */}
+      {/* ── Task 126: Execution Architecture Isolation Check ─ */}
       {(() => {
         const eaic126 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionArchitectureIsolationCheckView;
         if (!eaic126) return null;
@@ -18564,11 +18566,11 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             </div>
             <p className="mb-4 text-xs leading-relaxed text-sky-200/70">{eaic126.summary}</p>
             <div className="mb-2 text-xs text-slate-500">{eaic126.taskRangeLabel}</div>
-            <div className="mb-1 text-xs text-slate-600">기�?: {eaic126.previousExecutionArchitectureReadinessReviewLabel} ({eaic126.previousExecutionArchitectureReadinessReviewCommit})</div>
+            <div className="mb-1 text-xs text-slate-600">기준: {eaic126.previousExecutionArchitectureReadinessReviewLabel} ({eaic126.previousExecutionArchitectureReadinessReviewCommit})</div>
             <div className="mt-4 space-y-4">
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-sky-300">?�행 ?�키?�처 격리 ?�약</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-sky-300">실행 아키텍처 격리 요약</h4>
                 <div className="space-y-2">
                   {eaic126.executionArchitectureIsolationSummaryItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-sky-900/30 bg-sky-950/10 p-3">
@@ -18581,7 +18583,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-sky-300">계속 격리???�행 ?�키?�처 ?�소</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-sky-300">계속 격리된 실행 아키텍처 요소</h4>
                 <div className="space-y-2">
                   {eaic126.stillIsolatedExecutionArchitectureItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-sky-900/30 bg-sky-950/10 p-3">
@@ -18594,7 +18596,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">?�직 분리???�행 경로</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">아직 분리된 실행 경로</h4>
                 <div className="space-y-2">
                   {eaic126.executionPathStillDisconnectedItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -18607,7 +18609,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">별도 ?�인 ???�금 ?��?</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">별도 승인 전 잠금 유지</h4>
                 <div className="space-y-2">
                   {eaic126.approvalLockedIsolationItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -18620,7 +18622,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-sky-300">격리 ?��? ?��? ?�인</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-sky-300">격리 유지 내부 확인</h4>
                 <div className="space-y-2">
                   {eaic126.internalIsolationCheckItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-sky-900/30 bg-sky-950/10 p-3">
@@ -18633,7 +18635,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 차단???�환</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 차단된 전환</h4>
                 <div className="space-y-2">
                   {eaic126.transitionStillBlockedItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -18646,7 +18648,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">?��? 중인 격리 ?�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">유지 중인 격리 상태</h4>
                 <div className="space-y-2">
                   {eaic126.remainingIsolationItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -18659,7 +18661,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">?�음 ?��? 검??/h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">다음 내부 검토</h4>
                 <div className="space-y-2">
                   {eaic126.nextSafeReviewItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-slate-700/30 bg-slate-900/20 p-3">
@@ -18672,7 +18674,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 금�???/h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 금지됨</h4>
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                   {eaic126.stillForbiddenItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -18686,7 +18688,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-3 rounded-md border border-sky-700/40 bg-sky-950/20 p-4">
                 <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-sky-300" />
                 <div>
-                  <h5 className="text-sm font-medium text-sky-200">Execution Architecture Isolation Check ??최종 ?�내</h5>
+                  <h5 className="text-sm font-medium text-sky-200">Execution Architecture Isolation Check — 최종 안내</h5>
                   <p className="mt-1 text-xs leading-relaxed text-sky-200/80">{eaic126.finalNotice}</p>
                 </div>
               </div>
@@ -18695,7 +18697,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 127: Execution Architecture Connection Blockers ?� */}
+      {/* ── Task 127: Execution Architecture Connection Blockers ─ */}
       {(() => {
         const eacb127 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionArchitectureConnectionBlockersView;
         if (!eacb127) return null;
@@ -18714,11 +18716,11 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             </div>
             <p className="mb-4 text-xs leading-relaxed text-rose-200/70">{eacb127.summary}</p>
             <div className="mb-2 text-xs text-slate-500">{eacb127.taskRangeLabel}</div>
-            <div className="mb-1 text-xs text-slate-600">기�?: {eacb127.previousExecutionArchitectureIsolationCheckLabel} ({eacb127.previousExecutionArchitectureIsolationCheckCommit})</div>
+            <div className="mb-1 text-xs text-slate-600">기준: {eacb127.previousExecutionArchitectureIsolationCheckLabel} ({eacb127.previousExecutionArchitectureIsolationCheckCommit})</div>
             <div className="mt-4 space-y-4">
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-rose-300">?�결 차단 조건 ?�약</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-rose-300">연결 차단 조건 요약</h4>
                 <div className="space-y-2">
                   {eacb127.connectionBlockersSummaryItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-rose-900/30 bg-rose-950/10 p-3">
@@ -18731,7 +18733,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">?�심 차단 조건</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">핵심 차단 조건</h4>
                 <div className="space-y-2">
                   {eacb127.criticalConnectionBlockerItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -18744,7 +18746,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">미완�??�인</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">미완료 승인</h4>
                 <div className="space-y-2">
                   {eacb127.approvalNotCompletedItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -18757,7 +18759,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">?�행 ?�결 ?��?/h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">실행 연결 대기</h4>
                 <div className="space-y-2">
                   {eacb127.executionConnectionPendingItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -18770,7 +18772,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-rose-300">?�제 ?�결 ???��? ?�인</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-rose-300">실제 연결 전 내부 확인</h4>
                 <div className="space-y-2">
                   {eacb127.internalCheckBeforeAnyConnectionItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-rose-900/30 bg-rose-950/10 p-3">
@@ -18783,7 +18785,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 차단???�환</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 차단된 전환</h4>
                 <div className="space-y-2">
                   {eacb127.transitionStillBlockedItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -18796,7 +18798,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">?��? 중인 차단 ?�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">유지 중인 차단 상태</h4>
                 <div className="space-y-2">
                   {eacb127.remainingBlockerStateItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -18809,7 +18811,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">?�음 ?��? 검??/h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">다음 내부 검토</h4>
                 <div className="space-y-2">
                   {eacb127.nextSafeReviewItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-slate-700/30 bg-slate-900/20 p-3">
@@ -18822,7 +18824,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 금�???/h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 금지됨</h4>
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                   {eacb127.stillForbiddenItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -18836,7 +18838,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-3 rounded-md border border-rose-700/40 bg-rose-950/20 p-4">
                 <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-rose-300" />
                 <div>
-                  <h5 className="text-sm font-medium text-rose-200">Execution Architecture Connection Blockers ??최종 ?�내</h5>
+                  <h5 className="text-sm font-medium text-rose-200">Execution Architecture Connection Blockers — 최종 안내</h5>
                   <p className="mt-1 text-xs leading-relaxed text-rose-200/80">{eacb127.finalNotice}</p>
                 </div>
               </div>
@@ -18845,7 +18847,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 128: Execution Architecture Pre-Connection Checklist ?� */}
+      {/* ── Task 128: Execution Architecture Pre-Connection Checklist ─ */}
       {(() => {
         const eapc128 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionArchitecturePreConnectionChecklistView;
         if (!eapc128) return null;
@@ -18864,11 +18866,11 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             </div>
             <p className="mb-4 text-xs leading-relaxed text-pink-200/70">{eapc128.summary}</p>
             <div className="mb-2 text-xs text-slate-500">{eapc128.taskRangeLabel}</div>
-            <div className="mb-1 text-xs text-slate-600">기�?: {eapc128.previousExecutionArchitectureConnectionBlockersLabel} ({eapc128.previousExecutionArchitectureConnectionBlockersCommit})</div>
+            <div className="mb-1 text-xs text-slate-600">기준: {eapc128.previousExecutionArchitectureConnectionBlockersLabel} ({eapc128.previousExecutionArchitectureConnectionBlockersCommit})</div>
             <div className="mt-4 space-y-4">
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-pink-300">?�제 ?�결 ??체크리스???�약</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-pink-300">실제 연결 전 체크리스트 요약</h4>
                 <div className="space-y-2">
                   {eapc128.preConnectionChecklistSummaryItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-pink-900/30 bg-pink-950/10 p-3">
@@ -18881,7 +18883,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-pink-300">?�제 ?�결 ??체크리스??/h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-pink-300">실제 연결 전 체크리스트</h4>
                 <div className="space-y-2">
                   {eapc128.preConnectionChecklistItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-pink-900/30 bg-pink-950/10 p-3">
@@ -18894,7 +18896,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">?�수 ?�인 ?�인</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">필수 승인 확인</h4>
                 <div className="space-y-2">
                   {eapc128.approvalRequiredChecklistItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -18907,7 +18909,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-pink-300">경계 ?�인 ??��</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-pink-300">경계 확인 항목</h4>
                 <div className="space-y-2">
                   {eapc128.boundaryRequiredChecklistItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-pink-900/30 bg-pink-950/10 p-3">
@@ -18920,7 +18922,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-pink-300">?�제 ?�결 ???��? ?�인</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-pink-300">실제 연결 전 내부 확인</h4>
                 <div className="space-y-2">
                   {eapc128.internalCheckBeforeAnyConnectionItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-pink-900/30 bg-pink-950/10 p-3">
@@ -18933,7 +18935,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 차단???�환</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 차단된 전환</h4>
                 <div className="space-y-2">
                   {eapc128.transitionStillBlockedItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -18946,7 +18948,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">?��? 중인 체크리스???�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">유지 중인 체크리스트 상태</h4>
                 <div className="space-y-2">
                   {eapc128.remainingChecklistStateItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -18959,7 +18961,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">?�음 ?��? 검??/h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">다음 내부 검토</h4>
                 <div className="space-y-2">
                   {eapc128.nextSafeReviewItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-slate-700/30 bg-slate-900/20 p-3">
@@ -18972,7 +18974,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 금�???/h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 금지됨</h4>
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                   {eapc128.stillForbiddenItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -18986,7 +18988,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-3 rounded-md border border-pink-700/40 bg-pink-950/20 p-4">
                 <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-pink-300" />
                 <div>
-                  <h5 className="text-sm font-medium text-pink-200">Execution Architecture Pre-Connection Checklist ??최종 ?�내</h5>
+                  <h5 className="text-sm font-medium text-pink-200">Execution Architecture Pre-Connection Checklist — 최종 안내</h5>
                   <p className="mt-1 text-xs leading-relaxed text-pink-200/80">{eapc128.finalNotice}</p>
                 </div>
               </div>
@@ -18995,7 +18997,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 129: Execution Architecture Approval Readiness ?� */}
+      {/* ── Task 129: Execution Architecture Approval Readiness ─ */}
       {(() => {
         const eaar129 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionArchitectureApprovalReadinessView;
         if (!eaar129) return null;
@@ -19014,11 +19016,11 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             </div>
             <p className="mb-4 text-xs leading-relaxed text-fuchsia-200/70">{eaar129.summary}</p>
             <div className="mb-2 text-xs text-slate-500">{eaar129.taskRangeLabel}</div>
-            <div className="mb-1 text-xs text-slate-600">기�?: {eaar129.previousExecutionArchitecturePreConnectionChecklistLabel} ({eaar129.previousExecutionArchitecturePreConnectionChecklistCommit})</div>
+            <div className="mb-1 text-xs text-slate-600">기준: {eaar129.previousExecutionArchitecturePreConnectionChecklistLabel} ({eaar129.previousExecutionArchitecturePreConnectionChecklistCommit})</div>
             <div className="mt-4 space-y-4">
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-fuchsia-300">?�인 준�??�태 ?�약</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-fuchsia-300">승인 준비 상태 요약</h4>
                 <div className="space-y-2">
                   {eaar129.approvalReadinessSummaryItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-fuchsia-900/30 bg-fuchsia-950/10 p-3">
@@ -19031,7 +19033,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-fuchsia-300">??���??�인 준�??�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-fuchsia-300">항목별 승인 준비 상태</h4>
                 <div className="space-y-2">
                   {eaar129.approvalReadinessItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-fuchsia-900/30 bg-fuchsia-950/10 p-3">
@@ -19044,7 +19046,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">?�인 ?��??�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">승인 대기 상태</h4>
                 <div className="space-y-2">
                   {eaar129.approvalPendingItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -19057,7 +19059,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-fuchsia-300">경계 ?�인 준�??�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-fuchsia-300">경계 승인 준비 상태</h4>
                 <div className="space-y-2">
                   {eaar129.approvalBoundaryItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-fuchsia-900/30 bg-fuchsia-950/10 p-3">
@@ -19070,7 +19072,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-fuchsia-300">?�제 ?�인 ???��? ?�인</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-fuchsia-300">실제 승인 전 내부 확인</h4>
                 <div className="space-y-2">
                   {eaar129.internalApprovalReadinessCheckItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-fuchsia-900/30 bg-fuchsia-950/10 p-3">
@@ -19083,7 +19085,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 차단???�환</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 차단된 전환</h4>
                 <div className="space-y-2">
                   {eaar129.transitionStillBlockedItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -19096,7 +19098,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">?��? 중인 ?�인 준�??�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">유지 중인 승인 준비 상태</h4>
                 <div className="space-y-2">
                   {eaar129.remainingApprovalReadinessStateItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -19109,7 +19111,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">?�음 ?��? 검??/h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">다음 내부 검토</h4>
                 <div className="space-y-2">
                   {eaar129.nextSafeReviewItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-slate-700/30 bg-slate-900/20 p-3">
@@ -19122,7 +19124,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 금�???/h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 금지됨</h4>
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                   {eaar129.stillForbiddenItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -19136,7 +19138,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-3 rounded-md border border-fuchsia-700/40 bg-fuchsia-950/20 p-4">
                 <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-fuchsia-300" />
                 <div>
-                  <h5 className="text-sm font-medium text-fuchsia-200">Execution Architecture Approval Readiness ??최종 ?�내</h5>
+                  <h5 className="text-sm font-medium text-fuchsia-200">Execution Architecture Approval Readiness — 최종 안내</h5>
                   <p className="mt-1 text-xs leading-relaxed text-fuchsia-200/80">{eaar129.finalNotice}</p>
                 </div>
               </div>
@@ -19145,7 +19147,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 130: Execution Architecture Approval Hold ?� */}
+      {/* ── Task 130: Execution Architecture Approval Hold ─ */}
       {(() => {
         const eaah130 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionArchitectureApprovalHoldView;
         if (!eaah130) return null;
@@ -19164,11 +19166,11 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             </div>
             <p className="mb-4 text-xs leading-relaxed text-violet-200/70">{eaah130.summary}</p>
             <div className="mb-2 text-xs text-slate-500">{eaah130.taskRangeLabel}</div>
-            <div className="mb-1 text-xs text-slate-600">기�?: {eaah130.previousExecutionArchitectureApprovalReadinessLabel} ({eaah130.previousExecutionArchitectureApprovalReadinessCommit})</div>
+            <div className="mb-1 text-xs text-slate-600">기준: {eaah130.previousExecutionArchitectureApprovalReadinessLabel} ({eaah130.previousExecutionArchitectureApprovalReadinessCommit})</div>
             <div className="mt-4 space-y-4">
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-violet-300">?�인 보류 ?�태 ?�약</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-violet-300">승인 보류 상태 요약</h4>
                 <div className="space-y-2">
                   {eaah130.approvalHoldSummaryItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-violet-900/30 bg-violet-950/10 p-3">
@@ -19181,7 +19183,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-violet-300">??���??�인 ?�청 ??보류 ?�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-violet-300">항목별 승인 요청 전 보류 상태</h4>
                 <div className="space-y-2">
                   {eaah130.approvalHoldItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-violet-900/30 bg-violet-950/10 p-3">
@@ -19194,7 +19196,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">?�인 ?�청 미제�??�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">승인 요청 미제출 상태</h4>
                 <div className="space-y-2">
                   {eaah130.approvalSubmissionPendingItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -19207,7 +19209,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-violet-300">경계 ?�인 보류 ?�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-violet-300">경계 승인 보류 상태</h4>
                 <div className="space-y-2">
                   {eaah130.approvalHoldBoundaryItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-violet-900/30 bg-violet-950/10 p-3">
@@ -19220,7 +19222,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-violet-300">?�제 ?�인 ?�청 ???��? ?�인</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-violet-300">실제 승인 요청 전 내부 확인</h4>
                 <div className="space-y-2">
                   {eaah130.internalApprovalHoldCheckItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-violet-900/30 bg-violet-950/10 p-3">
@@ -19233,7 +19235,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 차단???�환</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 차단된 전환</h4>
                 <div className="space-y-2">
                   {eaah130.transitionStillBlockedItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -19246,7 +19248,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">?��? 중인 ?�인 보류 ?�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">유지 중인 승인 보류 상태</h4>
                 <div className="space-y-2">
                   {eaah130.remainingApprovalHoldStateItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -19259,7 +19261,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">?�음 ?��? 검??/h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">다음 내부 검토</h4>
                 <div className="space-y-2">
                   {eaah130.nextSafeReviewItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-slate-700/30 bg-slate-900/20 p-3">
@@ -19272,7 +19274,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 금�???/h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 금지됨</h4>
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                   {eaah130.stillForbiddenItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -19286,7 +19288,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-3 rounded-md border border-violet-700/40 bg-violet-950/20 p-4">
                 <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-violet-300" />
                 <div>
-                  <h5 className="text-sm font-medium text-violet-200">Execution Architecture Approval Hold ??최종 ?�내</h5>
+                  <h5 className="text-sm font-medium text-violet-200">Execution Architecture Approval Hold — 최종 안내</h5>
                   <p className="mt-1 text-xs leading-relaxed text-violet-200/80">{eaah130.finalNotice}</p>
                 </div>
               </div>
@@ -19295,7 +19297,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 131: Execution Architecture Approval Submission Readiness ?� */}
+      {/* ── Task 131: Execution Architecture Approval Submission Readiness ─ */}
       {(() => {
         const eaasr131 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionArchitectureApprovalSubmissionReadinessView;
         if (!eaasr131) return null;
@@ -19314,11 +19316,11 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             </div>
             <p className="mb-4 text-xs leading-relaxed text-purple-200/70">{eaasr131.summary}</p>
             <div className="mb-2 text-xs text-slate-500">{eaasr131.taskRangeLabel}</div>
-            <div className="mb-1 text-xs text-slate-600">기�?: {eaasr131.previousExecutionArchitectureApprovalHoldLabel} ({eaasr131.previousExecutionArchitectureApprovalHoldCommit})</div>
+            <div className="mb-1 text-xs text-slate-600">기준: {eaasr131.previousExecutionArchitectureApprovalHoldLabel} ({eaasr131.previousExecutionArchitectureApprovalHoldCommit})</div>
             <div className="mt-4 space-y-4">
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-purple-300">?�인 ?�청 ?�출 준�??�태 ?�약</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-purple-300">승인 요청 제출 준비 상태 요약</h4>
                 <div className="space-y-2">
                   {eaasr131.approvalSubmissionReadinessSummaryItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-purple-900/30 bg-purple-950/10 p-3">
@@ -19331,7 +19333,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-purple-300">??���??�인 ?�청 ?�출 준�??�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-purple-300">항목별 승인 요청 제출 준비 상태</h4>
                 <div className="space-y-2">
                   {eaasr131.approvalSubmissionReadinessItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-purple-900/30 bg-purple-950/10 p-3">
@@ -19344,7 +19346,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">?�출 준�??��??�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">제출 준비 대기 상태</h4>
                 <div className="space-y-2">
                   {eaasr131.approvalSubmissionPendingItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -19357,7 +19359,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-purple-300">경계 ?�출 ???�인 ?�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-purple-300">경계 제출 전 확인 상태</h4>
                 <div className="space-y-2">
                   {eaasr131.approvalSubmissionBoundaryItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-purple-900/30 bg-purple-950/10 p-3">
@@ -19370,7 +19372,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-purple-300">?�제 ?�인 ?�청 ?�출 ???��? ?�인</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-purple-300">실제 승인 요청 제출 전 내부 확인</h4>
                 <div className="space-y-2">
                   {eaasr131.internalApprovalSubmissionCheckItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-purple-900/30 bg-purple-950/10 p-3">
@@ -19383,7 +19385,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 차단???�환</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 차단된 전환</h4>
                 <div className="space-y-2">
                   {eaasr131.transitionStillBlockedItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -19396,7 +19398,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">?��? 중인 ?�출 준�??�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">유지 중인 제출 준비 상태</h4>
                 <div className="space-y-2">
                   {eaasr131.remainingApprovalSubmissionStateItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -19409,7 +19411,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">?�음 ?��? 검??/h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">다음 내부 검토</h4>
                 <div className="space-y-2">
                   {eaasr131.nextSafeReviewItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-slate-700/30 bg-slate-900/20 p-3">
@@ -19422,7 +19424,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 금�???/h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 금지됨</h4>
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                   {eaasr131.stillForbiddenItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -19436,7 +19438,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-3 rounded-md border border-purple-700/40 bg-purple-950/20 p-4">
                 <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-purple-300" />
                 <div>
-                  <h5 className="text-sm font-medium text-purple-200">Execution Architecture Approval Submission Readiness ??최종 ?�내</h5>
+                  <h5 className="text-sm font-medium text-purple-200">Execution Architecture Approval Submission Readiness — 최종 안내</h5>
                   <p className="mt-1 text-xs leading-relaxed text-purple-200/80">{eaasr131.finalNotice}</p>
                 </div>
               </div>
@@ -19445,7 +19447,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 132: Execution Architecture Approval Submission Pre-Review ?� */}
+      {/* ── Task 132: Execution Architecture Approval Submission Pre-Review ─ */}
       {(() => {
         const eaaspr132 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionArchitectureApprovalSubmissionPreReviewView;
         if (!eaaspr132) return null;
@@ -19464,11 +19466,11 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             </div>
             <p className="mb-4 text-xs leading-relaxed text-indigo-200/70">{eaaspr132.summary}</p>
             <div className="mb-2 text-xs text-slate-500">{eaaspr132.taskRangeLabel}</div>
-            <div className="mb-1 text-xs text-slate-600">기�?: {eaaspr132.previousExecutionArchitectureApprovalSubmissionReadinessLabel} ({eaaspr132.previousExecutionArchitectureApprovalSubmissionReadinessCommit})</div>
+            <div className="mb-1 text-xs text-slate-600">기준: {eaaspr132.previousExecutionArchitectureApprovalSubmissionReadinessLabel} ({eaaspr132.previousExecutionArchitectureApprovalSubmissionReadinessCommit})</div>
             <div className="mt-4 space-y-4">
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-indigo-300">?�인 ?�청 ?�출 ???�전 검???�약</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-indigo-300">승인 요청 제출 전 사전 검토 요약</h4>
                 <div className="space-y-2">
                   {eaaspr132.approvalSubmissionPreReviewSummaryItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-indigo-900/30 bg-indigo-950/10 p-3">
@@ -19481,7 +19483,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-indigo-300">??���??�출 ???�전 검???�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-indigo-300">항목별 제출 전 사전 검토 상태</h4>
                 <div className="space-y-2">
                   {eaaspr132.approvalSubmissionPreReviewItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-indigo-900/30 bg-indigo-950/10 p-3">
@@ -19494,7 +19496,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">?�전 검???��??�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">사전 검토 대기 상태</h4>
                 <div className="space-y-2">
                   {eaaspr132.approvalSubmissionPreReviewPendingItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -19507,7 +19509,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-indigo-300">경계 ?�출 ???�전 검???�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-indigo-300">경계 제출 전 사전 검토 상태</h4>
                 <div className="space-y-2">
                   {eaaspr132.approvalSubmissionPreReviewBoundaryItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-indigo-900/30 bg-indigo-950/10 p-3">
@@ -19520,7 +19522,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-indigo-300">?�제 ?�인 ?�청 ?�출 ???��? ?�인</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-indigo-300">실제 승인 요청 제출 전 내부 확인</h4>
                 <div className="space-y-2">
                   {eaaspr132.internalApprovalSubmissionPreReviewCheckItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-indigo-900/30 bg-indigo-950/10 p-3">
@@ -19533,7 +19535,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 차단???�환</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 차단된 전환</h4>
                 <div className="space-y-2">
                   {eaaspr132.transitionStillBlockedItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -19546,7 +19548,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">?��? 중인 ?�전 검???�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">유지 중인 사전 검토 상태</h4>
                 <div className="space-y-2">
                   {eaaspr132.remainingApprovalSubmissionPreReviewStateItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -19559,7 +19561,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">?�음 ?��? 검??/h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">다음 내부 검토</h4>
                 <div className="space-y-2">
                   {eaaspr132.nextSafeReviewItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-slate-700/30 bg-slate-900/20 p-3">
@@ -19572,7 +19574,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 금�???/h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 금지됨</h4>
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                   {eaaspr132.stillForbiddenItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -19586,7 +19588,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-3 rounded-md border border-indigo-700/40 bg-indigo-950/20 p-4">
                 <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-indigo-300" />
                 <div>
-                  <h5 className="text-sm font-medium text-indigo-200">Execution Architecture Approval Submission Pre-Review ??최종 ?�내</h5>
+                  <h5 className="text-sm font-medium text-indigo-200">Execution Architecture Approval Submission Pre-Review — 최종 안내</h5>
                   <p className="mt-1 text-xs leading-relaxed text-indigo-200/80">{eaaspr132.finalNotice}</p>
                 </div>
               </div>
@@ -19595,7 +19597,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 133: Execution Architecture Approval Submission Hold Seal ?� */}
+      {/* ── Task 133: Execution Architecture Approval Submission Hold Seal ─ */}
       {(() => {
         const eaashs133 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionArchitectureApprovalSubmissionHoldSealView;
         if (!eaashs133) return null;
@@ -19614,11 +19616,11 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             </div>
             <p className="mb-4 text-xs leading-relaxed text-blue-200/70">{eaashs133.summary}</p>
             <div className="mb-2 text-xs text-slate-500">{eaashs133.taskRangeLabel}</div>
-            <div className="mb-1 text-xs text-slate-600">기�?: {eaashs133.previousExecutionArchitectureApprovalSubmissionPreReviewLabel} ({eaashs133.previousExecutionArchitectureApprovalSubmissionPreReviewCommit})</div>
+            <div className="mb-1 text-xs text-slate-600">기준: {eaashs133.previousExecutionArchitectureApprovalSubmissionPreReviewLabel} ({eaashs133.previousExecutionArchitectureApprovalSubmissionPreReviewCommit})</div>
             <div className="mt-4 space-y-4">
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-blue-300">?�인 ?�청 ?�출 보류 봉인 ?�약</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-blue-300">승인 요청 제출 보류 봉인 요약</h4>
                 <div className="space-y-2">
                   {eaashs133.approvalSubmissionHoldSealSummaryItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-blue-900/30 bg-blue-950/10 p-3">
@@ -19631,7 +19633,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-blue-300">??���??�출 봉인 ?�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-blue-300">항목별 제출 봉인 상태</h4>
                 <div className="space-y-2">
                   {eaashs133.approvalSubmissionHoldSealItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-blue-900/30 bg-blue-950/10 p-3">
@@ -19644,7 +19646,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">?�출 봉인 ?��??�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">제출 봉인 대기 상태</h4>
                 <div className="space-y-2">
                   {eaashs133.approvalSubmissionSealPendingItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -19657,7 +19659,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-blue-300">경계 ?�출 봉인 ?�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-blue-300">경계 제출 봉인 상태</h4>
                 <div className="space-y-2">
                   {eaashs133.approvalSubmissionSealBoundaryItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-blue-900/30 bg-blue-950/10 p-3">
@@ -19670,7 +19672,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-blue-300">?�제 ?�인 ?�청 ?�출 봉인 ???��? ?�인</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-blue-300">실제 승인 요청 제출 봉인 전 내부 확인</h4>
                 <div className="space-y-2">
                   {eaashs133.internalApprovalSubmissionSealCheckItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-blue-900/30 bg-blue-950/10 p-3">
@@ -19683,7 +19685,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 차단???�환</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 차단된 전환</h4>
                 <div className="space-y-2">
                   {eaashs133.transitionStillBlockedItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -19696,7 +19698,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">?��? 중인 ?�출 봉인 ?�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">유지 중인 제출 봉인 상태</h4>
                 <div className="space-y-2">
                   {eaashs133.remainingApprovalSubmissionSealStateItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -19709,7 +19711,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">?�음 ?��? 검??/h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">다음 내부 검토</h4>
                 <div className="space-y-2">
                   {eaashs133.nextSafeReviewItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-slate-700/30 bg-slate-900/20 p-3">
@@ -19722,7 +19724,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 금�???/h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 금지됨</h4>
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                   {eaashs133.stillForbiddenItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -19736,7 +19738,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-3 rounded-md border border-blue-700/40 bg-blue-950/20 p-4">
                 <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-blue-300" />
                 <div>
-                  <h5 className="text-sm font-medium text-blue-200">Execution Architecture Approval Submission Hold Seal ??최종 ?�내</h5>
+                  <h5 className="text-sm font-medium text-blue-200">Execution Architecture Approval Submission Hold Seal — 최종 안내</h5>
                   <p className="mt-1 text-xs leading-relaxed text-blue-200/80">{eaashs133.finalNotice}</p>
                 </div>
               </div>
@@ -19745,7 +19747,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 134: Execution Readiness Snapshot ?� */}
+      {/* ── Task 134: Execution Readiness Snapshot ─ */}
       {(() => {
         const ers134 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessSnapshotView;
         if (!ers134) return null;
@@ -19764,11 +19766,11 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             </div>
             <p className="mb-4 text-xs leading-relaxed text-emerald-200/70">{ers134.summary}</p>
             <div className="mb-2 text-xs text-slate-500">{ers134.taskRangeLabel}</div>
-            <div className="mb-1 text-xs text-slate-600">기�?: {ers134.previousExecutionArchitectureApprovalSubmissionHoldSealLabel} ({ers134.previousExecutionArchitectureApprovalSubmissionHoldSealCommit})</div>
+            <div className="mb-1 text-xs text-slate-600">기준: {ers134.previousExecutionArchitectureApprovalSubmissionHoldSealLabel} ({ers134.previousExecutionArchitectureApprovalSubmissionHoldSealCommit})</div>
             <div className="mt-4 space-y-4">
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-emerald-300">?�행 준�??�태 ?�냅???�약</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-emerald-300">실행 준비 상태 스냅샷 요약</h4>
                 <div className="space-y-2">
                   {ers134.executionReadinessSnapshotSummaryItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-emerald-900/30 bg-emerald-950/10 p-3">
@@ -19781,7 +19783,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-emerald-300">비활???�행 구성 ?�소</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-emerald-300">비활성 실행 구성 요소</h4>
                 <div className="space-y-2">
                   {ers134.inactiveExecutionComponentItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-emerald-900/30 bg-emerald-950/10 p-3">
@@ -19794,7 +19796,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-300">?�인 ?��?구성 ?�소</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-300">승인 대기 구성 요소</h4>
                 <div className="space-y-2">
                   {ers134.approvalPendingComponentItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-amber-900/40 bg-amber-950/20 p-3">
@@ -19807,7 +19809,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">차단 중인 ?�행 구성 ?�소</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">차단 중인 실행 구성 요소</h4>
                 <div className="space-y-2">
                   {ers134.blockedExecutionComponentItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -19820,7 +19822,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-emerald-300">Worker / Queue 참조??준�?메�??�이??/h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-emerald-300">Worker / Queue 참조용 준비 메타데이터</h4>
                 <div className="space-y-2">
                   {ers134.workerQueueReferenceReadinessItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-emerald-900/30 bg-emerald-950/10 p-3">
@@ -19833,7 +19835,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-emerald-300">?�냅??경계 ?�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-emerald-300">스냅샷 경계 상태</h4>
                 <div className="space-y-2">
                   {ers134.executionReadinessSnapshotBoundaryItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-emerald-900/30 bg-emerald-950/10 p-3">
@@ -19846,7 +19848,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">?�음 ?��? 검??/h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">다음 내부 검토</h4>
                 <div className="space-y-2">
                   {ers134.nextSafeReviewItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-slate-700/30 bg-slate-900/20 p-3">
@@ -19859,7 +19861,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 금�???/h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 금지됨</h4>
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                   {ers134.stillForbiddenItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -19873,7 +19875,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-3 rounded-md border border-emerald-700/40 bg-emerald-950/20 p-4">
                 <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-emerald-300" />
                 <div>
-                  <h5 className="text-sm font-medium text-emerald-200">Execution Readiness Snapshot ??최종 ?�내</h5>
+                  <h5 className="text-sm font-medium text-emerald-200">Execution Readiness Snapshot — 최종 안내</h5>
                   <p className="mt-1 text-xs leading-relaxed text-emerald-200/80">{ers134.finalNotice}</p>
                 </div>
               </div>
@@ -19882,7 +19884,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 135: Execution Readiness Plan Preview ?� */}
+      {/* ── Task 135: Execution Readiness Plan Preview ─ */}
       {(() => {
         const erpp135 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessPlanPreviewView;
         if (!erpp135) return null;
@@ -19901,11 +19903,11 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             </div>
             <p className="mb-4 text-xs leading-relaxed text-cyan-200/70">{erpp135.summary}</p>
             <div className="mb-2 text-xs text-slate-500">{erpp135.taskRangeLabel}</div>
-            <div className="mb-1 text-xs text-slate-600">기�?: {erpp135.previousExecutionReadinessSnapshotLabel} ({erpp135.previousExecutionReadinessSnapshotCommit})</div>
+            <div className="mb-1 text-xs text-slate-600">기준: {erpp135.previousExecutionReadinessSnapshotLabel} ({erpp135.previousExecutionReadinessSnapshotCommit})</div>
             <div className="mt-4 space-y-4">
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-cyan-300">?�행 준�?계획 미리보기 ?�약</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-cyan-300">실행 준비 계획 미리보기 요약</h4>
                 <div className="space-y-2">
                   {erpp135.executionReadinessPlanPreviewSummaryItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-cyan-900/30 bg-cyan-950/10 p-3">
@@ -19918,7 +19920,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-cyan-300">?�직 ?�행?��? ?�는 ?�계</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-cyan-300">아직 실행하지 않는 단계</h4>
                 <div className="space-y-2">
                   {erpp135.nonExecutablePlanStepItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-cyan-900/30 bg-cyan-950/10 p-3">
@@ -19931,7 +19933,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-300">?�행 ???�인 / 검�?/ 격리 조건</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-300">실행 전 승인 / 검증 / 격리 조건</h4>
                 <div className="space-y-2">
                   {erpp135.approvalVerificationIsolationRequirementItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-amber-900/40 bg-amber-950/20 p-3">
@@ -19944,7 +19946,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-cyan-300">Worker / Queue / Adapter ?�결 ??준�??�서</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-cyan-300">Worker / Queue / Adapter 연결 전 준비 순서</h4>
                 <div className="space-y-2">
                   {erpp135.connectionPreparationSequenceItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-cyan-900/30 bg-cyan-950/10 p-3">
@@ -19957,7 +19959,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-cyan-300">?�행?�로 ?�해?�면 ???�는 ??��</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-cyan-300">실행으로 오해하면 안 되는 항목</h4>
                 <div className="space-y-2">
                   {erpp135.misunderstandingPreventionItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-cyan-900/30 bg-cyan-950/10 p-3">
@@ -19970,7 +19972,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-cyan-300">계획 미리보기 경계 ?�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-cyan-300">계획 미리보기 경계 상태</h4>
                 <div className="space-y-2">
                   {erpp135.executionReadinessPlanPreviewBoundaryItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-cyan-900/30 bg-cyan-950/10 p-3">
@@ -19983,7 +19985,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">?�음 ?��? 검??/h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">다음 내부 검토</h4>
                 <div className="space-y-2">
                   {erpp135.nextSafeReviewItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-slate-700/30 bg-slate-900/20 p-3">
@@ -19996,7 +19998,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 금�???/h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 금지됨</h4>
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                   {erpp135.stillForbiddenItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -20010,7 +20012,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-3 rounded-md border border-cyan-700/40 bg-cyan-950/20 p-4">
                 <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-cyan-300" />
                 <div>
-                  <h5 className="text-sm font-medium text-cyan-200">Execution Readiness Plan Preview ??최종 ?�내</h5>
+                  <h5 className="text-sm font-medium text-cyan-200">Execution Readiness Plan Preview — 최종 안내</h5>
                   <p className="mt-1 text-xs leading-relaxed text-cyan-200/80">{erpp135.finalNotice}</p>
                 </div>
               </div>
@@ -20019,7 +20021,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 136: Execution Readiness Risk Review ?� */}
+      {/* ── Task 136: Execution Readiness Risk Review ─ */}
       {(() => {
         const errr136 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessRiskReviewView;
         if (!errr136) return null;
@@ -20038,11 +20040,11 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             </div>
             <p className="mb-4 text-xs leading-relaxed text-rose-200/70">{errr136.summary}</p>
             <div className="mb-2 text-xs text-slate-500">{errr136.taskRangeLabel}</div>
-            <div className="mb-1 text-xs text-slate-600">기�?: {errr136.previousExecutionReadinessPlanPreviewLabel} ({errr136.previousExecutionReadinessPlanPreviewCommit})</div>
+            <div className="mb-1 text-xs text-slate-600">기준: {errr136.previousExecutionReadinessPlanPreviewLabel} ({errr136.previousExecutionReadinessPlanPreviewCommit})</div>
             <div className="mt-4 space-y-4">
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-rose-300">?�행 준�??�험 구간 ?�약</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-rose-300">실행 준비 위험 구간 요약</h4>
                 <div className="space-y-2">
                   {errr136.executionReadinessRiskReviewSummaryItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-rose-900/30 bg-rose-950/10 p-3">
@@ -20055,7 +20057,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-rose-300">?�행 준�?계획??고위??구간</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-rose-300">실행 준비 계획의 고위험 구간</h4>
                 <div className="space-y-2">
                   {errr136.highRiskPlanZoneItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-rose-900/30 bg-rose-950/10 p-3">
@@ -20068,7 +20070,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-rose-300">구성 ?�소�?주의??/h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-rose-300">구성 요소별 주의점</h4>
                 <div className="space-y-2">
                   {errr136.componentCautionItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-rose-900/30 bg-rose-950/10 p-3">
@@ -20081,7 +20083,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-rose-300">?�행?�로 ?�해?�면 ???�는 ??��</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-rose-300">실행으로 오해하면 안 되는 항목</h4>
                 <div className="space-y-2">
                   {errr136.misunderstandingPreventionItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-rose-900/30 bg-rose-950/10 p-3">
@@ -20094,7 +20096,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">별도 ?�인 ??계속 ?�힘</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">별도 승인 전 계속 닫힘</h4>
                 <div className="space-y-2">
                   {errr136.stillClosedItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -20107,7 +20109,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-300">?�제 ?�결 ???�확??리스??/h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-300">실제 연결 전 재확인 리스크</h4>
                 <div className="space-y-2">
                   {errr136.recheckRiskItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-amber-900/40 bg-amber-950/20 p-3">
@@ -20120,7 +20122,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-rose-300">?�험 검??경계 ?�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-rose-300">위험 검토 경계 상태</h4>
                 <div className="space-y-2">
                   {errr136.executionReadinessRiskReviewBoundaryItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-rose-900/30 bg-rose-950/10 p-3">
@@ -20133,7 +20135,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">?�음 ?��? 검??/h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">다음 내부 검토</h4>
                 <div className="space-y-2">
                   {errr136.nextSafeReviewItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-slate-700/30 bg-slate-900/20 p-3">
@@ -20146,7 +20148,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 금�???/h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 금지됨</h4>
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                   {errr136.stillForbiddenItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -20160,7 +20162,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-3 rounded-md border border-rose-700/40 bg-rose-950/20 p-4">
                 <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-rose-300" />
                 <div>
-                  <h5 className="text-sm font-medium text-rose-200">Execution Readiness Risk Review ??최종 ?�내</h5>
+                  <h5 className="text-sm font-medium text-rose-200">Execution Readiness Risk Review — 최종 안내</h5>
                   <p className="mt-1 text-xs leading-relaxed text-rose-200/80">{errr136.finalNotice}</p>
                 </div>
               </div>
@@ -20169,7 +20171,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 137: Execution Readiness Overview ?� */}
+      {/* ── Task 137: Execution Readiness Overview ─ */}
       {(() => {
         const ero137 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessOverviewView;
         if (!ero137) return null;
@@ -20188,11 +20190,11 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             </div>
             <p className="mb-4 text-xs leading-relaxed text-lime-200/70">{ero137.summary}</p>
             <div className="mb-2 text-xs text-slate-500">{ero137.taskRangeLabel}</div>
-            <div className="mb-1 text-xs text-slate-600">기�?: {ero137.previousExecutionReadinessRiskReviewLabel} ({ero137.previousExecutionReadinessRiskReviewCommit})</div>
+            <div className="mb-1 text-xs text-slate-600">기준: {ero137.previousExecutionReadinessRiskReviewLabel} ({ero137.previousExecutionReadinessRiskReviewCommit})</div>
             <div className="mt-4 space-y-4">
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-lime-300">?�행 준�??�태 ?�약</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-lime-300">실행 준비 상태 요약</h4>
                 <div className="space-y-2">
                   {ero137.executionReadinessOverviewSummaryItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-lime-900/30 bg-lime-950/10 p-3">
@@ -20205,7 +20207,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-lime-300">?�행 계획 ?�약</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-lime-300">실행 계획 요약</h4>
                 <div className="space-y-2">
                   {ero137.executionReadinessPlanSummaryItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-lime-900/30 bg-lime-950/10 p-3">
@@ -20218,7 +20220,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-lime-300">?�험 구간 ?�약</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-lime-300">위험 구간 요약</h4>
                 <div className="space-y-2">
                   {ero137.executionReadinessRiskSummaryItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-lime-900/30 bg-lime-950/10 p-3">
@@ -20231,7 +20233,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-300">?�인 ?��???�� ?�약</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-300">승인 대기 항목 요약</h4>
                 <div className="space-y-2">
                   {ero137.approvalPendingSummaryItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-amber-900/40 bg-amber-950/20 p-3">
@@ -20244,7 +20246,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">차단 ??�� ?�약</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">차단 항목 요약</h4>
                 <div className="space-y-2">
                   {ero137.blockedSummaryItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -20257,7 +20259,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">?�행 불�? ?�유 ?�약</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">실행 불가 사유 요약</h4>
                 <div className="space-y-2">
                   {ero137.executionNotReadyReasonItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -20270,7 +20272,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-lime-300">Worker / Queue 참조???�합 메�??�이??/h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-lime-300">Worker / Queue 참조용 통합 메타데이터</h4>
                 <div className="space-y-2">
                   {ero137.workerQueueReferenceMetadataItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-lime-900/30 bg-lime-950/10 p-3">
@@ -20283,7 +20285,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 금�???/h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 금지됨</h4>
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                   {ero137.stillForbiddenItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -20297,7 +20299,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-3 rounded-md border border-lime-700/40 bg-lime-950/20 p-4">
                 <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-lime-300" />
                 <div>
-                  <h5 className="text-sm font-medium text-lime-200">Execution Readiness Overview ??최종 ?�내</h5>
+                  <h5 className="text-sm font-medium text-lime-200">Execution Readiness Overview — 최종 안내</h5>
                   <p className="mt-1 text-xs leading-relaxed text-lime-200/80">{ero137.finalNotice}</p>
                 </div>
               </div>
@@ -20306,7 +20308,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 138: Execution Readiness Worker Contract ?� */}
+      {/* ── Task 138: Execution Readiness Worker Contract ─ */}
       {(() => {
         const erwc138 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerContractView;
         if (!erwc138) return null;
@@ -20325,11 +20327,11 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             </div>
             <p className="mb-4 text-xs leading-relaxed text-cyan-200/70">{erwc138.summary}</p>
             <div className="mb-2 text-xs text-slate-500">{erwc138.taskRangeLabel}</div>
-            <div className="mb-1 text-xs text-slate-600">기�?: {erwc138.previousExecutionReadinessOverviewLabel} ({erwc138.previousExecutionReadinessOverviewCommit})</div>
+            <div className="mb-1 text-xs text-slate-600">기준: {erwc138.previousExecutionReadinessOverviewLabel} ({erwc138.previousExecutionReadinessOverviewCommit})</div>
             <div className="mt-4 space-y-4">
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-cyan-300">Worker 참조 ?�행 준�??�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-cyan-300">Worker 참조 실행 준비 상태</h4>
                 <div className="space-y-2">
                   {erwc138.workerReadinessStatusItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-cyan-900/30 bg-cyan-950/10 p-3">
@@ -20342,7 +20344,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-cyan-300">Queue ?�결 ???�요??조건</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-cyan-300">Queue 연결 전 필요한 조건</h4>
                 <div className="space-y-2">
                   {erwc138.queueConnectionPreconditionItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-cyan-900/30 bg-cyan-950/10 p-3">
@@ -20355,7 +20357,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">?�제 ?�행 ???��??�야 ??차단 조건</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">실제 실행 전 유지해야 할 차단 조건</h4>
                 <div className="space-y-2">
                   {erwc138.executionBlockerItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -20368,7 +20370,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">?�행 불�? ?�유</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">실행 불가 사유</h4>
                 <div className="space-y-2">
                   {erwc138.executionNotReadyReasonItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -20381,7 +20383,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-300">?�인 ?��???��</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-300">승인 대기 항목</h4>
                 <div className="space-y-2">
                   {erwc138.approvalPendingItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-amber-900/40 bg-amber-950/20 p-3">
@@ -20394,7 +20396,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">미연�??�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">미연결 상태</h4>
                 <div className="space-y-2">
                   {erwc138.disconnectedComponentItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -20407,7 +20409,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-cyan-300">?�후 Worker 참조???�기 ?�용 계약 ?�보</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-cyan-300">향후 Worker 참조용 읽기 전용 계약 정보</h4>
                 <div className="space-y-2">
                   {erwc138.workerReferenceContractItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-cyan-900/30 bg-cyan-950/10 p-3">
@@ -20420,7 +20422,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 금�???/h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 금지됨</h4>
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                   {erwc138.stillForbiddenItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -20434,7 +20436,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-3 rounded-md border border-cyan-700/40 bg-cyan-950/20 p-4">
                 <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-cyan-300" />
                 <div>
-                  <h5 className="text-sm font-medium text-cyan-200">Execution Readiness Worker Contract ??최종 ?�내</h5>
+                  <h5 className="text-sm font-medium text-cyan-200">Execution Readiness Worker Contract — 최종 안내</h5>
                   <p className="mt-1 text-xs leading-relaxed text-cyan-200/80">{erwc138.finalNotice}</p>
                 </div>
               </div>
@@ -20443,7 +20445,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 139: Execution Readiness Queue Payload Preview ?� */}
+      {/* ── Task 139: Execution Readiness Queue Payload Preview ─ */}
       {(() => {
         const erqpp139 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessQueuePayloadPreviewView;
         if (!erqpp139) return null;
@@ -20462,11 +20464,11 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             </div>
             <p className="mb-4 text-xs leading-relaxed text-sky-200/70">{erqpp139.summary}</p>
             <div className="mb-2 text-xs text-slate-500">{erqpp139.taskRangeLabel}</div>
-            <div className="mb-1 text-xs text-slate-600">기�?: {erqpp139.previousExecutionReadinessWorkerContractLabel} ({erqpp139.previousExecutionReadinessWorkerContractCommit})</div>
+            <div className="mb-1 text-xs text-slate-600">기준: {erqpp139.previousExecutionReadinessWorkerContractLabel} ({erqpp139.previousExecutionReadinessWorkerContractCommit})</div>
             <div className="mt-4 space-y-4">
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-sky-300">Queue???�달???�정???�행 준�??�보</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-sky-300">Queue에 전달될 예정인 실행 준비 정보</h4>
                 <div className="space-y-2">
                   {erqpp139.queuePayloadPreviewItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-sky-900/30 bg-sky-950/10 p-3">
@@ -20479,7 +20481,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-sky-300">Worker Contract 참조 ?�약</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-sky-300">Worker Contract 참조 요약</h4>
                 <div className="space-y-2">
                   {erqpp139.workerContractReferenceItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-sky-900/30 bg-sky-950/10 p-3">
@@ -20492,7 +20494,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">?�행 차단 ?�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">실행 차단 상태</h4>
                 <div className="space-y-2">
                   {erqpp139.executionBlockerItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -20505,7 +20507,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-300">?�인 ?��??�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-300">승인 대기 상태</h4>
                 <div className="space-y-2">
                   {erqpp139.approvalPendingItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-amber-900/40 bg-amber-950/20 p-3">
@@ -20518,7 +20520,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-sky-300">Snapshot ?�약</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-sky-300">Snapshot 요약</h4>
                 <div className="space-y-2">
                   {erqpp139.snapshotSummaryItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-sky-900/30 bg-sky-950/10 p-3">
@@ -20531,7 +20533,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-sky-300">Plan Preview ?�약</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-sky-300">Plan Preview 요약</h4>
                 <div className="space-y-2">
                   {erqpp139.planPreviewSummaryItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-sky-900/30 bg-sky-950/10 p-3">
@@ -20544,7 +20546,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-sky-300">Risk Review ?�약</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-sky-300">Risk Review 요약</h4>
                 <div className="space-y-2">
                   {erqpp139.riskReviewSummaryItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-sky-900/30 bg-sky-950/10 p-3">
@@ -20557,7 +20559,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 금�???/h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 금지됨</h4>
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                   {erqpp139.stillForbiddenItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -20571,7 +20573,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-3 rounded-md border border-sky-700/40 bg-sky-950/20 p-4">
                 <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-sky-300" />
                 <div>
-                  <h5 className="text-sm font-medium text-sky-200">Execution Readiness Queue Payload Preview ??최종 ?�내</h5>
+                  <h5 className="text-sm font-medium text-sky-200">Execution Readiness Queue Payload Preview — 최종 안내</h5>
                   <p className="mt-1 text-xs leading-relaxed text-sky-200/80">{erqpp139.finalNotice}</p>
                 </div>
               </div>
@@ -20580,7 +20582,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 140: Execution Readiness Queue Enqueue Eligibility ?� */}
+      {/* ── Task 140: Execution Readiness Queue Enqueue Eligibility ─ */}
       {(() => {
         const erqee140 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessQueueEnqueueEligibilityView;
         if (!erqee140) return null;
@@ -20599,11 +20601,11 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             </div>
             <p className="mb-4 text-xs leading-relaxed text-emerald-200/70">{erqee140.summary}</p>
             <div className="mb-2 text-xs text-slate-500">{erqee140.taskRangeLabel}</div>
-            <div className="mb-1 text-xs text-slate-600">기�?: {erqee140.previousExecutionReadinessQueuePayloadPreviewLabel} ({erqee140.previousExecutionReadinessQueuePayloadPreviewCommit})</div>
+            <div className="mb-1 text-xs text-slate-600">기준: {erqee140.previousExecutionReadinessQueuePayloadPreviewLabel} ({erqee140.previousExecutionReadinessQueuePayloadPreviewCommit})</div>
             <div className="mt-4 space-y-4">
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-emerald-300">Queue ?�재 가?�성 검???�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-emerald-300">Queue 적재 가능성 검토 상태</h4>
                 <div className="space-y-2">
                   {erqee140.queueEnqueueEligibilityReviewItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-emerald-900/30 bg-emerald-950/10 p-3">
@@ -20616,7 +20618,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-emerald-300">Payload 준�??��?</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-emerald-300">Payload 준비 여부</h4>
                 <div className="space-y-2">
                   {erqee140.payloadReadinessItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-emerald-900/30 bg-emerald-950/10 p-3">
@@ -20629,7 +20631,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-emerald-300">Worker Contract 준�??��?</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-emerald-300">Worker Contract 준비 여부</h4>
                 <div className="space-y-2">
                   {erqee140.workerContractReadinessItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-emerald-900/30 bg-emerald-950/10 p-3">
@@ -20642,7 +20644,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-300">?�인/차단 ?�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-300">승인/차단 상태</h4>
                 <div className="space-y-2">
                   {erqee140.approvalAndBlockerItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-amber-900/40 bg-amber-950/20 p-3">
@@ -20655,7 +20657,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">?�제 enqueue가 금�??�어 ?�는 ?�유</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">실제 enqueue가 금지되어 있는 이유</h4>
                 <div className="space-y-2">
                   {erqee140.enqueueForbiddenReasonItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -20668,7 +20670,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 금�???/h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 금지됨</h4>
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                   {erqee140.stillForbiddenItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -20682,7 +20684,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-3 rounded-md border border-emerald-700/40 bg-emerald-950/20 p-4">
                 <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-emerald-300" />
                 <div>
-                  <h5 className="text-sm font-medium text-emerald-200">Execution Readiness Queue Enqueue Eligibility ??최종 ?�내</h5>
+                  <h5 className="text-sm font-medium text-emerald-200">Execution Readiness Queue Enqueue Eligibility — 최종 안내</h5>
                   <p className="mt-1 text-xs leading-relaxed text-emerald-200/80">{erqee140.finalNotice}</p>
                 </div>
               </div>
@@ -20691,7 +20693,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 141: Execution Readiness Queue Contract Overview ?� */}
+      {/* ── Task 141: Execution Readiness Queue Contract Overview ─ */}
       {(() => {
         const erqco141 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessQueueContractOverviewView;
         if (!erqco141) return null;
@@ -20710,11 +20712,11 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             </div>
             <p className="mb-4 text-xs leading-relaxed text-teal-200/70">{erqco141.summary}</p>
             <div className="mb-2 text-xs text-slate-500">{erqco141.taskRangeLabel}</div>
-            <div className="mb-1 text-xs text-slate-600">기�?: {erqco141.previousExecutionReadinessQueueEnqueueEligibilityLabel} ({erqco141.previousExecutionReadinessQueueEnqueueEligibilityCommit})</div>
+            <div className="mb-1 text-xs text-slate-600">기준: {erqco141.previousExecutionReadinessQueueEnqueueEligibilityLabel} ({erqco141.previousExecutionReadinessQueueEnqueueEligibilityCommit})</div>
             <div className="mt-4 space-y-4">
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-teal-300">Queue Payload ?�약</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-teal-300">Queue Payload 요약</h4>
                 <div className="space-y-2">
                   {erqco141.queuePayloadSummaryItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-teal-900/30 bg-teal-950/10 p-3">
@@ -20727,7 +20729,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-teal-300">Queue ?�재 가?�성 ?�약</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-teal-300">Queue 적재 가능성 요약</h4>
                 <div className="space-y-2">
                   {erqco141.queueEnqueueEligibilitySummaryItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-teal-900/30 bg-teal-950/10 p-3">
@@ -20740,7 +20742,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-teal-300">Worker Contract ?�약</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-teal-300">Worker Contract 요약</h4>
                 <div className="space-y-2">
                   {erqco141.workerContractSummaryItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-teal-900/30 bg-teal-950/10 p-3">
@@ -20753,7 +20755,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-teal-300">Snapshot / Plan / Risk ?�약</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-teal-300">Snapshot / Plan / Risk 요약</h4>
                 <div className="space-y-2">
                   {[...erqco141.snapshotSummaryItems, ...erqco141.planSummaryItems, ...erqco141.riskSummaryItems].map((item, i) => (
                     <div key={i} className="rounded-md border border-teal-900/30 bg-teal-950/10 p-3">
@@ -20766,7 +20768,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-300">?�인 ?��??�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-300">승인 대기 상태</h4>
                 <div className="space-y-2">
                   {erqco141.approvalPendingItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-amber-900/40 bg-amber-950/20 p-3">
@@ -20779,7 +20781,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">차단 ?�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">차단 상태</h4>
                 <div className="space-y-2">
                   {erqco141.blockedItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -20792,7 +20794,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-teal-300">Queue 참조???�합 View Contract</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-teal-300">Queue 참조용 통합 View Contract</h4>
                 <div className="space-y-2">
                   {erqco141.queueReferenceContractItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-teal-900/30 bg-teal-950/10 p-3">
@@ -20805,7 +20807,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 금�???/h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 금지됨</h4>
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                   {erqco141.stillForbiddenItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -20819,7 +20821,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-3 rounded-md border border-teal-700/40 bg-teal-950/20 p-4">
                 <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-teal-300" />
                 <div>
-                  <h5 className="text-sm font-medium text-teal-200">Execution Readiness Queue Contract Overview ??최종 ?�내</h5>
+                  <h5 className="text-sm font-medium text-teal-200">Execution Readiness Queue Contract Overview — 최종 안내</h5>
                   <p className="mt-1 text-xs leading-relaxed text-teal-200/80">{erqco141.finalNotice}</p>
                 </div>
               </div>
@@ -20828,7 +20830,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 142: Execution Readiness Worker Payload Interpretation ?� */}
+      {/* ── Task 142: Execution Readiness Worker Payload Interpretation ─ */}
       {(() => {
         const erwpi142 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView;
         if (!erwpi142) return null;
@@ -20847,11 +20849,11 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             </div>
             <p className="mb-4 text-xs leading-relaxed text-amber-200/70">{erwpi142.summary}</p>
             <div className="mb-2 text-xs text-slate-500">{erwpi142.taskRangeLabel}</div>
-            <div className="mb-1 text-xs text-slate-600">기�?: {erwpi142.previousExecutionReadinessQueueContractOverviewLabel} ({erwpi142.previousExecutionReadinessQueueContractOverviewCommit})</div>
+            <div className="mb-1 text-xs text-slate-600">기준: {erwpi142.previousExecutionReadinessQueueContractOverviewLabel} ({erwpi142.previousExecutionReadinessQueueContractOverviewCommit})</div>
             <div className="mt-4 space-y-4">
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-300">Worker가 Queue Payload?�서 참고?�야 ????��</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-300">Worker가 Queue Payload에서 참고해야 할 항목</h4>
                 <div className="space-y-2">
                   {erwpi142.workerPayloadReferenceItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-amber-900/30 bg-amber-950/10 p-3">
@@ -20864,7 +20866,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-300">?�행 준�??�태 ?�석 기�?</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-300">실행 준비 상태 해석 기준</h4>
                 <div className="space-y-2">
                   {erwpi142.executionReadinessInterpretationItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-amber-900/30 bg-amber-950/10 p-3">
@@ -20877,7 +20879,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-300">?�인 ?��??�태 ?�석 기�?</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-300">승인 대기 상태 해석 기준</h4>
                 <div className="space-y-2">
                   {erwpi142.approvalPendingInterpretationItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-amber-900/30 bg-amber-950/10 p-3">
@@ -20890,7 +20892,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">차단 ?�태 ?�석 기�?</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">차단 상태 해석 기준</h4>
                 <div className="space-y-2">
                   {erwpi142.blockedStateInterpretationItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -20903,7 +20905,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">?�행 불�? ?�유 ?�석 기�?</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">실행 불가 사유 해석 기준</h4>
                 <div className="space-y-2">
                   {erwpi142.executionNotAllowedReasonItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -20916,7 +20918,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-300">?�제 Worker ?�행?�로 ?�해?�면 ???�는 ??��</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-300">실제 Worker 실행으로 오해하면 안 되는 항목</h4>
                 <div className="space-y-2">
                   {erwpi142.misunderstandingPreventionItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-amber-900/30 bg-amber-950/10 p-3">
@@ -20929,7 +20931,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">?�직 ?�결?��? ?��? ?�행 경로</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">아직 연결되지 않은 실행 경로</h4>
                 <div className="space-y-2">
                   {erwpi142.disconnectedExecutionItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -20942,7 +20944,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 금�???/h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 금지됨</h4>
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                   {erwpi142.stillForbiddenItems.map((item, i) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -20956,7 +20958,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-3 rounded-md border border-amber-700/40 bg-amber-950/20 p-4">
                 <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-amber-300" />
                 <div>
-                  <h5 className="text-sm font-medium text-amber-200">Execution Readiness Worker Payload Interpretation ??최종 ?�내</h5>
+                  <h5 className="text-sm font-medium text-amber-200">Execution Readiness Worker Payload Interpretation — 최종 안내</h5>
                   <p className="mt-1 text-xs leading-relaxed text-amber-200/80">{erwpi142.finalNotice}</p>
                 </div>
               </div>
@@ -20965,7 +20967,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 143: Execution Readiness Worker Input Validation ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?� */}
+      {/* ── Task 143: Execution Readiness Worker Input Validation ─────────────── */}
       {(() => {
         const erwiv143 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerInputValidationView;
         if (!erwiv143) return null;
@@ -20984,11 +20986,11 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             </div>
             <p className="mb-4 text-xs leading-relaxed text-red-200/70">{erwiv143.summary}</p>
             <div className="mb-2 text-xs text-slate-500">{erwiv143.taskRangeLabel}</div>
-            <div className="mb-1 text-xs text-slate-600">기�?: {erwiv143.previousExecutionReadinessWorkerPayloadInterpretationLabel} ({erwiv143.previousExecutionReadinessWorkerPayloadInterpretationCommit})</div>
+            <div className="mb-1 text-xs text-slate-600">기준: {erwiv143.previousExecutionReadinessWorkerPayloadInterpretationLabel} ({erwiv143.previousExecutionReadinessWorkerPayloadInterpretationCommit})</div>
             <div className="mt-4 space-y-4">
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-300">Worker ?�력 검�?기�? (Payload Mapping)</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-300">Worker 입력 검증 기준 (Payload Mapping)</h4>
                 <div className="space-y-2">
                   {erwiv143.workerInputValidationCriteriaItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-red-900/30 bg-red-950/10 p-3">
@@ -21001,7 +21003,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-300">Queue Payload ?�수 ??�� 체크 기�?</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-300">Queue Payload 필수 항목 체크 기준</h4>
                 <div className="space-y-2">
                   {erwiv143.queuePayloadMandatoryCheckCriteriaItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-amber-900/30 bg-amber-950/10 p-3">
@@ -21014,7 +21016,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-300">?�행 준�??�태 ?�제조건</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-300">실행 준비 상태 전제조건</h4>
                 <div className="space-y-2">
                   {erwiv143.executionReadinessPrerequisiteItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-red-900/30 bg-red-950/10 p-3">
@@ -21027,7 +21029,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">?�인 ?��?�?차단 ?�태 검�?/h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">승인 대기 및 차단 상태 검증</h4>
                 <div className="space-y-2">
                   {erwiv143.approvalPendingBlockedValidationCriteriaItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -21040,7 +21042,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">?�행 불�? ?�유 검�?/h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">실행 불가 사유 검증</h4>
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                   {erwiv143.executionImpossibleReasonValidationCriteriaItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -21053,7 +21055,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">?�행 ??중단 조건</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">실행 전 중단 조건</h4>
                 <div className="space-y-2">
                   {erwiv143.stopConditionBeforeExecutionItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -21066,7 +21068,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">?�결?��? ?��? ?�태 (?�절)</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">연결되지 않은 상태 (단절)</h4>
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                   {erwiv143.disconnectedStatusItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -21081,7 +21083,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-3 rounded-md border border-red-700/40 bg-red-950/20 p-4">
                 <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-red-400" />
                 <div>
-                  <h5 className="text-sm font-medium text-red-200">Execution Readiness Worker Input Validation ??최종 ?�내</h5>
+                  <h5 className="text-sm font-medium text-red-200">Execution Readiness Worker Input Validation — 최종 안내</h5>
                   <p className="mt-1 text-xs leading-relaxed text-red-200/80">{erwiv143.finalNotice}</p>
                 </div>
               </div>
@@ -21090,7 +21092,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 144: Execution Readiness Worker Stop Conditions ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?� */}
+      {/* ── Task 144: Execution Readiness Worker Stop Conditions ─────────────── */}
       {(() => {
         const erwsc144 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerStopConditionsView;
         if (!erwsc144) return null;
@@ -21109,11 +21111,11 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             </div>
             <p className="mb-4 text-xs leading-relaxed text-red-200/70">{erwsc144.summary}</p>
             <div className="mb-2 text-xs text-slate-500">{erwsc144.taskRangeLabel}</div>
-            <div className="mb-1 text-xs text-slate-600">기�?: {erwsc144.previousExecutionReadinessWorkerInputValidationLabel} ({erwsc144.previousExecutionReadinessWorkerInputValidationCommit})</div>
+            <div className="mb-1 text-xs text-slate-600">기준: {erwsc144.previousExecutionReadinessWorkerInputValidationLabel} ({erwsc144.previousExecutionReadinessWorkerInputValidationCommit})</div>
             <div className="mt-4 space-y-4">
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-300">Queue Payload 검�??�패 ??중단 기�?</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-300">Queue Payload 검증 실패 시 중단 기준</h4>
                 <div className="space-y-2">
                   {erwsc144.queuePayloadValidationFailureStopItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-red-900/30 bg-red-950/10 p-3">
@@ -21126,7 +21128,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-300">?�인 ?��??�태????중단 기�?</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-300">승인 대기 상태일 때 중단 기준</h4>
                 <div className="space-y-2">
                   {erwsc144.approvalPendingStopItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-amber-900/30 bg-amber-950/10 p-3">
@@ -21139,7 +21141,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">차단 ?�태????중단 기�?</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">차단 상태일 때 중단 기준</h4>
                 <div className="space-y-2">
                   {erwsc144.blockedStateStopItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -21152,7 +21154,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">Token / Naver API / Adapter / DB Write / Queue 미연�???중단 기�?</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">Token / Naver API / Adapter / DB Write / Queue 미연결 시 중단 기준</h4>
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                   {erwsc144.disconnectedSystemStopItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -21165,7 +21167,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-400">?�제 ?�행?�로 ?�해?�면 ???�는 ??��</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-400">실제 실행으로 오해하면 안 되는 항목</h4>
                 <div className="space-y-2">
                   {erwsc144.misunderstandingPreventionItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-amber-900/30 bg-amber-950/10 p-3">
@@ -21180,7 +21182,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-3 rounded-md border border-red-700/40 bg-red-950/20 p-4">
                 <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-red-400" />
                 <div>
-                  <h5 className="text-sm font-medium text-red-200">Execution Readiness Worker Stop Conditions ??최종 ?�내</h5>
+                  <h5 className="text-sm font-medium text-red-200">Execution Readiness Worker Stop Conditions — 최종 안내</h5>
                   <p className="mt-1 text-xs leading-relaxed text-red-200/80">{erwsc144.finalNotice}</p>
                 </div>
               </div>
@@ -21189,7 +21191,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 145: Execution Readiness Worker Decision Preview ?�?�?�?�?�?�?�?�?�?�?�?�?�?� */}
+      {/* ── Task 145: Execution Readiness Worker Decision Preview ────────────── */}
       {(() => {
         const erwdp145 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerDecisionPreviewView;
         if (!erwdp145) return null;
@@ -21208,11 +21210,11 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             </div>
             <p className="mb-4 text-xs leading-relaxed text-red-200/70">{erwdp145.summary}</p>
             <div className="mb-2 text-xs text-slate-500">{erwdp145.taskRangeLabel}</div>
-            <div className="mb-1 text-xs text-slate-600">기�?: {erwdp145.previousExecutionReadinessWorkerStopConditionsLabel} ({erwdp145.previousExecutionReadinessWorkerStopConditionsCommit})</div>
+            <div className="mb-1 text-xs text-slate-600">기준: {erwdp145.previousExecutionReadinessWorkerStopConditionsLabel} ({erwdp145.previousExecutionReadinessWorkerStopConditionsCommit})</div>
             <div className="mt-4 space-y-4">
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-300">Worker ?�행 ???�상 ?�정</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-300">Worker 실행 전 예상 판정</h4>
                 <div className="space-y-2">
                   {erwdp145.expectedWorkerDecisionItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-red-900/30 bg-red-950/10 p-3">
@@ -21225,7 +21227,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">중단 조건 충족 ?��?</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">중단 조건 충족 여부</h4>
                 <div className="space-y-2">
                   {erwdp145.stopConditionSatisfactionItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -21238,7 +21240,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-300">Queue Payload 검�??�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-300">Queue Payload 검증 상태</h4>
                 <div className="space-y-2">
                   {erwdp145.queuePayloadValidationStatusItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-red-900/30 bg-red-950/10 p-3">
@@ -21251,7 +21253,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-300">?�인 ?��?차단 ?�태???�른 ?�정</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-300">승인 대기/차단 상태에 따른 판정</h4>
                 <div className="space-y-2">
                   {erwdp145.approvalPendingBlockedDecisionItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-amber-900/30 bg-amber-950/10 p-3">
@@ -21264,7 +21266,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">?�행 불�? ?�유 ?�약</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">실행 불가 사유 요약</h4>
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                   {erwdp145.executionImpossibleReasonSummaryItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -21277,7 +21279,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-400">?�제 ?�행?��? ?�는 ?�유</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-400">실제 실행하지 않는 이유</h4>
                 <div className="space-y-2">
                   {erwdp145.nonExecutionReasonItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-amber-900/30 bg-amber-950/10 p-3">
@@ -21290,7 +21292,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">Worker / Queue / Adapter / Token / Naver API / DB Write 미연�??�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">Worker / Queue / Adapter / Token / Naver API / DB Write 미연결 상태</h4>
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                   {erwdp145.disconnectedSystemDecisionItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -21305,7 +21307,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-3 rounded-md border border-red-700/40 bg-red-950/20 p-4">
                 <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-red-400" />
                 <div>
-                  <h5 className="text-sm font-medium text-red-200">Execution Readiness Worker Decision Preview ??최종 ?�내</h5>
+                  <h5 className="text-sm font-medium text-red-200">Execution Readiness Worker Decision Preview — 최종 안내</h5>
                   <p className="mt-1 text-xs leading-relaxed text-red-200/80">{erwdp145.finalNotice}</p>
                 </div>
               </div>
@@ -21314,7 +21316,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 146: Execution Readiness Worker Result Recording Preview ?�?�?�?�?� */}
+      {/* ── Task 146: Execution Readiness Worker Result Recording Preview ───── */}
       {(() => {
         const erwrrp146 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerResultRecordingPreviewView;
         if (!erwrrp146) return null;
@@ -21333,11 +21335,11 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             </div>
             <p className="mb-4 text-xs leading-relaxed text-red-200/70">{erwrrp146.summary}</p>
             <div className="mb-2 text-xs text-slate-500">{erwrrp146.taskRangeLabel}</div>
-            <div className="mb-1 text-xs text-slate-600">기�?: {erwrrp146.previousExecutionReadinessWorkerDecisionPreviewLabel} ({erwrrp146.previousExecutionReadinessWorkerDecisionPreviewCommit})</div>
+            <div className="mb-1 text-xs text-slate-600">기준: {erwrrp146.previousExecutionReadinessWorkerDecisionPreviewLabel} ({erwrrp146.previousExecutionReadinessWorkerDecisionPreviewCommit})</div>
             <div className="mt-4 space-y-4">
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-300">Worker ?�상 ?�정 ?�후 기록??결과 ??��</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-300">Worker 예상 판정 이후 기록될 결과 항목</h4>
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                   {erwrrp146.expectedRecordedResultItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-red-900/30 bg-red-950/10 p-3">
@@ -21350,7 +21352,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">?�공/중단/차단/?�패 ?�태�?기록 계획</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">성공/중단/차단/실패 상태별 기록 계획</h4>
                 <div className="space-y-2">
                   {erwrrp146.statusSpecificRecordingPlanItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -21363,7 +21365,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-300">Queue Payload / Worker Contract / Decision Preview 참조 ?�보</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-300">Queue Payload / Worker Contract / Decision Preview 참조 정보</h4>
                 <div className="space-y-2">
                   {erwrrp146.referenceSourceItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-red-900/30 bg-red-950/10 p-3">
@@ -21376,7 +21378,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-400">?�제 DB Write ?�이 ?�시?�는 결과 기록 미리보기</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-400">실제 DB Write 없이 표시되는 결과 기록 미리보기</h4>
                 <div className="space-y-2">
                   {erwrrp146.readOnlyRecordingPreviewItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-amber-900/30 bg-amber-950/10 p-3">
@@ -21389,7 +21391,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">?�영 DB write가 ?�직 금�??�어 ?�다???�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">운영 DB write가 아직 금지되어 있다는 상태</h4>
                 <div className="space-y-2">
                   {erwrrp146.operatingDbWriteForbiddenItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -21402,7 +21404,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">Worker / Queue / Adapter / Token / Naver API / DB Write 미연�??�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">Worker / Queue / Adapter / Token / Naver API / DB Write 미연결 상태</h4>
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                   {erwrrp146.disconnectedSystemRecordingItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -21417,7 +21419,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-3 rounded-md border border-red-700/40 bg-red-950/20 p-4">
                 <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-red-400" />
                 <div>
-                  <h5 className="text-sm font-medium text-red-200">Execution Readiness Worker Result Recording Preview ??최종 ?�내</h5>
+                  <h5 className="text-sm font-medium text-red-200">Execution Readiness Worker Result Recording Preview — 최종 안내</h5>
                   <p className="mt-1 text-xs leading-relaxed text-red-200/80">{erwrrp146.finalNotice}</p>
                 </div>
               </div>
@@ -21426,7 +21428,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 147: Execution Readiness Worker Result Persistence Guard ?�?�?�?�?� */}
+      {/* ── Task 147: Execution Readiness Worker Result Persistence Guard ───── */}
       {(() => {
         const erwpg147 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerResultPersistenceGuardView;
         if (!erwpg147) return null;
@@ -21445,11 +21447,11 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             </div>
             <p className="mb-4 text-xs leading-relaxed text-red-200/70">{erwpg147.summary}</p>
             <div className="mb-2 text-xs text-slate-500">{erwpg147.taskRangeLabel}</div>
-            <div className="mb-1 text-xs text-slate-600">기�?: {erwpg147.previousExecutionReadinessWorkerResultRecordingPreviewLabel} ({erwpg147.previousExecutionReadinessWorkerResultRecordingPreviewCommit})</div>
+            <div className="mb-1 text-xs text-slate-600">기준: {erwpg147.previousExecutionReadinessWorkerResultRecordingPreviewLabel} ({erwpg147.previousExecutionReadinessWorkerResultRecordingPreviewCommit})</div>
             <div className="mt-4 space-y-4">
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-300">결과 기록 계획�??�제 DB Write??분리 ?�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-300">결과 기록 계획과 실제 DB Write의 분리 상태</h4>
                 <div className="space-y-2">
                   {erwpg147.recordingPlanSeparationItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-red-900/30 bg-red-950/10 p-3">
@@ -21462,7 +21464,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">?�영 DB write 금�? ?�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">운영 DB write 금지 상태</h4>
                 <div className="space-y-2">
                   {erwpg147.operatingDbWriteGuardItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -21475,7 +21477,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-300">?�스???�영 DB 경계 ?�인 ?�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-300">테스트/운영 DB 경계 확인 상태</h4>
                 <div className="space-y-2">
                   {erwpg147.testOperatingDbBoundaryItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-amber-900/30 bg-amber-950/10 p-3">
@@ -21488,7 +21490,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">결과 ?�?????�요???�인 조건</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">결과 저장 전 필요한 승인 조건</h4>
                 <div className="space-y-2">
                   {erwpg147.requiredApprovalConditionItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -21501,7 +21503,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-300">Worker Decision Preview / Result Recording Preview 참조 ?�보</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-300">Worker Decision Preview / Result Recording Preview 참조 정보</h4>
                 <div className="space-y-2">
                   {erwpg147.referenceSourceItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-red-900/30 bg-red-950/10 p-3">
@@ -21514,7 +21516,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-400">?�제 ?�?�으�??�해?�면 ???�는 ??��</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-400">실제 저장으로 오해하면 안 되는 항목</h4>
                 <div className="space-y-2">
                   {erwpg147.misunderstandingPreventionItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-amber-900/30 bg-amber-950/10 p-3">
@@ -21527,7 +21529,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">Worker / Queue / Adapter / Token / Naver API / DB Write 미연�??�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">Worker / Queue / Adapter / Token / Naver API / DB Write 미연결 상태</h4>
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                   {erwpg147.disconnectedSystemGuardItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -21542,7 +21544,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-3 rounded-md border border-red-700/40 bg-red-950/20 p-4">
                 <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-red-400" />
                 <div>
-                  <h5 className="text-sm font-medium text-red-200">Execution Readiness Worker Result Persistence Guard ??최종 ?�내</h5>
+                  <h5 className="text-sm font-medium text-red-200">Execution Readiness Worker Result Persistence Guard — 최종 안내</h5>
                   <p className="mt-1 text-xs leading-relaxed text-red-200/80">{erwpg147.finalNotice}</p>
                 </div>
               </div>
@@ -21551,7 +21553,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 148: Execution Readiness Worker Audit Log Preview ?�?�?�?�?�?�?�?�?�?�?�?�?� */}
+      {/* ── Task 148: Execution Readiness Worker Audit Log Preview ───────────── */}
       {(() => {
         const erwalp148 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerAuditLogPreviewView;
         if (!erwalp148) return null;
@@ -21570,7 +21572,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             </div>
             <p className="mb-4 text-xs leading-relaxed text-red-200/70">{erwalp148.summary}</p>
             <div className="mb-2 text-xs text-slate-500">{erwalp148.taskRangeLabel}</div>
-            <div className="mb-1 text-xs text-slate-600">기�?: {erwalp148.previousExecutionReadinessWorkerResultPersistenceGuardLabel} ({erwalp148.previousExecutionReadinessWorkerResultPersistenceGuardCommit})</div>
+            <div className="mb-1 text-xs text-slate-600">기준: {erwalp148.previousExecutionReadinessWorkerResultPersistenceGuardLabel} ({erwalp148.previousExecutionReadinessWorkerResultPersistenceGuardCommit})</div>
             <div className="mt-4 space-y-4">
 
               <div>
@@ -21587,7 +21589,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">결과 기록 계획�?감사 로그??분리 ?�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">결과 기록 계획과 감사 로그의 분리 상태</h4>
                 <div className="space-y-2">
                   {erwalp148.resultRecordingSeparationItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -21600,7 +21602,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-300">DB write ?�이 ?�시?�는 감사 로그 미리보기</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-300">DB write 없이 표시되는 감사 로그 미리보기</h4>
                 <div className="space-y-2">
                   {erwalp148.readOnlyAuditPreviewItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-amber-900/30 bg-amber-950/10 p-3">
@@ -21613,7 +21615,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-300">Worker Decision Preview / Result Recording Preview / Persistence Guard 참조 ?�보</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-300">Worker Decision Preview / Result Recording Preview / Persistence Guard 참조 정보</h4>
                 <div className="space-y-2">
                   {erwalp148.referenceSourceItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-red-900/30 bg-red-950/10 p-3">
@@ -21626,7 +21628,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-400">?�제 ?�?�·실?�으�??�해?�면 ???�는 ??��</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-400">실제 저장·실행으로 오해하면 안 되는 항목</h4>
                 <div className="space-y-2">
                   {erwalp148.misunderstandingPreventionItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-amber-900/30 bg-amber-950/10 p-3">
@@ -21639,7 +21641,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">Worker / Queue / Adapter / Token / Naver API / DB Write 미연�??�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">Worker / Queue / Adapter / Token / Naver API / DB Write 미연결 상태</h4>
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                   {erwalp148.disconnectedSystemAuditItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -21654,7 +21656,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-3 rounded-md border border-red-700/40 bg-red-950/20 p-4">
                 <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-red-400" />
                 <div>
-                  <h5 className="text-sm font-medium text-red-200">Execution Readiness Worker Audit Log Preview ??최종 ?�내</h5>
+                  <h5 className="text-sm font-medium text-red-200">Execution Readiness Worker Audit Log Preview — 최종 안내</h5>
                   <p className="mt-1 text-xs leading-relaxed text-red-200/80">{erwalp148.finalNotice}</p>
                 </div>
               </div>
@@ -21663,7 +21665,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 149: Execution Readiness Worker Audit Evidence Bundle ?�?�?�?�?�?�?�?�?� */}
+      {/* ── Task 149: Execution Readiness Worker Audit Evidence Bundle ───────── */}
       {(() => {
         const erwAeb149 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerAuditEvidenceBundleView;
         if (!erwAeb149) return null;
@@ -21682,7 +21684,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             </div>
             <p className="mb-4 text-xs leading-relaxed text-red-200/70">{erwAeb149.summary}</p>
             <div className="mb-2 text-xs text-slate-500">{erwAeb149.taskRangeLabel}</div>
-            <div className="mb-1 text-xs text-slate-600">기�?: {erwAeb149.previousExecutionReadinessWorkerAuditLogPreviewLabel} ({erwAeb149.previousExecutionReadinessWorkerAuditLogPreviewCommit})</div>
+            <div className="mb-1 text-xs text-slate-600">기준: {erwAeb149.previousExecutionReadinessWorkerAuditLogPreviewLabel} ({erwAeb149.previousExecutionReadinessWorkerAuditLogPreviewCommit})</div>
             <div className="mt-4 space-y-4">
 
               <div>
@@ -21699,7 +21701,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-300">Decision Preview / Result Recording Preview / Persistence Guard / Audit Log Preview 참조 ?�보</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-300">Decision Preview / Result Recording Preview / Persistence Guard / Audit Log Preview 참조 정보</h4>
                 <div className="space-y-2">
                   {erwAeb149.referenceSourceItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-red-900/30 bg-red-950/10 p-3">
@@ -21712,7 +21714,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-300">?�행 ???�정 증빙</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-300">실행 전 판정 증빙</h4>
                 <div className="space-y-2">
                   {erwAeb149.preExecutionDecisionEvidenceItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-amber-900/30 bg-amber-950/10 p-3">
@@ -21764,7 +21766,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-400">?�제 ?�?�·실?�으�??�해?�면 ???�는 ??��</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-400">실제 저장·실행으로 오해하면 안 되는 항목</h4>
                 <div className="space-y-2">
                   {erwAeb149.misunderstandingPreventionItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-amber-900/30 bg-amber-950/10 p-3">
@@ -21777,7 +21779,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">Worker / Queue / Adapter / Token / Naver API / DB Write 미연�??�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">Worker / Queue / Adapter / Token / Naver API / DB Write 미연결 상태</h4>
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                   {erwAeb149.disconnectedSystemEvidenceItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -21792,7 +21794,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-3 rounded-md border border-red-700/40 bg-red-950/20 p-4">
                 <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-red-400" />
                 <div>
-                  <h5 className="text-sm font-medium text-red-200">Execution Readiness Worker Audit Evidence Bundle ??최종 ?�내</h5>
+                  <h5 className="text-sm font-medium text-red-200">Execution Readiness Worker Audit Evidence Bundle — 최종 안내</h5>
                   <p className="mt-1 text-xs leading-relaxed text-red-200/80">{erwAeb149.finalNotice}</p>
                 </div>
               </div>
@@ -21801,7 +21803,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 150: Execution Readiness Worker Audit Closure ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?� */}
+      {/* ── Task 150: Execution Readiness Worker Audit Closure ───────────────── */}
       {(() => {
         const erwAc150 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerAuditClosureView;
         if (!erwAc150) return null;
@@ -21820,11 +21822,11 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             </div>
             <p className="mb-4 text-xs leading-relaxed text-red-200/70">{erwAc150.summary}</p>
             <div className="mb-2 text-xs text-slate-500">{erwAc150.taskRangeLabel}</div>
-            <div className="mb-1 text-xs text-slate-600">기�?: {erwAc150.previousExecutionReadinessWorkerAuditEvidenceBundleLabel} ({erwAc150.previousExecutionReadinessWorkerAuditEvidenceBundleCommit})</div>
+            <div className="mb-1 text-xs text-slate-600">기준: {erwAc150.previousExecutionReadinessWorkerAuditEvidenceBundleLabel} ({erwAc150.previousExecutionReadinessWorkerAuditEvidenceBundleCommit})</div>
             <div className="mt-4 space-y-4">
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-300">Worker 감사 준�??�름 마감 ?�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-300">Worker 감사 준비 흐름 마감 상태</h4>
                 <div className="space-y-2">
                   {erwAc150.workerAuditClosureItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-red-900/30 bg-red-950/10 p-3">
@@ -21837,7 +21839,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-300">Decision Preview / Result Recording Preview / Persistence Guard / Audit Log Preview / Audit Evidence Bundle 참조 ?�보</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-300">Decision Preview / Result Recording Preview / Persistence Guard / Audit Log Preview / Audit Evidence Bundle 참조 정보</h4>
                 <div className="space-y-2">
                   {erwAc150.referenceSourceItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-red-900/30 bg-red-950/10 p-3">
@@ -21850,7 +21852,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">?�행 ???�정, 결과 기록 계획, DB Write 차단, 감사 로그 계획, 감사 증빙 묶음??최종 ?�약</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">실행 전 판정, 결과 기록 계획, DB Write 차단, 감사 로그 계획, 감사 증빙 묶음의 최종 요약</h4>
                 <div className="space-y-2">
                   {erwAc150.finalAuditSummaryItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -21863,7 +21865,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-400">?�제 ?�?�·실?�으�??�해?�면 ???�는 ??��</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-400">실제 저장·실행으로 오해하면 안 되는 항목</h4>
                 <div className="space-y-2">
                   {erwAc150.misunderstandingPreventionItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-amber-900/30 bg-amber-950/10 p-3">
@@ -21876,7 +21878,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">Worker / Queue / Adapter / Token / Naver API / DB Write 미연�??�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">Worker / Queue / Adapter / Token / Naver API / DB Write 미연결 상태</h4>
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                   {erwAc150.disconnectedSystemClosureItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -21891,7 +21893,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-3 rounded-md border border-red-700/40 bg-red-950/20 p-4">
                 <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-red-400" />
                 <div>
-                  <h5 className="text-sm font-medium text-red-200">Execution Readiness Worker Audit Closure ??최종 ?�내</h5>
+                  <h5 className="text-sm font-medium text-red-200">Execution Readiness Worker Audit Closure — 최종 안내</h5>
                   <p className="mt-1 text-xs leading-relaxed text-red-200/80">{erwAc150.finalNotice}</p>
                 </div>
               </div>
@@ -21900,7 +21902,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 151: Execution Connection Preparation Overview ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?� */}
+      {/* ── Task 151: Execution Connection Preparation Overview ─────────────── */}
       {(() => {
         const ecpo151 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionConnectionPreparationOverviewView;
         if (!ecpo151) return null;
@@ -21919,7 +21921,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             </div>
             <p className="mb-4 text-xs leading-relaxed text-red-200/70">{ecpo151.summary}</p>
             <div className="mb-2 text-xs text-slate-500">{ecpo151.taskRangeLabel}</div>
-            <div className="mb-1 text-xs text-slate-600">기�?: {ecpo151.previousExecutionReadinessWorkerAuditClosureLabel} ({ecpo151.previousExecutionReadinessWorkerAuditClosureCommit})</div>
+            <div className="mb-1 text-xs text-slate-600">기준: {ecpo151.previousExecutionReadinessWorkerAuditClosureLabel} ({ecpo151.previousExecutionReadinessWorkerAuditClosureCommit})</div>
             <div className="mt-4 space-y-4">
 
               <div>
@@ -21936,7 +21938,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-300">Decision Preview / Result Recording Preview / Persistence Guard / Audit Log Preview / Audit Evidence Bundle 참조 ?�보</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-300">Decision Preview / Result Recording Preview / Persistence Guard / Audit Log Preview / Audit Evidence Bundle 참조 정보</h4>
                 <div className="space-y-2">
                   {ecpo151.referenceSourceItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-red-900/30 bg-red-950/10 p-3">
@@ -21949,7 +21951,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">Worker Connection 준�??�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">Worker Connection 준비 상태</h4>
                 <div className="space-y-2">
                   {ecpo151.workerConnectionPreparationItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -21962,7 +21964,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">Queue Connection 준�??�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">Queue Connection 준비 상태</h4>
                 <div className="space-y-2">
                   {ecpo151.queueConnectionPreparationItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -21975,7 +21977,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">Adapter Connection 준�??�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">Adapter Connection 준비 상태</h4>
                 <div className="space-y-2">
                   {ecpo151.adapterConnectionPreparationItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -21988,7 +21990,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-300">Runtime Environment 준�??�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-300">Runtime Environment 준비 상태</h4>
                 <div className="space-y-2">
                   {ecpo151.runtimeEnvironmentPreparationItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-amber-900/30 bg-amber-950/10 p-3">
@@ -22001,7 +22003,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-300">?�직 ?�결?��? ?��? 구성 ?�소</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-300">아직 연결되지 않은 구성 요소</h4>
                 <div className="space-y-2">
                   {ecpo151.disconnectedComponentItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-red-900/30 bg-red-950/10 p-3">
@@ -22014,7 +22016,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">별도 ?�인 ??계속 차단?�는 ??��</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">별도 승인 전 계속 차단되는 항목</h4>
                 <div className="space-y-2">
                   {ecpo151.blockedUntilSeparateApprovalItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -22027,7 +22029,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-400">?�제 ?�행?�로 ?�해?�면 ???�는 ??��</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-400">실제 실행으로 오해하면 안 되는 항목</h4>
                 <div className="space-y-2">
                   {ecpo151.misunderstandingPreventionItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-amber-900/30 bg-amber-950/10 p-3">
@@ -22042,7 +22044,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-3 rounded-md border border-red-700/40 bg-red-950/20 p-4">
                 <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-red-400" />
                 <div>
-                  <h5 className="text-sm font-medium text-red-200">Execution Connection Preparation Overview ??최종 ?�내</h5>
+                  <h5 className="text-sm font-medium text-red-200">Execution Connection Preparation Overview — 최종 안내</h5>
                   <p className="mt-1 text-xs leading-relaxed text-red-200/80">{ecpo151.finalNotice}</p>
                 </div>
               </div>
@@ -22051,7 +22053,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 152: Execution Connection Worker Preparation ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?� */}
+      {/* ── Task 152: Execution Connection Worker Preparation ───────────────── */}
       {(() => {
         const ecwp152 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionConnectionWorkerPreparationView;
         if (!ecwp152) return null;
@@ -22070,11 +22072,11 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             </div>
             <p className="mb-4 text-xs leading-relaxed text-red-200/70">{ecwp152.summary}</p>
             <div className="mb-2 text-xs text-slate-500">{ecwp152.taskRangeLabel}</div>
-            <div className="mb-1 text-xs text-slate-600">기�?: {ecwp152.previousExecutionConnectionPreparationOverviewLabel} ({ecwp152.previousExecutionConnectionPreparationOverviewCommit})</div>
+            <div className="mb-1 text-xs text-slate-600">기준: {ecwp152.previousExecutionConnectionPreparationOverviewLabel} ({ecwp152.previousExecutionConnectionPreparationOverviewCommit})</div>
             <div className="mt-4 space-y-4">
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-300">Worker Connection 준�??�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-300">Worker Connection 준비 상태</h4>
                 <div className="space-y-2">
                   {ecwp152.workerConnectionPreparationItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-red-900/30 bg-red-950/10 p-3">
@@ -22087,7 +22089,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-300">Worker Contract 참조 ?�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-300">Worker Contract 참조 상태</h4>
                 <div className="space-y-2">
                   {ecwp152.workerContractReferenceItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-red-900/30 bg-red-950/10 p-3">
@@ -22100,7 +22102,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-300">Worker Input Validation 참조 ?�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-300">Worker Input Validation 참조 상태</h4>
                 <div className="space-y-2">
                   {ecwp152.workerInputValidationReferenceItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-amber-900/30 bg-amber-950/10 p-3">
@@ -22113,7 +22115,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">Worker Stop Conditions 참조 ?�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">Worker Stop Conditions 참조 상태</h4>
                 <div className="space-y-2">
                   {ecwp152.workerStopConditionReferenceItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -22126,7 +22128,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">Worker Decision Preview 참조 ?�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">Worker Decision Preview 참조 상태</h4>
                 <div className="space-y-2">
                   {ecwp152.workerDecisionPreviewReferenceItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -22139,7 +22141,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-400">?�직 Worker가 ?�제 ?�행?��? ?�는 ?�유</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-400">아직 Worker가 실제 실행되지 않는 이유</h4>
                 <div className="space-y-2">
                   {ecwp152.actualExecutionBlockedReasonItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-amber-900/30 bg-amber-950/10 p-3">
@@ -22152,7 +22154,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">Worker / Queue / Adapter / Token / Naver API / DB Write 미연�??�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">Worker / Queue / Adapter / Token / Naver API / DB Write 미연결 상태</h4>
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                   {ecwp152.disconnectedSystemItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -22167,7 +22169,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-3 rounded-md border border-red-700/40 bg-red-950/20 p-4">
                 <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-red-400" />
                 <div>
-                  <h5 className="text-sm font-medium text-red-200">Execution Connection Worker Preparation ??최종 ?�내</h5>
+                  <h5 className="text-sm font-medium text-red-200">Execution Connection Worker Preparation — 최종 안내</h5>
                   <p className="mt-1 text-xs leading-relaxed text-red-200/80">{ecwp152.finalNotice}</p>
                 </div>
               </div>
@@ -22176,7 +22178,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 153: Execution Connection Queue Preparation ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?� */}
+      {/* ── Task 153: Execution Connection Queue Preparation ────────────────── */}
       {(() => {
         const ecqp153 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionConnectionQueuePreparationView;
         if (!ecqp153) return null;
@@ -22195,11 +22197,11 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             </div>
             <p className="mb-4 text-xs leading-relaxed text-red-200/70">{ecqp153.summary}</p>
             <div className="mb-2 text-xs text-slate-500">{ecqp153.taskRangeLabel}</div>
-            <div className="mb-1 text-xs text-slate-600">기�?: {ecqp153.previousExecutionConnectionWorkerPreparationLabel} ({ecqp153.previousExecutionConnectionWorkerPreparationCommit})</div>
+            <div className="mb-1 text-xs text-slate-600">기준: {ecqp153.previousExecutionConnectionWorkerPreparationLabel} ({ecqp153.previousExecutionConnectionWorkerPreparationCommit})</div>
             <div className="mt-4 space-y-4">
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-300">Queue Connection 준�??�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-300">Queue Connection 준비 상태</h4>
                 <div className="space-y-2">
                   {ecqp153.queueConnectionPreparationItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-red-900/30 bg-red-950/10 p-3">
@@ -22212,7 +22214,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-sky-300">Queue Payload Preview 참조 ?�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-sky-300">Queue Payload Preview 참조 상태</h4>
                 <div className="space-y-2">
                   {ecqp153.queuePayloadPreviewReferenceItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-sky-900/30 bg-sky-950/10 p-3">
@@ -22225,7 +22227,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-emerald-300">Queue Enqueue Eligibility 참조 ?�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-emerald-300">Queue Enqueue Eligibility 참조 상태</h4>
                 <div className="space-y-2">
                   {ecqp153.queueEnqueueEligibilityReferenceItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-emerald-900/30 bg-emerald-950/10 p-3">
@@ -22238,7 +22240,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-teal-300">Queue Contract Overview 참조 ?�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-teal-300">Queue Contract Overview 참조 상태</h4>
                 <div className="space-y-2">
                   {ecqp153.queueContractOverviewReferenceItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-teal-900/30 bg-teal-950/10 p-3">
@@ -22251,7 +22253,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-300">Worker Contract?� Queue Contract???�결 ??관�?/h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-300">Worker Contract와 Queue Contract의 연결 전 관계</h4>
                 <div className="space-y-2">
                   {ecqp153.preConnectionWorkerQueueRelationItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-amber-900/30 bg-amber-950/10 p-3">
@@ -22264,7 +22266,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-400">?�직 Queue enqueue가 ?�제 ?�행?��? ?�는 ?�유</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-400">아직 Queue enqueue가 실제 수행되지 않는 이유</h4>
                 <div className="space-y-2">
                   {ecqp153.actualEnqueueBlockedReasonItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-amber-900/30 bg-amber-950/10 p-3">
@@ -22277,7 +22279,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">Worker / Queue / Adapter / Token / Naver API / DB Write 미연�??�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">Worker / Queue / Adapter / Token / Naver API / DB Write 미연결 상태</h4>
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                   {ecqp153.disconnectedSystemItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -22292,7 +22294,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-3 rounded-md border border-red-700/40 bg-red-950/20 p-4">
                 <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-red-400" />
                 <div>
-                  <h5 className="text-sm font-medium text-red-200">Execution Connection Queue Preparation ??최종 ?�내</h5>
+                  <h5 className="text-sm font-medium text-red-200">Execution Connection Queue Preparation — 최종 안내</h5>
                   <p className="mt-1 text-xs leading-relaxed text-red-200/80">{ecqp153.finalNotice}</p>
                 </div>
               </div>
@@ -22301,7 +22303,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 154: Execution Connection Adapter Preparation ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?� */}
+      {/* ── Task 154: Execution Connection Adapter Preparation ──────────────── */}
       {(() => {
         const ecap154 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionConnectionAdapterPreparationView;
         if (!ecap154) return null;
@@ -22320,11 +22322,11 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             </div>
             <p className="mb-4 text-xs leading-relaxed text-red-200/70">{ecap154.summary}</p>
             <div className="mb-2 text-xs text-slate-500">{ecap154.taskRangeLabel}</div>
-            <div className="mb-1 text-xs text-slate-600">기�?: {ecap154.previousExecutionConnectionQueuePreparationLabel} ({ecap154.previousExecutionConnectionQueuePreparationCommit})</div>
+            <div className="mb-1 text-xs text-slate-600">기준: {ecap154.previousExecutionConnectionQueuePreparationLabel} ({ecap154.previousExecutionConnectionQueuePreparationCommit})</div>
             <div className="mt-4 space-y-4">
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-300">Adapter Connection 준�??�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-300">Adapter Connection 준비 상태</h4>
                 <div className="space-y-2">
                   {ecap154.adapterConnectionPreparationItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-red-900/30 bg-red-950/10 p-3">
@@ -22337,7 +22339,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">Live Adapter 미연�??�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">Live Adapter 미연결 상태</h4>
                 <div className="space-y-2">
                   {ecap154.liveAdapterDisconnectedItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -22350,7 +22352,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-300">Mock / Dry-run Adapter?� Live Adapter??분리 ?�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-300">Mock / Dry-run Adapter와 Live Adapter의 분리 상태</h4>
                 <div className="space-y-2">
                   {ecap154.mockDryRunAndLiveSeparationItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-amber-900/30 bg-amber-950/10 p-3">
@@ -22363,7 +22365,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">Token / Naver API ?�결 ??차단 ?�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">Token / Naver API 연결 전 차단 상태</h4>
                 <div className="space-y-2">
                   {ecap154.tokenAndNaverApiBlockedItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -22376,7 +22378,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-teal-300">Worker / Queue?� Adapter???�결 ??관�?/h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-teal-300">Worker / Queue와 Adapter의 연결 전 관계</h4>
                 <div className="space-y-2">
                   {ecap154.preConnectionWorkerQueueAdapterRelationItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-teal-900/30 bg-teal-950/10 p-3">
@@ -22389,7 +22391,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-400">?�직 Adapter가 ?�제 ?��? ?�동???�행?��? ?�는 ?�유</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-400">아직 Adapter가 실제 외부 연동을 수행하지 않는 이유</h4>
                 <div className="space-y-2">
                   {ecap154.actualExternalIntegrationBlockedReasonItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-amber-900/30 bg-amber-950/10 p-3">
@@ -22402,7 +22404,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">Worker / Queue / Adapter / Token / Naver API / DB Write 미연�??�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">Worker / Queue / Adapter / Token / Naver API / DB Write 미연결 상태</h4>
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                   {ecap154.disconnectedSystemItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -22417,7 +22419,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-3 rounded-md border border-red-700/40 bg-red-950/20 p-4">
                 <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-red-400" />
                 <div>
-                  <h5 className="text-sm font-medium text-red-200">Execution Connection Adapter Preparation ??최종 ?�내</h5>
+                  <h5 className="text-sm font-medium text-red-200">Execution Connection Adapter Preparation — 최종 안내</h5>
                   <p className="mt-1 text-xs leading-relaxed text-red-200/80">{ecap154.finalNotice}</p>
                 </div>
               </div>
@@ -22426,7 +22428,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 155: Execution Connection Runtime Environment Preparation ?�?�?� */}
+      {/* ── Task 155: Execution Connection Runtime Environment Preparation ─── */}
       {(() => {
         const ecrep155 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionConnectionRuntimeEnvironmentPreparationView;
         if (!ecrep155) return null;
@@ -22445,11 +22447,11 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             </div>
             <p className="mb-4 text-xs leading-relaxed text-red-200/70">{ecrep155.summary}</p>
             <div className="mb-2 text-xs text-slate-500">{ecrep155.taskRangeLabel}</div>
-            <div className="mb-1 text-xs text-slate-600">기�?: {ecrep155.previousExecutionConnectionAdapterPreparationLabel} ({ecrep155.previousExecutionConnectionAdapterPreparationCommit})</div>
+            <div className="mb-1 text-xs text-slate-600">기준: {ecrep155.previousExecutionConnectionAdapterPreparationLabel} ({ecrep155.previousExecutionConnectionAdapterPreparationCommit})</div>
             <div className="mt-4 space-y-4">
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-300">Runtime Environment 준�??�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-300">Runtime Environment 준비 상태</h4>
                 <div className="space-y-2">
                   {ecrep155.runtimeEnvironmentPreparationItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-amber-900/30 bg-amber-950/10 p-3">
@@ -22462,7 +22464,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">Docker / Redis / Worker Runtime / Queue Runtime 준�??�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">Docker / Redis / Worker Runtime / Queue Runtime 준비 상태</h4>
                 <div className="space-y-2">
                   {ecrep155.dockerRedisWorkerQueueRuntimeItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -22475,7 +22477,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-teal-300">?�스???�경�??�영 ?�경??분리 ?�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-teal-300">테스트 환경과 운영 환경의 분리 상태</h4>
                 <div className="space-y-2">
                   {ecrep155.testAndOperatingEnvironmentSeparationItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-teal-900/30 bg-teal-950/10 p-3">
@@ -22488,7 +22490,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-cyan-300">?�경 변??�?Feature Flag ?�인 ?�요 ?�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-cyan-300">환경 변수 및 Feature Flag 확인 필요 상태</h4>
                 <div className="space-y-2">
                   {ecrep155.environmentVariableAndFeatureFlagItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-cyan-900/30 bg-cyan-950/10 p-3">
@@ -22501,7 +22503,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">Runtime ?�행 ??차단 조건</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">Runtime 실행 전 차단 조건</h4>
                 <div className="space-y-2">
                   {ecrep155.runtimeExecutionBlockedItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -22514,7 +22516,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-400">?�직 Runtime???�제 ?�행?��? ?�는 ?�유</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-400">아직 Runtime이 실제 실행되지 않는 이유</h4>
                 <div className="space-y-2">
                   {ecrep155.actualRuntimeNotRunningReasonItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-amber-900/30 bg-amber-950/10 p-3">
@@ -22527,7 +22529,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">Worker / Queue / Adapter / Token / Naver API / DB Write 미연�??�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">Worker / Queue / Adapter / Token / Naver API / DB Write 미연결 상태</h4>
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                   {ecrep155.disconnectedSystemItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -22542,7 +22544,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-3 rounded-md border border-red-700/40 bg-red-950/20 p-4">
                 <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-red-400" />
                 <div>
-                  <h5 className="text-sm font-medium text-red-200">Execution Connection Runtime Environment Preparation ??최종 ?�내</h5>
+                  <h5 className="text-sm font-medium text-red-200">Execution Connection Runtime Environment Preparation — 최종 안내</h5>
                   <p className="mt-1 text-xs leading-relaxed text-red-200/80">{ecrep155.finalNotice}</p>
                 </div>
               </div>
@@ -22551,7 +22553,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 156: Execution Connection Feature Flag Preparation ?�?�?�?�?�?�?�?�?�?�?� */}
+      {/* ── Task 156: Execution Connection Feature Flag Preparation ─────────── */}
       {(() => {
         const ecffp156 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionConnectionFeatureFlagPreparationView;
         if (!ecffp156) return null;
@@ -22570,11 +22572,11 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             </div>
             <p className="mb-4 text-xs leading-relaxed text-red-200/70">{ecffp156.summary}</p>
             <div className="mb-2 text-xs text-slate-500">{ecffp156.taskRangeLabel}</div>
-            <div className="mb-1 text-xs text-slate-600">기�?: {ecffp156.previousExecutionConnectionRuntimeEnvironmentPreparationLabel} ({ecffp156.previousExecutionConnectionRuntimeEnvironmentPreparationCommit})</div>
+            <div className="mb-1 text-xs text-slate-600">기준: {ecffp156.previousExecutionConnectionRuntimeEnvironmentPreparationLabel} ({ecffp156.previousExecutionConnectionRuntimeEnvironmentPreparationCommit})</div>
             <div className="mt-4 space-y-4">
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-300">?�행 관??Feature Flag 준�??�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-300">실행 관련 Feature Flag 준비 상태</h4>
                 <div className="space-y-2">
                   {ecffp156.executionFeatureFlagPreparationItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-amber-900/30 bg-amber-950/10 p-3">
@@ -22587,7 +22589,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-teal-300">Runtime Environment?� Feature Flag???�결 ??관�?/h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-teal-300">Runtime Environment와 Feature Flag의 연결 전 관계</h4>
                 <div className="space-y-2">
                   {ecffp156.preConnectionRuntimeAndFeatureFlagRelationItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-teal-900/30 bg-teal-950/10 p-3">
@@ -22600,7 +22602,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-cyan-300">Worker / Queue / Adapter ?�행 Feature Flag ?�인 ?�요 ?�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-cyan-300">Worker / Queue / Adapter 실행 Feature Flag 확인 필요 상태</h4>
                 <div className="space-y-2">
                   {ecffp156.workerQueueAdapterFeatureFlagReviewItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-cyan-900/30 bg-cyan-950/10 p-3">
@@ -22613,7 +22615,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">?�제 ?�행 ??Feature Flag 차단 조건</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">실제 실행 전 Feature Flag 차단 조건</h4>
                 <div className="space-y-2">
                   {ecffp156.featureFlagBlockedConditionItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -22626,7 +22628,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">Feature Flag가 ?�직 ?�행 권한???��? ?�았?�는 ?�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">Feature Flag가 아직 실행 권한을 열지 않았다는 상태</h4>
                 <div className="space-y-2">
                   {ecffp156.executionPermissionStillClosedItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -22639,7 +22641,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">Worker / Queue / Adapter / Token / Naver API / DB Write 미연�??�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">Worker / Queue / Adapter / Token / Naver API / DB Write 미연결 상태</h4>
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                   {ecffp156.disconnectedSystemItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -22654,7 +22656,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-3 rounded-md border border-red-700/40 bg-red-950/20 p-4">
                 <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-red-400" />
                 <div>
-                  <h5 className="text-sm font-medium text-red-200">Execution Connection Feature Flag Preparation ??최종 ?�내</h5>
+                  <h5 className="text-sm font-medium text-red-200">Execution Connection Feature Flag Preparation — 최종 안내</h5>
                   <p className="mt-1 text-xs leading-relaxed text-red-200/80">{ecffp156.finalNotice}</p>
                 </div>
               </div>
@@ -22663,7 +22665,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 157: Execution Connection Safety Gate Preparation ?�?�?�?�?�?�?�?�?�?�?� */}
+      {/* ── Task 157: Execution Connection Safety Gate Preparation ─────────── */}
       {(() => {
         const ecsgp157 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionConnectionSafetyGatePreparationView;
         if (!ecsgp157) return null;
@@ -22682,11 +22684,11 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             </div>
             <p className="mb-4 text-xs leading-relaxed text-red-200/70">{ecsgp157.summary}</p>
             <div className="mb-2 text-xs text-slate-500">{ecsgp157.taskRangeLabel}</div>
-            <div className="mb-1 text-xs text-slate-600">기�?: {ecsgp157.previousExecutionConnectionFeatureFlagPreparationLabel} ({ecsgp157.previousExecutionConnectionFeatureFlagPreparationCommit})</div>
+            <div className="mb-1 text-xs text-slate-600">기준: {ecsgp157.previousExecutionConnectionFeatureFlagPreparationLabel} ({ecsgp157.previousExecutionConnectionFeatureFlagPreparationCommit})</div>
             <div className="mt-4 space-y-4">
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-300">?�행 Safety Gate 준�??�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-300">실행 Safety Gate 준비 상태</h4>
                 <div className="space-y-2">
                   {ecsgp157.executionSafetyGatePreparationItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-amber-900/30 bg-amber-950/10 p-3">
@@ -22699,7 +22701,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-teal-300">Feature Flag?� Safety Gate???�결 ??관�?/h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-teal-300">Feature Flag와 Safety Gate의 연결 전 관계</h4>
                 <div className="space-y-2">
                   {ecsgp157.preConnectionFeatureFlagAndSafetyGateRelationItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-teal-900/30 bg-teal-950/10 p-3">
@@ -22712,7 +22714,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-cyan-300">Worker / Queue / Adapter ?�행 Safety Gate ?�인 ?�요 ?�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-cyan-300">Worker / Queue / Adapter 실행 Safety Gate 확인 필요 상태</h4>
                 <div className="space-y-2">
                   {ecsgp157.workerQueueAdapterSafetyGateReviewItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-cyan-900/30 bg-cyan-950/10 p-3">
@@ -22725,7 +22727,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">?�제 ?�행 ??Safety Gate 차단 조건</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">실제 실행 전 Safety Gate 차단 조건</h4>
                 <div className="space-y-2">
                   {ecsgp157.safetyGateBlockedConditionItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -22738,7 +22740,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">Safety Gate가 ?�직 ?�행 권한???��? ?�았?�는 ?�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">Safety Gate가 아직 실행 권한을 열지 않았다는 상태</h4>
                 <div className="space-y-2">
                   {ecsgp157.executionPermissionStillClosedItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -22751,7 +22753,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">Worker / Queue / Adapter / Token / Naver API / DB Write 미연�??�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">Worker / Queue / Adapter / Token / Naver API / DB Write 미연결 상태</h4>
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                   {ecsgp157.disconnectedSystemItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -22766,7 +22768,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-3 rounded-md border border-red-700/40 bg-red-950/20 p-4">
                 <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-red-400" />
                 <div>
-                  <h5 className="text-sm font-medium text-red-200">Execution Connection Safety Gate Preparation ??최종 ?�내</h5>
+                  <h5 className="text-sm font-medium text-red-200">Execution Connection Safety Gate Preparation — 최종 안내</h5>
                   <p className="mt-1 text-xs leading-relaxed text-red-200/80">{ecsgp157.finalNotice}</p>
                 </div>
               </div>
@@ -22775,7 +22777,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 158: Execution Connection Readiness Assessment ?�?�?�?�?�?�?�?�?�?�?�?�?�?� */}
+      {/* ── Task 158: Execution Connection Readiness Assessment ────────────── */}
       {(() => {
         const ecra158 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionConnectionReadinessAssessmentView;
         if (!ecra158) return null;
@@ -22794,11 +22796,11 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             </div>
             <p className="mb-4 text-xs leading-relaxed text-red-200/70">{ecra158.summary}</p>
             <div className="mb-2 text-xs text-slate-500">{ecra158.taskRangeLabel}</div>
-            <div className="mb-1 text-xs text-slate-600">기�?: {ecra158.previousExecutionConnectionSafetyGatePreparationLabel} ({ecra158.previousExecutionConnectionSafetyGatePreparationCommit})</div>
+            <div className="mb-1 text-xs text-slate-600">기준: {ecra158.previousExecutionConnectionSafetyGatePreparationLabel} ({ecra158.previousExecutionConnectionSafetyGatePreparationCommit})</div>
             <div className="mt-4 space-y-4">
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">Execution Connection ?�체 준�??�태 ?��?</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">Execution Connection 전체 준비 상태 평가</h4>
                 <div className="space-y-2">
                   {ecra158.overallReadinessAssessmentItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -22811,7 +22813,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-300">?�이?�별 준�??�태 ?�약</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-300">레이어별 준비 상태 요약</h4>
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                   {[...ecra158.workerReadinessSummaryItems, ...ecra158.queueReadinessSummaryItems, ...ecra158.adapterReadinessSummaryItems, ...ecra158.runtimeEnvironmentReadinessSummaryItems, ...ecra158.featureFlagReadinessSummaryItems, ...ecra158.safetyGateReadinessSummaryItems].map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-amber-900/30 bg-amber-950/10 p-3">
@@ -22824,7 +22826,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">?�심 차단 조건</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">핵심 차단 조건</h4>
                 <div className="space-y-2">
                   {ecra158.coreBlockingConditionItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -22837,7 +22839,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-orange-300">?�제 ?�결???�용?��? ?�는 ?�유</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-orange-300">실제 연결이 허용되지 않는 이유</h4>
                 <div className="space-y-2">
                   {ecra158.executionNotAllowedReasonItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-orange-900/30 bg-orange-950/10 p-3">
@@ -22850,7 +22852,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">Worker / Queue / Adapter / Token / Naver API / DB Write 미연�??�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">Worker / Queue / Adapter / Token / Naver API / DB Write 미연결 상태</h4>
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                   {ecra158.disconnectedSystemItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -22865,7 +22867,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-3 rounded-md border border-red-700/40 bg-red-950/20 p-4">
                 <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-red-400" />
                 <div>
-                  <h5 className="text-sm font-medium text-red-200">Execution Connection Readiness Assessment ??최종 ?�내</h5>
+                  <h5 className="text-sm font-medium text-red-200">Execution Connection Readiness Assessment — 최종 안내</h5>
                   <p className="mt-1 text-xs leading-relaxed text-red-200/80">{ecra158.finalNotice}</p>
                 </div>
               </div>
@@ -22874,7 +22876,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 159: Execution Connection Risk Assessment ?�?�?�?�?�?�?�?�?�?�?�?�?�?� */}
+      {/* ── Task 159: Execution Connection Risk Assessment ────────────── */}
       {(() => {
         const ecra159 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionConnectionRiskAssessmentView;
         if (!ecra159) return null;
@@ -22893,11 +22895,11 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             </div>
             <p className="mb-4 text-xs leading-relaxed text-red-200/70">{ecra159.summary}</p>
             <div className="mb-2 text-xs text-slate-500">{ecra159.taskRangeLabel}</div>
-            <div className="mb-1 text-xs text-slate-600">기�?: {ecra159.previousExecutionConnectionReadinessAssessmentLabel} ({ecra159.previousExecutionConnectionReadinessAssessmentCommit})</div>
+            <div className="mb-1 text-xs text-slate-600">기준: {ecra159.previousExecutionConnectionReadinessAssessmentLabel} ({ecra159.previousExecutionConnectionReadinessAssessmentCommit})</div>
             <div className="mt-4 space-y-4">
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-500">?�체 Execution Connection ?�험 ?��?</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-500">전체 Execution Connection 위험 평가</h4>
                 <div className="space-y-2">
                   {ecra159.overallRiskAssessmentItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -22910,7 +22912,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-400">?�스???�이?�별 ?�결 ?�험 ?��?</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-400">시스템 레이어별 연결 위험 평가</h4>
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                   {[...ecra159.workerConnectionRiskItems, ...ecra159.queueConnectionRiskItems, ...ecra159.adapterConnectionRiskItems, ...ecra159.runtimeEnvironmentRiskItems, ...ecra159.featureFlagSafetyGateRiskItems].map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-amber-900/30 bg-amber-950/10 p-3">
@@ -22923,7 +22925,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-500">고위???�업 차단 ?�태 (Token / Naver API / DB Write)</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-500">고위험 작업 차단 상태 (Token / Naver API / DB Write)</h4>
                 <div className="space-y-2">
                   {ecra159.highRiskItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -22936,7 +22938,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-orange-400">?�제 ?�결 ?�용 불�? ?�유 (?�험 ?��?)</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-orange-400">실제 연결 허용 불가 사유 (위험 평가)</h4>
                 <div className="space-y-2">
                   {ecra159.executionNotAllowedReasonItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-orange-900/30 bg-orange-950/10 p-3">
@@ -22949,7 +22951,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-500">?�스??미연�?�?차단 ?��? ?�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-500">시스템 미연결 및 차단 유지 상태</h4>
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                   {ecra159.disconnectedSystemItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
@@ -22964,7 +22966,7 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div className="flex items-start gap-3 rounded-md border border-red-700/40 bg-red-950/20 p-4">
                 <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-red-500" />
                 <div>
-                  <h5 className="text-sm font-medium text-red-200">Execution Connection Risk Assessment ??최종 경고</h5>
+                  <h5 className="text-sm font-medium text-red-200">Execution Connection Risk Assessment — 최종 경고</h5>
                   <p className="mt-1 text-xs leading-relaxed text-red-200/80">{ecra159.finalNotice}</p>
                 </div>
               </div>
@@ -22973,14 +22975,14 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� Task 160: Execution Connection Risk Containment Certification ?�?� */}
+      {/* ── Task 160: Execution Connection Risk Containment Certification ── */}
       {(() => {
         const ecrc160 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionConnectionRiskContainmentCertificationView;
         if (!ecrc160) return null;
         return (
-          <div className="mb-6 rounded-lg border border-cyan-900/40 bg-[#081014] p-4 shadow-[0_0_15px_rgba(6,182,212,0.05)]">
+          <div className="mb-6 rounded-lg border border-cyan-900/40 bg-[#0d1414] p-4 shadow-[0_0_15px_rgba(6,182,212,0.05)]">
             <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-white">
-              <ShieldCheck className="h-5 w-5 text-cyan-400" />
+              <ShieldAlert className="h-5 w-5 text-cyan-500" />
               {ecrc160.panelTitle}
             </h2>
             <div className="mb-3 flex items-center gap-2">
@@ -22989,61 +22991,48 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               </span>
             </div>
             <p className="mb-4 text-xs leading-relaxed text-cyan-200/70">
-              Task 159?�서 ?��????�험?� ?�제 ?�행?�로 ?�결?��? ?�았?�며, ???�면?� Read-only Containment Certification ?�계?�을 ?�증?�니??
+              Task 159에서 도출된 잠재적 실행 위험(Risk)들이 실제 시스템으로 전파되지 않고 완벽하게 차단/통제(Containment)되었음을 인증하는 영역입니다.
             </p>
             <div className="mb-2 text-xs text-slate-500">{ecrc160.taskName}</div>
             <div className="mb-1 text-xs text-slate-600">
-              기�?: {ecrc160.previousExecutionConnectionRiskAssessmentLabel} ({ecrc160.previousExecutionConnectionRiskAssessmentCommit})
+              기준: {ecrc160.previousExecutionConnectionRiskAssessmentLabel} ({ecrc160.previousExecutionConnectionRiskAssessmentCommit})
             </div>
             <div className="mt-4 space-y-4">
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-cyan-500">?�험 ?�제 (Containment) ?�증</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-cyan-400">위험 통제 인증 내역</h4>
                 <div className="space-y-2">
-                  {ecrc160.containmentItems.map((item: any, i: number) => (
+                  {ecrc160.containmentCertificationItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-cyan-900/40 bg-cyan-950/20 p-3">
                       <div className="text-xs font-medium text-cyan-400">{item.label}</div>
                       <p className="mt-0.5 text-xs text-cyan-200/60">{item.description}</p>
-                      <p className="mt-0.5 text-xs text-slate-500">{item.containmentState}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.certificationState}</p>
                     </div>
                   ))}
                 </div>
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">?�스??물리???�리???�결 차단 ?�태</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">강제 차단된 실행 상태 (System Overrides)</h4>
                 <div className="space-y-2">
-                  {ecrc160.blockedConnectionItems.map((item: any, i: number) => (
+                  {ecrc160.forcedBlockedStatusItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-slate-700/40 bg-slate-800/20 p-3">
                       <div className="text-xs font-medium text-slate-300">{item.label}</div>
                       <p className="mt-0.5 text-xs text-slate-400">{item.description}</p>
-                      <p className="mt-0.5 text-xs text-slate-500">{item.containmentState}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.certificationState}</p>
                     </div>
                   ))}
                 </div>
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-orange-400">?�해 방�? 경고</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-orange-400">실행 승인 오해 방지 경고</h4>
                 <div className="space-y-2">
                   {ecrc160.misunderstandingPreventionItems.map((item: any, i: number) => (
                     <div key={i} className="rounded-md border border-orange-900/30 bg-orange-950/10 p-3">
                       <div className="text-xs font-medium text-orange-400">{item.label}</div>
                       <p className="mt-0.5 text-xs text-orange-200/60">{item.description}</p>
-                      <p className="mt-0.5 text-xs text-slate-500">{item.containmentState}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">?�전??금�????�심 ?�업??/h4>
-                <div className="space-y-2">
-                  {ecrc160.stillForbiddenActions.map((item: any, i: number) => (
-                    <div key={i} className="rounded-md border border-red-900/30 bg-red-950/10 p-3">
-                      <div className="text-xs font-medium text-red-400">{item.label}</div>
-                      <p className="mt-0.5 text-xs text-red-200/60">{item.description}</p>
-                      <p className="mt-0.5 text-xs text-slate-500">{item.containmentState}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.certificationState}</p>
                     </div>
                   ))}
                 </div>
@@ -23053,15 +23042,15 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 <div className="flex items-start gap-3 rounded-md border border-slate-700/40 bg-slate-800/20 p-4">
                   <Info className="mt-0.5 h-5 w-5 shrink-0 text-slate-400" />
                   <div>
-                    <h5 className="text-sm font-medium text-slate-300">?�행 결과 ?�내 (Handoff Notice)</h5>
+                    <h5 className="text-sm font-medium text-slate-300">실행 결과 안내 (Handoff Notice)</h5>
                     <p className="mt-1 text-xs leading-relaxed text-slate-400">{ecrc160.handoffNoticeToBatchJobExecutionResult}</p>
                   </div>
                 </div>
 
                 <div className="flex items-start gap-3 rounded-md border border-cyan-700/40 bg-cyan-950/20 p-4">
-                  <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-cyan-400" />
+                  <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-cyan-400" />
                   <div>
-                    <h5 className="text-sm font-medium text-cyan-200">Containment Certification ??최종 ?�증</h5>
+                    <h5 className="text-sm font-medium text-cyan-200">Risk Containment — 위험 통제 인증 완료</h5>
                     <p className="mt-1 text-xs leading-relaxed text-cyan-200/80">{ecrc160.finalNotice}</p>
                   </div>
                 </div>
@@ -23072,34 +23061,133 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
-      {/* ?�?� BatchJob ?�행 결과 ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?� */}
+      {/* ── Task 161: Execution Connection Non-Execution Audit Evidence ── */}
+      {(() => {
+        const ecneae161 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionConnectionNonExecutionAuditEvidenceView;
+        if (!ecneae161) return null;
+        return (
+          <div className="mb-6 rounded-lg border border-fuchsia-900/40 bg-[#0d0514] p-4 shadow-[0_0_15px_rgba(217,70,239,0.05)]">
+            <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-white">
+              <Search className="h-5 w-5 text-fuchsia-500" />
+              {ecneae161.panelTitle}
+            </h2>
+            <div className="mb-3 flex items-center gap-2">
+              <span className="rounded-full border border-fuchsia-700/50 bg-fuchsia-950/40 px-2 py-0.5 text-xs text-fuchsia-300">
+                {ecneae161.auditStatus}
+              </span>
+            </div>
+            <p className="mb-4 text-xs leading-relaxed text-fuchsia-200/70">
+              Task 160 이후에도 실행 트리거가 추가되지 않았음을 증명하는 감사 증거(Audit Evidence) 영역입니다.
+            </p>
+            <div className="mb-2 text-xs text-slate-500">{ecneae161.taskName}</div>
+            <div className="mb-1 text-xs text-slate-600">
+              기준: {ecneae161.previousExecutionConnectionRiskContainmentCertificationLabel} ({ecneae161.previousExecutionConnectionRiskContainmentCertificationCommit})
+            </div>
+            <div className="mt-4 space-y-4">
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-fuchsia-400">실행 트리거 부재 감사 증거</h4>
+                <div className="space-y-2">
+                  {ecneae161.auditEvidenceItems.map((item: any, i: number) => (
+                    <div key={i} className="rounded-md border border-fuchsia-900/40 bg-fuchsia-950/20 p-3">
+                      <div className="text-xs font-medium text-fuchsia-400">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-fuchsia-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.evidenceState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">시스템 연동 경로 차단 증거</h4>
+                <div className="space-y-2">
+                  {ecneae161.blockedTriggerItems.map((item: any, i: number) => (
+                    <div key={i} className="rounded-md border border-slate-700/40 bg-slate-800/20 p-3">
+                      <div className="text-xs font-medium text-slate-300">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-slate-400">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.evidenceState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-orange-400">실행 허가 오해 방지 경고</h4>
+                <div className="space-y-2">
+                  {ecneae161.misunderstandingPreventionItems.map((item: any, i: number) => (
+                    <div key={i} className="rounded-md border border-orange-900/30 bg-orange-950/10 p-3">
+                      <div className="text-xs font-medium text-orange-400">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-orange-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.evidenceState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">여전히 금지된 핵심 작업들</h4>
+                <div className="space-y-2">
+                  {ecneae161.stillForbiddenActions.map((item: any, i: number) => (
+                    <div key={i} className="rounded-md border border-red-900/30 bg-red-950/10 p-3">
+                      <div className="text-xs font-medium text-red-400">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-red-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.evidenceState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-3">
+                <div className="flex items-start gap-3 rounded-md border border-slate-700/40 bg-slate-800/20 p-4">
+                  <Info className="mt-0.5 h-5 w-5 shrink-0 text-slate-400" />
+                  <div>
+                    <h5 className="text-sm font-medium text-slate-300">실행 결과 안내 (Handoff Notice)</h5>
+                    <p className="mt-1 text-xs leading-relaxed text-slate-400">{ecneae161.handoffNoticeToBatchJobExecutionResult}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 rounded-md border border-fuchsia-700/40 bg-fuchsia-950/20 p-4">
+                  <Search className="mt-0.5 h-5 w-5 shrink-0 text-fuchsia-400" />
+                  <div>
+                    <h5 className="text-sm font-medium text-fuchsia-200">Non-Execution Audit Evidence — 감사 증거 기록 완료</h5>
+                    <p className="mt-1 text-xs leading-relaxed text-fuchsia-200/80">{ecneae161.finalNotice}</p>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── BatchJob 실행 결과 ────────────────────────────────────────────────── */}
       {['EXECUTED', 'PARTIAL_SUCCESS', 'FAILED', 'EXECUTING'].includes(job.status) && (
         <div className="mb-6 rounded-lg border border-[#262629] bg-[#121214] p-4">
           <h2 className="mb-4 flex items-center gap-2 text-base font-semibold text-white">
             <CheckCircle2 className={`h-5 w-5 ${job.status === 'FAILED' ? 'text-red-400' : job.status === 'PARTIAL_SUCCESS' ? 'text-orange-400' : 'text-emerald-400'}`} />
-            BatchJob ?�행 결과
+            BatchJob 실행 결과
             <span className={`ml-1 rounded-full border px-2 py-0.5 text-xs ${getStatusBadgeStyle(job.status)}`}>
               {job.status}
             </span>
           </h2>
 
-          {/* ?�행 감사 ?�보 (Audit Trail) */}
+          {/* 실행 감사 정보 (Audit Trail) */}
           {(() => {
             const execMode = job.executionMetadata?.executionMode ?? null;
             const naverApiCalled = execMode === 'live';
             return (
               <div className="mb-4 rounded-md border border-blue-500/20 bg-blue-500/10 p-3 text-xs text-blue-200">
-                <p className="mb-2 font-semibold text-blue-300">?�행 감사 ?�보 (Audit Trail)</p>
+                <p className="mb-2 font-semibold text-blue-300">실행 감사 정보 (Audit Trail)</p>
                 <div className="grid grid-cols-2 gap-x-4 gap-y-1 sm:grid-cols-3">
                   <div>
                     <span className="text-blue-400">BatchJob ID: </span>
-                    <span className="font-mono text-blue-100">{job.id.substring(0, 12)}??/span>
+                    <span className="font-mono text-blue-100">{job.id.substring(0, 12)}…</span>
                   </div>
                   {job.executionMetadata?.finalApprovalId && (
                     <div>
                       <span className="text-blue-400">FinalApproval ID: </span>
                       <span className="font-mono text-blue-100">
-                        {job.executionMetadata.finalApprovalId.substring(0, 12)}??
+                        {job.executionMetadata.finalApprovalId.substring(0, 12)}…
                       </span>
                     </div>
                   )}
@@ -23111,79 +23199,79 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                   )}
                   {execMode && (
                     <div>
-                      <span className="text-blue-400">?�행 모드 (adapterMode): </span>
+                      <span className="text-blue-400">실행 모드 (adapterMode): </span>
                       <span className="font-mono text-blue-100">{execMode}</span>
                     </div>
                   )}
                   <div>
-                    <span className="text-blue-400">Naver API ?�출: </span>
+                    <span className="text-blue-400">Naver API 호출: </span>
                     <span className={`font-semibold ${naverApiCalled ? 'text-red-300' : 'text-emerald-300'}`}>
-                      {naverApiCalled ? '??(?�제 ?�출)' : '?�니??(차단??'}
+                      {naverApiCalled ? '예 (실제 호출)' : '아니오 (차단됨)'}
                     </span>
                   </div>
                   <div>
-                    <span className="text-blue-400">?�마?�스?�어 변�? </span>
+                    <span className="text-blue-400">스마트스토어 변경: </span>
                     <span className={`font-semibold ${naverApiCalled ? 'text-red-300' : 'text-emerald-300'}`}>
-                      {naverApiCalled ? '??(?�제 변�?' : '?�니??}
+                      {naverApiCalled ? '예 (실제 변경)' : '아니오'}
                     </span>
                   </div>
                   <div>
-                    <span className="text-blue-400">?�체 ??�� (totalItems): </span>
-                    <span className="text-blue-100">{job.itemCount}�?/span>
+                    <span className="text-blue-400">전체 항목 (totalItems): </span>
+                    <span className="text-blue-100">{job.itemCount}건</span>
                   </div>
                 </div>
               </div>
             );
           })()}
 
-          {/* 기본 ?�행 ?�보 */}
+          {/* 기본 실행 정보 */}
           <div className="mb-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
             <div>
-              <p className="mb-1 text-xs text-gray-500">?�행 ?�료 ?�각 (executedAt)</p>
+              <p className="mb-1 text-xs text-gray-500">실행 완료 시각 (executedAt)</p>
               <p className="text-sm text-gray-200">
                 {job.executedAt ? new Date(job.executedAt).toLocaleString() : '-'}
               </p>
             </div>
             {job.executionMetadata?.startedAt && (
               <div>
-                <p className="mb-1 text-xs text-gray-500">?�행 ?�작 (startedAt)</p>
+                <p className="mb-1 text-xs text-gray-500">실행 시작 (startedAt)</p>
                 <p className="text-sm text-gray-300">{new Date(job.executionMetadata.startedAt).toLocaleString()}</p>
               </div>
             )}
             {job.executionMetadata?.endedAt && (
               <div>
-                <p className="mb-1 text-xs text-gray-500">?�행 종료 (finishedAt)</p>
+                <p className="mb-1 text-xs text-gray-500">실행 종료 (finishedAt)</p>
                 <p className="text-sm text-gray-300">{new Date(job.executionMetadata.endedAt).toLocaleString()}</p>
               </div>
             )}
             {job.executionMetadata?.durationMs !== undefined && (
               <div>
-                <p className="mb-1 text-xs text-gray-500">처리 ?�간</p>
+                <p className="mb-1 text-xs text-gray-500">처리 시간</p>
                 <p className="text-sm text-gray-300">{job.executionMetadata.durationMs}ms</p>
               </div>
             )}
           </div>
 
-          {/* ?�공/?�패/?�킵 카운??*/}
+          {/* 성공/실패/스킵 카운트 */}
           <div className="mb-4 grid grid-cols-3 gap-3">
             <div className="rounded-md border border-emerald-500/20 bg-emerald-500/10 p-3 text-center">
               <p className="text-2xl font-bold text-emerald-400">{job.successItems}</p>
-              <p className="text-xs text-gray-400">?�공</p>
+              <p className="text-xs text-gray-400">성공</p>
             </div>
             <div className="rounded-md border border-red-500/20 bg-red-500/10 p-3 text-center">
               <p className="text-2xl font-bold text-red-400">{job.failedItems}</p>
-              <p className="text-xs text-gray-400">?�패</p>
+              <p className="text-xs text-gray-400">실패</p>
             </div>
             <div className="rounded-md border border-gray-500/20 bg-gray-500/10 p-3 text-center">
               <p className="text-2xl font-bold text-gray-400">{job.skippedItems}</p>
-              <p className="text-xs text-gray-400">?�킵</p>
+              <p className="text-xs text-gray-400">스킵</p>
             </div>
           </div>
 
-          {/* ??���??�태 분포 */}
+          {/* 항목별 상태 분포 */}
           {job.items.length > 0 && (
             <div className="mb-4">
-              <p className="mb-2 text-xs font-semibold text-gray-400">??���??�태 분포</p>
+              <p className="mb-2 text-xs font-semibold text-gray-400">항목별 상태 분포</p>
               <div className="flex flex-wrap gap-2">
                 {Object.entries(
                   job.items.reduce<Record<string, number>>((acc, item) => {
@@ -23192,21 +23280,21 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                   }, {})
                 ).map(([st, count]) => (
                   <span key={st} className={`rounded-full border px-2 py-0.5 text-xs font-semibold ${getStatusBadgeStyle(st)}`}>
-                    {st}: {count}�?
+                    {st}: {count}건
                   </span>
                 ))}
               </div>
             </div>
           )}
 
-          {/* ?�행 메�??�이??(recordedAt 중심) */}
+          {/* 실행 메타데이터 (recordedAt 중심) */}
           {job.executionMetadata && (
             <div className="mb-4 rounded-md border border-[#262629] bg-[#18181b] p-3">
-              <p className="mb-2 text-xs font-semibold text-gray-400">?�행 메�??�이??(결과 기록)</p>
+              <p className="mb-2 text-xs font-semibold text-gray-400">실행 메타데이터 (결과 기록)</p>
               <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs sm:grid-cols-3">
                 {job.executionMetadata.recordedAt && (
                   <div>
-                    <span className="text-gray-500">기록 ?�각 (recordedAt): </span>
+                    <span className="text-gray-500">기록 시각 (recordedAt): </span>
                     <span className="text-gray-300">{new Date(job.executionMetadata.recordedAt).toLocaleString()}</span>
                   </div>
                 )}
@@ -23214,9 +23302,9 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                   <div className="sm:col-span-2">
                     <span className="text-gray-500">결과 집계 (resultSummary): </span>
                     <span className="text-gray-300">
-                      ?�공 {job.executionMetadata.resultSummary.successCount} /
-                      ?�패 {job.executionMetadata.resultSummary.failedCount} /
-                      ?�킵 {job.executionMetadata.resultSummary.skippedCount}
+                      성공 {job.executionMetadata.resultSummary.successCount} /
+                      실패 {job.executionMetadata.resultSummary.failedCount} /
+                      스킵 {job.executionMetadata.resultSummary.skippedCount}
                     </span>
                   </div>
                 )}
@@ -23224,22 +23312,22 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             </div>
           )}
 
-          {/* ?�실??차단 ?�약 (?�행 결과 ?�션 ?�단) */}
+          {/* 재실행 차단 요약 (실행 결과 섹션 하단) */}
           <div className="rounded-md border border-red-500/20 bg-red-500/10 p-3 text-xs text-red-200">
             <p className="mb-1 flex items-center gap-1.5 font-semibold text-red-300">
               <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
-              ?�실??차단 ???��? ?�행 기록???�는 BatchJob?�니??
+              재실행 차단 — 이미 실행 기록이 있는 BatchJob입니다
             </p>
-            <p>?�전???�해 ?�실?��? 별도 ?�인 ?�름?�서�?가?�합?�다. Mock ?�행 결과?�도 ?�실?��? 기본 차단?�니??</p>
+            <p>안전을 위해 재실행은 별도 승인 흐름에서만 가능합니다. Mock 실행 결과라도 재실행은 기본 차단입니다.</p>
             <p className="mt-1 font-mono text-red-300">
-              ?�버 차단 코드: BATCH_JOB_ALREADY_EXECUTED / BATCH_JOB_ALREADY_EXECUTING
+              서버 차단 코드: BATCH_JOB_ALREADY_EXECUTED / BATCH_JOB_ALREADY_EXECUTING
             </p>
           </div>
         </div>
       )}
 
       <div className="flex-1 space-y-4">
-        <h2 className="text-lg font-semibold text-gray-200">??�� 목록 ({job.items.length}�?</h2>
+        <h2 className="text-lg font-semibold text-gray-200">항목 목록 ({job.items.length}건)</h2>
         {job.items.map((item, index) => (
           <div key={item.id} className="overflow-hidden rounded-lg border border-[#262629] bg-[#121214]">
             <div className="border-b border-[#262629] bg-[#18181b] p-4">
@@ -23265,38 +23353,38 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                   className="flex items-center gap-1 text-xs text-gray-400 hover:text-white"
                 >
                   <FileJson className="h-3.5 w-3.5" />
-                  {expandedItems.has(item.id) ? 'JSON ?�기' : 'JSON 보기'}
+                  {expandedItems.has(item.id) ? 'JSON 닫기' : 'JSON 보기'}
                 </button>
               </div>
             </div>
 
             <div className="grid gap-4 p-4 lg:grid-cols-2">
               <div className="space-y-3">
-                <h3 className="border-b border-[#262629] pb-1 text-sm font-semibold text-gray-300">?�품 ?�보 (Candidate)</h3>
+                <h3 className="border-b border-[#262629] pb-1 text-sm font-semibold text-gray-300">상품 정보 (Candidate)</h3>
                 <div className="grid grid-cols-3 gap-2 text-sm">
-                  <span className="text-gray-500">?�품�?/span>
+                  <span className="text-gray-500">상품명</span>
                   <span className="col-span-2 text-gray-200">{item.candidateSummary?.productName || '-'}</span>
-                  <span className="text-gray-500">매칭 ?�워??/span>
+                  <span className="text-gray-500">매칭 키워드</span>
                   <span className="col-span-2 font-semibold text-indigo-300">{item.candidateSummary?.keyword || '-'}</span>
-                  <span className="text-gray-500">SKU/?�별??/span>
+                  <span className="text-gray-500">SKU/식별자</span>
                   <span className="col-span-2 font-mono text-xs text-gray-400">{item.candidateSummary?.sku || '-'}</span>
-                  <span className="text-gray-500">바코??/span>
+                  <span className="text-gray-500">바코드</span>
                   <span className="col-span-2 font-mono text-xs text-gray-400">{item.candidateSummary?.barcode || '-'}</span>
                 </div>
               </div>
 
               <div className="space-y-3">
-                <h3 className="border-b border-[#262629] pb-1 text-sm font-semibold text-gray-300">변�??�정 (Dry-run)</h3>
+                <h3 className="border-b border-[#262629] pb-1 text-sm font-semibold text-gray-300">변경 예정 (Dry-run)</h3>
                 <div className="grid grid-cols-3 gap-2 text-sm">
-                  <span className="text-gray-500">변�???��</span>
+                  <span className="text-gray-500">변경 항목</span>
                   <span className="col-span-2 font-semibold text-emerald-400">{item.candidateSummary?.changeType || '-'}</span>
-                  <span className="text-gray-500">가�?변�?/span>
+                  <span className="text-gray-500">가격 변경</span>
                   <span className="col-span-2 text-gray-200">
                     <span className="text-gray-500 line-through">{item.dryRunSummary?.before?.price?.toLocaleString() || '-'}</span>
                     {' -> '}
                     <span className="font-semibold text-white">{item.dryRunSummary?.after?.price?.toLocaleString() || '-'}</span>
                   </span>
-                  <span className="text-gray-500">?�고 변�?/span>
+                  <span className="text-gray-500">재고 변경</span>
                   <span className="col-span-2 text-gray-200">
                     <span className="text-gray-500 line-through">{item.dryRunSummary?.before?.stock?.toLocaleString() || '-'}</span>
                     {' -> '}
@@ -23315,10 +23403,10 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                     <span className="font-semibold text-amber-400">Risk Level: {item.dryRunSummary?.riskLevel || 'NONE'}</span>
                   </div>
                   {item.dryRunSummary?.warnings?.map((warning) => (
-                    <div key={warning} className="mt-1 text-xs text-amber-200/80">??{warning}</div>
+                    <div key={warning} className="mt-1 text-xs text-amber-200/80">• {warning}</div>
                   ))}
                   {item.dryRunSummary?.blockedReasons?.map((blockedReason) => (
-                    <div key={blockedReason} className="mt-1 text-xs text-red-400">??BLOCKED: {blockedReason}</div>
+                    <div key={blockedReason} className="mt-1 text-xs text-red-400">• BLOCKED: {blockedReason}</div>
                   ))}
                 </div>
               </div>
@@ -23346,26 +23434,26 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             >
               <X className="h-5 w-5" />
             </button>
-            <h3 className="mb-4 text-xl font-semibold text-white">최종 ?�인 Artifact ?�성 ???�인</h3>
+            <h3 className="mb-4 text-xl font-semibold text-white">최종 승인 Artifact 생성 전 확인</h3>
             <div className="space-y-3 text-sm text-gray-300">
               <p>
-                ???�계???�전???�인???�해 ?�음 ?�약 ?�항??준?�합?�다.
+                이 단계는 안전한 승인을 위해 다음 제약 사항을 준수합니다.
               </p>
               <ul className="list-inside list-disc space-y-1 text-red-300">
-                <li>???�업?� ?�이�?API�??�출?��? ?�습?�다.</li>
-                <li>???�업?� EXECUTING?�로 ?�환?��? ?�습?�다.</li>
-                <li>???�업?� Job/Item status�?변경하지 ?�습?�다.</li>
-                <li>???�업?� FinalApproval artifact�??�성?�는 ?�계?�니??</li>
-                <li>기존 ACTIVE artifact가 ?�으�??�성?????�습?�다.</li>
-                <li>validationExpiresAt ?�후?�는 ?�행 ?�격?�로 ?�용?�면 ???�니??</li>
+                <li>이 작업은 네이버 API를 호출하지 않습니다.</li>
+                <li>이 작업은 EXECUTING으로 전환하지 않습니다.</li>
+                <li>이 작업은 Job/Item status를 변경하지 않습니다.</li>
+                <li>이 작업은 FinalApproval artifact만 생성하는 단계입니다.</li>
+                <li>기존 ACTIVE artifact가 있으면 생성할 수 없습니다.</li>
+                <li>validationExpiresAt 이후에는 실행 자격으로 사용하면 안 됩니다.</li>
               </ul>
               <p className="mt-4 text-indigo-300">
-                ?�버?�서 <span className="font-mono">candidate</span>, <span className="font-mono">dryRunItem</span>, ?�집 문맥, gate ?�정???�시 검증합?�다.
+                서버에서 <span className="font-mono">candidate</span>, <span className="font-mono">dryRunItem</span>, 수집 문맥, gate 설정을 다시 검증합니다.
               </p>
 
               {finalApprovalCreateError && (
                 <div className="mt-4 rounded-md border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-400">
-                  <span className="font-semibold text-red-300">?�류 발생: </span>
+                  <span className="font-semibold text-red-300">오류 발생: </span>
                   {finalApprovalCreateError}
                 </div>
               )}
@@ -23392,10 +23480,10 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 {isCreatingFinalApproval ? (
                   <>
                     <Loader2 className="mr-2 inline-block h-4 w-4 animate-spin" />
-                    ?�성 �?..
+                    생성 중...
                   </>
                 ) : (
-                  '최종 ?�인 Artifact ?�성'
+                  '최종 승인 Artifact 생성'
                 )}
               </button>
             </div>
