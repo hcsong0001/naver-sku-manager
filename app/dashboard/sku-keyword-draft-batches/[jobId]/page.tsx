@@ -3772,6 +3772,7 @@ type DraftBatchJob = {
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerAuditLogPreviewView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerAuditEvidenceBundleView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerAuditClosureView?: any;
+  tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionConnectionPreparationOverviewView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -21883,6 +21884,157 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 <div>
                   <h5 className="text-sm font-medium text-red-200">Execution Readiness Worker Audit Closure — 최종 안내</h5>
                   <p className="mt-1 text-xs leading-relaxed text-red-200/80">{erwAc150.finalNotice}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 151: Execution Connection Preparation Overview ─────────────── */}
+      {(() => {
+        const ecpo151 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionConnectionPreparationOverviewView;
+        if (!ecpo151) return null;
+        const toneColor = (tone: 'neutral' | 'warning' | 'blocked') =>
+          tone === 'blocked' ? 'text-red-400' : tone === 'warning' ? 'text-amber-300' : 'text-slate-300';
+        return (
+          <div className="mb-6 rounded-lg border border-red-900/40 bg-[#0f0808] p-4">
+            <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-white">
+              <ShieldAlert className="h-5 w-5 text-red-400" />
+              {ecpo151.title}
+            </h2>
+            <div className="mb-3 flex items-center gap-2">
+              <span className="rounded-full border border-red-700/50 bg-red-950/40 px-2 py-0.5 text-xs text-red-300">
+                {ecpo151.statusLabel}
+              </span>
+            </div>
+            <p className="mb-4 text-xs leading-relaxed text-red-200/70">{ecpo151.summary}</p>
+            <div className="mb-2 text-xs text-slate-500">{ecpo151.taskRangeLabel}</div>
+            <div className="mb-1 text-xs text-slate-600">기준: {ecpo151.previousExecutionReadinessWorkerAuditClosureLabel} ({ecpo151.previousExecutionReadinessWorkerAuditClosureCommit})</div>
+            <div className="mt-4 space-y-4">
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-300">Execution Connection Layer 개요</h4>
+                <div className="space-y-2">
+                  {ecpo151.executionConnectionLayerOverviewItems.map((item: any, i: number) => (
+                    <div key={i} className="rounded-md border border-red-900/30 bg-red-950/10 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-red-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.connectionState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-300">Decision Preview / Result Recording Preview / Persistence Guard / Audit Log Preview / Audit Evidence Bundle 참조 정보</h4>
+                <div className="space-y-2">
+                  {ecpo151.referenceSourceItems.map((item: any, i: number) => (
+                    <div key={i} className="rounded-md border border-red-900/30 bg-red-950/10 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-red-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.connectionState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">Worker Connection 준비 상태</h4>
+                <div className="space-y-2">
+                  {ecpo151.workerConnectionPreparationItems.map((item: any, i: number) => (
+                    <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-red-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.connectionState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">Queue Connection 준비 상태</h4>
+                <div className="space-y-2">
+                  {ecpo151.queueConnectionPreparationItems.map((item: any, i: number) => (
+                    <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-red-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.connectionState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">Adapter Connection 준비 상태</h4>
+                <div className="space-y-2">
+                  {ecpo151.adapterConnectionPreparationItems.map((item: any, i: number) => (
+                    <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-red-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.connectionState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-300">Runtime Environment 준비 상태</h4>
+                <div className="space-y-2">
+                  {ecpo151.runtimeEnvironmentPreparationItems.map((item: any, i: number) => (
+                    <div key={i} className="rounded-md border border-amber-900/30 bg-amber-950/10 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-amber-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.connectionState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-300">아직 연결되지 않은 구성 요소</h4>
+                <div className="space-y-2">
+                  {ecpo151.disconnectedComponentItems.map((item: any, i: number) => (
+                    <div key={i} className="rounded-md border border-red-900/30 bg-red-950/10 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-red-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.connectionState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">별도 승인 전 계속 차단되는 항목</h4>
+                <div className="space-y-2">
+                  {ecpo151.blockedUntilSeparateApprovalItems.map((item: any, i: number) => (
+                    <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-red-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.connectionState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-400">실제 실행으로 오해하면 안 되는 항목</h4>
+                <div className="space-y-2">
+                  {ecpo151.misunderstandingPreventionItems.map((item: any, i: number) => (
+                    <div key={i} className="rounded-md border border-amber-900/30 bg-amber-950/10 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-amber-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.connectionState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3 rounded-md border border-red-700/40 bg-red-950/20 p-4">
+                <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-red-400" />
+                <div>
+                  <h5 className="text-sm font-medium text-red-200">Execution Connection Preparation Overview — 최종 안내</h5>
+                  <p className="mt-1 text-xs leading-relaxed text-red-200/80">{ecpo151.finalNotice}</p>
                 </div>
               </div>
             </div>
