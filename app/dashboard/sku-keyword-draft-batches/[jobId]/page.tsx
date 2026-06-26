@@ -3699,6 +3699,19 @@ type DraftBatchJob = {
     stillForbiddenItems: Array<{ label: string; description: string; tone: 'blocked'; }>;
     finalNotice: string;
   } | null;
+  tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessOverviewView?: {
+    title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
+    taskRangeLabel: string; previousExecutionReadinessRiskReviewLabel: string; previousExecutionReadinessRiskReviewCommit: string;
+    executionReadinessOverviewSummaryItems: Array<{ label: string; description: string; overviewState: string; tone: 'neutral' | 'warning' | 'blocked'; }>;
+    executionReadinessPlanSummaryItems: Array<{ label: string; description: string; planState: string; tone: 'neutral' | 'warning' | 'blocked'; }>;
+    executionReadinessRiskSummaryItems: Array<{ label: string; description: string; riskState: string; tone: 'warning' | 'blocked'; }>;
+    approvalPendingSummaryItems: Array<{ label: string; description: string; pendingState: string; tone: 'warning' | 'blocked'; }>;
+    blockedSummaryItems: Array<{ label: string; description: string; blockedState: string; tone: 'blocked'; }>;
+    executionNotReadyReasonItems: Array<{ label: string; description: string; reasonState: string; tone: 'warning' | 'blocked'; }>;
+    workerQueueReferenceMetadataItems: Array<{ label: string; description: string; referenceValue: string; tone: 'neutral' | 'warning' | 'blocked'; }>;
+    stillForbiddenItems: Array<{ label: string; description: string; tone: 'blocked'; }>;
+    finalNotice: string;
+  } | null;
 };
 
 type DraftBatchDetailResponse =
@@ -20066,6 +20079,143 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 <div>
                   <h5 className="text-sm font-medium text-rose-200">Execution Readiness Risk Review — 최종 안내</h5>
                   <p className="mt-1 text-xs leading-relaxed text-rose-200/80">{errr136.finalNotice}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 137: Execution Readiness Overview ─ */}
+      {(() => {
+        const ero137 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessOverviewView;
+        if (!ero137) return null;
+        const toneColor = (tone: 'neutral' | 'warning' | 'blocked') =>
+          tone === 'blocked' ? 'text-red-400' : tone === 'warning' ? 'text-lime-300' : 'text-slate-300';
+        return (
+          <div className="mb-6 rounded-lg border border-lime-900/40 bg-[#0d1308] p-4">
+            <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-white">
+              <ShieldAlert className="h-5 w-5 text-lime-300" />
+              {ero137.title}
+            </h2>
+            <div className="mb-3 flex items-center gap-2">
+              <span className="rounded-full border border-lime-700/50 bg-lime-950/40 px-2 py-0.5 text-xs text-lime-200">
+                {ero137.statusLabel}
+              </span>
+            </div>
+            <p className="mb-4 text-xs leading-relaxed text-lime-200/70">{ero137.summary}</p>
+            <div className="mb-2 text-xs text-slate-500">{ero137.taskRangeLabel}</div>
+            <div className="mb-1 text-xs text-slate-600">기준: {ero137.previousExecutionReadinessRiskReviewLabel} ({ero137.previousExecutionReadinessRiskReviewCommit})</div>
+            <div className="mt-4 space-y-4">
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-lime-300">실행 준비 상태 요약</h4>
+                <div className="space-y-2">
+                  {ero137.executionReadinessOverviewSummaryItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-lime-900/30 bg-lime-950/10 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-lime-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.overviewState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-lime-300">실행 계획 요약</h4>
+                <div className="space-y-2">
+                  {ero137.executionReadinessPlanSummaryItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-lime-900/30 bg-lime-950/10 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-lime-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.planState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-lime-300">위험 구간 요약</h4>
+                <div className="space-y-2">
+                  {ero137.executionReadinessRiskSummaryItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-lime-900/30 bg-lime-950/10 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-lime-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.riskState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-300">승인 대기 항목 요약</h4>
+                <div className="space-y-2">
+                  {ero137.approvalPendingSummaryItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-amber-900/40 bg-amber-950/20 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-lime-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.pendingState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">차단 항목 요약</h4>
+                <div className="space-y-2">
+                  {ero137.blockedSummaryItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
+                      <div className="text-xs font-medium text-red-400">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-lime-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.blockedState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">실행 불가 사유 요약</h4>
+                <div className="space-y-2">
+                  {ero137.executionNotReadyReasonItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-lime-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.reasonState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-lime-300">Worker / Queue 참조용 통합 메타데이터</h4>
+                <div className="space-y-2">
+                  {ero137.workerQueueReferenceMetadataItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-lime-900/30 bg-lime-950/10 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-lime-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.referenceValue}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 금지됨</h4>
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  {ero137.stillForbiddenItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
+                      <div className="text-xs font-medium text-red-400">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-lime-200/60">{item.description}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3 rounded-md border border-lime-700/40 bg-lime-950/20 p-4">
+                <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-lime-300" />
+                <div>
+                  <h5 className="text-sm font-medium text-lime-200">Execution Readiness Overview — 최종 안내</h5>
+                  <p className="mt-1 text-xs leading-relaxed text-lime-200/80">{ero137.finalNotice}</p>
                 </div>
               </div>
             </div>
