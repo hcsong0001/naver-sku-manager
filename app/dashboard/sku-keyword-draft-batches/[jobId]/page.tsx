@@ -3672,6 +3672,19 @@ type DraftBatchJob = {
     stillForbiddenItems: Array<{ label: string; description: string; tone: 'blocked'; }>;
     finalNotice: string;
   } | null;
+  tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessPlanPreviewView?: {
+    title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
+    taskRangeLabel: string; previousExecutionReadinessSnapshotLabel: string; previousExecutionReadinessSnapshotCommit: string;
+    executionReadinessPlanPreviewSummaryItems: Array<{ label: string; description: string; previewState: string; tone: 'neutral' | 'warning' | 'blocked'; }>;
+    nonExecutablePlanStepItems: Array<{ label: string; description: string; notExecutableState: string; tone: 'warning' | 'blocked'; }>;
+    approvalVerificationIsolationRequirementItems: Array<{ label: string; description: string; requiredCondition: string; tone: 'warning' | 'blocked'; }>;
+    connectionPreparationSequenceItems: Array<{ label: string; description: string; sequenceState: string; tone: 'neutral' | 'warning' | 'blocked'; }>;
+    misunderstandingPreventionItems: Array<{ label: string; description: string; correction: string; tone: 'warning' | 'blocked'; }>;
+    executionReadinessPlanPreviewBoundaryItems: Array<{ label: string; description: string; boundaryState: string; tone: 'warning' | 'blocked'; }>;
+    nextSafeReviewItems: Array<{ label: string; description: string; nextOwner: string; tone: 'neutral' | 'warning'; }>;
+    stillForbiddenItems: Array<{ label: string; description: string; tone: 'blocked'; }>;
+    finalNotice: string;
+  } | null;
 };
 
 type DraftBatchDetailResponse =
@@ -19752,6 +19765,143 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 <div>
                   <h5 className="text-sm font-medium text-emerald-200">Execution Readiness Snapshot — 최종 안내</h5>
                   <p className="mt-1 text-xs leading-relaxed text-emerald-200/80">{ers134.finalNotice}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 135: Execution Readiness Plan Preview ─ */}
+      {(() => {
+        const erpp135 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessPlanPreviewView;
+        if (!erpp135) return null;
+        const toneColor = (tone: 'neutral' | 'warning' | 'blocked') =>
+          tone === 'blocked' ? 'text-red-400' : tone === 'warning' ? 'text-cyan-300' : 'text-slate-300';
+        return (
+          <div className="mb-6 rounded-lg border border-cyan-900/40 bg-[#071219] p-4">
+            <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-white">
+              <ShieldAlert className="h-5 w-5 text-cyan-300" />
+              {erpp135.title}
+            </h2>
+            <div className="mb-3 flex items-center gap-2">
+              <span className="rounded-full border border-cyan-700/50 bg-cyan-950/40 px-2 py-0.5 text-xs text-cyan-200">
+                {erpp135.statusLabel}
+              </span>
+            </div>
+            <p className="mb-4 text-xs leading-relaxed text-cyan-200/70">{erpp135.summary}</p>
+            <div className="mb-2 text-xs text-slate-500">{erpp135.taskRangeLabel}</div>
+            <div className="mb-1 text-xs text-slate-600">기준: {erpp135.previousExecutionReadinessSnapshotLabel} ({erpp135.previousExecutionReadinessSnapshotCommit})</div>
+            <div className="mt-4 space-y-4">
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-cyan-300">실행 준비 계획 미리보기 요약</h4>
+                <div className="space-y-2">
+                  {erpp135.executionReadinessPlanPreviewSummaryItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-cyan-900/30 bg-cyan-950/10 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-cyan-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.previewState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-cyan-300">아직 실행하지 않는 단계</h4>
+                <div className="space-y-2">
+                  {erpp135.nonExecutablePlanStepItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-cyan-900/30 bg-cyan-950/10 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-cyan-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.notExecutableState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-300">실행 전 승인 / 검증 / 격리 조건</h4>
+                <div className="space-y-2">
+                  {erpp135.approvalVerificationIsolationRequirementItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-amber-900/40 bg-amber-950/20 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-cyan-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.requiredCondition}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-cyan-300">Worker / Queue / Adapter 연결 전 준비 순서</h4>
+                <div className="space-y-2">
+                  {erpp135.connectionPreparationSequenceItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-cyan-900/30 bg-cyan-950/10 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-cyan-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.sequenceState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-cyan-300">실행으로 오해하면 안 되는 항목</h4>
+                <div className="space-y-2">
+                  {erpp135.misunderstandingPreventionItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-cyan-900/30 bg-cyan-950/10 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-cyan-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.correction}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-cyan-300">계획 미리보기 경계 상태</h4>
+                <div className="space-y-2">
+                  {erpp135.executionReadinessPlanPreviewBoundaryItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-cyan-900/30 bg-cyan-950/10 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-cyan-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.boundaryState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">다음 내부 검토</h4>
+                <div className="space-y-2">
+                  {erpp135.nextSafeReviewItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-slate-700/30 bg-slate-900/20 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-slate-400/70">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.nextOwner}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 금지됨</h4>
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  {erpp135.stillForbiddenItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
+                      <div className="text-xs font-medium text-red-400">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-cyan-200/60">{item.description}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3 rounded-md border border-cyan-700/40 bg-cyan-950/20 p-4">
+                <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-cyan-300" />
+                <div>
+                  <h5 className="text-sm font-medium text-cyan-200">Execution Readiness Plan Preview — 최종 안내</h5>
+                  <p className="mt-1 text-xs leading-relaxed text-cyan-200/80">{erpp135.finalNotice}</p>
                 </div>
               </div>
             </div>
