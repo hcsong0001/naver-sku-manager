@@ -3738,6 +3738,17 @@ type DraftBatchJob = {
     stillForbiddenItems: Array<{ label: string; description: string; tone: 'blocked'; }>;
     finalNotice: string;
   } | null;
+  tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessQueueEnqueueEligibilityView?: {
+    title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
+    taskRangeLabel: string; previousExecutionReadinessQueuePayloadPreviewLabel: string; previousExecutionReadinessQueuePayloadPreviewCommit: string;
+    queueEnqueueEligibilityReviewItems: Array<{ label: string; description: string; reviewState: string; tone: 'neutral' | 'warning' | 'blocked'; }>;
+    payloadReadinessItems: Array<{ label: string; description: string; payloadState: string; tone: 'neutral' | 'warning' | 'blocked'; }>;
+    workerContractReadinessItems: Array<{ label: string; description: string; contractState: string; tone: 'neutral' | 'warning' | 'blocked'; }>;
+    approvalAndBlockerItems: Array<{ label: string; description: string; blockerState: string; tone: 'warning' | 'blocked'; }>;
+    enqueueForbiddenReasonItems: Array<{ label: string; description: string; forbiddenReason: string; tone: 'blocked'; }>;
+    stillForbiddenItems: Array<{ label: string; description: string; tone: 'blocked'; }>;
+    finalNotice: string;
+  } | null;
 };
 
 type DraftBatchDetailResponse =
@@ -20516,6 +20527,117 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 <div>
                   <h5 className="text-sm font-medium text-sky-200">Execution Readiness Queue Payload Preview — 최종 안내</h5>
                   <p className="mt-1 text-xs leading-relaxed text-sky-200/80">{erqpp139.finalNotice}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 140: Execution Readiness Queue Enqueue Eligibility ─ */}
+      {(() => {
+        const erqee140 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessQueueEnqueueEligibilityView;
+        if (!erqee140) return null;
+        const toneColor = (tone: 'neutral' | 'warning' | 'blocked') =>
+          tone === 'blocked' ? 'text-red-400' : tone === 'warning' ? 'text-emerald-300' : 'text-slate-300';
+        return (
+          <div className="mb-6 rounded-lg border border-emerald-900/40 bg-[#06140e] p-4">
+            <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-white">
+              <ShieldAlert className="h-5 w-5 text-emerald-300" />
+              {erqee140.title}
+            </h2>
+            <div className="mb-3 flex items-center gap-2">
+              <span className="rounded-full border border-emerald-700/50 bg-emerald-950/40 px-2 py-0.5 text-xs text-emerald-200">
+                {erqee140.statusLabel}
+              </span>
+            </div>
+            <p className="mb-4 text-xs leading-relaxed text-emerald-200/70">{erqee140.summary}</p>
+            <div className="mb-2 text-xs text-slate-500">{erqee140.taskRangeLabel}</div>
+            <div className="mb-1 text-xs text-slate-600">기준: {erqee140.previousExecutionReadinessQueuePayloadPreviewLabel} ({erqee140.previousExecutionReadinessQueuePayloadPreviewCommit})</div>
+            <div className="mt-4 space-y-4">
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-emerald-300">Queue 적재 가능성 검토 상태</h4>
+                <div className="space-y-2">
+                  {erqee140.queueEnqueueEligibilityReviewItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-emerald-900/30 bg-emerald-950/10 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-emerald-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.reviewState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-emerald-300">Payload 준비 여부</h4>
+                <div className="space-y-2">
+                  {erqee140.payloadReadinessItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-emerald-900/30 bg-emerald-950/10 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-emerald-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.payloadState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-emerald-300">Worker Contract 준비 여부</h4>
+                <div className="space-y-2">
+                  {erqee140.workerContractReadinessItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-emerald-900/30 bg-emerald-950/10 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-emerald-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.contractState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-300">승인/차단 상태</h4>
+                <div className="space-y-2">
+                  {erqee140.approvalAndBlockerItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-amber-900/40 bg-amber-950/20 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-emerald-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.blockerState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">실제 enqueue가 금지되어 있는 이유</h4>
+                <div className="space-y-2">
+                  {erqee140.enqueueForbiddenReasonItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
+                      <div className="text-xs font-medium text-red-400">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-emerald-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.forbiddenReason}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 금지됨</h4>
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  {erqee140.stillForbiddenItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
+                      <div className="text-xs font-medium text-red-400">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-emerald-200/60">{item.description}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3 rounded-md border border-emerald-700/40 bg-emerald-950/20 p-4">
+                <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-emerald-300" />
+                <div>
+                  <h5 className="text-sm font-medium text-emerald-200">Execution Readiness Queue Enqueue Eligibility — 최종 안내</h5>
+                  <p className="mt-1 text-xs leading-relaxed text-emerald-200/80">{erqee140.finalNotice}</p>
                 </div>
               </div>
             </div>
