@@ -3491,6 +3491,20 @@ type DraftBatchJob = {
     stillForbiddenItems: Array<{ label: string; description: string; tone: 'blocked'; }>;
     finalNotice: string;
   } | null;
+  tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusFinalNonReleaseReadinessReviewView?: {
+    title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
+    taskRangeLabel: string; previousFinalNonReleaseTransitionReadinessLabel: string; previousFinalNonReleaseTransitionReadinessCommit: string;
+    finalReadinessReviewSummaryItems: Array<{ label: string; description: string; reviewState: string; tone: 'neutral' | 'warning' | 'blocked'; }>;
+    stageReadinessReviewItems: Array<{ label: string; description: string; reviewedMeaning: string; tone: 'blocked'; }>;
+    readinessReviewClassificationItems: Array<{ label: string; description: string; classificationMeaning: string; tone: 'warning' | 'blocked'; }>;
+    releaseStillNotGrantedItems: Array<{ label: string; description: string; notGrantedReason: string; tone: 'blocked'; }>;
+    transitionStillBlockedItems: Array<{ label: string; description: string; blockedState: string; tone: 'blocked'; }>;
+    remainingReadinessReviewItems: Array<{ label: string; description: string; remainingState: string; tone: 'blocked'; }>;
+    requiredBeforeAnyActualExecutionItems: Array<{ label: string; description: string; requiredEvidence: string; tone: 'warning' | 'blocked'; }>;
+    nextSafeReviewItems: Array<{ label: string; description: string; nextOwner: string; tone: 'neutral' | 'warning'; }>;
+    stillForbiddenItems: Array<{ label: string; description: string; tone: 'blocked'; }>;
+    finalNotice: string;
+  } | null;
 };
 
 type DraftBatchDetailResponse =
@@ -17634,6 +17648,156 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 <div>
                   <h5 className="text-sm font-medium text-sky-200">Final Review Closure Status Final Closure Final Status Final Non-Release Transition Readiness — 최종 안내</h5>
                   <p className="mt-1 text-xs leading-relaxed text-sky-200/80">{fcfsntr121.finalNotice}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 122: Final Closure Final Status Final Non-Release Readiness Review ─ */}
+      {(() => {
+        const fcfsnrr122 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusFinalNonReleaseReadinessReviewView;
+        if (!fcfsnrr122) return null;
+        const toneColor = (tone: 'neutral' | 'warning' | 'blocked') =>
+          tone === 'blocked' ? 'text-red-400' : tone === 'warning' ? 'text-emerald-300' : 'text-slate-300';
+        return (
+          <div className="mb-6 rounded-lg border border-emerald-900/40 bg-[#07160f] p-4">
+            <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-white">
+              <ShieldAlert className="h-5 w-5 text-emerald-300" />
+              {fcfsnrr122.title}
+            </h2>
+            <div className="mb-3 flex items-center gap-2">
+              <span className="rounded-full border border-emerald-700/50 bg-emerald-950/40 px-2 py-0.5 text-xs text-emerald-200">
+                {fcfsnrr122.statusLabel}
+              </span>
+            </div>
+            <p className="mb-4 text-xs leading-relaxed text-emerald-200/70">{fcfsnrr122.summary}</p>
+            <div className="mb-2 text-xs text-slate-500">{fcfsnrr122.taskRangeLabel}</div>
+            <div className="mb-1 text-xs text-slate-600">기준: {fcfsnrr122.previousFinalNonReleaseTransitionReadinessLabel} ({fcfsnrr122.previousFinalNonReleaseTransitionReadinessCommit})</div>
+            <div className="mt-4 space-y-4">
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-emerald-300">전환 준비 검토 요약</h4>
+                <div className="space-y-2">
+                  {fcfsnrr122.finalReadinessReviewSummaryItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-emerald-900/30 bg-emerald-950/10 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-emerald-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.reviewState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">단계별 준비 검토</h4>
+                <div className="space-y-2">
+                  {fcfsnrr122.stageReadinessReviewItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
+                      <div className="text-xs font-medium text-red-400">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-emerald-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.reviewedMeaning}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-emerald-300">준비 상태 분류</h4>
+                <div className="space-y-2">
+                  {fcfsnrr122.readinessReviewClassificationItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-emerald-900/30 bg-emerald-950/10 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-emerald-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.classificationMeaning}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">미부여 권한</h4>
+                <div className="space-y-2">
+                  {fcfsnrr122.releaseStillNotGrantedItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
+                      <div className="text-xs font-medium text-red-400">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-emerald-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.notGrantedReason}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 차단된 전환</h4>
+                <div className="space-y-2">
+                  {fcfsnrr122.transitionStillBlockedItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
+                      <div className="text-xs font-medium text-red-400">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-emerald-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.blockedState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">유지 중인 준비 검토 상태</h4>
+                <div className="space-y-2">
+                  {fcfsnrr122.remainingReadinessReviewItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
+                      <div className="text-xs font-medium text-red-400">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-emerald-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.remainingState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-emerald-300">실제 실행 전 필요 증빙</h4>
+                <div className="space-y-2">
+                  {fcfsnrr122.requiredBeforeAnyActualExecutionItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-emerald-900/30 bg-emerald-950/10 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-emerald-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.requiredEvidence}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">다음 안전 검토</h4>
+                <div className="space-y-2">
+                  {fcfsnrr122.nextSafeReviewItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-slate-700/30 bg-slate-900/20 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-slate-400/70">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.nextOwner}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 금지됨</h4>
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  {fcfsnrr122.stillForbiddenItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
+                      <div className="text-xs font-medium text-red-400">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-emerald-200/60">{item.description}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3 rounded-md border border-emerald-700/40 bg-emerald-950/20 p-4">
+                <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-emerald-300" />
+                <div>
+                  <h5 className="text-sm font-medium text-emerald-200">Final Review Closure Status Final Closure Final Status Final Non-Release Readiness Review — 최종 안내</h5>
+                  <p className="mt-1 text-xs leading-relaxed text-emerald-200/80">{fcfsnrr122.finalNotice}</p>
                 </div>
               </div>
             </div>
