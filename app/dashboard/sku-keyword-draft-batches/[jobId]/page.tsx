@@ -3631,6 +3631,20 @@ type DraftBatchJob = {
     stillForbiddenItems: Array<{ label: string; description: string; tone: 'blocked'; }>;
     finalNotice: string;
   } | null;
+  tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionArchitectureApprovalSubmissionPreReviewView?: {
+    title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
+    taskRangeLabel: string; previousExecutionArchitectureApprovalSubmissionReadinessLabel: string; previousExecutionArchitectureApprovalSubmissionReadinessCommit: string;
+    approvalSubmissionPreReviewSummaryItems: Array<{ label: string; description: string; preReviewState: string; tone: 'neutral' | 'warning' | 'blocked'; }>;
+    approvalSubmissionPreReviewItems: Array<{ label: string; description: string; preReviewMeaning: string; tone: 'warning' | 'blocked'; }>;
+    approvalSubmissionPreReviewPendingItems: Array<{ label: string; description: string; reviewState: string; tone: 'blocked'; }>;
+    approvalSubmissionPreReviewBoundaryItems: Array<{ label: string; description: string; boundaryState: string; tone: 'warning' | 'blocked'; }>;
+    internalApprovalSubmissionPreReviewCheckItems: Array<{ label: string; description: string; requiredCheck: string; tone: 'warning' | 'blocked'; }>;
+    transitionStillBlockedItems: Array<{ label: string; description: string; blockedState: string; tone: 'blocked'; }>;
+    remainingApprovalSubmissionPreReviewStateItems: Array<{ label: string; description: string; remainingState: string; tone: 'blocked'; }>;
+    nextSafeReviewItems: Array<{ label: string; description: string; nextOwner: string; tone: 'neutral' | 'warning'; }>;
+    stillForbiddenItems: Array<{ label: string; description: string; tone: 'blocked'; }>;
+    finalNotice: string;
+  } | null;
 };
 
 type DraftBatchDetailResponse =
@@ -19274,6 +19288,156 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 <div>
                   <h5 className="text-sm font-medium text-purple-200">Execution Architecture Approval Submission Readiness — 최종 안내</h5>
                   <p className="mt-1 text-xs leading-relaxed text-purple-200/80">{eaasr131.finalNotice}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 132: Execution Architecture Approval Submission Pre-Review ─ */}
+      {(() => {
+        const eaaspr132 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionArchitectureApprovalSubmissionPreReviewView;
+        if (!eaaspr132) return null;
+        const toneColor = (tone: 'neutral' | 'warning' | 'blocked') =>
+          tone === 'blocked' ? 'text-red-400' : tone === 'warning' ? 'text-indigo-300' : 'text-slate-300';
+        return (
+          <div className="mb-6 rounded-lg border border-indigo-900/40 bg-[#0f0c19] p-4">
+            <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-white">
+              <ShieldAlert className="h-5 w-5 text-indigo-300" />
+              {eaaspr132.title}
+            </h2>
+            <div className="mb-3 flex items-center gap-2">
+              <span className="rounded-full border border-indigo-700/50 bg-indigo-950/40 px-2 py-0.5 text-xs text-indigo-200">
+                {eaaspr132.statusLabel}
+              </span>
+            </div>
+            <p className="mb-4 text-xs leading-relaxed text-indigo-200/70">{eaaspr132.summary}</p>
+            <div className="mb-2 text-xs text-slate-500">{eaaspr132.taskRangeLabel}</div>
+            <div className="mb-1 text-xs text-slate-600">기준: {eaaspr132.previousExecutionArchitectureApprovalSubmissionReadinessLabel} ({eaaspr132.previousExecutionArchitectureApprovalSubmissionReadinessCommit})</div>
+            <div className="mt-4 space-y-4">
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-indigo-300">승인 요청 제출 전 사전 검토 요약</h4>
+                <div className="space-y-2">
+                  {eaaspr132.approvalSubmissionPreReviewSummaryItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-indigo-900/30 bg-indigo-950/10 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-indigo-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.preReviewState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-indigo-300">항목별 제출 전 사전 검토 상태</h4>
+                <div className="space-y-2">
+                  {eaaspr132.approvalSubmissionPreReviewItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-indigo-900/30 bg-indigo-950/10 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-indigo-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.preReviewMeaning}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">사전 검토 대기 상태</h4>
+                <div className="space-y-2">
+                  {eaaspr132.approvalSubmissionPreReviewPendingItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
+                      <div className="text-xs font-medium text-red-400">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-indigo-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.reviewState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-indigo-300">경계 제출 전 사전 검토 상태</h4>
+                <div className="space-y-2">
+                  {eaaspr132.approvalSubmissionPreReviewBoundaryItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-indigo-900/30 bg-indigo-950/10 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-indigo-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.boundaryState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-indigo-300">실제 승인 요청 제출 전 내부 확인</h4>
+                <div className="space-y-2">
+                  {eaaspr132.internalApprovalSubmissionPreReviewCheckItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-indigo-900/30 bg-indigo-950/10 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-indigo-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.requiredCheck}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 차단된 전환</h4>
+                <div className="space-y-2">
+                  {eaaspr132.transitionStillBlockedItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
+                      <div className="text-xs font-medium text-red-400">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-indigo-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.blockedState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">유지 중인 사전 검토 상태</h4>
+                <div className="space-y-2">
+                  {eaaspr132.remainingApprovalSubmissionPreReviewStateItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
+                      <div className="text-xs font-medium text-red-400">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-indigo-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.remainingState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">다음 내부 검토</h4>
+                <div className="space-y-2">
+                  {eaaspr132.nextSafeReviewItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-slate-700/30 bg-slate-900/20 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-slate-400/70">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.nextOwner}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 금지됨</h4>
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  {eaaspr132.stillForbiddenItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
+                      <div className="text-xs font-medium text-red-400">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-indigo-200/60">{item.description}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3 rounded-md border border-indigo-700/40 bg-indigo-950/20 p-4">
+                <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-indigo-300" />
+                <div>
+                  <h5 className="text-sm font-medium text-indigo-200">Execution Architecture Approval Submission Pre-Review — 최종 안내</h5>
+                  <p className="mt-1 text-xs leading-relaxed text-indigo-200/80">{eaaspr132.finalNotice}</p>
                 </div>
               </div>
             </div>
