@@ -3764,6 +3764,19 @@ type DraftBatchJob = {
     stillForbiddenItems: Array<{ label: string; description: string; tone: 'blocked'; }>;
     finalNotice: string;
   } | null;
+  tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
+    title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
+    taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
+    workerPayloadReferenceItems: Array<{ label: string; description: string; interpretationState: string; tone: 'neutral' | 'warning' | 'blocked'; }>;
+    executionReadinessInterpretationItems: Array<{ label: string; description: string; readinessState: string; tone: 'neutral' | 'warning' | 'blocked'; }>;
+    approvalPendingInterpretationItems: Array<{ label: string; description: string; pendingState: string; tone: 'warning' | 'blocked'; }>;
+    blockedStateInterpretationItems: Array<{ label: string; description: string; blockedState: string; tone: 'blocked'; }>;
+    executionNotAllowedReasonItems: Array<{ label: string; description: string; reasonState: string; tone: 'warning' | 'blocked'; }>;
+    misunderstandingPreventionItems: Array<{ label: string; description: string; correction: string; tone: 'warning' | 'blocked'; }>;
+    disconnectedExecutionItems: Array<{ label: string; description: string; disconnectedState: string; tone: 'blocked'; }>;
+    stillForbiddenItems: Array<{ label: string; description: string; tone: 'blocked'; }>;
+    finalNotice: string;
+  } | null;
 };
 
 type DraftBatchDetailResponse =
@@ -20790,6 +20803,143 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 <div>
                   <h5 className="text-sm font-medium text-teal-200">Execution Readiness Queue Contract Overview — 최종 안내</h5>
                   <p className="mt-1 text-xs leading-relaxed text-teal-200/80">{erqco141.finalNotice}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 142: Execution Readiness Worker Payload Interpretation ─ */}
+      {(() => {
+        const erwpi142 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView;
+        if (!erwpi142) return null;
+        const toneColor = (tone: 'neutral' | 'warning' | 'blocked') =>
+          tone === 'blocked' ? 'text-red-400' : tone === 'warning' ? 'text-amber-300' : 'text-slate-300';
+        return (
+          <div className="mb-6 rounded-lg border border-amber-900/40 bg-[#171106] p-4">
+            <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-white">
+              <ShieldAlert className="h-5 w-5 text-amber-300" />
+              {erwpi142.title}
+            </h2>
+            <div className="mb-3 flex items-center gap-2">
+              <span className="rounded-full border border-amber-700/50 bg-amber-950/40 px-2 py-0.5 text-xs text-amber-200">
+                {erwpi142.statusLabel}
+              </span>
+            </div>
+            <p className="mb-4 text-xs leading-relaxed text-amber-200/70">{erwpi142.summary}</p>
+            <div className="mb-2 text-xs text-slate-500">{erwpi142.taskRangeLabel}</div>
+            <div className="mb-1 text-xs text-slate-600">기준: {erwpi142.previousExecutionReadinessQueueContractOverviewLabel} ({erwpi142.previousExecutionReadinessQueueContractOverviewCommit})</div>
+            <div className="mt-4 space-y-4">
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-300">Worker가 Queue Payload에서 참고해야 할 항목</h4>
+                <div className="space-y-2">
+                  {erwpi142.workerPayloadReferenceItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-amber-900/30 bg-amber-950/10 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-amber-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.interpretationState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-300">실행 준비 상태 해석 기준</h4>
+                <div className="space-y-2">
+                  {erwpi142.executionReadinessInterpretationItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-amber-900/30 bg-amber-950/10 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-amber-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.readinessState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-300">승인 대기 상태 해석 기준</h4>
+                <div className="space-y-2">
+                  {erwpi142.approvalPendingInterpretationItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-amber-900/30 bg-amber-950/10 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-amber-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.pendingState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">차단 상태 해석 기준</h4>
+                <div className="space-y-2">
+                  {erwpi142.blockedStateInterpretationItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
+                      <div className="text-xs font-medium text-red-400">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-amber-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.blockedState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">실행 불가 사유 해석 기준</h4>
+                <div className="space-y-2">
+                  {erwpi142.executionNotAllowedReasonItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-amber-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.reasonState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-300">실제 Worker 실행으로 오해하면 안 되는 항목</h4>
+                <div className="space-y-2">
+                  {erwpi142.misunderstandingPreventionItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-amber-900/30 bg-amber-950/10 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-amber-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.correction}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">아직 연결되지 않은 실행 경로</h4>
+                <div className="space-y-2">
+                  {erwpi142.disconnectedExecutionItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
+                      <div className="text-xs font-medium text-red-400">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-amber-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.disconnectedState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 금지됨</h4>
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  {erwpi142.stillForbiddenItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
+                      <div className="text-xs font-medium text-red-400">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-amber-200/60">{item.description}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3 rounded-md border border-amber-700/40 bg-amber-950/20 p-4">
+                <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-amber-300" />
+                <div>
+                  <h5 className="text-sm font-medium text-amber-200">Execution Readiness Worker Payload Interpretation — 최종 안내</h5>
+                  <p className="mt-1 text-xs leading-relaxed text-amber-200/80">{erwpi142.finalNotice}</p>
                 </div>
               </div>
             </div>
