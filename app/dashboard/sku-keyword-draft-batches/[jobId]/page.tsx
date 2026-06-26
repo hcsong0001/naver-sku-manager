@@ -3778,6 +3778,7 @@ type DraftBatchJob = {
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionConnectionAdapterPreparationView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionConnectionRuntimeEnvironmentPreparationView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionConnectionFeatureFlagPreparationView?: any;
+  tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionConnectionSafetyGatePreparationView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -22652,6 +22653,118 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 <div>
                   <h5 className="text-sm font-medium text-red-200">Execution Connection Feature Flag Preparation — 최종 안내</h5>
                   <p className="mt-1 text-xs leading-relaxed text-red-200/80">{ecffp156.finalNotice}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 157: Execution Connection Safety Gate Preparation ─────────── */}
+      {(() => {
+        const ecsgp157 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionConnectionSafetyGatePreparationView;
+        if (!ecsgp157) return null;
+        const toneColor = (tone: 'neutral' | 'warning' | 'blocked') =>
+          tone === 'blocked' ? 'text-red-400' : tone === 'warning' ? 'text-amber-300' : 'text-slate-300';
+        return (
+          <div className="mb-6 rounded-lg border border-red-900/40 bg-[#0f0808] p-4">
+            <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-white">
+              <ShieldAlert className="h-5 w-5 text-red-400" />
+              {ecsgp157.title}
+            </h2>
+            <div className="mb-3 flex items-center gap-2">
+              <span className="rounded-full border border-red-700/50 bg-red-950/40 px-2 py-0.5 text-xs text-red-300">
+                {ecsgp157.statusLabel}
+              </span>
+            </div>
+            <p className="mb-4 text-xs leading-relaxed text-red-200/70">{ecsgp157.summary}</p>
+            <div className="mb-2 text-xs text-slate-500">{ecsgp157.taskRangeLabel}</div>
+            <div className="mb-1 text-xs text-slate-600">기준: {ecsgp157.previousExecutionConnectionFeatureFlagPreparationLabel} ({ecsgp157.previousExecutionConnectionFeatureFlagPreparationCommit})</div>
+            <div className="mt-4 space-y-4">
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-300">실행 Safety Gate 준비 상태</h4>
+                <div className="space-y-2">
+                  {ecsgp157.executionSafetyGatePreparationItems.map((item: any, i: number) => (
+                    <div key={i} className="rounded-md border border-amber-900/30 bg-amber-950/10 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-amber-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.safetyGatePreparationState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-teal-300">Feature Flag와 Safety Gate의 연결 전 관계</h4>
+                <div className="space-y-2">
+                  {ecsgp157.preConnectionFeatureFlagAndSafetyGateRelationItems.map((item: any, i: number) => (
+                    <div key={i} className="rounded-md border border-teal-900/30 bg-teal-950/10 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-teal-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.safetyGatePreparationState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-cyan-300">Worker / Queue / Adapter 실행 Safety Gate 확인 필요 상태</h4>
+                <div className="space-y-2">
+                  {ecsgp157.workerQueueAdapterSafetyGateReviewItems.map((item: any, i: number) => (
+                    <div key={i} className="rounded-md border border-cyan-900/30 bg-cyan-950/10 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-cyan-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.safetyGatePreparationState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">실제 실행 전 Safety Gate 차단 조건</h4>
+                <div className="space-y-2">
+                  {ecsgp157.safetyGateBlockedConditionItems.map((item: any, i: number) => (
+                    <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-red-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.safetyGatePreparationState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">Safety Gate가 아직 실행 권한을 열지 않았다는 상태</h4>
+                <div className="space-y-2">
+                  {ecsgp157.executionPermissionStillClosedItems.map((item: any, i: number) => (
+                    <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-red-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.safetyGatePreparationState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">Worker / Queue / Adapter / Token / Naver API / DB Write 미연결 상태</h4>
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  {ecsgp157.disconnectedSystemItems.map((item: any, i: number) => (
+                    <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
+                      <div className="text-xs font-medium text-red-400">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-red-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.safetyGatePreparationState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3 rounded-md border border-red-700/40 bg-red-950/20 p-4">
+                <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-red-400" />
+                <div>
+                  <h5 className="text-sm font-medium text-red-200">Execution Connection Safety Gate Preparation — 최종 안내</h5>
+                  <p className="mt-1 text-xs leading-relaxed text-red-200/80">{ecsgp157.finalNotice}</p>
                 </div>
               </div>
             </div>
