@@ -3764,6 +3764,7 @@ type DraftBatchJob = {
     stillForbiddenItems: Array<{ label: string; description: string; tone: 'blocked'; }>;
     finalNotice: string;
   } | null;
+  tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerInputValidationView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -20940,6 +20941,131 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 <div>
                   <h5 className="text-sm font-medium text-amber-200">Execution Readiness Worker Payload Interpretation — 최종 안내</h5>
                   <p className="mt-1 text-xs leading-relaxed text-amber-200/80">{erwpi142.finalNotice}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 143: Execution Readiness Worker Input Validation ─────────────── */}
+      {(() => {
+        const erwiv143 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerInputValidationView;
+        if (!erwiv143) return null;
+        const toneColor = (tone: 'neutral' | 'warning' | 'blocked') =>
+          tone === 'blocked' ? 'text-red-400' : tone === 'warning' ? 'text-amber-300' : 'text-slate-300';
+        return (
+          <div className="mb-6 rounded-lg border border-red-900/40 bg-[#170a0a] p-4">
+            <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-white">
+              <ShieldAlert className="h-5 w-5 text-red-400" />
+              {erwiv143.title}
+            </h2>
+            <div className="mb-3 flex items-center gap-2">
+              <span className="rounded-full border border-red-700/50 bg-red-950/40 px-2 py-0.5 text-xs text-red-300">
+                {erwiv143.statusLabel}
+              </span>
+            </div>
+            <p className="mb-4 text-xs leading-relaxed text-red-200/70">{erwiv143.summary}</p>
+            <div className="mb-2 text-xs text-slate-500">{erwiv143.taskRangeLabel}</div>
+            <div className="mb-1 text-xs text-slate-600">기준: {erwiv143.previousExecutionReadinessWorkerPayloadInterpretationLabel} ({erwiv143.previousExecutionReadinessWorkerPayloadInterpretationCommit})</div>
+            <div className="mt-4 space-y-4">
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-300">Worker 입력 검증 기준 (Payload Mapping)</h4>
+                <div className="space-y-2">
+                  {erwiv143.workerInputValidationCriteriaItems.map((item: any, i: number) => (
+                    <div key={i} className="rounded-md border border-red-900/30 bg-red-950/10 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-red-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.validationTarget}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-300">Queue Payload 필수 항목 체크 기준</h4>
+                <div className="space-y-2">
+                  {erwiv143.queuePayloadMandatoryCheckCriteriaItems.map((item: any, i: number) => (
+                    <div key={i} className="rounded-md border border-amber-900/30 bg-amber-950/10 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-amber-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.mandatoryKey}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-300">실행 준비 상태 전제조건</h4>
+                <div className="space-y-2">
+                  {erwiv143.executionReadinessPrerequisiteItems.map((item: any, i: number) => (
+                    <div key={i} className="rounded-md border border-red-900/30 bg-red-950/10 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-red-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.prerequisiteState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">승인 대기 및 차단 상태 검증</h4>
+                <div className="space-y-2">
+                  {erwiv143.approvalPendingBlockedValidationCriteriaItems.map((item: any, i: number) => (
+                    <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-red-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.validationState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">실행 불가 사유 검증</h4>
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  {erwiv143.executionImpossibleReasonValidationCriteriaItems.map((item: any, i: number) => (
+                    <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
+                      <div className="text-xs font-medium text-red-400">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-red-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.reasonState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">실행 전 중단 조건</h4>
+                <div className="space-y-2">
+                  {erwiv143.stopConditionBeforeExecutionItems.map((item: any, i: number) => (
+                    <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-red-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.stopTrigger}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">연결되지 않은 상태 (단절)</h4>
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  {erwiv143.disconnectedStatusItems.map((item: any, i: number) => (
+                    <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
+                      <div className="text-xs font-medium text-red-400">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-red-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.disconnectedState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3 rounded-md border border-red-700/40 bg-red-950/20 p-4">
+                <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-red-400" />
+                <div>
+                  <h5 className="text-sm font-medium text-red-200">Execution Readiness Worker Input Validation — 최종 안내</h5>
+                  <p className="mt-1 text-xs leading-relaxed text-red-200/80">{erwiv143.finalNotice}</p>
                 </div>
               </div>
             </div>
