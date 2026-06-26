@@ -3712,6 +3712,19 @@ type DraftBatchJob = {
     stillForbiddenItems: Array<{ label: string; description: string; tone: 'blocked'; }>;
     finalNotice: string;
   } | null;
+  tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerContractView?: {
+    title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
+    taskRangeLabel: string; previousExecutionReadinessOverviewLabel: string; previousExecutionReadinessOverviewCommit: string;
+    workerReadinessStatusItems: Array<{ label: string; description: string; workerState: string; tone: 'neutral' | 'warning' | 'blocked'; }>;
+    queueConnectionPreconditionItems: Array<{ label: string; description: string; conditionState: string; tone: 'neutral' | 'warning' | 'blocked'; }>;
+    executionBlockerItems: Array<{ label: string; description: string; blockedState: string; tone: 'blocked'; }>;
+    executionNotReadyReasonItems: Array<{ label: string; description: string; reasonState: string; tone: 'warning' | 'blocked'; }>;
+    approvalPendingItems: Array<{ label: string; description: string; pendingState: string; tone: 'warning' | 'blocked'; }>;
+    disconnectedComponentItems: Array<{ label: string; description: string; disconnectedState: string; tone: 'blocked'; }>;
+    workerReferenceContractItems: Array<{ label: string; description: string; contractValue: string; tone: 'neutral' | 'warning' | 'blocked'; }>;
+    stillForbiddenItems: Array<{ label: string; description: string; tone: 'blocked'; }>;
+    finalNotice: string;
+  } | null;
 };
 
 type DraftBatchDetailResponse =
@@ -20216,6 +20229,143 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 <div>
                   <h5 className="text-sm font-medium text-lime-200">Execution Readiness Overview — 최종 안내</h5>
                   <p className="mt-1 text-xs leading-relaxed text-lime-200/80">{ero137.finalNotice}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 138: Execution Readiness Worker Contract ─ */}
+      {(() => {
+        const erwc138 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerContractView;
+        if (!erwc138) return null;
+        const toneColor = (tone: 'neutral' | 'warning' | 'blocked') =>
+          tone === 'blocked' ? 'text-red-400' : tone === 'warning' ? 'text-cyan-300' : 'text-slate-300';
+        return (
+          <div className="mb-6 rounded-lg border border-cyan-900/40 bg-[#071317] p-4">
+            <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-white">
+              <ShieldAlert className="h-5 w-5 text-cyan-300" />
+              {erwc138.title}
+            </h2>
+            <div className="mb-3 flex items-center gap-2">
+              <span className="rounded-full border border-cyan-700/50 bg-cyan-950/40 px-2 py-0.5 text-xs text-cyan-200">
+                {erwc138.statusLabel}
+              </span>
+            </div>
+            <p className="mb-4 text-xs leading-relaxed text-cyan-200/70">{erwc138.summary}</p>
+            <div className="mb-2 text-xs text-slate-500">{erwc138.taskRangeLabel}</div>
+            <div className="mb-1 text-xs text-slate-600">기준: {erwc138.previousExecutionReadinessOverviewLabel} ({erwc138.previousExecutionReadinessOverviewCommit})</div>
+            <div className="mt-4 space-y-4">
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-cyan-300">Worker 참조 실행 준비 상태</h4>
+                <div className="space-y-2">
+                  {erwc138.workerReadinessStatusItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-cyan-900/30 bg-cyan-950/10 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-cyan-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.workerState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-cyan-300">Queue 연결 전 필요한 조건</h4>
+                <div className="space-y-2">
+                  {erwc138.queueConnectionPreconditionItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-cyan-900/30 bg-cyan-950/10 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-cyan-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.conditionState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">실제 실행 전 유지해야 할 차단 조건</h4>
+                <div className="space-y-2">
+                  {erwc138.executionBlockerItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
+                      <div className="text-xs font-medium text-red-400">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-cyan-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.blockedState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">실행 불가 사유</h4>
+                <div className="space-y-2">
+                  {erwc138.executionNotReadyReasonItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-cyan-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.reasonState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-300">승인 대기 항목</h4>
+                <div className="space-y-2">
+                  {erwc138.approvalPendingItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-amber-900/40 bg-amber-950/20 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-cyan-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.pendingState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">미연결 상태</h4>
+                <div className="space-y-2">
+                  {erwc138.disconnectedComponentItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
+                      <div className="text-xs font-medium text-red-400">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-cyan-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.disconnectedState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-cyan-300">향후 Worker 참조용 읽기 전용 계약 정보</h4>
+                <div className="space-y-2">
+                  {erwc138.workerReferenceContractItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-cyan-900/30 bg-cyan-950/10 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-cyan-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.contractValue}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 금지됨</h4>
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  {erwc138.stillForbiddenItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
+                      <div className="text-xs font-medium text-red-400">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-cyan-200/60">{item.description}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3 rounded-md border border-cyan-700/40 bg-cyan-950/20 p-4">
+                <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-cyan-300" />
+                <div>
+                  <h5 className="text-sm font-medium text-cyan-200">Execution Readiness Worker Contract — 최종 안내</h5>
+                  <p className="mt-1 text-xs leading-relaxed text-cyan-200/80">{erwc138.finalNotice}</p>
                 </div>
               </div>
             </div>
