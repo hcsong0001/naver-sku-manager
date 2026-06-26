@@ -3774,6 +3774,7 @@ type DraftBatchJob = {
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerAuditClosureView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionConnectionPreparationOverviewView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionConnectionWorkerPreparationView?: any;
+  tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionConnectionQueuePreparationView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -22161,6 +22162,131 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 <div>
                   <h5 className="text-sm font-medium text-red-200">Execution Connection Worker Preparation — 최종 안내</h5>
                   <p className="mt-1 text-xs leading-relaxed text-red-200/80">{ecwp152.finalNotice}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 153: Execution Connection Queue Preparation ────────────────── */}
+      {(() => {
+        const ecqp153 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionConnectionQueuePreparationView;
+        if (!ecqp153) return null;
+        const toneColor = (tone: 'neutral' | 'warning' | 'blocked') =>
+          tone === 'blocked' ? 'text-red-400' : tone === 'warning' ? 'text-amber-300' : 'text-slate-300';
+        return (
+          <div className="mb-6 rounded-lg border border-red-900/40 bg-[#0f0808] p-4">
+            <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-white">
+              <ShieldAlert className="h-5 w-5 text-red-400" />
+              {ecqp153.title}
+            </h2>
+            <div className="mb-3 flex items-center gap-2">
+              <span className="rounded-full border border-red-700/50 bg-red-950/40 px-2 py-0.5 text-xs text-red-300">
+                {ecqp153.statusLabel}
+              </span>
+            </div>
+            <p className="mb-4 text-xs leading-relaxed text-red-200/70">{ecqp153.summary}</p>
+            <div className="mb-2 text-xs text-slate-500">{ecqp153.taskRangeLabel}</div>
+            <div className="mb-1 text-xs text-slate-600">기준: {ecqp153.previousExecutionConnectionWorkerPreparationLabel} ({ecqp153.previousExecutionConnectionWorkerPreparationCommit})</div>
+            <div className="mt-4 space-y-4">
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-300">Queue Connection 준비 상태</h4>
+                <div className="space-y-2">
+                  {ecqp153.queueConnectionPreparationItems.map((item: any, i: number) => (
+                    <div key={i} className="rounded-md border border-red-900/30 bg-red-950/10 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-red-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.queuePreparationState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-sky-300">Queue Payload Preview 참조 상태</h4>
+                <div className="space-y-2">
+                  {ecqp153.queuePayloadPreviewReferenceItems.map((item: any, i: number) => (
+                    <div key={i} className="rounded-md border border-sky-900/30 bg-sky-950/10 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-sky-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.queuePreparationState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-emerald-300">Queue Enqueue Eligibility 참조 상태</h4>
+                <div className="space-y-2">
+                  {ecqp153.queueEnqueueEligibilityReferenceItems.map((item: any, i: number) => (
+                    <div key={i} className="rounded-md border border-emerald-900/30 bg-emerald-950/10 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-emerald-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.queuePreparationState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-teal-300">Queue Contract Overview 참조 상태</h4>
+                <div className="space-y-2">
+                  {ecqp153.queueContractOverviewReferenceItems.map((item: any, i: number) => (
+                    <div key={i} className="rounded-md border border-teal-900/30 bg-teal-950/10 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-teal-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.queuePreparationState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-300">Worker Contract와 Queue Contract의 연결 전 관계</h4>
+                <div className="space-y-2">
+                  {ecqp153.preConnectionWorkerQueueRelationItems.map((item: any, i: number) => (
+                    <div key={i} className="rounded-md border border-amber-900/30 bg-amber-950/10 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-amber-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.queuePreparationState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-400">아직 Queue enqueue가 실제 수행되지 않는 이유</h4>
+                <div className="space-y-2">
+                  {ecqp153.actualEnqueueBlockedReasonItems.map((item: any, i: number) => (
+                    <div key={i} className="rounded-md border border-amber-900/30 bg-amber-950/10 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-amber-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.queuePreparationState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">Worker / Queue / Adapter / Token / Naver API / DB Write 미연결 상태</h4>
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  {ecqp153.disconnectedSystemItems.map((item: any, i: number) => (
+                    <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
+                      <div className="text-xs font-medium text-red-400">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-red-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.queuePreparationState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3 rounded-md border border-red-700/40 bg-red-950/20 p-4">
+                <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-red-400" />
+                <div>
+                  <h5 className="text-sm font-medium text-red-200">Execution Connection Queue Preparation — 최종 안내</h5>
+                  <p className="mt-1 text-xs leading-relaxed text-red-200/80">{ecqp153.finalNotice}</p>
                 </div>
               </div>
             </div>
