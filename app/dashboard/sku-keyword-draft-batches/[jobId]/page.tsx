@@ -3547,6 +3547,20 @@ type DraftBatchJob = {
     stillForbiddenItems: Array<{ label: string; description: string; tone: 'blocked'; }>;
     finalNotice: string;
   } | null;
+  tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionArchitectureIsolationCheckView?: {
+    title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
+    taskRangeLabel: string; previousExecutionArchitectureReadinessReviewLabel: string; previousExecutionArchitectureReadinessReviewCommit: string;
+    executionArchitectureIsolationSummaryItems: Array<{ label: string; description: string; isolationState: string; tone: 'neutral' | 'warning' | 'blocked'; }>;
+    stillIsolatedExecutionArchitectureItems: Array<{ label: string; description: string; isolationMeaning: string; tone: 'neutral' | 'warning' | 'blocked'; }>;
+    executionPathStillDisconnectedItems: Array<{ label: string; description: string; disconnectedReason: string; tone: 'blocked'; }>;
+    approvalLockedIsolationItems: Array<{ label: string; description: string; lockedReason: string; tone: 'blocked'; }>;
+    internalIsolationCheckItems: Array<{ label: string; description: string; requiredCheck: string; tone: 'warning' | 'blocked'; }>;
+    transitionStillBlockedItems: Array<{ label: string; description: string; blockedState: string; tone: 'blocked'; }>;
+    remainingIsolationItems: Array<{ label: string; description: string; remainingState: string; tone: 'blocked'; }>;
+    nextSafeReviewItems: Array<{ label: string; description: string; nextOwner: string; tone: 'neutral' | 'warning'; }>;
+    stillForbiddenItems: Array<{ label: string; description: string; tone: 'blocked'; }>;
+    finalNotice: string;
+  } | null;
 };
 
 type DraftBatchDetailResponse =
@@ -18290,6 +18304,156 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 <div>
                   <h5 className="text-sm font-medium text-cyan-200">Execution Architecture Readiness Review — 최종 안내</h5>
                   <p className="mt-1 text-xs leading-relaxed text-cyan-200/80">{earr125.finalNotice}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 126: Execution Architecture Isolation Check ─ */}
+      {(() => {
+        const eaic126 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionArchitectureIsolationCheckView;
+        if (!eaic126) return null;
+        const toneColor = (tone: 'neutral' | 'warning' | 'blocked') =>
+          tone === 'blocked' ? 'text-red-400' : tone === 'warning' ? 'text-sky-300' : 'text-slate-300';
+        return (
+          <div className="mb-6 rounded-lg border border-sky-900/40 bg-[#06121a] p-4">
+            <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-white">
+              <ShieldAlert className="h-5 w-5 text-sky-300" />
+              {eaic126.title}
+            </h2>
+            <div className="mb-3 flex items-center gap-2">
+              <span className="rounded-full border border-sky-700/50 bg-sky-950/40 px-2 py-0.5 text-xs text-sky-200">
+                {eaic126.statusLabel}
+              </span>
+            </div>
+            <p className="mb-4 text-xs leading-relaxed text-sky-200/70">{eaic126.summary}</p>
+            <div className="mb-2 text-xs text-slate-500">{eaic126.taskRangeLabel}</div>
+            <div className="mb-1 text-xs text-slate-600">기준: {eaic126.previousExecutionArchitectureReadinessReviewLabel} ({eaic126.previousExecutionArchitectureReadinessReviewCommit})</div>
+            <div className="mt-4 space-y-4">
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-sky-300">실행 아키텍처 격리 요약</h4>
+                <div className="space-y-2">
+                  {eaic126.executionArchitectureIsolationSummaryItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-sky-900/30 bg-sky-950/10 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-sky-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.isolationState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-sky-300">계속 격리된 실행 아키텍처 요소</h4>
+                <div className="space-y-2">
+                  {eaic126.stillIsolatedExecutionArchitectureItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-sky-900/30 bg-sky-950/10 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-sky-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.isolationMeaning}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">아직 분리된 실행 경로</h4>
+                <div className="space-y-2">
+                  {eaic126.executionPathStillDisconnectedItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
+                      <div className="text-xs font-medium text-red-400">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-sky-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.disconnectedReason}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">별도 승인 전 잠금 유지</h4>
+                <div className="space-y-2">
+                  {eaic126.approvalLockedIsolationItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
+                      <div className="text-xs font-medium text-red-400">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-sky-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.lockedReason}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-sky-300">격리 유지 내부 확인</h4>
+                <div className="space-y-2">
+                  {eaic126.internalIsolationCheckItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-sky-900/30 bg-sky-950/10 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-sky-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.requiredCheck}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 차단된 전환</h4>
+                <div className="space-y-2">
+                  {eaic126.transitionStillBlockedItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
+                      <div className="text-xs font-medium text-red-400">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-sky-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.blockedState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">유지 중인 격리 상태</h4>
+                <div className="space-y-2">
+                  {eaic126.remainingIsolationItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
+                      <div className="text-xs font-medium text-red-400">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-sky-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.remainingState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">다음 내부 검토</h4>
+                <div className="space-y-2">
+                  {eaic126.nextSafeReviewItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-slate-700/30 bg-slate-900/20 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-slate-400/70">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.nextOwner}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 금지됨</h4>
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  {eaic126.stillForbiddenItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
+                      <div className="text-xs font-medium text-red-400">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-sky-200/60">{item.description}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3 rounded-md border border-sky-700/40 bg-sky-950/20 p-4">
+                <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-sky-300" />
+                <div>
+                  <h5 className="text-sm font-medium text-sky-200">Execution Architecture Isolation Check — 최종 안내</h5>
+                  <p className="mt-1 text-xs leading-relaxed text-sky-200/80">{eaic126.finalNotice}</p>
                 </div>
               </div>
             </div>
