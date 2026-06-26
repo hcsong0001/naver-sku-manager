@@ -3519,6 +3519,20 @@ type DraftBatchJob = {
     stillForbiddenItems: Array<{ label: string; description: string; tone: 'blocked'; }>;
     finalNotice: string;
   } | null;
+  tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionPreconditionsView?: {
+    title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
+    taskRangeLabel: string; previousExecutionGateLabel: string; previousExecutionGateCommit: string;
+    executionPreconditionsSummaryItems: Array<{ label: string; description: string; preconditionState: string; tone: 'neutral' | 'warning' | 'blocked'; }>;
+    stageExecutionPreconditionsItems: Array<{ label: string; description: string; preconditionMeaning: string; tone: 'blocked'; }>;
+    executionPreconditionsClassificationItems: Array<{ label: string; description: string; classificationMeaning: string; tone: 'warning' | 'blocked'; }>;
+    releaseStillNotGrantedItems: Array<{ label: string; description: string; notGrantedReason: string; tone: 'blocked'; }>;
+    transitionStillBlockedItems: Array<{ label: string; description: string; blockedState: string; tone: 'blocked'; }>;
+    remainingExecutionPreconditionsItems: Array<{ label: string; description: string; remainingState: string; tone: 'blocked'; }>;
+    requiredBeforeAnyActualExecutionItems: Array<{ label: string; description: string; requiredEvidence: string; tone: 'warning' | 'blocked'; }>;
+    nextSafeReviewItems: Array<{ label: string; description: string; nextOwner: string; tone: 'neutral' | 'warning'; }>;
+    stillForbiddenItems: Array<{ label: string; description: string; tone: 'blocked'; }>;
+    finalNotice: string;
+  } | null;
 };
 
 type DraftBatchDetailResponse =
@@ -17962,6 +17976,156 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 <div>
                   <h5 className="text-sm font-medium text-orange-200">Execution Gate — 최종 안내</h5>
                   <p className="mt-1 text-xs leading-relaxed text-orange-200/80">{egr123.finalNotice}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 124: Execution Preconditions ─ */}
+      {(() => {
+        const epr124 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionPreconditionsView;
+        if (!epr124) return null;
+        const toneColor = (tone: 'neutral' | 'warning' | 'blocked') =>
+          tone === 'blocked' ? 'text-red-400' : tone === 'warning' ? 'text-teal-300' : 'text-slate-300';
+        return (
+          <div className="mb-6 rounded-lg border border-teal-900/40 bg-[#071615] p-4">
+            <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-white">
+              <ShieldAlert className="h-5 w-5 text-teal-300" />
+              {epr124.title}
+            </h2>
+            <div className="mb-3 flex items-center gap-2">
+              <span className="rounded-full border border-teal-700/50 bg-teal-950/40 px-2 py-0.5 text-xs text-teal-200">
+                {epr124.statusLabel}
+              </span>
+            </div>
+            <p className="mb-4 text-xs leading-relaxed text-teal-200/70">{epr124.summary}</p>
+            <div className="mb-2 text-xs text-slate-500">{epr124.taskRangeLabel}</div>
+            <div className="mb-1 text-xs text-slate-600">기준: {epr124.previousExecutionGateLabel} ({epr124.previousExecutionGateCommit})</div>
+            <div className="mt-4 space-y-4">
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-teal-300">실행 전제조건 요약</h4>
+                <div className="space-y-2">
+                  {epr124.executionPreconditionsSummaryItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-teal-900/30 bg-teal-950/10 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-teal-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.preconditionState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">단계별 전제조건 확인</h4>
+                <div className="space-y-2">
+                  {epr124.stageExecutionPreconditionsItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
+                      <div className="text-xs font-medium text-red-400">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-teal-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.preconditionMeaning}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-teal-300">전제조건 상태 분류</h4>
+                <div className="space-y-2">
+                  {epr124.executionPreconditionsClassificationItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-teal-900/30 bg-teal-950/10 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-teal-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.classificationMeaning}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">미부여 권한</h4>
+                <div className="space-y-2">
+                  {epr124.releaseStillNotGrantedItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
+                      <div className="text-xs font-medium text-red-400">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-teal-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.notGrantedReason}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 차단된 전환</h4>
+                <div className="space-y-2">
+                  {epr124.transitionStillBlockedItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
+                      <div className="text-xs font-medium text-red-400">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-teal-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.blockedState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">유지 중인 전제조건 상태</h4>
+                <div className="space-y-2">
+                  {epr124.remainingExecutionPreconditionsItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
+                      <div className="text-xs font-medium text-red-400">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-teal-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.remainingState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-teal-300">실제 실행 전 필요 증빙</h4>
+                <div className="space-y-2">
+                  {epr124.requiredBeforeAnyActualExecutionItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-teal-900/30 bg-teal-950/10 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-teal-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.requiredEvidence}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">다음 안전 검토</h4>
+                <div className="space-y-2">
+                  {epr124.nextSafeReviewItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-slate-700/30 bg-slate-900/20 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-slate-400/70">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.nextOwner}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 금지됨</h4>
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  {epr124.stillForbiddenItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
+                      <div className="text-xs font-medium text-red-400">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-teal-200/60">{item.description}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3 rounded-md border border-teal-700/40 bg-teal-950/20 p-4">
+                <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-teal-300" />
+                <div>
+                  <h5 className="text-sm font-medium text-teal-200">Execution Preconditions — 최종 안내</h5>
+                  <p className="mt-1 text-xs leading-relaxed text-teal-200/80">{epr124.finalNotice}</p>
                 </div>
               </div>
             </div>
