@@ -3561,6 +3561,20 @@ type DraftBatchJob = {
     stillForbiddenItems: Array<{ label: string; description: string; tone: 'blocked'; }>;
     finalNotice: string;
   } | null;
+  tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionArchitectureConnectionBlockersView?: {
+    title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
+    taskRangeLabel: string; previousExecutionArchitectureIsolationCheckLabel: string; previousExecutionArchitectureIsolationCheckCommit: string;
+    connectionBlockersSummaryItems: Array<{ label: string; description: string; blockerState: string; tone: 'neutral' | 'warning' | 'blocked'; }>;
+    criticalConnectionBlockerItems: Array<{ label: string; description: string; blockerReason: string; tone: 'blocked'; }>;
+    approvalNotCompletedItems: Array<{ label: string; description: string; approvalState: string; tone: 'blocked'; }>;
+    executionConnectionPendingItems: Array<{ label: string; description: string; pendingState: string; tone: 'blocked'; }>;
+    internalCheckBeforeAnyConnectionItems: Array<{ label: string; description: string; requiredCheck: string; tone: 'warning' | 'blocked'; }>;
+    transitionStillBlockedItems: Array<{ label: string; description: string; blockedState: string; tone: 'blocked'; }>;
+    remainingBlockerStateItems: Array<{ label: string; description: string; remainingState: string; tone: 'blocked'; }>;
+    nextSafeReviewItems: Array<{ label: string; description: string; nextOwner: string; tone: 'neutral' | 'warning'; }>;
+    stillForbiddenItems: Array<{ label: string; description: string; tone: 'blocked'; }>;
+    finalNotice: string;
+  } | null;
 };
 
 type DraftBatchDetailResponse =
@@ -18454,6 +18468,156 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 <div>
                   <h5 className="text-sm font-medium text-sky-200">Execution Architecture Isolation Check — 최종 안내</h5>
                   <p className="mt-1 text-xs leading-relaxed text-sky-200/80">{eaic126.finalNotice}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 127: Execution Architecture Connection Blockers ─ */}
+      {(() => {
+        const eacb127 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionArchitectureConnectionBlockersView;
+        if (!eacb127) return null;
+        const toneColor = (tone: 'neutral' | 'warning' | 'blocked') =>
+          tone === 'blocked' ? 'text-red-400' : tone === 'warning' ? 'text-rose-300' : 'text-slate-300';
+        return (
+          <div className="mb-6 rounded-lg border border-rose-900/40 bg-[#180a10] p-4">
+            <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-white">
+              <ShieldAlert className="h-5 w-5 text-rose-300" />
+              {eacb127.title}
+            </h2>
+            <div className="mb-3 flex items-center gap-2">
+              <span className="rounded-full border border-rose-700/50 bg-rose-950/40 px-2 py-0.5 text-xs text-rose-200">
+                {eacb127.statusLabel}
+              </span>
+            </div>
+            <p className="mb-4 text-xs leading-relaxed text-rose-200/70">{eacb127.summary}</p>
+            <div className="mb-2 text-xs text-slate-500">{eacb127.taskRangeLabel}</div>
+            <div className="mb-1 text-xs text-slate-600">기준: {eacb127.previousExecutionArchitectureIsolationCheckLabel} ({eacb127.previousExecutionArchitectureIsolationCheckCommit})</div>
+            <div className="mt-4 space-y-4">
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-rose-300">연결 차단 조건 요약</h4>
+                <div className="space-y-2">
+                  {eacb127.connectionBlockersSummaryItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-rose-900/30 bg-rose-950/10 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-rose-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.blockerState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">핵심 차단 조건</h4>
+                <div className="space-y-2">
+                  {eacb127.criticalConnectionBlockerItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
+                      <div className="text-xs font-medium text-red-400">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-rose-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.blockerReason}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">미완료 승인</h4>
+                <div className="space-y-2">
+                  {eacb127.approvalNotCompletedItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
+                      <div className="text-xs font-medium text-red-400">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-rose-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.approvalState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">실행 연결 대기</h4>
+                <div className="space-y-2">
+                  {eacb127.executionConnectionPendingItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
+                      <div className="text-xs font-medium text-red-400">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-rose-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.pendingState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-rose-300">실제 연결 전 내부 확인</h4>
+                <div className="space-y-2">
+                  {eacb127.internalCheckBeforeAnyConnectionItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-rose-900/30 bg-rose-950/10 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-rose-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.requiredCheck}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 차단된 전환</h4>
+                <div className="space-y-2">
+                  {eacb127.transitionStillBlockedItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
+                      <div className="text-xs font-medium text-red-400">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-rose-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.blockedState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">유지 중인 차단 상태</h4>
+                <div className="space-y-2">
+                  {eacb127.remainingBlockerStateItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
+                      <div className="text-xs font-medium text-red-400">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-rose-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.remainingState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">다음 내부 검토</h4>
+                <div className="space-y-2">
+                  {eacb127.nextSafeReviewItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-slate-700/30 bg-slate-900/20 p-3">
+                      <div className={`text-xs font-medium ${toneColor(item.tone)}`}>{item.label}</div>
+                      <p className="mt-0.5 text-xs text-slate-400/70">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.nextOwner}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 금지됨</h4>
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  {eacb127.stillForbiddenItems.map((item, i) => (
+                    <div key={i} className="rounded-md border border-red-900/40 bg-red-950/20 p-3">
+                      <div className="text-xs font-medium text-red-400">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-rose-200/60">{item.description}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3 rounded-md border border-rose-700/40 bg-rose-950/20 p-4">
+                <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-rose-300" />
+                <div>
+                  <h5 className="text-sm font-medium text-rose-200">Execution Architecture Connection Blockers — 최종 안내</h5>
+                  <p className="mt-1 text-xs leading-relaxed text-rose-200/80">{eacb127.finalNotice}</p>
                 </div>
               </div>
             </div>
