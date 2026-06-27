@@ -3797,6 +3797,7 @@ type DraftBatchJob = {
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultDisplayOnlyFinalConfirmationView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultDisplayOnlyClosureBoundaryView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultDisplayOnlyClosureSealView?: any;
+  tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultDisplayOnlyClosureFinalEvidenceView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -24352,6 +24353,95 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 <div>
                   <h5 className="text-sm font-medium text-fuchsia-200">BatchJob Result Display-Only Closure Seal — read-only 봉인 고정 확인 완료</h5>
                   <p className="mt-1 text-xs leading-relaxed text-fuchsia-200/80">{bjrdocs174.finalNotice}</p>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 175: BatchJob Execution Result Display-Only Closure Final Evidence ── */}
+      {(() => {
+        const bjrdocfe175 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultDisplayOnlyClosureFinalEvidenceView;
+        if (!bjrdocfe175) return null;
+        return (
+          <div className="mb-6 rounded-lg border border-rose-900/40 bg-[#190b12] p-4 shadow-[0_0_15px_rgba(244,63,94,0.05)]">
+            <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-white">
+              <ShieldAlert className="h-5 w-5 text-rose-500" />
+              {bjrdocfe175.panelTitle}
+            </h2>
+            <div className="mb-3 flex items-center gap-2">
+              <span className="rounded-full border border-rose-700/50 bg-rose-950/40 px-2 py-0.5 text-xs text-rose-300">
+                {bjrdocfe175.evidenceStatus}
+              </span>
+            </div>
+            <p className="mb-4 text-xs leading-relaxed text-rose-200/70">
+              이 영역은 BatchJob 실행 결과 display-only closure final evidence 화면입니다. Task 174의 closure seal은 실행 허가가 아니며, BatchJob 실행 결과는 closure final evidence 안의 상태 표시 영역일 뿐 action 영역이 아닙니다.
+            </p>
+            <div className="mb-2 text-xs text-slate-500">{bjrdocfe175.taskName}</div>
+            <div className="mb-1 text-xs text-slate-600">
+              기준: {bjrdocfe175.previousExecutionBatchJobResultDisplayOnlyClosureSealLabel} ({bjrdocfe175.previousExecutionBatchJobResultDisplayOnlyClosureSealCommit})
+            </div>
+            <div className="mt-4 space-y-4">
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-rose-400">closure final evidence 항목</h4>
+                <div className="space-y-2">
+                  {bjrdocfe175.closureFinalEvidenceItems.map((item: any, i: number) => (
+                    <div key={i} className="rounded-md border border-rose-900/40 bg-rose-950/20 p-3">
+                      <div className="text-xs font-medium text-rose-300">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-rose-200/70">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.evidenceState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">차단된 액션 경로</h4>
+                <div className="space-y-2">
+                  {bjrdocfe175.blockedActionPaths.map((item: any, i: number) => (
+                    <div key={i} className="rounded-md border border-slate-700/40 bg-slate-800/20 p-3">
+                      <div className="text-xs font-medium text-slate-300">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-slate-400">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.evidenceState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-orange-400">오해 방지 안내</h4>
+                <div className="space-y-2">
+                  {bjrdocfe175.misunderstandingPreventionItems.map((item: any, i: number) => (
+                    <div key={i} className="rounded-md border border-orange-900/30 bg-orange-950/10 p-3">
+                      <div className="text-xs font-medium text-orange-400">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-orange-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.evidenceState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 금지되는 작업</h4>
+                <div className="space-y-2">
+                  {bjrdocfe175.stillForbiddenActions.map((item: any, i: number) => (
+                    <div key={i} className="rounded-md border border-red-900/30 bg-red-950/10 p-3">
+                      <div className="text-xs font-medium text-red-400">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-red-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.evidenceState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3 rounded-md border border-rose-700/40 bg-rose-950/20 p-4">
+                <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-rose-400" />
+                <div>
+                  <h5 className="text-sm font-medium text-rose-200">BatchJob Result Display-Only Closure Final Evidence — read-only 최종 증빙 확인 완료</h5>
+                  <p className="mt-1 text-xs leading-relaxed text-rose-200/80">{bjrdocfe175.finalNotice}</p>
                 </div>
               </div>
 
