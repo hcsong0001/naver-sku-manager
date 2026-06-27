@@ -3820,6 +3820,7 @@ type DraftBatchJob = {
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultDisplayOnlyStatusSummaryFinalPreReleaseStateView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultDisplayOnlyStatusSummaryFinalPresentationLayerHandoverView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultDisplayOnlyStatusSummaryFinalUiPayloadConversionView?: any;
+  tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultDisplayOnlyStatusSummaryFinalUiPayloadLockView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -26590,6 +26591,112 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 <div>
                   <h5 className="text-sm font-medium text-pink-200">BatchJob Result Display-Only Status Summary Final UI Payload Conversion — 순수 렌더링 데이터 변환 완료</h5>
                   <p className="mt-1 text-xs leading-relaxed text-pink-200/80">{bjrdossfupl197.finalNotice}</p>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 198: BatchJob Execution Result Display-Only Status Summary Final UI Payload Lock ── */}
+      {(() => {
+        const bjrdossfupll198 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultDisplayOnlyStatusSummaryFinalUiPayloadLockView;
+        if (!bjrdossfupll198) return null;
+        return (
+          <div className="mb-6 rounded-lg border border-purple-900/40 bg-[#0e0a14] p-4 shadow-[0_0_15px_rgba(168,85,247,0.05)]">
+            <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-white">
+              <ShieldAlert className="h-5 w-5 text-purple-500" />
+              {bjrdossfupll198.panelTitle}
+            </h2>
+            <div className="mb-3 flex flex-wrap gap-2">
+              <span className="rounded-full border border-purple-700/50 bg-purple-950/40 px-2 py-0.5 text-xs text-purple-300">
+                {bjrdossfupll198.uiPayloadLockStatus}
+              </span>
+              <span className="rounded-full border border-emerald-700/50 bg-emerald-900/30 px-2 py-0.5 text-[10px] font-semibold text-emerald-300">
+                LOCKED PERMANENTLY
+              </span>
+            </div>
+            <p className="mb-4 text-xs leading-relaxed text-purple-200/70">
+              이 영역은 BatchJob 실행 결과 display-only status summary final ui payload lock 화면입니다. 변환된 순수 UI Payload가 영구적으로 잠겨(Lock) 클라이언트 사이드에서 어떠한 형태의 조작이나 Mutation도 불가능함을 완벽히 보장합니다.
+            </p>
+            <div className="mb-2 text-xs text-slate-500">{bjrdossfupll198.taskName}</div>
+            <div className="mb-1 text-xs text-slate-600">
+              기준: {bjrdossfupll198.previousExecutionBatchJobResultDisplayOnlyStatusSummaryFinalUiPayloadConversionLabel} ({bjrdossfupll198.previousExecutionBatchJobResultDisplayOnlyStatusSummaryFinalUiPayloadConversionCommit})
+            </div>
+
+            <div className="mt-4 mb-4 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-6">
+              <div className="rounded-md border border-slate-700/50 bg-slate-800/30 p-2 text-center">
+                <div className="text-[10px] uppercase text-slate-400">Total</div>
+                <div className="mt-1 text-lg font-semibold text-white">{bjrdossfupll198.uiPayloadLockTotalItemCount}</div>
+              </div>
+              <div className="rounded-md border border-emerald-900/40 bg-emerald-950/20 p-2 text-center">
+                <div className="text-[10px] uppercase text-emerald-400/80">Success</div>
+                <div className="mt-1 text-lg font-semibold text-emerald-400">{bjrdossfupll198.uiPayloadLockSuccessItemCount}</div>
+              </div>
+              <div className="rounded-md border border-red-900/40 bg-red-950/20 p-2 text-center">
+                <div className="text-[10px] uppercase text-red-400/80">Failed</div>
+                <div className="mt-1 text-lg font-semibold text-red-400">{bjrdossfupll198.uiPayloadLockFailedItemCount}</div>
+              </div>
+              <div className="rounded-md border border-amber-900/40 bg-amber-950/20 p-2 text-center">
+                <div className="text-[10px] uppercase text-amber-400/80">Skipped</div>
+                <div className="mt-1 text-lg font-semibold text-amber-400">{bjrdossfupll198.uiPayloadLockSkippedItemCount}</div>
+              </div>
+              <div className="rounded-md border border-blue-900/40 bg-blue-950/20 p-2 text-center">
+                <div className="text-[10px] uppercase text-blue-400/80">Ready</div>
+                <div className="mt-1 text-lg font-semibold text-blue-400">{bjrdossfupll198.uiPayloadLockReadyItemCount}</div>
+              </div>
+              <div className="rounded-md border border-slate-700/50 bg-slate-800/30 p-2 text-center">
+                <div className="text-[10px] uppercase text-slate-400">Unknown</div>
+                <div className="mt-1 text-lg font-semibold text-slate-300">{bjrdossfupll198.uiPayloadLockUnknownItemCount}</div>
+              </div>
+            </div>
+
+            <div className="mt-4 space-y-4">
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-purple-400">UI Payload 영구 잠금(Lock) 완료</h4>
+                <div className="space-y-2">
+                  {bjrdossfupll198.statusSummaryFinalUiPayloadLockItems.map((item: any, i: number) => (
+                    <div key={i} className="rounded-md border border-purple-900/40 bg-purple-950/20 p-3">
+                      <div className="text-xs font-medium text-purple-300">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-purple-200/70">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.lockState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">Payload 조작 및 Mutation 일절 차단</h4>
+                <div className="space-y-2">
+                  {bjrdossfupll198.blockedActionPaths.map((item: any, i: number) => (
+                    <div key={i} className="rounded-md border border-slate-700/40 bg-slate-800/20 p-3">
+                      <div className="text-xs font-medium text-slate-300">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-slate-400">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.lockState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-orange-400">읽기 전용 뷰어(View-Only) 확립</h4>
+                <div className="space-y-2">
+                  {bjrdossfupll198.misunderstandingPreventionItems.map((item: any, i: number) => (
+                    <div key={i} className="rounded-md border border-orange-900/30 bg-orange-950/10 p-3">
+                      <div className="text-xs font-medium text-orange-400">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-orange-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.lockState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3 rounded-md border border-purple-700/40 bg-purple-950/20 p-4">
+                <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-purple-400" />
+                <div>
+                  <h5 className="text-sm font-medium text-purple-200">BatchJob Result Display-Only Status Summary Final UI Payload Lock — UI Payload 잠금 완료</h5>
+                  <p className="mt-1 text-xs leading-relaxed text-purple-200/80">{bjrdossfupll198.finalNotice}</p>
                 </div>
               </div>
 
