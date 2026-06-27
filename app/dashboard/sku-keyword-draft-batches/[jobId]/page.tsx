@@ -3813,6 +3813,7 @@ type DraftBatchJob = {
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultDisplayOnlyStatusSummaryView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultDisplayOnlyStatusSummarySealView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultDisplayOnlyStatusSummaryFinalEvidenceView?: any;
+  tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultDisplayOnlyStatusSummaryFinalSealView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -25843,6 +25844,110 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 <div>
                   <h5 className="text-sm font-medium text-indigo-200">BatchJob Result Display-Only Status Summary Final Evidence — 상태 요약 최종 증거화 완료</h5>
                   <p className="mt-1 text-xs leading-relaxed text-indigo-200/80">{bjrdossfe190.finalNotice}</p>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 191: BatchJob Execution Result Display-Only Status Summary Final Seal ── */}
+      {(() => {
+        const bjrdossfs191 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultDisplayOnlyStatusSummaryFinalSealView;
+        if (!bjrdossfs191) return null;
+        return (
+          <div className="mb-6 rounded-lg border border-indigo-900/40 bg-[#0d0f1c] p-4 shadow-[0_0_15px_rgba(99,102,241,0.05)]">
+            <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-white">
+              <ShieldAlert className="h-5 w-5 text-indigo-500" />
+              {bjrdossfs191.panelTitle}
+            </h2>
+            <p className="mb-4 text-xs text-indigo-300/70">
+              {bjrdossfs191.taskName}
+            </p>
+
+            {/* sealed 상태 배지 */}
+            <div className="mb-3 flex items-center gap-2">
+              <span className="rounded-full border border-indigo-700/50 bg-indigo-900/30 px-2.5 py-0.5 text-[10px] font-semibold uppercase text-indigo-300">
+                {bjrdossfs191.sealStatus}
+              </span>
+              <span className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold ${bjrdossfs191.isReadOnly ? 'border-emerald-700/50 bg-emerald-900/30 text-emerald-300' : 'border-red-700/50 bg-red-900/30 text-red-300'}`}>
+                {bjrdossfs191.isReadOnly ? 'READ-ONLY' : 'MUTABLE'}
+              </span>
+              <span className="rounded-full border border-indigo-700/50 bg-indigo-900/30 px-2 py-0.5 text-[10px] font-semibold uppercase text-indigo-300">
+                FINAL SEAL
+              </span>
+            </div>
+
+            {/* sealed 카운트 그리드 */}
+            <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              <div className="rounded-md border border-slate-700/50 bg-slate-800/30 p-2 text-center">
+                <div className="text-[10px] uppercase text-slate-400">총합</div>
+                <div className="mt-1 text-lg font-semibold text-white">{bjrdossfs191.sealedTotalItemCount}</div>
+              </div>
+              <div className="rounded-md border border-emerald-900/40 bg-emerald-950/20 p-2 text-center">
+                <div className="text-[10px] uppercase text-emerald-400/80">성공</div>
+                <div className="mt-1 text-lg font-semibold text-emerald-400">{bjrdossfs191.sealedSuccessItemCount}</div>
+              </div>
+              <div className="rounded-md border border-red-900/40 bg-red-950/20 p-2 text-center">
+                <div className="text-[10px] uppercase text-red-400/80">실패</div>
+                <div className="mt-1 text-lg font-semibold text-red-400">{bjrdossfs191.sealedFailedItemCount}</div>
+              </div>
+              <div className="rounded-md border border-yellow-900/40 bg-yellow-950/20 p-2 text-center">
+                <div className="text-[10px] uppercase text-yellow-400/80">건너뜀</div>
+                <div className="mt-1 text-lg font-semibold text-yellow-400">{bjrdossfs191.sealedSkippedItemCount}</div>
+              </div>
+              <div className="rounded-md border border-slate-700/50 bg-slate-800/30 p-2 text-center">
+                <div className="text-[10px] uppercase text-slate-400">알 수 없음</div>
+                <div className="mt-1 text-lg font-semibold text-slate-300">{bjrdossfs191.sealedUnknownItemCount}</div>
+              </div>
+            </div>
+
+            <div className="mt-4 space-y-4">
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-indigo-400">상태 요약의 최종 봉인 (Final Seal)</h4>
+                <div className="space-y-2">
+                  {bjrdossfs191.statusSummaryFinalSealItems.map((item: any, i: number) => (
+                    <div key={i} className="rounded-md border border-indigo-900/40 bg-indigo-950/20 p-3">
+                      <div className="text-xs font-medium text-indigo-300">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-indigo-200/70">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.sealState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">영구 차단된 액션 경로 최종 봉인</h4>
+                <div className="space-y-2">
+                  {bjrdossfs191.blockedActionPaths.map((item: any, i: number) => (
+                    <div key={i} className="rounded-md border border-slate-700/40 bg-slate-800/20 p-3">
+                      <div className="text-xs font-medium text-slate-300">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-slate-400">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.sealState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-orange-400">오해 방지 최종 봉인</h4>
+                <div className="space-y-2">
+                  {bjrdossfs191.misunderstandingPreventionItems.map((item: any, i: number) => (
+                    <div key={i} className="rounded-md border border-orange-900/30 bg-orange-950/10 p-3">
+                      <div className="text-xs font-medium text-orange-400">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-orange-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.sealState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3 rounded-md border border-indigo-700/40 bg-indigo-950/20 p-4">
+                <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-indigo-400" />
+                <div>
+                  <h5 className="text-sm font-medium text-indigo-200">BatchJob Result Display-Only Status Summary Final Seal — 상태 요약 최종 봉인 완료</h5>
+                  <p className="mt-1 text-xs leading-relaxed text-indigo-200/80">{bjrdossfs191.finalNotice}</p>
                 </div>
               </div>
 
