@@ -3786,6 +3786,7 @@ type DraftBatchJob = {
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionConnectionNonExecutionAuditEvidenceView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionConnectionNonExecutionVerificationSealView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionConnectionNonExecutionFinalLockView?: any;
+  tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionConnectionNonExecutionFinalLockEvidenceHandoffView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -23351,6 +23352,105 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                   <div>
                     <h5 className="text-sm font-medium text-rose-200">Non-Execution Final Lock — 비실행 최종 잠금 완료</h5>
                     <p className="mt-1 text-xs leading-relaxed text-rose-200/80">{ecnefl163.finalNotice}</p>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 164: Execution Connection Non-Execution Final Lock Evidence Handoff ── */}
+      {(() => {
+        const ecnefleh164 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionConnectionNonExecutionFinalLockEvidenceHandoffView;
+        if (!ecnefleh164) return null;
+        return (
+          <div className="mb-6 rounded-lg border border-sky-900/40 bg-[#091218] p-4 shadow-[0_0_15px_rgba(56,189,248,0.05)]">
+            <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-white">
+              <FileText className="h-5 w-5 text-sky-500" />
+              {ecnefleh164.panelTitle}
+            </h2>
+            <div className="mb-3 flex items-center gap-2">
+              <span className="rounded-full border border-sky-700/50 bg-sky-950/40 px-2 py-0.5 text-xs text-sky-300">
+                {ecnefleh164.handoffStatus}
+              </span>
+            </div>
+            <p className="mb-4 text-xs leading-relaxed text-sky-200/70">
+              Task 163의 final lock 상태를 BatchJob 실행 결과 경계로 넘기기 전에, 이것이 실행 권한이 아니라 read-only evidence임을 정리하는 화면입니다.
+            </p>
+            <div className="mb-2 text-xs text-slate-500">{ecnefleh164.taskName}</div>
+            <div className="mb-1 text-xs text-slate-600">
+              기준: {ecnefleh164.previousExecutionConnectionNonExecutionFinalLockLabel} ({ecnefleh164.previousExecutionConnectionNonExecutionFinalLockCommit})
+            </div>
+            <div className="mt-4 space-y-4">
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-sky-400">최종 잠금 증거 인계</h4>
+                <div className="space-y-2">
+                  {ecnefleh164.evidenceHandoffItems.map((item: any, i: number) => (
+                    <div key={i} className="rounded-md border border-sky-900/40 bg-sky-950/20 p-3">
+                      <div className="text-xs font-medium text-sky-300">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-sky-200/70">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.handoffState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">실행 경로 부재 인계</h4>
+                <div className="space-y-2">
+                  {ecnefleh164.blockedExecutionPaths.map((item: any, i: number) => (
+                    <div key={i} className="rounded-md border border-slate-700/40 bg-slate-800/20 p-3">
+                      <div className="text-xs font-medium text-slate-300">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-slate-400">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.handoffState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-orange-400">해석 경계 안내</h4>
+                <div className="space-y-2">
+                  {ecnefleh164.misunderstandingPreventionItems.map((item: any, i: number) => (
+                    <div key={i} className="rounded-md border border-orange-900/30 bg-orange-950/10 p-3">
+                      <div className="text-xs font-medium text-orange-400">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-orange-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.handoffState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 금지되는 작업</h4>
+                <div className="space-y-2">
+                  {ecnefleh164.stillForbiddenActions.map((item: any, i: number) => (
+                    <div key={i} className="rounded-md border border-red-900/30 bg-red-950/10 p-3">
+                      <div className="text-xs font-medium text-red-400">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-red-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.handoffState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-3">
+                <div className="flex items-start gap-3 rounded-md border border-slate-700/40 bg-slate-800/20 p-4">
+                  <Info className="mt-0.5 h-5 w-5 shrink-0 text-slate-400" />
+                  <div>
+                    <h5 className="text-sm font-medium text-slate-300">BatchJob 실행 결과 경계 안내</h5>
+                    <p className="mt-1 text-xs leading-relaxed text-slate-400">{ecnefleh164.batchJobResultBoundaryNotice}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 rounded-md border border-sky-700/40 bg-sky-950/20 p-4">
+                  <FileText className="mt-0.5 h-5 w-5 shrink-0 text-sky-400" />
+                  <div>
+                    <h5 className="text-sm font-medium text-sky-200">Final Lock Evidence Handoff — read-only 증거 인계 완료</h5>
+                    <p className="mt-1 text-xs leading-relaxed text-sky-200/80">{ecnefleh164.finalNotice}</p>
                   </div>
                 </div>
               </div>
