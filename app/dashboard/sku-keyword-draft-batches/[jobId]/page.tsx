@@ -3800,6 +3800,7 @@ type DraftBatchJob = {
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultDisplayOnlyClosureFinalEvidenceView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultDisplayOnlyClosureFinalSealView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultDisplayOnlyClosureFinalHandoffView?: any;
+  tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultDisplayOnlyHandoffAcceptanceBoundaryView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -24622,6 +24623,95 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 <div>
                   <h5 className="text-sm font-medium text-violet-200">BatchJob Result Display-Only Closure Final Handoff — read-only 최종 handoff 확인 완료</h5>
                   <p className="mt-1 text-xs leading-relaxed text-violet-200/80">{bjrdocfh177.finalNotice}</p>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 178: BatchJob Execution Result Display-Only Handoff Acceptance Boundary ── */}
+      {(() => {
+        const bjrdohab178 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultDisplayOnlyHandoffAcceptanceBoundaryView;
+        if (!bjrdohab178) return null;
+        return (
+          <div className="mb-6 rounded-lg border border-sky-900/40 bg-[#0c1319] p-4 shadow-[0_0_15px_rgba(56,189,248,0.05)]">
+            <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-white">
+              <ShieldAlert className="h-5 w-5 text-sky-500" />
+              {bjrdohab178.panelTitle}
+            </h2>
+            <div className="mb-3 flex items-center gap-2">
+              <span className="rounded-full border border-sky-700/50 bg-sky-950/40 px-2 py-0.5 text-xs text-sky-300">
+                {bjrdohab178.acceptanceBoundaryStatus}
+              </span>
+            </div>
+            <p className="mb-4 text-xs leading-relaxed text-sky-200/70">
+              이 영역은 BatchJob 실행 결과 display-only handoff acceptance boundary 화면입니다. Task 177의 handoff는 실행 허가가 아니며, BatchJob 실행 결과 영역은 display-only 상태 표시 handoff만 수용합니다.
+            </p>
+            <div className="mb-2 text-xs text-slate-500">{bjrdohab178.taskName}</div>
+            <div className="mb-1 text-xs text-slate-600">
+              기준: {bjrdohab178.previousExecutionBatchJobResultDisplayOnlyClosureFinalHandoffLabel} ({bjrdohab178.previousExecutionBatchJobResultDisplayOnlyClosureFinalHandoffCommit})
+            </div>
+            <div className="mt-4 space-y-4">
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-sky-400">handoff acceptance boundary 항목</h4>
+                <div className="space-y-2">
+                  {bjrdohab178.handoffAcceptanceBoundaryItems.map((item: any, i: number) => (
+                    <div key={i} className="rounded-md border border-sky-900/40 bg-sky-950/20 p-3">
+                      <div className="text-xs font-medium text-sky-300">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-sky-200/70">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.acceptanceState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">차단된 액션 경로</h4>
+                <div className="space-y-2">
+                  {bjrdohab178.blockedActionPaths.map((item: any, i: number) => (
+                    <div key={i} className="rounded-md border border-slate-700/40 bg-slate-800/20 p-3">
+                      <div className="text-xs font-medium text-slate-300">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-slate-400">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.acceptanceState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-orange-400">오해 방지 안내</h4>
+                <div className="space-y-2">
+                  {bjrdohab178.misunderstandingPreventionItems.map((item: any, i: number) => (
+                    <div key={i} className="rounded-md border border-orange-900/30 bg-orange-950/10 p-3">
+                      <div className="text-xs font-medium text-orange-400">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-orange-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.acceptanceState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 금지되는 작업</h4>
+                <div className="space-y-2">
+                  {bjrdohab178.stillForbiddenActions.map((item: any, i: number) => (
+                    <div key={i} className="rounded-md border border-red-900/30 bg-red-950/10 p-3">
+                      <div className="text-xs font-medium text-red-400">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-red-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.acceptanceState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3 rounded-md border border-sky-700/40 bg-sky-950/20 p-4">
+                <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-sky-400" />
+                <div>
+                  <h5 className="text-sm font-medium text-sky-200">BatchJob Result Display-Only Handoff Acceptance Boundary — read-only 수용 경계 확인 완료</h5>
+                  <p className="mt-1 text-xs leading-relaxed text-sky-200/80">{bjrdohab178.finalNotice}</p>
                 </div>
               </div>
 
