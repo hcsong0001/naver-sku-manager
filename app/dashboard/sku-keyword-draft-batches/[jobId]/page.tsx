@@ -22,6 +22,7 @@ import {
   Target,
   Maximize,
   FileCheck,
+  FileBox,
   ListChecks,
   Circle,
   Users,
@@ -3825,6 +3826,7 @@ type DraftBatchJob = {
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultDisplayOnlyStatusSummaryFinalUiPayloadSecurityBoundaryView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultDisplayOnlyStatusSummaryFinalUiPayloadSecurityBoundaryEnforcementView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultDisplayOnlyStatusSummaryFinalUiPayloadSecurityBoundaryEnforcementSealView?: any;
+  tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultDisplayOnlyActualCompletionAuditView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -27022,6 +27024,59 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 </div>
               </div>
 
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 202: BatchJob Display-Only Actual Completion Audit Screen Flow ── */}
+      {(() => {
+        const bjdioacav202 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultDisplayOnlyActualCompletionAuditView;
+        if (!bjdioacav202) return null;
+        return (
+          <div className="mb-6 rounded-lg border border-indigo-900/40 bg-[#080914] p-4 shadow-[0_0_15px_rgba(99,102,241,0.05)]">
+            <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-white">
+              <FileBox className="h-5 w-5 text-indigo-500" />
+              {bjdioacav202.panelTitle}
+            </h2>
+            <div className="mb-3 flex flex-wrap gap-2">
+              <span className="rounded-full border border-indigo-700/50 bg-indigo-950/40 px-2 py-0.5 text-xs text-indigo-300">
+                {bjdioacav202.auditStatus}
+              </span>
+            </div>
+            <p className="mb-4 text-xs leading-relaxed text-indigo-200/70">
+              {bjdioacav202.auditConclusion}
+            </p>
+            <div className="mb-2 text-xs text-slate-500">{bjdioacav202.taskName}</div>
+            <div className="mb-4 text-xs text-slate-600">
+              기준 커밋: {bjdioacav202.auditReferenceCommit}
+            </div>
+
+            <div className="mt-4 space-y-4">
+              <div>
+                <h4 className="mb-3 text-xs font-semibold uppercase tracking-wide text-indigo-400">Task 192~201 Actual Completion Audit</h4>
+                <div className="space-y-2">
+                  {bjdioacav202.completionAuditItems.map((item: any, i: number) => (
+                    <div key={i} className="flex items-center justify-between rounded-md border border-indigo-900/30 bg-indigo-950/10 p-3">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-bold text-indigo-300">{item.taskId}</span>
+                          <span className="text-[10px] font-mono text-slate-500">[{item.commitHash}]</span>
+                        </div>
+                        <p className="mt-0.5 text-xs text-indigo-200/80">{item.taskTitle}</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {item.isConfirmed && (
+                          <span className="rounded-full bg-emerald-900/30 px-2 py-0.5 text-[10px] font-semibold text-emerald-400 border border-emerald-800/50">
+                            CONFIRMED
+                          </span>
+                        )}
+                        <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         );
