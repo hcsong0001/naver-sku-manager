@@ -3785,6 +3785,7 @@ type DraftBatchJob = {
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionConnectionRiskContainmentCertificationView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionConnectionNonExecutionAuditEvidenceView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionConnectionNonExecutionVerificationSealView?: any;
+  tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionConnectionNonExecutionFinalLockView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -23251,6 +23252,105 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                   <div>
                     <h5 className="text-sm font-medium text-amber-200">Non-Execution Verification Seal — 비실행 검증 봉인 완료</h5>
                     <p className="mt-1 text-xs leading-relaxed text-amber-200/80">{ecnevs162.finalNotice}</p>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 163: Execution Connection Non-Execution Final Lock ── */}
+      {(() => {
+        const ecnefl163 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionConnectionNonExecutionFinalLockView;
+        if (!ecnefl163) return null;
+        return (
+          <div className="mb-6 rounded-lg border border-rose-900/40 bg-[#15090d] p-4 shadow-[0_0_15px_rgba(244,63,94,0.05)]">
+            <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-white">
+              <Lock className="h-5 w-5 text-rose-500" />
+              {ecnefl163.panelTitle}
+            </h2>
+            <div className="mb-3 flex items-center gap-2">
+              <span className="rounded-full border border-rose-700/50 bg-rose-950/40 px-2 py-0.5 text-xs text-rose-300">
+                {ecnefl163.lockStatus}
+              </span>
+            </div>
+            <p className="mb-4 text-xs leading-relaxed text-rose-200/70">
+              Task 162의 verification seal 이후에도 이 흐름이 실제 실행 단계로 넘어가지 못하도록 마지막 잠금 상태를 유지하는 화면입니다.
+            </p>
+            <div className="mb-2 text-xs text-slate-500">{ecnefl163.taskName}</div>
+            <div className="mb-1 text-xs text-slate-600">
+              기준: {ecnefl163.previousExecutionConnectionNonExecutionVerificationSealLabel} ({ecnefl163.previousExecutionConnectionNonExecutionVerificationSealCommit})
+            </div>
+            <div className="mt-4 space-y-4">
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-rose-400">비실행 최종 잠금</h4>
+                <div className="space-y-2">
+                  {ecnefl163.finalLockItems.map((item: any, i: number) => (
+                    <div key={i} className="rounded-md border border-rose-900/40 bg-rose-950/20 p-3">
+                      <div className="text-xs font-medium text-rose-300">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-rose-200/70">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.lockState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">실행 경로 부재 유지</h4>
+                <div className="space-y-2">
+                  {ecnefl163.blockedExecutionPaths.map((item: any, i: number) => (
+                    <div key={i} className="rounded-md border border-slate-700/40 bg-slate-800/20 p-3">
+                      <div className="text-xs font-medium text-slate-300">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-slate-400">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.lockState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-orange-400">오해 방지 안내</h4>
+                <div className="space-y-2">
+                  {ecnefl163.misunderstandingPreventionItems.map((item: any, i: number) => (
+                    <div key={i} className="rounded-md border border-orange-900/30 bg-orange-950/10 p-3">
+                      <div className="text-xs font-medium text-orange-400">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-orange-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.lockState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 금지되는 작업</h4>
+                <div className="space-y-2">
+                  {ecnefl163.stillForbiddenActions.map((item: any, i: number) => (
+                    <div key={i} className="rounded-md border border-red-900/30 bg-red-950/10 p-3">
+                      <div className="text-xs font-medium text-red-400">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-red-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.lockState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-3">
+                <div className="flex items-start gap-3 rounded-md border border-slate-700/40 bg-slate-800/20 p-4">
+                  <Info className="mt-0.5 h-5 w-5 shrink-0 text-slate-400" />
+                  <div>
+                    <h5 className="text-sm font-medium text-slate-300">BatchJob 실행 결과 진입 전 안내</h5>
+                    <p className="mt-1 text-xs leading-relaxed text-slate-400">{ecnefl163.handoffNoticeToBatchJobExecutionResult}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 rounded-md border border-rose-700/40 bg-rose-950/20 p-4">
+                  <Lock className="mt-0.5 h-5 w-5 shrink-0 text-rose-400" />
+                  <div>
+                    <h5 className="text-sm font-medium text-rose-200">Non-Execution Final Lock — 비실행 최종 잠금 완료</h5>
+                    <p className="mt-1 text-xs leading-relaxed text-rose-200/80">{ecnefl163.finalNotice}</p>
                   </div>
                 </div>
               </div>
