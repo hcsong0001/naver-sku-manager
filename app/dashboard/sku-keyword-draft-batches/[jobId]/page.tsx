@@ -3819,6 +3819,7 @@ type DraftBatchJob = {
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultDisplayOnlyStatusSummaryFinalHandoffBoundarySealView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultDisplayOnlyStatusSummaryFinalPreReleaseStateView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultDisplayOnlyStatusSummaryFinalPresentationLayerHandoverView?: any;
+  tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultDisplayOnlyStatusSummaryFinalUiPayloadConversionView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -26483,6 +26484,112 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 <div>
                   <h5 className="text-sm font-medium text-indigo-200">BatchJob Result Display-Only Status Summary Final Presentation Layer Handover — 프레젠테이션 이관 완료</h5>
                   <p className="mt-1 text-xs leading-relaxed text-indigo-200/80">{bjrdossfplh196.finalNotice}</p>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 197: BatchJob Execution Result Display-Only Status Summary Final UI Payload Conversion ── */}
+      {(() => {
+        const bjrdossfupl197 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultDisplayOnlyStatusSummaryFinalUiPayloadConversionView;
+        if (!bjrdossfupl197) return null;
+        return (
+          <div className="mb-6 rounded-lg border border-pink-900/40 bg-[#120f18] p-4 shadow-[0_0_15px_rgba(236,72,153,0.05)]">
+            <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-white">
+              <ShieldAlert className="h-5 w-5 text-pink-500" />
+              {bjrdossfupl197.panelTitle}
+            </h2>
+            <div className="mb-3 flex flex-wrap gap-2">
+              <span className="rounded-full border border-pink-700/50 bg-pink-950/40 px-2 py-0.5 text-xs text-pink-300">
+                {bjrdossfupl197.uiPayloadConversionStatus}
+              </span>
+              <span className="rounded-full border border-emerald-700/50 bg-emerald-900/30 px-2 py-0.5 text-[10px] font-semibold text-emerald-300">
+                UI PAYLOAD
+              </span>
+            </div>
+            <p className="mb-4 text-xs leading-relaxed text-pink-200/70">
+              이 영역은 BatchJob 실행 결과 display-only status summary final ui payload conversion 화면입니다. 프레젠테이션 이관 데이터가 화면 렌더링을 위한 최종적인 UI Payload로 완벽히 변환되었으며 어떠한 조작 가능성도 없음을 확정합니다.
+            </p>
+            <div className="mb-2 text-xs text-slate-500">{bjrdossfupl197.taskName}</div>
+            <div className="mb-1 text-xs text-slate-600">
+              기준: {bjrdossfupl197.previousExecutionBatchJobResultDisplayOnlyStatusSummaryFinalPresentationLayerHandoverLabel} ({bjrdossfupl197.previousExecutionBatchJobResultDisplayOnlyStatusSummaryFinalPresentationLayerHandoverCommit})
+            </div>
+
+            <div className="mt-4 mb-4 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-6">
+              <div className="rounded-md border border-slate-700/50 bg-slate-800/30 p-2 text-center">
+                <div className="text-[10px] uppercase text-slate-400">Total</div>
+                <div className="mt-1 text-lg font-semibold text-white">{bjrdossfupl197.uiPayloadTotalItemCount}</div>
+              </div>
+              <div className="rounded-md border border-emerald-900/40 bg-emerald-950/20 p-2 text-center">
+                <div className="text-[10px] uppercase text-emerald-400/80">Success</div>
+                <div className="mt-1 text-lg font-semibold text-emerald-400">{bjrdossfupl197.uiPayloadSuccessItemCount}</div>
+              </div>
+              <div className="rounded-md border border-red-900/40 bg-red-950/20 p-2 text-center">
+                <div className="text-[10px] uppercase text-red-400/80">Failed</div>
+                <div className="mt-1 text-lg font-semibold text-red-400">{bjrdossfupl197.uiPayloadFailedItemCount}</div>
+              </div>
+              <div className="rounded-md border border-amber-900/40 bg-amber-950/20 p-2 text-center">
+                <div className="text-[10px] uppercase text-amber-400/80">Skipped</div>
+                <div className="mt-1 text-lg font-semibold text-amber-400">{bjrdossfupl197.uiPayloadSkippedItemCount}</div>
+              </div>
+              <div className="rounded-md border border-blue-900/40 bg-blue-950/20 p-2 text-center">
+                <div className="text-[10px] uppercase text-blue-400/80">Ready</div>
+                <div className="mt-1 text-lg font-semibold text-blue-400">{bjrdossfupl197.uiPayloadReadyItemCount}</div>
+              </div>
+              <div className="rounded-md border border-slate-700/50 bg-slate-800/30 p-2 text-center">
+                <div className="text-[10px] uppercase text-slate-400">Unknown</div>
+                <div className="mt-1 text-lg font-semibold text-slate-300">{bjrdossfupl197.uiPayloadUnknownItemCount}</div>
+              </div>
+            </div>
+
+            <div className="mt-4 space-y-4">
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-pink-400">순수 UI 표시용 Payload로 최종 변환 완료</h4>
+                <div className="space-y-2">
+                  {bjrdossfupl197.statusSummaryFinalUiPayloadConversionItems.map((item: any, i: number) => (
+                    <div key={i} className="rounded-md border border-pink-900/40 bg-pink-950/20 p-3">
+                      <div className="text-xs font-medium text-pink-300">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-pink-200/70">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.conversionState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">API/비즈니스 로직 접근 완전 차단</h4>
+                <div className="space-y-2">
+                  {bjrdossfupl197.blockedActionPaths.map((item: any, i: number) => (
+                    <div key={i} className="rounded-md border border-slate-700/40 bg-slate-800/20 p-3">
+                      <div className="text-xs font-medium text-slate-300">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-slate-400">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.conversionState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-orange-400">오해 방지(단순 정적 JSON) 확정</h4>
+                <div className="space-y-2">
+                  {bjrdossfupl197.misunderstandingPreventionItems.map((item: any, i: number) => (
+                    <div key={i} className="rounded-md border border-orange-900/30 bg-orange-950/10 p-3">
+                      <div className="text-xs font-medium text-orange-400">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-orange-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.conversionState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3 rounded-md border border-pink-700/40 bg-pink-950/20 p-4">
+                <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-pink-400" />
+                <div>
+                  <h5 className="text-sm font-medium text-pink-200">BatchJob Result Display-Only Status Summary Final UI Payload Conversion — 순수 렌더링 데이터 변환 완료</h5>
+                  <p className="mt-1 text-xs leading-relaxed text-pink-200/80">{bjrdossfupl197.finalNotice}</p>
                 </div>
               </div>
 
