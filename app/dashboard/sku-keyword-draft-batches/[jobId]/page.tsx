@@ -3789,6 +3789,7 @@ type DraftBatchJob = {
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionConnectionNonExecutionFinalLockEvidenceHandoffView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultReadOnlyBoundaryConfirmationView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultNonActionEvidenceView?: any;
+  tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultNonActionSealView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -23632,6 +23633,95 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 <div>
                   <h5 className="text-sm font-medium text-violet-200">BatchJob Result Non-Action Evidence — read-only 비동작 증거 확인 완료</h5>
                   <p className="mt-1 text-xs leading-relaxed text-violet-200/80">{bjrnae166.finalNotice}</p>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 167: BatchJob Execution Result Non-Action Seal ── */}
+      {(() => {
+        const bjrnas167 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultNonActionSealView;
+        if (!bjrnas167) return null;
+        return (
+          <div className="mb-6 rounded-lg border border-pink-900/40 bg-[#180b14] p-4 shadow-[0_0_15px_rgba(236,72,153,0.05)]">
+            <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-white">
+              <Lock className="h-5 w-5 text-pink-500" />
+              {bjrnas167.panelTitle}
+            </h2>
+            <div className="mb-3 flex items-center gap-2">
+              <span className="rounded-full border border-pink-700/50 bg-pink-950/40 px-2 py-0.5 text-xs text-pink-300">
+                {bjrnas167.sealStatus}
+              </span>
+            </div>
+            <p className="mb-4 text-xs leading-relaxed text-pink-200/70">
+              이 영역은 BatchJob 실행 결과 non-action seal 화면이며 실행 화면이 아닙니다. Task 166의 non-action evidence는 실행 허가가 아닙니다.
+            </p>
+            <div className="mb-2 text-xs text-slate-500">{bjrnas167.taskName}</div>
+            <div className="mb-1 text-xs text-slate-600">
+              기준: {bjrnas167.previousExecutionBatchJobResultNonActionEvidenceLabel} ({bjrnas167.previousExecutionBatchJobResultNonActionEvidenceCommit})
+            </div>
+            <div className="mt-4 space-y-4">
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-pink-400">비동작 봉인 항목</h4>
+                <div className="space-y-2">
+                  {bjrnas167.nonActionSealItems.map((item: any, i: number) => (
+                    <div key={i} className="rounded-md border border-pink-900/40 bg-pink-950/20 p-3">
+                      <div className="text-xs font-medium text-pink-300">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-pink-200/70">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.sealState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">차단된 액션 경로</h4>
+                <div className="space-y-2">
+                  {bjrnas167.blockedActionPaths.map((item: any, i: number) => (
+                    <div key={i} className="rounded-md border border-slate-700/40 bg-slate-800/20 p-3">
+                      <div className="text-xs font-medium text-slate-300">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-slate-400">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.sealState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-orange-400">오해 방지 안내</h4>
+                <div className="space-y-2">
+                  {bjrnas167.misunderstandingPreventionItems.map((item: any, i: number) => (
+                    <div key={i} className="rounded-md border border-orange-900/30 bg-orange-950/10 p-3">
+                      <div className="text-xs font-medium text-orange-400">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-orange-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.sealState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-400">계속 금지되는 작업</h4>
+                <div className="space-y-2">
+                  {bjrnas167.stillForbiddenActions.map((item: any, i: number) => (
+                    <div key={i} className="rounded-md border border-red-900/30 bg-red-950/10 p-3">
+                      <div className="text-xs font-medium text-red-400">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-red-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.sealState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3 rounded-md border border-pink-700/40 bg-pink-950/20 p-4">
+                <Lock className="mt-0.5 h-5 w-5 shrink-0 text-pink-400" />
+                <div>
+                  <h5 className="text-sm font-medium text-pink-200">BatchJob Result Non-Action Seal — read-only 비동작 봉인 완료</h5>
+                  <p className="mt-1 text-xs leading-relaxed text-pink-200/80">{bjrnas167.finalNotice}</p>
                 </div>
               </div>
 
