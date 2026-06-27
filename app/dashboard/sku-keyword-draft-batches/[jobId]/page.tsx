@@ -3828,6 +3828,7 @@ type DraftBatchJob = {
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultDisplayOnlyStatusSummaryFinalUiPayloadSecurityBoundaryEnforcementSealView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultDisplayOnlyActualCompletionAuditView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultDisplayOnlyAutoApprovalComplianceAuditView?: any;
+  tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultDisplayOnlyTaskSequenceReconciliationView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -27122,6 +27123,61 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                           </span>
                         )}
                         <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 204: BatchJob Display-Only Task Sequence Reconciliation Screen Flow ── */}
+      {(() => {
+        const bjdotsrv204 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultDisplayOnlyTaskSequenceReconciliationView;
+        if (!bjdotsrv204) return null;
+        return (
+          <div className="mb-6 rounded-lg border border-indigo-900/40 bg-[#080914] p-4 shadow-[0_0_15px_rgba(99,102,241,0.05)]">
+            <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-white">
+              <ClipboardList className="h-5 w-5 text-indigo-500" />
+              {bjdotsrv204.panelTitle}
+            </h2>
+            <div className="mb-3 flex flex-wrap gap-2">
+              <span className="rounded-full border border-indigo-700/50 bg-indigo-950/40 px-2 py-0.5 text-xs text-indigo-300">
+                {bjdotsrv204.reconciliationStatus}
+              </span>
+            </div>
+            <p className="mb-4 text-xs leading-relaxed text-indigo-200/70">
+              {bjdotsrv204.reconciliationConclusion}
+            </p>
+            <div className="mb-4 text-xs text-slate-500">{bjdotsrv204.taskName}</div>
+
+            <div className="mt-4 space-y-4">
+              <div>
+                <h4 className="mb-3 text-xs font-semibold uppercase tracking-wide text-indigo-400">Reconciliation Records</h4>
+                <div className="space-y-2">
+                  {bjdotsrv204.reconciliationItems.map((item: any, i: number) => (
+                    <div key={i} className="flex flex-col gap-2 rounded-md border border-indigo-900/30 bg-indigo-950/10 p-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-indigo-300">{item.taskId}</span>
+                        <div className="flex items-center gap-2">
+                          {item.isReconciled && (
+                            <span className="rounded-full bg-emerald-900/30 px-2 py-0.5 text-[10px] font-semibold text-emerald-400 border border-emerald-800/50">
+                              RECONCILED
+                            </span>
+                          )}
+                          <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                        </div>
+                      </div>
+                      <div className="text-xs text-indigo-200/80">
+                        <span className="font-semibold text-indigo-300/70">계획명:</span> {item.plannedName}
+                      </div>
+                      <div className="text-xs text-indigo-200/80">
+                        <span className="font-semibold text-indigo-300/70">구현명:</span> {item.actualImplementedName}
+                      </div>
+                      <div className="mt-1 text-[11px] text-slate-400">
+                        {item.notes}
                       </div>
                     </div>
                   ))}
