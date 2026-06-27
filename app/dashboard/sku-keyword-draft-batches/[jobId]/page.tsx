@@ -26,6 +26,7 @@ import {
   Circle,
   Users,
   Search,
+  LockKeyhole,
 } from 'lucide-react';
 import type {
   SkuKeywordDraftBatchApproveRequest,
@@ -3823,6 +3824,7 @@ type DraftBatchJob = {
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultDisplayOnlyStatusSummaryFinalUiPayloadLockView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultDisplayOnlyStatusSummaryFinalUiPayloadSecurityBoundaryView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultDisplayOnlyStatusSummaryFinalUiPayloadSecurityBoundaryEnforcementView?: any;
+  tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultDisplayOnlyStatusSummaryFinalUiPayloadSecurityBoundaryEnforcementSealView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -26911,6 +26913,112 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 <div>
                   <h5 className="text-sm font-medium text-purple-200">BatchJob Result Display-Only Status Summary Final UI Payload Security Boundary Enforcement — 보안 경계 강제 적용 완료</h5>
                   <p className="mt-1 text-xs leading-relaxed text-purple-200/80">{bjrdossfupsbe200.finalNotice}</p>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 201: BatchJob Execution Result Display-Only Status Summary Final UI Payload Security Boundary Enforcement Flow Approval Seal ── */}
+      {(() => {
+        const bjrdossfupsbes201 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultDisplayOnlyStatusSummaryFinalUiPayloadSecurityBoundaryEnforcementSealView;
+        if (!bjrdossfupsbes201) return null;
+        return (
+          <div className="mb-6 rounded-lg border border-teal-900/40 bg-[#070e10] p-4 shadow-[0_0_15px_rgba(20,184,166,0.05)]">
+            <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-white">
+              <LockKeyhole className="h-5 w-5 text-teal-500" />
+              {bjrdossfupsbes201.panelTitle}
+            </h2>
+            <div className="mb-3 flex flex-wrap gap-2">
+              <span className="rounded-full border border-teal-700/50 bg-teal-950/40 px-2 py-0.5 text-xs text-teal-300">
+                {bjrdossfupsbes201.uiPayloadSecurityBoundaryEnforcementSealStatus}
+              </span>
+              <span className="rounded-full border border-sky-700/50 bg-sky-900/30 px-2 py-0.5 text-[10px] font-semibold text-sky-300">
+                UI PAYLOAD PERMANENTLY SEALED
+              </span>
+            </div>
+            <p className="mb-4 text-xs leading-relaxed text-teal-200/70">
+              이 영역은 BatchJob 실행 결과 display-only status summary final ui payload security boundary enforcement seal 화면입니다. 확립되고 강제된 보안 경계를 최종적으로 봉인(Seal)하여, 해당 플로우의 불가역적인 완결성(Terminality)을 증명합니다.
+            </p>
+            <div className="mb-2 text-xs text-slate-500">{bjrdossfupsbes201.taskName}</div>
+            <div className="mb-1 text-xs text-slate-600">
+              기준: {bjrdossfupsbes201.previousExecutionBatchJobResultDisplayOnlyStatusSummaryFinalUiPayloadSecurityBoundaryEnforcementLabel} ({bjrdossfupsbes201.previousExecutionBatchJobResultDisplayOnlyStatusSummaryFinalUiPayloadSecurityBoundaryEnforcementCommit})
+            </div>
+
+            <div className="mt-4 mb-4 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-6">
+              <div className="rounded-md border border-slate-700/50 bg-slate-800/30 p-2 text-center">
+                <div className="text-[10px] uppercase text-slate-400">Total</div>
+                <div className="mt-1 text-lg font-semibold text-white">{bjrdossfupsbes201.uiPayloadSecurityBoundaryEnforcementSealTotalItemCount}</div>
+              </div>
+              <div className="rounded-md border border-emerald-900/40 bg-emerald-950/20 p-2 text-center">
+                <div className="text-[10px] uppercase text-emerald-400/80">Success</div>
+                <div className="mt-1 text-lg font-semibold text-emerald-400">{bjrdossfupsbes201.uiPayloadSecurityBoundaryEnforcementSealSuccessItemCount}</div>
+              </div>
+              <div className="rounded-md border border-red-900/40 bg-red-950/20 p-2 text-center">
+                <div className="text-[10px] uppercase text-red-400/80">Failed</div>
+                <div className="mt-1 text-lg font-semibold text-red-400">{bjrdossfupsbes201.uiPayloadSecurityBoundaryEnforcementSealFailedItemCount}</div>
+              </div>
+              <div className="rounded-md border border-amber-900/40 bg-amber-950/20 p-2 text-center">
+                <div className="text-[10px] uppercase text-amber-400/80">Skipped</div>
+                <div className="mt-1 text-lg font-semibold text-amber-400">{bjrdossfupsbes201.uiPayloadSecurityBoundaryEnforcementSealSkippedItemCount}</div>
+              </div>
+              <div className="rounded-md border border-blue-900/40 bg-blue-950/20 p-2 text-center">
+                <div className="text-[10px] uppercase text-blue-400/80">Ready</div>
+                <div className="mt-1 text-lg font-semibold text-blue-400">{bjrdossfupsbes201.uiPayloadSecurityBoundaryEnforcementSealReadyItemCount}</div>
+              </div>
+              <div className="rounded-md border border-slate-700/50 bg-slate-800/30 p-2 text-center">
+                <div className="text-[10px] uppercase text-slate-400">Unknown</div>
+                <div className="mt-1 text-lg font-semibold text-slate-300">{bjrdossfupsbes201.uiPayloadSecurityBoundaryEnforcementSealUnknownItemCount}</div>
+              </div>
+            </div>
+
+            <div className="mt-4 space-y-4">
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-teal-400">최종 UI Payload 봉인(Seal) 완료</h4>
+                <div className="space-y-2">
+                  {bjrdossfupsbes201.statusSummaryFinalUiPayloadSecurityBoundaryEnforcementSealItems.map((item: any, i: number) => (
+                    <div key={i} className="rounded-md border border-teal-900/40 bg-teal-950/20 p-3">
+                      <div className="text-xs font-medium text-teal-300">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-teal-200/70">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.sealState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">모든 상태 변경 및 우회 경로 영구 봉인</h4>
+                <div className="space-y-2">
+                  {bjrdossfupsbes201.sealedActionPaths.map((item: any, i: number) => (
+                    <div key={i} className="rounded-md border border-slate-700/40 bg-slate-800/20 p-3">
+                      <div className="text-xs font-medium text-slate-300">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-slate-400">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.sealState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-cyan-400">불가역적(Irreversible) 최종 상태 선언</h4>
+                <div className="space-y-2">
+                  {bjrdossfupsbes201.irreversibilityDeclarationItems.map((item: any, i: number) => (
+                    <div key={i} className="rounded-md border border-cyan-900/30 bg-cyan-950/10 p-3">
+                      <div className="text-xs font-medium text-cyan-400">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-cyan-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.sealState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3 rounded-md border border-teal-700/40 bg-teal-950/20 p-4">
+                <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-teal-400" />
+                <div>
+                  <h5 className="text-sm font-medium text-teal-200">10-Task Flow 완결 승인 (Final Approval Seal)</h5>
+                  <p className="mt-1 text-xs leading-relaxed text-teal-200/80">{bjrdossfupsbes201.finalNotice}</p>
                 </div>
               </div>
 
