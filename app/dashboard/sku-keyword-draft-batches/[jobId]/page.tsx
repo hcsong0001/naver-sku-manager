@@ -3817,6 +3817,7 @@ type DraftBatchJob = {
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultDisplayOnlyStatusSummaryFinalHandoffView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultDisplayOnlyStatusSummaryFinalHandoffBoundaryView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultDisplayOnlyStatusSummaryFinalHandoffBoundarySealView?: any;
+  tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultDisplayOnlyStatusSummaryFinalPreReleaseStateView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -26269,6 +26270,112 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 <div>
                   <h5 className="text-sm font-medium text-indigo-200">BatchJob Result Display-Only Status Summary Final Handoff Boundary Seal — 상태 요약 핸드오프 경계 최종 봉인 완료</h5>
                   <p className="mt-1 text-xs leading-relaxed text-indigo-200/80">{bjrdossfhbs194.finalNotice}</p>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 195: BatchJob Execution Result Display-Only Status Summary Final Pre-Release State ── */}
+      {(() => {
+        const bjrdossfpr195 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultDisplayOnlyStatusSummaryFinalPreReleaseStateView;
+        if (!bjrdossfpr195) return null;
+        return (
+          <div className="mb-6 rounded-lg border border-indigo-900/40 bg-[#0d0f1c] p-4 shadow-[0_0_15px_rgba(99,102,241,0.05)]">
+            <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-white">
+              <ShieldAlert className="h-5 w-5 text-indigo-500" />
+              {bjrdossfpr195.panelTitle}
+            </h2>
+            <div className="mb-3 flex flex-wrap gap-2">
+              <span className="rounded-full border border-indigo-700/50 bg-indigo-950/40 px-2 py-0.5 text-xs text-indigo-300">
+                {bjrdossfpr195.preReleaseStatus}
+              </span>
+              <span className="rounded-full border border-emerald-700/50 bg-emerald-900/30 px-2 py-0.5 text-[10px] font-semibold text-emerald-300">
+                PRE-RELEASE READY
+              </span>
+            </div>
+            <p className="mb-4 text-xs leading-relaxed text-indigo-200/70">
+              이 영역은 BatchJob 실행 결과 display-only status summary final pre-release state 화면입니다. 봉인된 Handoff Boundary 데이터를 바탕으로, 실행 권한이 철저히 배제된 순수 읽기 전용 릴리스(노출)를 준비합니다.
+            </p>
+            <div className="mb-2 text-xs text-slate-500">{bjrdossfpr195.taskName}</div>
+            <div className="mb-1 text-xs text-slate-600">
+              기준: {bjrdossfpr195.previousExecutionBatchJobResultDisplayOnlyStatusSummaryFinalHandoffBoundarySealLabel} ({bjrdossfpr195.previousExecutionBatchJobResultDisplayOnlyStatusSummaryFinalHandoffBoundarySealCommit})
+            </div>
+
+            <div className="mt-4 mb-4 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-6">
+              <div className="rounded-md border border-slate-700/50 bg-slate-800/30 p-2 text-center">
+                <div className="text-[10px] uppercase text-slate-400">Total</div>
+                <div className="mt-1 text-lg font-semibold text-white">{bjrdossfpr195.preReleaseTotalItemCount}</div>
+              </div>
+              <div className="rounded-md border border-emerald-900/40 bg-emerald-950/20 p-2 text-center">
+                <div className="text-[10px] uppercase text-emerald-400/80">Success</div>
+                <div className="mt-1 text-lg font-semibold text-emerald-400">{bjrdossfpr195.preReleaseSuccessItemCount}</div>
+              </div>
+              <div className="rounded-md border border-red-900/40 bg-red-950/20 p-2 text-center">
+                <div className="text-[10px] uppercase text-red-400/80">Failed</div>
+                <div className="mt-1 text-lg font-semibold text-red-400">{bjrdossfpr195.preReleaseFailedItemCount}</div>
+              </div>
+              <div className="rounded-md border border-amber-900/40 bg-amber-950/20 p-2 text-center">
+                <div className="text-[10px] uppercase text-amber-400/80">Skipped</div>
+                <div className="mt-1 text-lg font-semibold text-amber-400">{bjrdossfpr195.preReleaseSkippedItemCount}</div>
+              </div>
+              <div className="rounded-md border border-blue-900/40 bg-blue-950/20 p-2 text-center">
+                <div className="text-[10px] uppercase text-blue-400/80">Ready</div>
+                <div className="mt-1 text-lg font-semibold text-blue-400">{bjrdossfpr195.preReleaseReadyItemCount}</div>
+              </div>
+              <div className="rounded-md border border-slate-700/50 bg-slate-800/30 p-2 text-center">
+                <div className="text-[10px] uppercase text-slate-400">Unknown</div>
+                <div className="mt-1 text-lg font-semibold text-slate-300">{bjrdossfpr195.preReleaseUnknownItemCount}</div>
+              </div>
+            </div>
+
+            <div className="mt-4 space-y-4">
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-indigo-400">상태 요약의 배포 전 릴리스(Pre-Release) 상태 준비</h4>
+                <div className="space-y-2">
+                  {bjrdossfpr195.statusSummaryFinalPreReleaseStateItems.map((item: any, i: number) => (
+                    <div key={i} className="rounded-md border border-indigo-900/40 bg-indigo-950/20 p-3">
+                      <div className="text-xs font-medium text-indigo-300">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-indigo-200/70">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.preReleaseState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">릴리스 준비 중 트리거 절대 불가 확인</h4>
+                <div className="space-y-2">
+                  {bjrdossfpr195.blockedActionPaths.map((item: any, i: number) => (
+                    <div key={i} className="rounded-md border border-slate-700/40 bg-slate-800/20 p-3">
+                      <div className="text-xs font-medium text-slate-300">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-slate-400">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.preReleaseState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-orange-400">오해 방지(새 작업이 아님) 확인</h4>
+                <div className="space-y-2">
+                  {bjrdossfpr195.misunderstandingPreventionItems.map((item: any, i: number) => (
+                    <div key={i} className="rounded-md border border-orange-900/30 bg-orange-950/10 p-3">
+                      <div className="text-xs font-medium text-orange-400">{item.label}</div>
+                      <p className="mt-0.5 text-xs text-orange-200/60">{item.description}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{item.preReleaseState}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3 rounded-md border border-indigo-700/40 bg-indigo-950/20 p-4">
+                <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-indigo-400" />
+                <div>
+                  <h5 className="text-sm font-medium text-indigo-200">BatchJob Result Display-Only Status Summary Final Pre-Release State — 상태 요약 릴리스 전 준비 완료</h5>
+                  <p className="mt-1 text-xs leading-relaxed text-indigo-200/80">{bjrdossfpr195.finalNotice}</p>
                 </div>
               </div>
 
