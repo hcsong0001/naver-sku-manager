@@ -3833,6 +3833,7 @@ type DraftBatchJob = {
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultDisplayOnlyCommitHashAuditView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultDisplayOnlyPagePanelOrderRegistryView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultDisplayOnlyStatusPayloadConsistencyAuditView?: any;
+  tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultDisplayOnlyForbiddenBoundaryAuditView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -27187,6 +27188,81 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                   ))}
                 </div>
               </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 209: BatchJob Display-Only Forbidden Boundary Audit Screen Flow ── */}
+      {(() => {
+        const bjdofba209 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultDisplayOnlyForbiddenBoundaryAuditView;
+        if (!bjdofba209) return null;
+        return (
+          <div className="mb-6 rounded-lg border border-red-900/40 bg-[#080914] p-4 shadow-[0_0_15px_rgba(239,68,68,0.05)]">
+            <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-white">
+              <ClipboardList className="h-5 w-5 text-red-500" />
+              {bjdofba209.panelTitle}
+            </h2>
+            <div className="mb-3 flex flex-wrap gap-2">
+              <span className="rounded-full border border-red-700/50 bg-red-950/40 px-2 py-0.5 text-xs text-red-300">
+                {bjdofba209.auditStatus}
+              </span>
+            </div>
+            <p className="mb-4 text-xs leading-relaxed text-red-200/70">
+              {bjdofba209.finalNotice}
+            </p>
+            <div className="mb-4 text-xs text-slate-500">{bjdofba209.taskName}</div>
+
+            <div className="mt-4 space-y-4">
+              <div>
+                <h4 className="mb-3 text-xs font-semibold uppercase tracking-wide text-red-400">Forbidden Boundary Audit Items</h4>
+                <div className="space-y-2">
+                  {bjdofba209.forbiddenBoundaryAuditItems.map((item: any, i: number) => (
+                    <div key={i} className="flex items-center justify-between rounded-md border border-red-900/30 bg-red-950/10 p-3">
+                      <div className="flex flex-col gap-0.5">
+                        <span className="text-xs font-mono font-bold text-red-300">{item.boundaryKey}</span>
+                        <span className="text-[11px] text-red-200/60">{item.description}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {!item.isViolated && (
+                          <span className="rounded-full bg-red-900/30 px-2 py-0.5 text-[10px] font-semibold text-red-400 border border-red-800/50">
+                            {item.statusText}
+                          </span>
+                        )}
+                        {item.isViolated ? (
+                          <span className="rounded-full bg-red-500/30 px-2 py-0.5 text-[10px] font-semibold text-red-200 border border-red-500/50">
+                            VIOLATED
+                          </span>
+                        ) : (
+                          <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {bjdofba209.autoApprovalStopConditions.length > 0 && (
+                <div>
+                  <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-500/70">자동승인 중단 조건</h4>
+                  <ul className="space-y-1">
+                    {bjdofba209.autoApprovalStopConditions.map((cond: string, i: number) => (
+                      <li key={i} className="text-[11px] text-red-300/60 before:mr-1.5 before:content-['▪']">{cond}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {bjdofba209.misunderstandingPreventionItems.length > 0 && (
+                <div>
+                  <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">오해 방지 사항</h4>
+                  <ul className="space-y-1">
+                    {bjdofba209.misunderstandingPreventionItems.map((notice: string, i: number) => (
+                      <li key={i} className="text-[11px] text-slate-400 before:mr-1.5 before:content-['•']">{notice}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
           </div>
         );
