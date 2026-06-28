@@ -3878,6 +3878,7 @@ type DraftBatchJob = {
   naverTokenIssuanceEnvAuthUserSetupProcedureGuideView?: any;
   naverTokenIssuanceEnvAuthUserSetupCompletionReportWaitingView?: any;
   naverTokenIssuanceEnvAuthPresenceRecheckResultView?: any;
+  naverTokenIssuanceEnvAuthRuntimeScopeDiagnosisView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -28472,6 +28473,155 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
 
             {recheck254.finalNotice && (
               <p className="mt-3 text-[10px] text-zinc-600 italic">{recheck254.finalNotice}</p>
+            )}
+          </div>
+        );
+      })()}
+
+      {/* ── Task 255: Naver Token Issuance Env Auth Runtime Scope Diagnosis Screen Flow ── */}
+      {(() => {
+        const diagnosis255 = job.naverTokenIssuanceEnvAuthRuntimeScopeDiagnosisView;
+        if (!diagnosis255) return null;
+        return (
+          <div className="mb-6 rounded-lg border border-sky-900/30 bg-[#071018] p-4 shadow-[0_0_15px_rgba(14,165,233,0.05)]">
+            <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-white">
+              <Search className="h-4 w-4 text-sky-400" />
+              {diagnosis255.panelTitle ?? 'Naver Token Issuance Env Auth Runtime Scope Diagnosis'}
+            </h2>
+            <p className="mb-3 text-xs text-zinc-500">
+              {diagnosis255.description ?? '현재 Env/Auth 값이 작업 프로세스에 적용되지 않은 가능성을 진단하는 읽기 전용 패널입니다.'}
+            </p>
+            <div className="mb-3 flex flex-wrap gap-2">
+              {diagnosis255.status && (
+                <span className="rounded-full bg-sky-950/50 px-2 py-0.5 text-[10px] font-mono text-sky-300 border border-sky-900/40">
+                  {diagnosis255.status}
+                </span>
+              )}
+              {diagnosis255.isBatchJobResultDisplayOnly && (
+                <span className="rounded-full bg-zinc-900 px-2 py-0.5 text-[10px] font-mono text-zinc-400 border border-zinc-800">
+                  DISPLAY_ONLY
+                </span>
+              )}
+              {diagnosis255.isEnvAuthRuntimeScopeDiagnosisReady && (
+                <span className="rounded-full bg-sky-950/40 px-2 py-0.5 text-[10px] font-mono text-sky-400 border border-sky-900/40">
+                  RUNTIME_SCOPE_DIAGNOSIS_READY
+                </span>
+              )}
+              {diagnosis255.isUserActionRequiredForRuntimeScope && (
+                <span className="rounded-full bg-orange-950/40 px-2 py-0.5 text-[10px] font-mono text-orange-400 border border-orange-900/40">
+                  USER_ACTION_REQUIRED
+                </span>
+              )}
+              <span className="rounded-full bg-cyan-950/40 px-2 py-0.5 text-[10px] font-mono text-cyan-400 border border-cyan-900/40">
+                PRESENT {diagnosis255.presencePresentCount}
+              </span>
+              <span className="rounded-full bg-amber-950/40 px-2 py-0.5 text-[10px] font-mono text-amber-400 border border-amber-900/40">
+                MISSING {diagnosis255.presenceMissingCount}
+              </span>
+              <span className="rounded-full bg-red-950/40 px-2 py-0.5 text-[10px] font-mono text-red-400 border border-red-900/40">
+                TARGET_NOT_MET
+              </span>
+            </div>
+
+            {Array.isArray(diagnosis255.diagnosisMessages) && diagnosis255.diagnosisMessages.length > 0 && (
+              <div className="mb-3 rounded border border-sky-900/30 bg-sky-950/10 p-3">
+                <p className="mb-1 text-[10px] font-semibold text-sky-300">Runtime Scope 진단 안내</p>
+                <ul className="space-y-1">
+                  {diagnosis255.diagnosisMessages.map((item: string, idx: number) => (
+                    <li key={idx} className="text-[10px] text-sky-200/80">• {item}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {Array.isArray(diagnosis255.setupKeyItems) && diagnosis255.setupKeyItems.length > 0 && (
+              <div className="mb-3 overflow-x-auto rounded border border-zinc-800">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="border-b border-zinc-800 bg-zinc-900/60">
+                      <th className="px-3 py-2 text-left font-medium text-zinc-400">Env Key</th>
+                      <th className="px-3 py-2 text-left font-medium text-zinc-400">진단 상태</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {diagnosis255.setupKeyItems.map((item: any, idx: number) => (
+                      <tr key={idx} className="border-b border-zinc-800/50 hover:bg-zinc-900/30">
+                        <td className="px-3 py-2 font-mono text-zinc-300">{item.keyName}</td>
+                        <td className="px-3 py-2">
+                          <span className="rounded px-1.5 py-0.5 text-[10px] font-mono bg-sky-950/50 text-sky-400 border border-sky-900/40">
+                            {item.guidanceStatus}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {Array.isArray(diagnosis255.powerShellPlaceholderCommands) && diagnosis255.powerShellPlaceholderCommands.length > 0 && (
+              <div className="mb-3 rounded border border-zinc-800 bg-zinc-950/60 p-3">
+                <p className="mb-2 text-[10px] font-semibold text-zinc-400">PowerShell placeholder 안내</p>
+                <pre className="overflow-x-auto whitespace-pre-wrap text-[10px] leading-5 text-zinc-300">
+                  {diagnosis255.powerShellPlaceholderCommands.join('\n')}
+                </pre>
+              </div>
+            )}
+
+            {Array.isArray(diagnosis255.diagnosisItems) && diagnosis255.diagnosisItems.length > 0 && (
+              <div className="overflow-x-auto rounded border border-zinc-800">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="border-b border-zinc-800 bg-zinc-900/60">
+                      <th className="px-3 py-2 text-left font-medium text-zinc-400">항목</th>
+                      <th className="px-3 py-2 text-left font-medium text-zinc-400">상태</th>
+                      <th className="px-3 py-2 text-left font-medium text-zinc-400">의미</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {diagnosis255.diagnosisItems.map((item: any, idx: number) => (
+                      <tr key={idx} className="border-b border-zinc-800/50 hover:bg-zinc-900/30">
+                        <td className="px-3 py-2 font-mono text-zinc-300">{item.diagnosisItem}</td>
+                        <td className="px-3 py-2">
+                          <span className={`rounded px-1.5 py-0.5 text-[10px] font-mono ${
+                            item.status === 'RECHECK_RESULT_CONFIRMED' ? 'bg-green-950/50 text-green-400 border border-green-900/40' :
+                            item.status === 'MISSING_STILL_DETECTED' ? 'bg-red-950/50 text-red-400 border border-red-900/40' :
+                            item.status === 'TARGET_NOT_MET' ? 'bg-red-950/50 text-red-300 border border-red-900/40' :
+                            item.status === 'RUNTIME_SCOPE_DIAGNOSIS_REQUIRED' ? 'bg-sky-950/50 text-sky-400 border border-sky-900/40' :
+                            item.status === 'USER_ACTION_REQUIRED' ? 'bg-orange-950/50 text-orange-300 border border-orange-900/40' :
+                            item.status === 'FORBIDDEN' ? 'bg-red-950/50 text-red-400 border border-red-900/40' :
+                            item.status === 'NOT_EXECUTED' ? 'bg-zinc-900 text-zinc-500 border border-zinc-700' :
+                            item.status === 'BLOCKED_BY_MISSING_ENV_AUTH' ? 'bg-red-950/50 text-red-300 border border-red-900/40' :
+                            item.status === 'LOCKED' ? 'bg-zinc-900 text-zinc-500 border border-zinc-700' :
+                            item.status === 'NOT_CONNECTED' ? 'bg-zinc-900 text-zinc-500 border border-zinc-700' :
+                            item.status === 'NOT_PRESENT' ? 'bg-zinc-900 text-zinc-600 border border-zinc-800' :
+                            item.status === 'READ_ONLY_INFO' ? 'bg-blue-950/40 text-blue-400 border border-blue-900/40' :
+                            'bg-zinc-800 text-zinc-400'
+                          }`}>
+                            {item.status}
+                          </span>
+                        </td>
+                        <td className="px-3 py-2 text-zinc-400">{item.meaning}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {Array.isArray(diagnosis255.misunderstandingPreventionItems) && diagnosis255.misunderstandingPreventionItems.length > 0 && (
+              <div className="mt-3 rounded border border-amber-900/30 bg-amber-950/10 p-3">
+                <p className="mb-1 text-[10px] font-semibold text-amber-400">오해 방지</p>
+                <ul className="space-y-1">
+                  {diagnosis255.misunderstandingPreventionItems.map((item: string, idx: number) => (
+                    <li key={idx} className="text-[10px] text-amber-300/70">• {item}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {diagnosis255.finalNotice && (
+              <p className="mt-3 text-[10px] text-zinc-600 italic">{diagnosis255.finalNotice}</p>
             )}
           </div>
         );
