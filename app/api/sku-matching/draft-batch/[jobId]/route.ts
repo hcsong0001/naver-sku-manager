@@ -209,6 +209,7 @@ import { buildNaverApiConnectionApprovalExplicitConsentChecklistView } from '@/s
 import { buildNaverApiConnectionApprovalScopeBoundaryMatrixView } from '@/src/services/sku-keyword-final-approval-execution-naver-api-connection-approval-scope-boundary-matrix-view.service';
 import { buildNaverApiConnectionApprovalRiskAcceptanceLedgerView } from '@/src/services/sku-keyword-final-approval-execution-naver-api-connection-approval-risk-acceptance-ledger-view.service';
 import { buildNaverApiConnectionApprovalAbortRecoveryCriteriaView } from '@/src/services/sku-keyword-final-approval-execution-naver-api-connection-approval-abort-recovery-criteria-view.service';
+import { buildNaverApiConnectionApprovalFinalPacketPreviewView } from '@/src/services/sku-keyword-final-approval-execution-naver-api-connection-approval-final-packet-preview-view.service';
 
 // Compute safe DB environment hint from DATABASE_URL without exposing the original value.
 // Returns a classification key, never the actual URL.
@@ -1439,6 +1440,7 @@ export async function GET(
       naverApiConnectionApprovalScopeBoundaryMatrixView: buildNaverApiConnectionApprovalScopeBoundaryMatrixView(job),
       naverApiConnectionApprovalRiskAcceptanceLedgerView: buildNaverApiConnectionApprovalRiskAcceptanceLedgerView(job),
       naverApiConnectionApprovalAbortRecoveryCriteriaView: buildNaverApiConnectionApprovalAbortRecoveryCriteriaView(job),
+      naverApiConnectionApprovalFinalPacketPreviewView: buildNaverApiConnectionApprovalFinalPacketPreviewView(job),
     };
 
     return NextResponse.json({ ok: true, job: responseJob });
