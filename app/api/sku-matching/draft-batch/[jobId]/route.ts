@@ -232,6 +232,7 @@ import { buildNaverTokenIssuanceEnvAuthPresencePreflightView } from '@/src/servi
 import { buildNaverTokenIssuanceEnvAuthPresenceCheckHarnessView } from '@/src/services/sku-keyword-final-approval-execution-naver-token-issuance-env-auth-presence-check-harness-view.service';
 import { buildNaverTokenIssuanceEnvAuthPresenceCheckExecutionGateView } from '@/src/services/sku-keyword-final-approval-execution-naver-token-issuance-env-auth-presence-check-execution-gate-view.service';
 import { buildNaverTokenIssuanceEnvAuthPresenceCheckResultView } from '@/src/services/sku-keyword-final-approval-execution-naver-token-issuance-env-auth-presence-check-result-view.service';
+import { buildNaverTokenIssuanceEnvAuthMissingRemediationGuideView } from '@/src/services/sku-keyword-final-approval-execution-naver-token-issuance-env-auth-missing-remediation-guide-view.service';
 
 // Compute safe DB environment hint from DATABASE_URL without exposing the original value.
 // Returns a classification key, never the actual URL.
@@ -1485,6 +1486,7 @@ export async function GET(
       naverTokenIssuanceEnvAuthPresenceCheckHarnessView: buildNaverTokenIssuanceEnvAuthPresenceCheckHarnessView(job),
       naverTokenIssuanceEnvAuthPresenceCheckExecutionGateView: buildNaverTokenIssuanceEnvAuthPresenceCheckExecutionGateView(job),
       naverTokenIssuanceEnvAuthPresenceCheckResultView: buildNaverTokenIssuanceEnvAuthPresenceCheckResultView(job),
+      naverTokenIssuanceEnvAuthMissingRemediationGuideView: buildNaverTokenIssuanceEnvAuthMissingRemediationGuideView(job),
     };
 
     return NextResponse.json({ ok: true, job: responseJob });

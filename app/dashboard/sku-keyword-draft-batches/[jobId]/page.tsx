@@ -3872,6 +3872,7 @@ type DraftBatchJob = {
   naverTokenIssuanceEnvAuthPresenceCheckHarnessView?: any;
   naverTokenIssuanceEnvAuthPresenceCheckExecutionGateView?: any;
   naverTokenIssuanceEnvAuthPresenceCheckResultView?: any;
+  naverTokenIssuanceEnvAuthMissingRemediationGuideView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -27625,6 +27626,142 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
 
             {result247.finalNotice && (
               <p className="mt-3 text-[10px] text-zinc-600 italic">{result247.finalNotice}</p>
+            )}
+          </div>
+        );
+      })()}
+
+      {/* ── Task 248: Naver Token Issuance Env Auth Missing Remediation Guide Screen Flow ── */}
+      {(() => {
+        const guide248 = job.naverTokenIssuanceEnvAuthMissingRemediationGuideView;
+        if (!guide248) return null;
+        return (
+          <div className="mb-6 rounded-lg border border-rose-900/30 bg-[#140a0d] p-4 shadow-[0_0_15px_rgba(244,63,94,0.05)]">
+            <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-white">
+              <AlertTriangle className="h-4 w-4 text-rose-400" />
+              {guide248.panelTitle ?? 'Naver Token Issuance Env Auth Missing Remediation Guide'}
+            </h2>
+            <p className="mb-3 text-xs text-zinc-500">
+              {guide248.description ?? '누락된 Env/Auth 항목 보정 필요 상태를 읽기 전용으로 안내하는 화면입니다.'}
+            </p>
+            <div className="mb-3 flex flex-wrap gap-2">
+              {guide248.status && (
+                <span className="rounded-full bg-rose-950/50 px-2 py-0.5 text-[10px] font-mono text-rose-300 border border-rose-900/40">
+                  {guide248.status}
+                </span>
+              )}
+              {guide248.isBatchJobResultDisplayOnly && (
+                <span className="rounded-full bg-zinc-900 px-2 py-0.5 text-[10px] font-mono text-zinc-400 border border-zinc-800">
+                  DISPLAY_ONLY
+                </span>
+              )}
+              {guide248.isEnvAuthMissingRemediationGuideReady && (
+                <span className="rounded-full bg-rose-950/40 px-2 py-0.5 text-[10px] font-mono text-rose-400 border border-rose-900/40">
+                  REMEDIATION_GUIDE_READY
+                </span>
+              )}
+              <span className="rounded-full bg-cyan-950/40 px-2 py-0.5 text-[10px] font-mono text-cyan-400 border border-cyan-900/40">
+                PRESENT {guide248.presencePresentCount}
+              </span>
+              <span className="rounded-full bg-amber-950/40 px-2 py-0.5 text-[10px] font-mono text-amber-400 border border-amber-900/40">
+                MISSING {guide248.presenceMissingCount}
+              </span>
+            </div>
+
+            {Array.isArray(guide248.remediationMessages) && guide248.remediationMessages.length > 0 && (
+              <div className="mb-3 rounded border border-rose-900/30 bg-rose-950/10 p-3">
+                <p className="mb-1 text-[10px] font-semibold text-rose-300">보정 안내</p>
+                <ul className="space-y-1">
+                  {guide248.remediationMessages.map((item: string, idx: number) => (
+                    <li key={idx} className="text-[10px] text-rose-200/80">• {item}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {Array.isArray(guide248.presenceResults) && guide248.presenceResults.length > 0 && (
+              <div className="mb-3 overflow-x-auto rounded border border-zinc-800">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="border-b border-zinc-800 bg-zinc-900/60">
+                      <th className="px-3 py-2 text-left font-medium text-zinc-400">Env Key</th>
+                      <th className="px-3 py-2 text-left font-medium text-zinc-400">Presence</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {guide248.presenceResults.map((item: any, idx: number) => (
+                      <tr key={idx} className="border-b border-zinc-800/50 hover:bg-zinc-900/30">
+                        <td className="px-3 py-2 font-mono text-zinc-300">{item.key}</td>
+                        <td className="px-3 py-2">
+                          <span className={`rounded px-1.5 py-0.5 text-[10px] font-mono ${
+                            item.status === 'PRESENT'
+                              ? 'bg-emerald-950/50 text-emerald-400 border border-emerald-900/40'
+                              : 'bg-amber-950/50 text-amber-400 border border-amber-900/40'
+                          }`}>
+                            {item.status}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {Array.isArray(guide248.guideItems) && guide248.guideItems.length > 0 && (
+              <div className="overflow-x-auto rounded border border-zinc-800">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="border-b border-zinc-800 bg-zinc-900/60">
+                      <th className="px-3 py-2 text-left font-medium text-zinc-400">항목</th>
+                      <th className="px-3 py-2 text-left font-medium text-zinc-400">상태</th>
+                      <th className="px-3 py-2 text-left font-medium text-zinc-400">의미</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {guide248.guideItems.map((item: any, idx: number) => (
+                      <tr key={idx} className="border-b border-zinc-800/50 hover:bg-zinc-900/30">
+                        <td className="px-3 py-2 font-mono text-zinc-300">{item.guideItem}</td>
+                        <td className="px-3 py-2">
+                          <span className={`rounded px-1.5 py-0.5 text-[10px] font-mono ${
+                            item.status === 'PRESENCE_RESULT_CONFIRMED' ? 'bg-green-950/50 text-green-400 border border-green-900/40' :
+                            item.status === 'MISSING_DETECTED' ? 'bg-amber-950/50 text-amber-400 border border-amber-900/40' :
+                            item.status === 'BLOCKED_BY_MISSING_ENV_AUTH' ? 'bg-red-950/50 text-red-400 border border-red-900/40' :
+                            item.status === 'USER_ACTION_REQUIRED' ? 'bg-rose-950/50 text-rose-300 border border-rose-900/40' :
+                            item.status === 'NOT_ACCESSED' ? 'bg-slate-900 text-slate-300 border border-slate-700' :
+                            item.status === 'NOT_MODIFIED' ? 'bg-slate-900 text-slate-300 border border-slate-700' :
+                            item.status === 'NOT_DISPLAYED' ? 'bg-slate-900 text-slate-300 border border-slate-700' :
+                            item.status === 'NOT_LOGGED' ? 'bg-slate-900 text-slate-300 border border-slate-700' :
+                            item.status === 'LOCKED' ? 'bg-zinc-900 text-zinc-500 border border-zinc-700' :
+                            item.status === 'NOT_CONNECTED' ? 'bg-zinc-900 text-zinc-500 border border-zinc-700' :
+                            item.status === 'NOT_PRESENT' ? 'bg-zinc-900 text-zinc-600 border border-zinc-800' :
+                            item.status === 'READ_ONLY_INFO' ? 'bg-blue-950/40 text-blue-400 border border-blue-900/40' :
+                            'bg-zinc-800 text-zinc-400'
+                          }`}>
+                            {item.status}
+                          </span>
+                        </td>
+                        <td className="px-3 py-2 text-zinc-400">{item.meaning}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {Array.isArray(guide248.misunderstandingPreventionItems) && guide248.misunderstandingPreventionItems.length > 0 && (
+              <div className="mt-3 rounded border border-amber-900/30 bg-amber-950/10 p-3">
+                <p className="mb-1 text-[10px] font-semibold text-amber-400">오해 방지</p>
+                <ul className="space-y-1">
+                  {guide248.misunderstandingPreventionItems.map((item: string, idx: number) => (
+                    <li key={idx} className="text-[10px] text-amber-300/70">• {item}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {guide248.finalNotice && (
+              <p className="mt-3 text-[10px] text-zinc-600 italic">{guide248.finalNotice}</p>
             )}
           </div>
         );
