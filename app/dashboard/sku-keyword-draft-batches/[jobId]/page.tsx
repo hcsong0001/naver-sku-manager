@@ -3835,6 +3835,7 @@ type DraftBatchJob = {
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultDisplayOnlyStatusPayloadConsistencyAuditView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultDisplayOnlyForbiddenBoundaryAuditView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultDisplayOnlyVerificationEvidenceRegistryView?: any;
+  tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultDisplayOnlyAuditClosureReadinessView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -27189,6 +27190,65 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                   ))}
                 </div>
               </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 211: BatchJob Display-Only Audit Closure Readiness Screen Flow ── */}
+      {(() => {
+        const bjdoacr211 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultDisplayOnlyAuditClosureReadinessView;
+        if (!bjdoacr211) return null;
+        return (
+          <div className="mb-6 rounded-lg border border-cyan-900/40 bg-[#080914] p-4 shadow-[0_0_15px_rgba(6,182,212,0.05)]">
+            <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-white">
+              <ClipboardList className="h-5 w-5 text-cyan-500" />
+              {bjdoacr211.panelTitle}
+            </h2>
+            <div className="mb-3 flex flex-wrap gap-2">
+              <span className="rounded-full border border-cyan-700/50 bg-cyan-950/40 px-2 py-0.5 text-xs text-cyan-300">
+                {bjdoacr211.closureStatus}
+              </span>
+            </div>
+            <p className="mb-4 text-xs leading-relaxed text-cyan-200/70">
+              {bjdoacr211.finalNotice}
+            </p>
+            <div className="mb-4 text-xs text-slate-500">{bjdoacr211.taskName}</div>
+
+            <div className="mt-4 space-y-4">
+              <div>
+                <h4 className="mb-3 text-xs font-semibold uppercase tracking-wide text-cyan-400">Audit Closure Readiness Items</h4>
+                <div className="space-y-2">
+                  {bjdoacr211.auditClosureReadinessItems.map((item: any, i: number) => (
+                    <div key={i} className={`flex items-center justify-between rounded-md border p-3 ${item.statusText === 'CURRENT' ? 'border-cyan-600/50 bg-cyan-950/20' : 'border-cyan-900/30 bg-cyan-950/10'}`}>
+                      <div className="text-[11px] text-cyan-200/70">{item.description}</div>
+                      <div className="flex items-center gap-2 shrink-0 ml-3">
+                        {item.statusText === 'CURRENT' ? (
+                          <span className="rounded-full bg-cyan-900/40 px-2 py-0.5 text-[10px] font-semibold text-cyan-300 border border-cyan-700/50">
+                            {item.statusText}
+                          </span>
+                        ) : (
+                          <span className="rounded-full bg-emerald-900/30 px-2 py-0.5 text-[10px] font-semibold text-emerald-400 border border-emerald-800/50">
+                            {item.statusText}
+                          </span>
+                        )}
+                        <CheckCircle2 className={`h-4 w-4 ${item.statusText === 'CURRENT' ? 'text-cyan-400' : 'text-emerald-500'}`} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {bjdoacr211.misunderstandingPreventionItems.length > 0 && (
+                <div>
+                  <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">오해 방지 사항</h4>
+                  <ul className="space-y-1">
+                    {bjdoacr211.misunderstandingPreventionItems.map((notice: string, i: number) => (
+                      <li key={i} className="text-[11px] text-slate-400 before:mr-1.5 before:content-['•']">{notice}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
           </div>
         );
