@@ -3883,6 +3883,7 @@ type DraftBatchJob = {
   naverTokenIssuanceRuntimeScopeCorrectionCompletionWaitingView?: any;
   naverTokenIssuanceEnvAuthRuntimeScopeRecheckResultView?: any;
   naverTokenIssuanceOneTimeTestFinalSafetyGateView?: any;
+  naverTokenIssuanceOneTimeTestUserFinalApprovalRequestPacketView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -28477,6 +28478,122 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
 
             {recheck254.finalNotice && (
               <p className="mt-3 text-[10px] text-zinc-600 italic">{recheck254.finalNotice}</p>
+            )}
+          </div>
+        );
+      })()}
+
+      {/* ── Task 261: Naver Token Issuance One-Time Test User Final Approval Request Packet Screen Flow ── */}
+      {(() => {
+        const packet261 = job.naverTokenIssuanceOneTimeTestUserFinalApprovalRequestPacketView;
+        if (!packet261) return null;
+        return (
+          <div className="mt-6 rounded-lg border border-blue-200 bg-blue-50 p-4">
+            <div className="mb-3 flex items-center gap-2">
+              <ClipboardCheck className="h-5 w-5 text-blue-600" />
+              <h3 className="text-base font-semibold text-blue-800">
+                {packet261.panelTitle ?? 'Token 발급 1회 테스트 사용자 최종 승인 요청 패킷'}
+              </h3>
+              <span className="ml-auto rounded bg-blue-100 px-2 py-0.5 text-xs font-mono text-blue-700">
+                {packet261.status}
+              </span>
+            </div>
+
+            {/* 사용자 안내 */}
+            {packet261.userNotice && (
+              <div className="mb-4 rounded border border-blue-300 bg-blue-100 px-3 py-2">
+                <p className="text-sm font-medium text-blue-800">{packet261.userNotice}</p>
+              </div>
+            )}
+
+            {/* Packet Items 표 */}
+            {Array.isArray(packet261.packetItems) && packet261.packetItems.length > 0 && (
+              <div className="mb-4 overflow-x-auto">
+                <p className="mb-2 text-xs font-semibold text-blue-700 uppercase tracking-wide">최종 승인 요청 패킷 항목 ({packet261.packetItems.length}개)</p>
+                <table className="w-full border-collapse text-xs">
+                  <thead>
+                    <tr className="bg-blue-100 text-left text-blue-800">
+                      <th className="border border-blue-200 px-3 py-1.5 font-semibold">패킷 항목</th>
+                      <th className="border border-blue-200 px-3 py-1.5 font-semibold">상태</th>
+                      <th className="border border-blue-200 px-3 py-1.5 font-semibold">의미</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {packet261.packetItems.map((item: any, idx: number) => (
+                      <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-blue-50'}>
+                        <td className="border border-blue-200 px-3 py-1.5 font-medium text-gray-800">{item.packetItem}</td>
+                        <td className="border border-blue-200 px-3 py-1.5">
+                          <span className={`rounded px-1.5 py-0.5 font-mono text-[10px] font-semibold ${
+                            item.status === 'RECHECK_RESULT_CONFIRMED' || item.status === 'TARGET_MET' || item.status === 'FINAL_SAFETY_GATE_CONFIRMED'
+                              ? 'bg-green-100 text-green-700'
+                              : item.status === 'FINAL_APPROVAL_REQUEST_READY'
+                              ? 'bg-blue-100 text-blue-700'
+                              : item.status === 'PENDING_USER_APPROVAL'
+                              ? 'bg-yellow-100 text-yellow-700'
+                              : item.status === 'LOCKED_UNTIL_USER_APPROVAL'
+                              ? 'bg-orange-100 text-orange-700'
+                              : item.status === 'FORBIDDEN'
+                              ? 'bg-red-100 text-red-700'
+                              : item.status === 'LOCKED' || item.status === 'NOT_CONNECTED' || item.status === 'NOT_PRESENT'
+                              ? 'bg-gray-100 text-gray-600'
+                              : item.status === 'NOT_ACCESSED' || item.status === 'NOT_MODIFIED'
+                              ? 'bg-sky-50 text-sky-700'
+                              : 'bg-gray-50 text-gray-500'
+                          }`}>
+                            {item.status}
+                          </span>
+                        </td>
+                        <td className="border border-blue-200 px-3 py-1.5 text-gray-600">{item.meaning}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {/* 사용자 최종 승인 요청 문구 */}
+            {packet261.userApprovalRequestNotice && (
+              <div className="mb-3">
+                <p className="mb-2 text-xs font-semibold text-blue-700 uppercase tracking-wide">다음 단계 사용자 승인 안내</p>
+                <div className="rounded border border-blue-300 bg-white px-3 py-2">
+                  <p className="mb-1 text-xs text-blue-700">{packet261.userApprovalRequestNotice}</p>
+                  {packet261.userApprovalScriptForNextTask && (
+                    <p className="rounded bg-blue-50 px-2 py-1.5 font-mono text-xs text-blue-800">
+                      &quot;{packet261.userApprovalScriptForNextTask}&quot;
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* 오해 방지 사항 */}
+            {Array.isArray(packet261.misunderstandingPreventionItems) && packet261.misunderstandingPreventionItems.length > 0 && (
+              <div className="mb-3">
+                <p className="mb-1.5 text-xs font-semibold text-blue-700 uppercase tracking-wide">오해 방지 사항</p>
+                <ul className="list-inside list-disc space-y-0.5">
+                  {packet261.misunderstandingPreventionItems.map((item: string, idx: number) => (
+                    <li key={idx} className="text-xs text-blue-700">{item}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* 보안 플래그 */}
+            <div className="mt-3 flex flex-wrap gap-2 border-t border-blue-200 pt-3">
+              <span className="rounded bg-white border border-blue-200 px-2 py-0.5 text-[10px] text-blue-700">isUserFinalApprovalGrantedForTokenIssuance: {String(packet261.isUserFinalApprovalGrantedForTokenIssuance)}</span>
+              <span className="rounded bg-white border border-blue-200 px-2 py-0.5 text-[10px] text-blue-700">isTokenIssuanceAllowed: {String(packet261.isTokenIssuanceAllowed)}</span>
+              <span className="rounded bg-white border border-blue-200 px-2 py-0.5 text-[10px] text-blue-700">isOneTimeTokenIssuanceTestAllowed: {String(packet261.isOneTimeTokenIssuanceTestAllowed)}</span>
+              <span className="rounded bg-white border border-blue-200 px-2 py-0.5 text-[10px] text-blue-700">isTokenIssued: {String(packet261.isTokenIssued)}</span>
+              <span className="rounded bg-white border border-blue-200 px-2 py-0.5 text-[10px] text-blue-700">isApprovalSubmitted: {String(packet261.isApprovalSubmitted)}</span>
+              <span className="rounded bg-white border border-blue-200 px-2 py-0.5 text-[10px] text-blue-700">isSecretLogged: {String(packet261.isSecretLogged)}</span>
+              <span className="rounded bg-white border border-blue-200 px-2 py-0.5 text-[10px] text-blue-700">isBatchJobResultDisplayOnly: {String(packet261.isBatchJobResultDisplayOnly)}</span>
+            </div>
+
+            {/* 최종 안내 */}
+            {packet261.finalNotice && (
+              <div className="mt-3 rounded border border-blue-300 bg-blue-100 px-3 py-2">
+                <p className="text-xs font-medium text-blue-800">{packet261.finalNotice}</p>
+              </div>
             )}
           </div>
         );
