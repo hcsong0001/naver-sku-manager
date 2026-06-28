@@ -3882,6 +3882,7 @@ type DraftBatchJob = {
   naverTokenIssuanceEnvAuthRuntimeScopeUserCorrectionChecklistView?: any;
   naverTokenIssuanceRuntimeScopeCorrectionCompletionWaitingView?: any;
   naverTokenIssuanceEnvAuthRuntimeScopeRecheckResultView?: any;
+  naverTokenIssuanceOneTimeTestFinalSafetyGateView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -28476,6 +28477,107 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
 
             {recheck254.finalNotice && (
               <p className="mt-3 text-[10px] text-zinc-600 italic">{recheck254.finalNotice}</p>
+            )}
+          </div>
+        );
+      })()}
+
+      {/* ── Task 260: Naver Token Issuance One-Time Test Final Safety Gate Screen Flow ── */}
+      {(() => {
+        const gate260 = job.naverTokenIssuanceOneTimeTestFinalSafetyGateView;
+        if (!gate260) return null;
+        return (
+          <div className="mt-6 rounded-lg border border-amber-200 bg-amber-50 p-4">
+            <div className="mb-3 flex items-center gap-2">
+              <ShieldCheck className="h-5 w-5 text-amber-600" />
+              <h3 className="text-base font-semibold text-amber-800">
+                {gate260.panelTitle ?? 'Token 발급 1회 테스트 Final Safety Gate'}
+              </h3>
+              <span className="ml-auto rounded bg-amber-100 px-2 py-0.5 text-xs font-mono text-amber-700">
+                {gate260.status}
+              </span>
+            </div>
+
+            {/* 사용자 안내 */}
+            {gate260.userNotice && (
+              <div className="mb-4 rounded border border-amber-300 bg-amber-100 px-3 py-2">
+                <p className="text-sm font-medium text-amber-800">{gate260.userNotice}</p>
+              </div>
+            )}
+
+            {/* Gate Items 표 */}
+            {Array.isArray(gate260.gateItems) && gate260.gateItems.length > 0 && (
+              <div className="mb-4 overflow-x-auto">
+                <p className="mb-2 text-xs font-semibold text-amber-700 uppercase tracking-wide">Final Safety Gate 항목 ({gate260.gateItems.length}개)</p>
+                <table className="w-full border-collapse text-xs">
+                  <thead>
+                    <tr className="bg-amber-100 text-left text-amber-800">
+                      <th className="border border-amber-200 px-3 py-1.5 font-semibold">Gate 항목</th>
+                      <th className="border border-amber-200 px-3 py-1.5 font-semibold">상태</th>
+                      <th className="border border-amber-200 px-3 py-1.5 font-semibold">의미</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {gate260.gateItems.map((item: any, idx: number) => (
+                      <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-amber-50'}>
+                        <td className="border border-amber-200 px-3 py-1.5 font-medium text-gray-800">{item.gateItem}</td>
+                        <td className="border border-amber-200 px-3 py-1.5">
+                          <span className={`rounded px-1.5 py-0.5 font-mono text-[10px] font-semibold ${
+                            item.status === 'RECHECK_RESULT_CONFIRMED' || item.status === 'TARGET_MET'
+                              ? 'bg-green-100 text-green-700'
+                              : item.status === 'READY_FOR_ONE_TIME_TEST_GATE'
+                              ? 'bg-amber-100 text-amber-700'
+                              : item.status === 'PENDING_USER_APPROVAL'
+                              ? 'bg-yellow-100 text-yellow-700'
+                              : item.status === 'LOCKED_UNTIL_USER_APPROVAL'
+                              ? 'bg-orange-100 text-orange-700'
+                              : item.status === 'FORBIDDEN'
+                              ? 'bg-red-100 text-red-700'
+                              : item.status === 'LOCKED' || item.status === 'NOT_CONNECTED' || item.status === 'NOT_PRESENT'
+                              ? 'bg-gray-100 text-gray-600'
+                              : item.status === 'NOT_ACCESSED' || item.status === 'NOT_MODIFIED'
+                              ? 'bg-blue-50 text-blue-700'
+                              : 'bg-gray-50 text-gray-500'
+                          }`}>
+                            {item.status}
+                          </span>
+                        </td>
+                        <td className="border border-amber-200 px-3 py-1.5 text-gray-600">{item.meaning}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {/* 오해 방지 사항 */}
+            {Array.isArray(gate260.misunderstandingPreventionItems) && gate260.misunderstandingPreventionItems.length > 0 && (
+              <div className="mb-3">
+                <p className="mb-1.5 text-xs font-semibold text-amber-700 uppercase tracking-wide">오해 방지 사항</p>
+                <ul className="list-inside list-disc space-y-0.5">
+                  {gate260.misunderstandingPreventionItems.map((item: string, idx: number) => (
+                    <li key={idx} className="text-xs text-amber-700">{item}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* 보안 플래그 */}
+            <div className="mt-3 flex flex-wrap gap-2 border-t border-amber-200 pt-3">
+              <span className="rounded bg-white border border-amber-200 px-2 py-0.5 text-[10px] text-amber-700">isUserFinalApprovalGrantedForTokenIssuance: {String(gate260.isUserFinalApprovalGrantedForTokenIssuance)}</span>
+              <span className="rounded bg-white border border-amber-200 px-2 py-0.5 text-[10px] text-amber-700">isTokenIssuanceAllowed: {String(gate260.isTokenIssuanceAllowed)}</span>
+              <span className="rounded bg-white border border-amber-200 px-2 py-0.5 text-[10px] text-amber-700">isOneTimeTokenIssuanceTestAllowed: {String(gate260.isOneTimeTokenIssuanceTestAllowed)}</span>
+              <span className="rounded bg-white border border-amber-200 px-2 py-0.5 text-[10px] text-amber-700">isTokenIssued: {String(gate260.isTokenIssued)}</span>
+              <span className="rounded bg-white border border-amber-200 px-2 py-0.5 text-[10px] text-amber-700">isTokenValueDisplayed: {String(gate260.isTokenValueDisplayed)}</span>
+              <span className="rounded bg-white border border-amber-200 px-2 py-0.5 text-[10px] text-amber-700">isSecretLogged: {String(gate260.isSecretLogged)}</span>
+              <span className="rounded bg-white border border-amber-200 px-2 py-0.5 text-[10px] text-amber-700">isBatchJobResultDisplayOnly: {String(gate260.isBatchJobResultDisplayOnly)}</span>
+            </div>
+
+            {/* 최종 안내 */}
+            {gate260.finalNotice && (
+              <div className="mt-3 rounded border border-amber-300 bg-amber-100 px-3 py-2">
+                <p className="text-xs font-medium text-amber-800">{gate260.finalNotice}</p>
+              </div>
             )}
           </div>
         );
