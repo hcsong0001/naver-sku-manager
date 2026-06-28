@@ -3830,6 +3830,7 @@ type DraftBatchJob = {
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultDisplayOnlyAutoApprovalComplianceAuditView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultDisplayOnlyTaskSequenceReconciliationView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultDisplayOnlyFileScopeAuditView?: any;
+  tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultDisplayOnlyCommitHashAuditView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -27179,6 +27180,54 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                       </div>
                       <div className="mt-1 text-[11px] text-slate-400">
                         {item.notes}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 206: BatchJob Display-Only Commit Hash Audit Screen Flow ── */}
+      {(() => {
+        const bjdocha206 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultDisplayOnlyCommitHashAuditView;
+        if (!bjdocha206) return null;
+        return (
+          <div className="mb-6 rounded-lg border border-violet-900/40 bg-[#080914] p-4 shadow-[0_0_15px_rgba(139,92,246,0.05)]">
+            <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-white">
+              <ClipboardList className="h-5 w-5 text-violet-500" />
+              {bjdocha206.panelTitle}
+            </h2>
+            <div className="mb-3 flex flex-wrap gap-2">
+              <span className="rounded-full border border-violet-700/50 bg-violet-950/40 px-2 py-0.5 text-xs text-violet-300">
+                {bjdocha206.auditStatus}
+              </span>
+            </div>
+            <p className="mb-4 text-xs leading-relaxed text-violet-200/70">
+              {bjdocha206.auditConclusion}
+            </p>
+            <div className="mb-4 text-xs text-slate-500">{bjdocha206.taskName}</div>
+
+            <div className="mt-4 space-y-4">
+              <div>
+                <h4 className="mb-3 text-xs font-semibold uppercase tracking-wide text-violet-400">Commit Hash Records</h4>
+                <div className="space-y-2">
+                  {bjdocha206.commitHashItems.map((item: any, i: number) => (
+                    <div key={i} className="flex items-center justify-between rounded-md border border-violet-900/30 bg-violet-950/10 p-3">
+                      <div className="flex flex-col gap-0.5">
+                        <span className="text-xs font-bold text-violet-300">{item.taskId}</span>
+                        <span className="text-[11px] text-violet-200/60">{item.taskName}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="rounded bg-slate-900 px-2 py-0.5 text-[11px] font-mono text-slate-300">{item.commitHash}</span>
+                        {item.isVerified && (
+                          <span className="rounded-full bg-emerald-900/30 px-2 py-0.5 text-[10px] font-semibold text-emerald-400 border border-emerald-800/50">
+                            {item.statusText}
+                          </span>
+                        )}
+                        <CheckCircle2 className="h-4 w-4 text-emerald-500" />
                       </div>
                     </div>
                   ))}
