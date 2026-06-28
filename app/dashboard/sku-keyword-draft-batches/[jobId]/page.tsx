@@ -3839,6 +3839,7 @@ type DraftBatchJob = {
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultDisplayOnlyRoutePayloadRegistryView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultDisplayOnlyPayloadCoverageAuditView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultDisplayOnlyAuditClosureFinalSealView?: any;
+  naverApiConnectionReadinessBoundaryView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -27193,6 +27194,82 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                   ))}
                 </div>
               </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 215: Naver API Connection Readiness Boundary Screen Flow ── */}
+      {(() => {
+        const naverBoundary215 = job.naverApiConnectionReadinessBoundaryView;
+        if (!naverBoundary215) return null;
+        return (
+          <div className="mb-6 rounded-lg border border-yellow-900/40 bg-[#080914] p-4 shadow-[0_0_15px_rgba(234,179,8,0.05)]">
+            <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-white">
+              <ClipboardList className="h-5 w-5 text-yellow-500" />
+              {naverBoundary215.panelTitle}
+            </h2>
+            <div className="mb-3 flex flex-wrap gap-2">
+              <span className="rounded-full border border-yellow-700/50 bg-yellow-950/40 px-2 py-0.5 text-xs text-yellow-300">
+                {naverBoundary215.boundaryStatus}
+              </span>
+              <span className="rounded-full border border-emerald-800/50 bg-emerald-950/30 px-2 py-0.5 text-xs text-emerald-400">
+                READ-ONLY
+              </span>
+            </div>
+            <p className="mb-4 text-xs leading-relaxed text-yellow-200/70">
+              {naverBoundary215.finalNotice}
+            </p>
+            <div className="mb-4 text-xs text-slate-500">{naverBoundary215.taskName}</div>
+
+            <div className="mt-4 space-y-4">
+              <div>
+                <h4 className="mb-3 text-xs font-semibold uppercase tracking-wide text-yellow-400">Connection Readiness Boundary Items</h4>
+                <div className="space-y-2">
+                  {naverBoundary215.boundaryItems.map((item: any, i: number) => (
+                    <div key={i} className={`flex items-center justify-between rounded-md border p-3 ${
+                      item.boundaryStatus === 'ALLOWED'
+                        ? 'border-emerald-700/50 bg-emerald-950/20'
+                        : 'border-yellow-900/30 bg-yellow-950/10'
+                    }`}>
+                      <div className="flex flex-col gap-0.5 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className={`text-[10px] font-bold shrink-0 ${item.boundaryStatus === 'ALLOWED' ? 'text-emerald-400' : 'text-yellow-400'}`}>
+                            {item.label}
+                          </span>
+                        </div>
+                        <span className="text-[11px] text-yellow-200/50">{item.description}</span>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0 ml-3">
+                        {item.boundaryStatus === 'ALLOWED' ? (
+                          <span className="rounded-full bg-emerald-900/40 px-2 py-0.5 text-[10px] font-semibold text-emerald-300 border border-emerald-700/50">
+                            {item.boundaryStatus}
+                          </span>
+                        ) : (
+                          <span className="rounded-full bg-yellow-900/30 px-2 py-0.5 text-[10px] font-semibold text-yellow-400 border border-yellow-800/50">
+                            {item.boundaryStatus}
+                          </span>
+                        )}
+                        {item.boundaryStatus === 'ALLOWED'
+                          ? <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                          : <CheckCircle2 className="h-4 w-4 text-yellow-700" />
+                        }
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {naverBoundary215.misunderstandingPreventionItems.length > 0 && (
+                <div>
+                  <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">오해 방지 사항</h4>
+                  <ul className="space-y-1">
+                    {naverBoundary215.misunderstandingPreventionItems.map((notice: string, i: number) => (
+                      <li key={i} className="text-[11px] text-slate-400 before:mr-1.5 before:content-['•']">{notice}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
           </div>
         );
