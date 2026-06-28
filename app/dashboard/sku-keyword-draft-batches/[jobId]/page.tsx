@@ -3889,6 +3889,7 @@ type DraftBatchJob = {
   naverTokenIssuanceOneTimeTestNonRetentionAuditSealView?: any;
   naverProductLookupApiReadinessGateView?: any;
   naverProductLookupApiOneTimeTestUserApprovalRequestPacketView?: any;
+  naverProductLookupLiveTestHttp403TokenIssuanceFailureDiagnosisView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -32870,6 +32871,103 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                   ))}
                 </div>
               </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 268: HTTP 403 Token Issuance Failure Diagnosis ─────────────── */}
+      {(() => {
+        const diag268 = job.naverProductLookupLiveTestHttp403TokenIssuanceFailureDiagnosisView;
+        if (!diag268) return null;
+        return (
+          <div className="mb-4 rounded-lg border border-red-400 bg-red-50 p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <ShieldAlert className="w-5 h-5 text-red-600 flex-shrink-0" />
+              <h3 className="font-semibold text-red-800 text-sm">
+                {diag268.panelTitle ?? 'HTTP 403 Token 발급 실패 진단 (Task 268)'}
+              </h3>
+              <span className="ml-auto text-xs px-2 py-0.5 rounded font-mono bg-red-100 text-red-800">
+                {diag268.status}
+              </span>
+            </div>
+
+            <div className="bg-red-100 border border-red-300 rounded p-3 mb-3 text-xs text-red-900 whitespace-pre-line">
+              {diag268.uiGuideMessage}
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 mb-3 text-xs">
+              <div className="bg-white rounded p-2 border">
+                <span className="text-gray-500">liveTestStatus:</span>{' '}
+                <span className="font-mono font-semibold text-red-700">{diag268.liveTestStatus}</span>
+              </div>
+              <div className="bg-white rounded p-2 border">
+                <span className="text-gray-500">failureStage:</span>{' '}
+                <span className="font-mono font-semibold text-red-700">{diag268.failureStage}</span>
+              </div>
+              <div className="bg-white rounded p-2 border">
+                <span className="text-gray-500">tokenIssuanceHttpStatus:</span>{' '}
+                <span className="font-mono font-semibold text-red-700">{diag268.tokenIssuanceHttpStatus}</span>
+              </div>
+              <div className="bg-white rounded p-2 border">
+                <span className="text-gray-500">productLookupEndpointReached:</span>{' '}
+                <span className="font-mono font-semibold text-red-600">{String(diag268.productLookupEndpointReached)}</span>
+              </div>
+              <div className="bg-white rounded p-2 border">
+                <span className="text-gray-500">isAuthenticationDiagnosisRequired:</span>{' '}
+                <span className="font-mono font-semibold text-amber-700">{String(diag268.isAuthenticationDiagnosisRequired)}</span>
+              </div>
+              <div className="bg-white rounded p-2 border">
+                <span className="text-gray-500">isAdditionalCallStoppedWithinApprovalScope:</span>{' '}
+                <span className="font-mono font-semibold text-green-700">{String(diag268.isAdditionalCallStoppedWithinApprovalScope)}</span>
+              </div>
+            </div>
+
+            {Array.isArray(diag268.failureDiagnosisItems) && diag268.failureDiagnosisItems.length > 0 && (
+              <div className="mb-3">
+                <div className="text-xs font-semibold text-red-800 mb-1">
+                  실패 진단 항목 ({diag268.failureDiagnosisItems.length}개)
+                </div>
+                <div className="space-y-1">
+                  {diag268.failureDiagnosisItems.map((item: { label: string; status: string; meaning: string }, idx: number) => {
+                    const isLocked = item.status === 'LOCKED' || item.status === 'FORBIDDEN';
+                    const isWarning = item.status.includes('RECHECK') || item.status.includes('DIAGNOSIS') || item.status.includes('CHECK_REQUIRED');
+                    const rowBg = isLocked ? 'bg-red-100 border-red-300' : isWarning ? 'bg-amber-50 border-amber-200' : 'bg-white border-gray-200';
+                    return (
+                      <div key={idx} className={`flex items-start gap-2 text-xs rounded p-2 border ${rowBg}`}>
+                        <span className="text-gray-700 font-medium min-w-[160px]">{item.label}</span>
+                        <span className={`font-mono text-[10px] min-w-[200px] ${isLocked ? 'text-red-700' : isWarning ? 'text-amber-700' : 'text-gray-600'}`}>
+                          {item.status}
+                        </span>
+                        <span className="text-gray-500">{item.meaning}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {Array.isArray(diag268.authenticationRecheckScope) && diag268.authenticationRecheckScope.length > 0 && (
+              <div className="bg-amber-50 border border-amber-200 rounded p-3 mb-3">
+                <div className="text-xs font-semibold text-amber-800 mb-1">다음 점검이 필요한 범위 (값 비출력)</div>
+                <ul className="list-disc list-inside space-y-0.5 text-xs text-amber-900">
+                  {diag268.authenticationRecheckScope.map((scope: string, idx: number) => (
+                    <li key={idx}>{scope}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {diag268.finalNotice && (
+              <div className="text-xs text-red-700 mt-2 border-t border-red-200 pt-2">{diag268.finalNotice}</div>
+            )}
+
+            <div className="mt-2 text-[10px] text-gray-400 font-mono space-y-0.5">
+              <div>isBatchJobResultDisplayOnly: {String(diag268.isBatchJobResultDisplayOnly)} | isNaverApiCalledInThisTask: {String(diag268.isNaverApiCalledInThisTask)}</div>
+              <div>isTokenIssuanceExecutedInThisTask: {String(diag268.isTokenIssuanceExecutedInThisTask)} | isTokenReissuedInThisTask: {String(diag268.isTokenReissuedInThisTask)}</div>
+              <div>isProductLookupApiCalled: {String(diag268.isProductLookupApiCalled)} | isProductUpdateApiCalled: {String(diag268.isProductUpdateApiCalled)}</div>
+              <div>isPriceOrStockChanged: {String(diag268.isPriceOrStockChanged)} | isDbWriteExecuted: {String(diag268.isDbWriteExecuted)}</div>
+              <div>isProductLookupRetryApprovalRequired: {String(diag268.isProductLookupRetryApprovalRequired)} | isProductLookupRetryApprovalGranted: {String(diag268.isProductLookupRetryApprovalGranted)}</div>
             </div>
           </div>
         );

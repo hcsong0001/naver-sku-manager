@@ -249,6 +249,7 @@ import { buildNaverTokenIssuanceOneTimeTestResultView } from '@/src/services/sku
 import { buildNaverTokenIssuanceOneTimeTestNonRetentionAuditSealView } from '@/src/services/sku-keyword-final-approval-execution-naver-token-issuance-one-time-test-non-retention-audit-seal-view.service';
 import { buildNaverProductLookupApiReadinessGateView } from '@/src/services/sku-keyword-final-approval-execution-naver-product-lookup-api-readiness-gate-view.service';
 import { buildNaverProductLookupApiOneTimeTestUserApprovalRequestPacketView } from '@/src/services/sku-keyword-final-approval-execution-naver-product-lookup-api-one-time-test-user-approval-request-packet-view.service';
+import { buildNaverProductLookupLiveTestHttp403TokenIssuanceFailureDiagnosisView } from '@/src/services/sku-keyword-final-approval-execution-naver-product-lookup-live-test-http-403-token-issuance-failure-diagnosis-view.service';
 
 // Compute safe DB environment hint from DATABASE_URL without exposing the original value.
 // Returns a classification key, never the actual URL.
@@ -1530,6 +1531,7 @@ export async function GET(
         _issuanceTestStatus,
         _naverProductLookupApiReadinessGateView.productLookupReadinessStatus
       ),
+      naverProductLookupLiveTestHttp403TokenIssuanceFailureDiagnosisView: buildNaverProductLookupLiveTestHttp403TokenIssuanceFailureDiagnosisView(null),
     };
 
     return NextResponse.json({ ok: true, job: responseJob });
