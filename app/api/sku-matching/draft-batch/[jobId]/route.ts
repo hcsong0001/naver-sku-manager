@@ -241,6 +241,7 @@ import { buildNaverTokenIssuanceEnvAuthPresenceRecheckResultView } from '@/src/s
 import { buildNaverTokenIssuanceEnvAuthRuntimeScopeDiagnosisView } from '@/src/services/sku-keyword-final-approval-execution-naver-token-issuance-env-auth-runtime-scope-diagnosis-view.service';
 import { buildNaverTokenIssuanceEnvAuthRuntimeScopeUserCorrectionChecklistView } from '@/src/services/sku-keyword-final-approval-execution-naver-token-issuance-env-auth-runtime-scope-user-correction-checklist-view.service';
 import { buildNaverTokenIssuanceRuntimeScopeCorrectionCompletionWaitingView } from '@/src/services/sku-keyword-final-approval-execution-naver-token-issuance-runtime-scope-correction-completion-waiting-view.service';
+import { buildNaverTokenIssuanceEnvAuthRuntimeScopeRecheckResultView } from '@/src/services/sku-keyword-final-approval-execution-naver-token-issuance-env-auth-runtime-scope-recheck-result-view.service';
 
 // Compute safe DB environment hint from DATABASE_URL without exposing the original value.
 // Returns a classification key, never the actual URL.
@@ -1503,6 +1504,7 @@ export async function GET(
       naverTokenIssuanceEnvAuthRuntimeScopeDiagnosisView: buildNaverTokenIssuanceEnvAuthRuntimeScopeDiagnosisView(job),
       naverTokenIssuanceEnvAuthRuntimeScopeUserCorrectionChecklistView: buildNaverTokenIssuanceEnvAuthRuntimeScopeUserCorrectionChecklistView(job),
       naverTokenIssuanceRuntimeScopeCorrectionCompletionWaitingView: buildNaverTokenIssuanceRuntimeScopeCorrectionCompletionWaitingView(job),
+      naverTokenIssuanceEnvAuthRuntimeScopeRecheckResultView: buildNaverTokenIssuanceEnvAuthRuntimeScopeRecheckResultView(job),
     };
 
     return NextResponse.json({ ok: true, job: responseJob });

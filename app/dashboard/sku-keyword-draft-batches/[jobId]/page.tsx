@@ -3881,6 +3881,7 @@ type DraftBatchJob = {
   naverTokenIssuanceEnvAuthRuntimeScopeDiagnosisView?: any;
   naverTokenIssuanceEnvAuthRuntimeScopeUserCorrectionChecklistView?: any;
   naverTokenIssuanceRuntimeScopeCorrectionCompletionWaitingView?: any;
+  naverTokenIssuanceEnvAuthRuntimeScopeRecheckResultView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -28475,6 +28476,114 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
 
             {recheck254.finalNotice && (
               <p className="mt-3 text-[10px] text-zinc-600 italic">{recheck254.finalNotice}</p>
+            )}
+          </div>
+        );
+      })()}
+
+      {/* ── Task 259: Naver Token Issuance Env Auth Runtime Scope Recheck Result Screen Flow ── */}
+      {(() => {
+        const recheck259 = job.naverTokenIssuanceEnvAuthRuntimeScopeRecheckResultView;
+        if (!recheck259) return null;
+        return (
+          <div className="mt-6 rounded-lg border border-green-200 bg-green-50 p-4">
+            <div className="mb-3 flex items-center gap-2">
+              <CheckCircle2 className="h-5 w-5 text-green-600" />
+              <h3 className="text-base font-semibold text-green-800">
+                {recheck259.panelTitle ?? 'Env/Auth Runtime Scope 재확인 결과'}
+              </h3>
+              <span className="ml-auto rounded bg-green-100 px-2 py-0.5 text-xs font-mono text-green-700">
+                {recheck259.status}
+              </span>
+            </div>
+            <p className="mb-3 text-sm text-green-700">{recheck259.description}</p>
+
+            {/* Env Key Presence 재확인 결과 */}
+            {Array.isArray(recheck259.envKeyPresenceItems) && recheck259.envKeyPresenceItems.length > 0 && (
+              <div className="mb-4">
+                <p className="mb-2 text-xs font-semibold text-green-700 uppercase tracking-wide">Env Key Presence 재확인 결과</p>
+                <div className="grid grid-cols-1 gap-1 sm:grid-cols-3">
+                  {recheck259.envKeyPresenceItems.map((item: any, idx: number) => (
+                    <div key={idx} className="flex items-center justify-between rounded border border-green-200 bg-white px-3 py-1.5 text-xs">
+                      <span className="font-mono text-gray-700">{item.key}</span>
+                      <span className={`ml-2 rounded px-1.5 py-0.5 font-semibold ${item.presence === 'PRESENT' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                        {item.presence}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                <p className="mt-2 text-xs text-green-600">
+                  PRESENT {recheck259.presencePresentCount} / MISSING {recheck259.presenceMissingCount} —
+                  {recheck259.isTargetPresenceResultMet ? ' 목표 결과 충족' : ' 목표 결과 미충족'}
+                </p>
+              </div>
+            )}
+
+            {/* Recheck Items 표 */}
+            {Array.isArray(recheck259.recheckItems) && recheck259.recheckItems.length > 0 && (
+              <div className="mb-4 overflow-x-auto">
+                <p className="mb-2 text-xs font-semibold text-green-700 uppercase tracking-wide">재확인 항목 ({recheck259.recheckItems.length}개)</p>
+                <table className="w-full border-collapse text-xs">
+                  <thead>
+                    <tr className="bg-green-100 text-left text-green-800">
+                      <th className="border border-green-200 px-3 py-1.5 font-semibold">재확인 항목</th>
+                      <th className="border border-green-200 px-3 py-1.5 font-semibold">상태</th>
+                      <th className="border border-green-200 px-3 py-1.5 font-semibold">의미</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {recheck259.recheckItems.map((item: any, idx: number) => (
+                      <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-green-50'}>
+                        <td className="border border-green-200 px-3 py-1.5 font-medium text-gray-800">{item.recheckItem}</td>
+                        <td className="border border-green-200 px-3 py-1.5">
+                          <span className={`rounded px-1.5 py-0.5 font-mono text-[10px] font-semibold ${
+                            item.status === 'TARGET_MET' || item.status === 'CORRECTION_WAITING_CONFIRMED' || item.status === 'USER_CORRECTION_REPORTED' || item.status === 'RECHECK_EXECUTED_NON_EXPOSURE' || item.status === 'READY_FOR_TOKEN_ISSUANCE_GATE'
+                              ? 'bg-green-100 text-green-700'
+                              : item.status === 'LOCKED' || item.status === 'NOT_CONNECTED' || item.status === 'NOT_PRESENT'
+                              ? 'bg-gray-100 text-gray-600'
+                              : item.status === 'NOT_DISPLAYED' || item.status === 'NOT_LOGGED' || item.status === 'NOT_ACCESSED' || item.status === 'NOT_MODIFIED'
+                              ? 'bg-blue-50 text-blue-700'
+                              : 'bg-gray-50 text-gray-500'
+                          }`}>
+                            {item.status}
+                          </span>
+                        </td>
+                        <td className="border border-green-200 px-3 py-1.5 text-gray-600">{item.meaning}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {/* 오해 방지 사항 */}
+            {Array.isArray(recheck259.misunderstandingPreventionItems) && recheck259.misunderstandingPreventionItems.length > 0 && (
+              <div className="mb-3">
+                <p className="mb-1.5 text-xs font-semibold text-green-700 uppercase tracking-wide">오해 방지 사항</p>
+                <ul className="list-inside list-disc space-y-0.5">
+                  {recheck259.misunderstandingPreventionItems.map((item: string, idx: number) => (
+                    <li key={idx} className="text-xs text-green-700">{item}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* 보안 플래그 */}
+            <div className="mt-3 flex flex-wrap gap-2 border-t border-green-200 pt-3">
+              <span className="rounded bg-white border border-green-200 px-2 py-0.5 text-[10px] text-green-700">isEnvFileDirectlyAccessed: {String(recheck259.isEnvFileDirectlyAccessed)}</span>
+              <span className="rounded bg-white border border-green-200 px-2 py-0.5 text-[10px] text-green-700">isEnvFileModified: {String(recheck259.isEnvFileModified)}</span>
+              <span className="rounded bg-white border border-green-200 px-2 py-0.5 text-[10px] text-green-700">isSecretLogged: {String(recheck259.isSecretLogged)}</span>
+              <span className="rounded bg-white border border-green-200 px-2 py-0.5 text-[10px] text-green-700">isTokenIssuanceAllowed: {String(recheck259.isTokenIssuanceAllowed)}</span>
+              <span className="rounded bg-white border border-green-200 px-2 py-0.5 text-[10px] text-green-700">isReadyForTokenIssuanceGate: {String(recheck259.isReadyForTokenIssuanceGate)}</span>
+              <span className="rounded bg-white border border-green-200 px-2 py-0.5 text-[10px] text-green-700">isTokenIssued: {String(recheck259.isTokenIssued)}</span>
+              <span className="rounded bg-white border border-green-200 px-2 py-0.5 text-[10px] text-green-700">isBatchJobResultDisplayOnly: {String(recheck259.isBatchJobResultDisplayOnly)}</span>
+            </div>
+
+            {/* 최종 안내 */}
+            {recheck259.finalNotice && (
+              <div className="mt-3 rounded border border-green-300 bg-green-100 px-3 py-2">
+                <p className="text-xs font-medium text-green-800">{recheck259.finalNotice}</p>
+              </div>
             )}
           </div>
         );
