@@ -3886,6 +3886,7 @@ type DraftBatchJob = {
   naverTokenIssuanceOneTimeTestUserFinalApprovalRequestPacketView?: any;
   naverTokenIssuanceOneTimeTestFinalApprovalPendingSealView?: any;
   naverTokenIssuanceOneTimeTestResultView?: any;
+  naverTokenIssuanceOneTimeTestNonRetentionAuditSealView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -28481,6 +28482,100 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             {recheck254.finalNotice && (
               <p className="mt-3 text-[10px] text-zinc-600 italic">{recheck254.finalNotice}</p>
             )}
+          </div>
+        );
+      })()}
+
+      {/* ── Task 264: Naver Token Issuance One-Time Test Non-Retention Audit Seal Screen Flow ── */}
+      {(() => {
+        const seal264 = job.naverTokenIssuanceOneTimeTestNonRetentionAuditSealView;
+        if (!seal264) return null;
+        const statusBadge =
+          seal264.issuanceTestStatus === 'SUCCESS'
+            ? 'bg-green-100 text-green-800'
+            : seal264.issuanceTestStatus === 'FAILURE'
+            ? 'bg-red-100 text-red-800'
+            : 'bg-gray-100 text-gray-700';
+        return (
+          <div className="border border-teal-300 rounded-lg p-4 mb-4 bg-teal-50">
+            <div className="flex items-center gap-2 mb-3">
+              <ShieldCheck className="w-5 h-5 text-teal-600 flex-shrink-0" />
+              <h3 className="font-semibold text-gray-800 text-sm">
+                {seal264.panelTitle ?? 'Naver Token 발급 1회 테스트 비노출·비저장·비전파 감사 봉인'}
+              </h3>
+              <span className="ml-auto text-xs px-2 py-0.5 rounded font-mono bg-teal-100 text-teal-800">
+                {seal264.status ?? 'TOKEN_ISSUANCE_ONE_TIME_TEST_NON_RETENTION_AUDIT_SEALED'}
+              </span>
+            </div>
+            <p className="text-xs text-gray-600 mb-3">{seal264.description}</p>
+            <div className="grid grid-cols-2 gap-2 mb-3 text-xs">
+              <div className="bg-white rounded p-2 border">
+                <span className="text-gray-500">Task 263 issuanceTestStatus:</span>{' '}
+                <span className={`font-semibold px-1 rounded ${statusBadge}`}>{seal264.issuanceTestStatus}</span>
+              </div>
+              <div className="bg-white rounded p-2 border">
+                <span className="text-gray-500">isIssuanceTestStatusRecorded:</span>{' '}
+                <span className="font-mono">{String(seal264.isIssuanceTestStatusRecorded)}</span>
+              </div>
+              <div className="bg-white rounded p-2 border">
+                <span className="text-gray-500">isTokenValueIncludedInView:</span>{' '}
+                <span className="font-mono text-red-600 font-semibold">{String(seal264.isTokenValueIncludedInView)}</span>
+              </div>
+              <div className="bg-white rounded p-2 border">
+                <span className="text-gray-500">isTokenStoredInDb:</span>{' '}
+                <span className="font-mono text-red-600 font-semibold">{String(seal264.isTokenStoredInDb)}</span>
+              </div>
+              <div className="bg-white rounded p-2 border">
+                <span className="text-gray-500">isTokenReturnedToClient:</span>{' '}
+                <span className="font-mono text-red-600 font-semibold">{String(seal264.isTokenReturnedToClient)}</span>
+              </div>
+              <div className="bg-white rounded p-2 border">
+                <span className="text-gray-500">isNaverApiCalledInThisTask:</span>{' '}
+                <span className="font-mono text-red-600 font-semibold">{String(seal264.isNaverApiCalledInThisTask)}</span>
+              </div>
+              <div className="bg-white rounded p-2 border">
+                <span className="text-gray-500">isReadyForProductApiGate:</span>{' '}
+                <span className="font-mono">{String(seal264.isReadyForProductApiGate)}</span>
+              </div>
+              <div className="bg-white rounded p-2 border">
+                <span className="text-gray-500">isProductApiGateApprovalGranted:</span>{' '}
+                <span className="font-mono text-amber-600 font-semibold">{String(seal264.isProductApiGateApprovalGranted)}</span>
+              </div>
+            </div>
+            {Array.isArray(seal264.auditItems) && seal264.auditItems.length > 0 && (
+              <div className="mb-3">
+                <div className="text-xs font-semibold text-gray-700 mb-1">
+                  Audit Items ({seal264.auditItems.length}개)
+                </div>
+                <div className="space-y-1">
+                  {seal264.auditItems.map((item: { auditItem: string; status: string; meaning: string }, idx: number) => (
+                    <div key={idx} className="flex items-start gap-2 text-xs bg-white rounded p-2 border">
+                      <span className="text-gray-700 font-medium min-w-[180px]">{item.auditItem}</span>
+                      <span className="font-mono text-teal-700 bg-teal-50 px-1 rounded text-[10px] whitespace-nowrap">{item.status}</span>
+                      <span className="text-gray-500">{item.meaning}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            {Array.isArray(seal264.misunderstandingPreventionItems) && seal264.misunderstandingPreventionItems.length > 0 && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded p-2 mb-2 text-xs text-yellow-800">
+                <div className="font-semibold mb-1">오해 방지 안내</div>
+                <ul className="list-disc list-inside space-y-0.5">
+                  {seal264.misunderstandingPreventionItems.map((item: string, idx: number) => (
+                    <li key={idx}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {seal264.finalNotice && (
+              <div className="text-xs text-gray-500 mt-2 border-t pt-2">{seal264.finalNotice}</div>
+            )}
+            <div className="mt-2 text-[10px] text-gray-400 font-mono">
+              isBatchJobResultDisplayOnly: {String(seal264.isBatchJobResultDisplayOnly)} |
+              isTokenIssuanceOneTimeTestNonRetentionAuditSealed: {String(seal264.isTokenIssuanceOneTimeTestNonRetentionAuditSealed)} |
+              isTokenIssuanceExecutedInThisTask: {String(seal264.isTokenIssuanceExecutedInThisTask)}
+            </div>
           </div>
         );
       })()}

@@ -246,6 +246,7 @@ import { buildNaverTokenIssuanceOneTimeTestFinalSafetyGateView } from '@/src/ser
 import { buildNaverTokenIssuanceOneTimeTestUserFinalApprovalRequestPacketView } from '@/src/services/sku-keyword-final-approval-execution-naver-token-issuance-one-time-test-user-final-approval-request-packet-view.service';
 import { buildNaverTokenIssuanceOneTimeTestFinalApprovalPendingSealView } from '@/src/services/sku-keyword-final-approval-execution-naver-token-issuance-one-time-test-final-approval-pending-seal-view.service';
 import { buildNaverTokenIssuanceOneTimeTestResultView } from '@/src/services/sku-keyword-final-approval-execution-naver-token-issuance-one-time-test-result-view.service';
+import { buildNaverTokenIssuanceOneTimeTestNonRetentionAuditSealView } from '@/src/services/sku-keyword-final-approval-execution-naver-token-issuance-one-time-test-non-retention-audit-seal-view.service';
 
 // Compute safe DB environment hint from DATABASE_URL without exposing the original value.
 // Returns a classification key, never the actual URL.
@@ -1515,6 +1516,10 @@ export async function GET(
       naverTokenIssuanceOneTimeTestUserFinalApprovalRequestPacketView: buildNaverTokenIssuanceOneTimeTestUserFinalApprovalRequestPacketView(job),
       naverTokenIssuanceOneTimeTestFinalApprovalPendingSealView: buildNaverTokenIssuanceOneTimeTestFinalApprovalPendingSealView(job),
       naverTokenIssuanceOneTimeTestResultView,
+      naverTokenIssuanceOneTimeTestNonRetentionAuditSealView: buildNaverTokenIssuanceOneTimeTestNonRetentionAuditSealView(
+        job,
+        naverTokenIssuanceOneTimeTestResultView.issuanceTestStatus ?? 'SUCCESS'
+      ),
     };
 
     return NextResponse.json({ ok: true, job: responseJob });
