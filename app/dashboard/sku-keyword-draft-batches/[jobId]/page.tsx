@@ -3868,6 +3868,7 @@ type DraftBatchJob = {
   naverApiConnectionApprovalManualRequestWaitingFinalBoundaryView?: any;
   naverApiConnectionApprovalManualRequestWaitingClosureSummaryView?: any;
   naverTokenIssuanceEntryApprovalPacketView?: any;
+  naverTokenIssuanceEnvAuthPresencePreflightView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -27308,6 +27309,98 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 </div>
               )}
             </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 244: Naver Token Issuance Env Auth Presence Preflight Screen Flow ── */}
+      {(() => {
+        const preflight244 = job.naverTokenIssuanceEnvAuthPresencePreflightView;
+        if (!preflight244) return null;
+        return (
+          <div className="mb-6 rounded-lg border border-violet-900/30 bg-[#080914] p-4 shadow-[0_0_15px_rgba(139,92,246,0.05)]">
+            <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-white">
+              <ShieldCheck className="h-4 w-4 text-violet-400" />
+              {preflight244.panelTitle ?? 'Naver Token Issuance Env Auth Presence Preflight'}
+            </h2>
+            <p className="mb-3 text-xs text-zinc-500">
+              {preflight244.description ?? 'Token 발급 전 환경변수/인증정보 존재 여부 확인 절차 비노출 방식 안내 패널입니다.'}
+            </p>
+            <div className="mb-3 flex flex-wrap gap-2">
+              {preflight244.status && (
+                <span className="rounded-full bg-violet-950/50 px-2 py-0.5 text-[10px] font-mono text-violet-300 border border-violet-900/40">
+                  {preflight244.status}
+                </span>
+              )}
+              {preflight244.isBatchJobResultDisplayOnly && (
+                <span className="rounded-full bg-zinc-900 px-2 py-0.5 text-[10px] font-mono text-zinc-400 border border-zinc-800">
+                  DISPLAY_ONLY
+                </span>
+              )}
+              {preflight244.isEnvAuthPresencePreflightReady && (
+                <span className="rounded-full bg-violet-950/40 px-2 py-0.5 text-[10px] font-mono text-violet-400 border border-violet-900/40">
+                  PREFLIGHT_READY
+                </span>
+              )}
+              {preflight244.isEnvPresenceCheckPlanned && (
+                <span className="rounded-full bg-amber-950/40 px-2 py-0.5 text-[10px] font-mono text-amber-400 border border-amber-900/40">
+                  ENV_CHECK_PLANNED
+                </span>
+              )}
+              {preflight244.isAuthKeyPresenceCheckPlanned && (
+                <span className="rounded-full bg-amber-950/40 px-2 py-0.5 text-[10px] font-mono text-amber-400 border border-amber-900/40">
+                  AUTHKEY_CHECK_PLANNED
+                </span>
+              )}
+            </div>
+            {Array.isArray(preflight244.preflightItems) && preflight244.preflightItems.length > 0 && (
+              <div className="overflow-x-auto rounded border border-zinc-800">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="border-b border-zinc-800 bg-zinc-900/60">
+                      <th className="px-3 py-2 text-left font-medium text-zinc-400">항목</th>
+                      <th className="px-3 py-2 text-left font-medium text-zinc-400">상태</th>
+                      <th className="px-3 py-2 text-left font-medium text-zinc-400">의미</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {preflight244.preflightItems.map((item: any, idx: number) => (
+                      <tr key={idx} className="border-b border-zinc-800/50 hover:bg-zinc-900/30">
+                        <td className="px-3 py-2 font-mono text-zinc-300">{item.preflightItem}</td>
+                        <td className="px-3 py-2">
+                          <span className={`rounded px-1.5 py-0.5 text-[10px] font-mono ${
+                            item.status === 'ENTRY_PACKET_CONFIRMED' ? 'bg-green-950/50 text-green-400 border border-green-900/40' :
+                            item.status === 'PREFLIGHT_REQUIRED' ? 'bg-amber-950/50 text-amber-400 border border-amber-900/40' :
+                            item.status === 'FORBIDDEN' ? 'bg-red-950/50 text-red-400 border border-red-900/40' :
+                            item.status === 'LOCKED' ? 'bg-zinc-900 text-zinc-500 border border-zinc-700' :
+                            item.status === 'NOT_CONNECTED' ? 'bg-zinc-900 text-zinc-500 border border-zinc-700' :
+                            item.status === 'NOT_PRESENT' ? 'bg-zinc-900 text-zinc-600 border border-zinc-800' :
+                            item.status === 'READ_ONLY_INFO' ? 'bg-blue-950/40 text-blue-400 border border-blue-900/40' :
+                            'bg-zinc-800 text-zinc-400'
+                          }`}>
+                            {item.status}
+                          </span>
+                        </td>
+                        <td className="px-3 py-2 text-zinc-400">{item.meaning}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+            {Array.isArray(preflight244.misunderstandingPreventionItems) && preflight244.misunderstandingPreventionItems.length > 0 && (
+              <div className="mt-3 rounded border border-amber-900/30 bg-amber-950/10 p-3">
+                <p className="mb-1 text-[10px] font-semibold text-amber-400">오해 방지</p>
+                <ul className="space-y-1">
+                  {preflight244.misunderstandingPreventionItems.map((item: string, idx: number) => (
+                    <li key={idx} className="text-[10px] text-amber-300/70">• {item}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {preflight244.finalNotice && (
+              <p className="mt-3 text-[10px] text-zinc-600 italic">{preflight244.finalNotice}</p>
+            )}
           </div>
         );
       })()}
