@@ -3875,6 +3875,7 @@ type DraftBatchJob = {
   naverTokenIssuanceEnvAuthMissingRemediationGuideView?: any;
   naverTokenIssuanceEnvAuthUserSetupChecklistView?: any;
   naverTokenIssuanceEnvAuthUserSetupCompletionWaitingGateView?: any;
+  naverTokenIssuanceEnvAuthUserSetupProcedureGuideView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -28030,6 +28031,152 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
 
             {waitingGate250.finalNotice && (
               <p className="mt-3 text-[10px] text-zinc-600 italic">{waitingGate250.finalNotice}</p>
+            )}
+          </div>
+        );
+      })()}
+
+      {/* ── Task 251: Naver Token Issuance Env Auth User Setup Procedure Guide Screen Flow ── */}
+      {(() => {
+        const procedureGuide251 = job.naverTokenIssuanceEnvAuthUserSetupProcedureGuideView;
+        if (!procedureGuide251) return null;
+        return (
+          <div className="mb-6 rounded-lg border border-cyan-900/30 bg-[#071113] p-4 shadow-[0_0_15px_rgba(34,211,238,0.05)]">
+            <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-white">
+              <ClipboardList className="h-4 w-4 text-cyan-400" />
+              {procedureGuide251.panelTitle ?? 'Naver Token Issuance Env Auth User Setup Procedure Guide'}
+            </h2>
+            <p className="mb-3 text-xs text-zinc-500">
+              {procedureGuide251.description ?? '사용자가 직접 Env/Auth 값을 설정할 수 있도록 절차만 안내하는 읽기 전용 패널입니다.'}
+            </p>
+            <div className="mb-3 flex flex-wrap gap-2">
+              {procedureGuide251.status && (
+                <span className="rounded-full bg-cyan-950/50 px-2 py-0.5 text-[10px] font-mono text-cyan-300 border border-cyan-900/40">
+                  {procedureGuide251.status}
+                </span>
+              )}
+              {procedureGuide251.isBatchJobResultDisplayOnly && (
+                <span className="rounded-full bg-zinc-900 px-2 py-0.5 text-[10px] font-mono text-zinc-400 border border-zinc-800">
+                  DISPLAY_ONLY
+                </span>
+              )}
+              {procedureGuide251.isEnvAuthUserSetupProcedureGuideReady && (
+                <span className="rounded-full bg-cyan-950/40 px-2 py-0.5 text-[10px] font-mono text-cyan-400 border border-cyan-900/40">
+                  PROCEDURE_GUIDE_READY
+                </span>
+              )}
+              {procedureGuide251.isRecheckBlockedUntilUserSetup && (
+                <span className="rounded-full bg-red-950/40 px-2 py-0.5 text-[10px] font-mono text-red-400 border border-red-900/40">
+                  RECHECK_BLOCKED
+                </span>
+              )}
+              <span className="rounded-full bg-cyan-950/40 px-2 py-0.5 text-[10px] font-mono text-cyan-400 border border-cyan-900/40">
+                PRESENT {procedureGuide251.presencePresentCount}
+              </span>
+              <span className="rounded-full bg-amber-950/40 px-2 py-0.5 text-[10px] font-mono text-amber-400 border border-amber-900/40">
+                MISSING {procedureGuide251.presenceMissingCount}
+              </span>
+            </div>
+
+            {Array.isArray(procedureGuide251.guideMessages) && procedureGuide251.guideMessages.length > 0 && (
+              <div className="mb-3 rounded border border-cyan-900/30 bg-cyan-950/10 p-3">
+                <p className="mb-1 text-[10px] font-semibold text-cyan-300">사용자 설정 절차 안내</p>
+                <ul className="space-y-1">
+                  {procedureGuide251.guideMessages.map((item: string, idx: number) => (
+                    <li key={idx} className="text-[10px] text-cyan-200/80">• {item}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {Array.isArray(procedureGuide251.setupKeyItems) && procedureGuide251.setupKeyItems.length > 0 && (
+              <div className="mb-3 overflow-x-auto rounded border border-zinc-800">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="border-b border-zinc-800 bg-zinc-900/60">
+                      <th className="px-3 py-2 text-left font-medium text-zinc-400">Env Key</th>
+                      <th className="px-3 py-2 text-left font-medium text-zinc-400">설정 상태</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {procedureGuide251.setupKeyItems.map((item: any, idx: number) => (
+                      <tr key={idx} className="border-b border-zinc-800/50 hover:bg-zinc-900/30">
+                        <td className="px-3 py-2 font-mono text-zinc-300">{item.keyName}</td>
+                        <td className="px-3 py-2">
+                          <span className="rounded px-1.5 py-0.5 text-[10px] font-mono bg-cyan-950/50 text-cyan-400 border border-cyan-900/40">
+                            {item.setupStatus}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {Array.isArray(procedureGuide251.powerShellPlaceholderCommands) && procedureGuide251.powerShellPlaceholderCommands.length > 0 && (
+              <div className="mb-3 rounded border border-zinc-800 bg-zinc-950/60 p-3">
+                <p className="mb-2 text-[10px] font-semibold text-zinc-400">PowerShell placeholder 예시</p>
+                <pre className="overflow-x-auto whitespace-pre-wrap text-[10px] leading-5 text-zinc-300">
+                  {procedureGuide251.powerShellPlaceholderCommands.join('\n')}
+                </pre>
+              </div>
+            )}
+
+            {Array.isArray(procedureGuide251.procedureItems) && procedureGuide251.procedureItems.length > 0 && (
+              <div className="overflow-x-auto rounded border border-zinc-800">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="border-b border-zinc-800 bg-zinc-900/60">
+                      <th className="px-3 py-2 text-left font-medium text-zinc-400">항목</th>
+                      <th className="px-3 py-2 text-left font-medium text-zinc-400">상태</th>
+                      <th className="px-3 py-2 text-left font-medium text-zinc-400">의미</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {procedureGuide251.procedureItems.map((item: any, idx: number) => (
+                      <tr key={idx} className="border-b border-zinc-800/50 hover:bg-zinc-900/30">
+                        <td className="px-3 py-2 font-mono text-zinc-300">{item.procedureItem}</td>
+                        <td className="px-3 py-2">
+                          <span className={`rounded px-1.5 py-0.5 text-[10px] font-mono ${
+                            item.status === 'WAITING_GATE_CONFIRMED' ? 'bg-green-950/50 text-green-400 border border-green-900/40' :
+                            item.status === 'MISSING_DETECTED' ? 'bg-amber-950/50 text-amber-400 border border-amber-900/40' :
+                            item.status === 'USER_SETUP_PROCEDURE_READY' ? 'bg-cyan-950/50 text-cyan-400 border border-cyan-900/40' :
+                            item.status === 'KEY_NAMES_ONLY' ? 'bg-cyan-950/50 text-cyan-300 border border-cyan-900/40' :
+                            item.status === 'USER_ONLY_ACTION' ? 'bg-orange-950/50 text-orange-300 border border-orange-900/40' :
+                            item.status === 'FORBIDDEN' ? 'bg-red-950/50 text-red-400 border border-red-900/40' :
+                            item.status === 'WAITING_USER_SETUP_COMPLETION' ? 'bg-orange-950/50 text-orange-300 border border-orange-900/40' :
+                            item.status === 'RECHECK_AFTER_USER_SETUP_ONLY' ? 'bg-blue-950/40 text-blue-400 border border-blue-900/40' :
+                            item.status === 'LOCKED' ? 'bg-zinc-900 text-zinc-500 border border-zinc-700' :
+                            item.status === 'NOT_CONNECTED' ? 'bg-zinc-900 text-zinc-500 border border-zinc-700' :
+                            item.status === 'NOT_PRESENT' ? 'bg-zinc-900 text-zinc-600 border border-zinc-800' :
+                            item.status === 'READ_ONLY_INFO' ? 'bg-blue-950/40 text-blue-400 border border-blue-900/40' :
+                            'bg-zinc-800 text-zinc-400'
+                          }`}>
+                            {item.status}
+                          </span>
+                        </td>
+                        <td className="px-3 py-2 text-zinc-400">{item.meaning}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {Array.isArray(procedureGuide251.misunderstandingPreventionItems) && procedureGuide251.misunderstandingPreventionItems.length > 0 && (
+              <div className="mt-3 rounded border border-amber-900/30 bg-amber-950/10 p-3">
+                <p className="mb-1 text-[10px] font-semibold text-amber-400">오해 방지</p>
+                <ul className="space-y-1">
+                  {procedureGuide251.misunderstandingPreventionItems.map((item: string, idx: number) => (
+                    <li key={idx} className="text-[10px] text-amber-300/70">• {item}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {procedureGuide251.finalNotice && (
+              <p className="mt-3 text-[10px] text-zinc-600 italic">{procedureGuide251.finalNotice}</p>
             )}
           </div>
         );
