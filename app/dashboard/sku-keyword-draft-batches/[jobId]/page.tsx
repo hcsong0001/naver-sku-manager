@@ -3844,6 +3844,7 @@ type DraftBatchJob = {
   naverApiConnectionApprovalPreSubmissionReviewView?: any;
   naverApiConnectionApprovalSubmissionLockSealView?: any;
   naverApiConnectionApprovalEvidenceCertificationView?: any;
+  naverApiConnectionApprovalUserDecisionGateView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -27278,6 +27279,77 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                   <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">오해 방지 사항</h4>
                   <ul className="space-y-1">
                     {evidence219.misunderstandingPreventionItems.map((notice: string, i: number) => (
+                      <li key={i} className="text-[11px] text-slate-400 before:mr-1.5 before:content-['•']">{notice}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 220: Naver API Connection Approval User Decision Gate Screen Flow ── */}
+      {(() => {
+        const gate220 = job.naverApiConnectionApprovalUserDecisionGateView;
+        if (!gate220) return null;
+        return (
+          <div className="mb-6 rounded-lg border border-cyan-900/40 bg-[#080914] p-4 shadow-[0_0_15px_rgba(6,182,212,0.05)]">
+            <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-white">
+              <ClipboardList className="h-5 w-5 text-cyan-500" />
+              {gate220.panelTitle}
+            </h2>
+            <div className="mb-3 flex flex-wrap gap-2">
+              <span className="rounded-full border border-cyan-700/50 bg-cyan-950/40 px-2 py-0.5 text-xs text-cyan-300">
+                {gate220.status}
+              </span>
+              <span className="rounded-full border border-amber-800/50 bg-amber-950/30 px-2 py-0.5 text-xs text-amber-400">
+                USER_DECISION_PENDING
+              </span>
+            </div>
+            <p className="mb-4 text-xs leading-relaxed text-cyan-200/70">
+              {gate220.description}
+            </p>
+            <p className="mb-4 text-xs leading-relaxed text-slate-400/60 italic">
+              {gate220.finalNotice}
+            </p>
+            <div className="mb-3 text-xs text-slate-500">{gate220.taskName}</div>
+
+            <div className="mt-4 space-y-4">
+              <div>
+                <h4 className="mb-3 text-xs font-semibold uppercase tracking-wide text-cyan-400">Decision Gate Items</h4>
+                <div className="space-y-2">
+                  {gate220.decisionItems.map((item: any, i: number) => (
+                    <div key={i} className={`flex items-center justify-between rounded-md border p-3 ${
+                      item.status === 'PENDING_USER_DECISION'
+                        ? 'border-amber-700/50 bg-amber-950/20'
+                        : item.status === 'LOCKED'
+                        ? 'border-red-900/30 bg-red-950/10'
+                        : 'border-cyan-900/30 bg-cyan-950/10'
+                    }`}>
+                      <div className="flex flex-col gap-0.5 min-w-0">
+                        <span className="text-[11px] font-semibold text-cyan-200/80">{item.label}</span>
+                        <span className="text-[11px] text-slate-400/70">{item.description}</span>
+                      </div>
+                      <span className={`ml-3 shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold border ${
+                        item.status === 'PENDING_USER_DECISION'
+                          ? 'bg-amber-900/30 border-amber-700/50 text-amber-300'
+                          : item.status === 'LOCKED'
+                          ? 'bg-red-950/30 border-red-800/40 text-red-400'
+                          : 'bg-emerald-950/30 border-emerald-800/40 text-emerald-400'
+                      }`}>
+                        {item.status}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {gate220.misunderstandingPreventionItems.length > 0 && (
+                <div>
+                  <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">오해 방지 사항</h4>
+                  <ul className="space-y-1">
+                    {gate220.misunderstandingPreventionItems.map((notice: string, i: number) => (
                       <li key={i} className="text-[11px] text-slate-400 before:mr-1.5 before:content-['•']">{notice}</li>
                     ))}
                   </ul>
