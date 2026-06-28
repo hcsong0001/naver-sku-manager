@@ -216,6 +216,7 @@ import { buildNaverApiConnectionApprovalUserReviewHandoffSummaryView } from '@/s
 import { buildNaverApiConnectionApprovalUserReviewHandoffNonApprovalSealView } from '@/src/services/sku-keyword-final-approval-execution-naver-api-connection-approval-user-review-handoff-non-approval-seal-view.service';
 import { buildNaverApiConnectionApprovalPendingUserApprovalClosureSummaryView } from '@/src/services/sku-keyword-final-approval-execution-naver-api-connection-approval-pending-user-approval-closure-summary-view.service';
 import { buildNaverApiConnectionApprovalFinalUserApprovalHoldSealView } from '@/src/services/sku-keyword-final-approval-execution-naver-api-connection-approval-final-user-approval-hold-seal-view.service';
+import { buildNaverApiConnectionApprovalReadOnlyAuditIndexView } from '@/src/services/sku-keyword-final-approval-execution-naver-api-connection-approval-read-only-audit-index-view.service';
 
 // Compute safe DB environment hint from DATABASE_URL without exposing the original value.
 // Returns a classification key, never the actual URL.
@@ -1453,6 +1454,7 @@ export async function GET(
       naverApiConnectionApprovalUserReviewHandoffNonApprovalSealView: buildNaverApiConnectionApprovalUserReviewHandoffNonApprovalSealView(job),
       naverApiConnectionApprovalPendingUserApprovalClosureSummaryView: buildNaverApiConnectionApprovalPendingUserApprovalClosureSummaryView(job),
       naverApiConnectionApprovalFinalUserApprovalHoldSealView: buildNaverApiConnectionApprovalFinalUserApprovalHoldSealView(job),
+      naverApiConnectionApprovalReadOnlyAuditIndexView: buildNaverApiConnectionApprovalReadOnlyAuditIndexView(job),
     };
 
     return NextResponse.json({ ok: true, job: responseJob });
