@@ -3842,6 +3842,7 @@ type DraftBatchJob = {
   naverApiConnectionReadinessBoundaryView?: any;
   naverApiConnectionApprovalRequestPacketView?: any;
   naverApiConnectionApprovalPreSubmissionReviewView?: any;
+  naverApiConnectionApprovalSubmissionLockSealView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -27196,6 +27197,82 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                   ))}
                 </div>
               </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 218: Naver API Connection Approval Submission Lock Seal Screen Flow ── */}
+      {(() => {
+        const lockSeal218 = job.naverApiConnectionApprovalSubmissionLockSealView;
+        if (!lockSeal218) return null;
+        return (
+          <div className="mb-6 rounded-lg border border-slate-700/50 bg-[#080914] p-4 shadow-[0_0_15px_rgba(100,116,139,0.07)]">
+            <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-white">
+              <ClipboardList className="h-5 w-5 text-slate-400" />
+              {lockSeal218.panelTitle}
+            </h2>
+            <div className="mb-3 flex flex-wrap gap-2">
+              <span className="rounded-full border border-slate-600/60 bg-slate-900/50 px-2 py-0.5 text-xs text-slate-300">
+                {lockSeal218.sealStatus}
+              </span>
+              <span className="rounded-full border border-slate-700/50 bg-slate-900/40 px-2 py-0.5 text-xs text-slate-500">
+                READ-ONLY
+              </span>
+            </div>
+            <div className="mb-3 space-y-1.5 rounded-md border border-slate-700/30 bg-slate-900/30 px-3 py-2">
+              <p className="text-[11px] text-slate-400">{lockSeal218.task216PacketStatus}</p>
+              <p className="text-[11px] text-slate-400">{lockSeal218.task217ReviewStatus}</p>
+            </div>
+            <p className="mb-4 text-xs leading-relaxed text-slate-300/60">
+              {lockSeal218.finalNotice}
+            </p>
+            <div className="mb-4 text-xs text-slate-600">{lockSeal218.taskName}</div>
+
+            <div className="mt-4 space-y-4">
+              <div>
+                <h4 className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-500">Submission Lock Seal Items</h4>
+                <div className="space-y-2">
+                  {lockSeal218.lockSealItems.map((item: any, i: number) => (
+                    <div key={i} className={`flex items-center justify-between rounded-md border p-3 ${
+                      item.lockStatus === 'PENDING_USER_APPROVAL'
+                        ? 'border-amber-800/40 bg-amber-950/10'
+                        : 'border-slate-700/30 bg-slate-900/20'
+                    }`}>
+                      <div className="flex flex-col gap-0.5 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className={`text-[10px] font-bold shrink-0 ${item.lockStatus === 'PENDING_USER_APPROVAL' ? 'text-amber-400' : 'text-slate-400'}`}>
+                            {item.label}
+                          </span>
+                        </div>
+                        <span className="text-[11px] text-slate-500">{item.description}</span>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0 ml-3">
+                        {item.lockStatus === 'PENDING_USER_APPROVAL' ? (
+                          <span className="rounded-full bg-amber-900/30 px-2 py-0.5 text-[10px] font-semibold text-amber-400 border border-amber-800/50">
+                            PENDING
+                          </span>
+                        ) : (
+                          <span className="rounded-full bg-slate-800/60 px-2 py-0.5 text-[10px] font-semibold text-slate-400 border border-slate-700/50">
+                            LOCKED
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {lockSeal218.misunderstandingPreventionItems.length > 0 && (
+                <div>
+                  <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-600">오해 방지 사항</h4>
+                  <ul className="space-y-1">
+                    {lockSeal218.misunderstandingPreventionItems.map((notice: string, i: number) => (
+                      <li key={i} className="text-[11px] text-slate-500 before:mr-1.5 before:content-['•']">{notice}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
           </div>
         );
