@@ -3854,6 +3854,7 @@ type DraftBatchJob = {
   naverApiConnectionApprovalUserReviewReadinessVerdictView?: any;
   naverApiConnectionApprovalUserReviewHandoffSummaryView?: any;
   naverApiConnectionApprovalUserReviewHandoffNonApprovalSealView?: any;
+  naverApiConnectionApprovalPendingUserApprovalClosureSummaryView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -27288,6 +27289,101 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                   <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">오해 방지 사항</h4>
                   <ul className="space-y-1">
                     {evidence219.misunderstandingPreventionItems.map((notice: string, i: number) => (
+                      <li key={i} className="text-[11px] text-slate-400 before:mr-1.5 before:content-['•']">{notice}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 230: Naver API Connection Approval Pending User Approval Closure Summary Screen Flow ── */}
+      {(() => {
+        const closure230 = job.naverApiConnectionApprovalPendingUserApprovalClosureSummaryView;
+        if (!closure230) return null;
+        return (
+          <div className="mb-6 rounded-lg border border-slate-600/30 bg-[#080914] p-4 shadow-[0_0_15px_rgba(100,116,139,0.05)]">
+            <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-white">
+              <ClipboardList className="h-5 w-5 text-slate-400" />
+              {closure230.panelTitle}
+            </h2>
+            <div className="mb-3 flex flex-wrap gap-2">
+              <span className="rounded-full border border-slate-600/50 bg-slate-900/30 px-2 py-0.5 text-xs text-slate-300">
+                {closure230.status}
+              </span>
+              <span className="rounded-full border border-amber-700/50 bg-amber-950/30 px-2 py-0.5 text-xs text-amber-300">
+                PENDING_USER_APPROVAL
+              </span>
+              <span className="rounded-full border border-orange-700/50 bg-orange-950/30 px-2 py-0.5 text-xs text-orange-300">
+                NOT_ALLOWED
+              </span>
+            </div>
+            <p className="mb-3 text-xs leading-relaxed text-stone-300/70">
+              {closure230.description}
+            </p>
+            <p className="mb-4 text-xs leading-relaxed text-slate-400/60 italic">
+              {closure230.finalNotice}
+            </p>
+            <div className="mb-3 text-xs text-slate-500">{closure230.taskName}</div>
+
+            <div className="mt-4 space-y-4">
+              <div>
+                <h4 className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400/70">Closure Summary Items ({closure230.summaryItems.length}개 항목)</h4>
+                <div className="overflow-hidden rounded-md border border-slate-700/20">
+                  <table className="w-full text-[11px]">
+                    <thead>
+                      <tr className="border-b border-slate-700/20 bg-slate-900/10">
+                        <th className="px-3 py-2 text-left font-semibold text-slate-300/70">항목</th>
+                        <th className="px-3 py-2 text-left font-semibold text-slate-300/70">상태</th>
+                        <th className="px-3 py-2 text-left font-semibold text-slate-300/70">의미</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {closure230.summaryItems.map((item: any, i: number) => (
+                        <tr key={i} className={`border-b border-slate-700/10 last:border-0 ${
+                          item.status === 'LOCKED' ? 'bg-red-950/10' :
+                          item.status === 'NOT_ALLOWED' ? 'bg-orange-950/10' :
+                          item.status === 'NOT_SUBMITTED' ? 'bg-orange-950/10' :
+                          item.status === 'PENDING_USER_APPROVAL' ? 'bg-amber-950/10' :
+                          item.status === 'CLOSURE_SUMMARY_READY' ? 'bg-slate-900/20' :
+                          item.status === 'READ_ONLY_CONFIRMED' ? 'bg-emerald-950/10' :
+                          'bg-stone-900/10'
+                        }`}>
+                          <td className="px-3 py-2 font-medium text-slate-300">{item.summaryItem}</td>
+                          <td className="px-3 py-2">
+                            <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold border ${
+                              item.status === 'LOCKED'
+                                ? 'bg-red-950/30 border-red-800/40 text-red-400'
+                                : item.status === 'NOT_ALLOWED'
+                                ? 'bg-orange-950/30 border-orange-700/50 text-orange-300'
+                                : item.status === 'NOT_SUBMITTED'
+                                ? 'bg-orange-950/30 border-orange-700/50 text-orange-300'
+                                : item.status === 'PENDING_USER_APPROVAL'
+                                ? 'bg-amber-900/30 border-amber-700/50 text-amber-300'
+                                : item.status === 'CLOSURE_SUMMARY_READY'
+                                ? 'bg-slate-800/30 border-slate-600/50 text-slate-300'
+                                : item.status === 'READ_ONLY_CONFIRMED'
+                                ? 'bg-emerald-950/30 border-emerald-800/40 text-emerald-400'
+                                : 'bg-stone-900/30 border-stone-700/40 text-stone-400'
+                            }`}>
+                              {item.status}
+                            </span>
+                          </td>
+                          <td className="px-3 py-2 text-slate-400/70">{item.meaning}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {closure230.misunderstandingPreventionItems.length > 0 && (
+                <div>
+                  <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">오해 방지 사항</h4>
+                  <ul className="space-y-1">
+                    {closure230.misunderstandingPreventionItems.map((notice: string, i: number) => (
                       <li key={i} className="text-[11px] text-slate-400 before:mr-1.5 before:content-['•']">{notice}</li>
                     ))}
                   </ul>
