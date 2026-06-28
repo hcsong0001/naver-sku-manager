@@ -3870,6 +3870,7 @@ type DraftBatchJob = {
   naverTokenIssuanceEntryApprovalPacketView?: any;
   naverTokenIssuanceEnvAuthPresencePreflightView?: any;
   naverTokenIssuanceEnvAuthPresenceCheckHarnessView?: any;
+  naverTokenIssuanceEnvAuthPresenceCheckExecutionGateView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -27402,6 +27403,104 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             )}
             {harness245.finalNotice && (
               <p className="mt-3 text-[10px] text-zinc-600 italic">{harness245.finalNotice}</p>
+            )}
+          </div>
+        );
+      })()}
+
+      {/* ── Task 246: Naver Token Issuance Env Auth Presence Check Execution Gate Screen Flow ── */}
+      {(() => {
+        const gate246 = job.naverTokenIssuanceEnvAuthPresenceCheckExecutionGateView;
+        if (!gate246) return null;
+        return (
+          <div className="mb-6 rounded-lg border border-sky-900/30 bg-[#070d14] p-4 shadow-[0_0_15px_rgba(56,189,248,0.05)]">
+            <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-white">
+              <LockKeyhole className="h-4 w-4 text-sky-400" />
+              {gate246.panelTitle ?? 'Naver Token Issuance Env Auth Presence Check Execution Gate'}
+            </h2>
+            <p className="mb-3 text-xs text-zinc-500">
+              {gate246.description ?? '실제 presence check 실행 전 Gate 상태를 읽기 전용으로 표시하는 화면입니다.'}
+            </p>
+            <div className="mb-3 flex flex-wrap gap-2">
+              {gate246.status && (
+                <span className="rounded-full bg-sky-950/50 px-2 py-0.5 text-[10px] font-mono text-sky-300 border border-sky-900/40">
+                  {gate246.status}
+                </span>
+              )}
+              {gate246.isBatchJobResultDisplayOnly && (
+                <span className="rounded-full bg-zinc-900 px-2 py-0.5 text-[10px] font-mono text-zinc-400 border border-zinc-800">
+                  DISPLAY_ONLY
+                </span>
+              )}
+              {gate246.isEnvAuthPresenceCheckExecutionGateReady && (
+                <span className="rounded-full bg-sky-950/40 px-2 py-0.5 text-[10px] font-mono text-sky-400 border border-sky-900/40">
+                  EXECUTION_GATE_READY
+                </span>
+              )}
+              {gate246.isUserApprovalStillRequired && (
+                <span className="rounded-full bg-amber-950/40 px-2 py-0.5 text-[10px] font-mono text-amber-400 border border-amber-900/40">
+                  USER_APPROVAL_REQUIRED
+                </span>
+              )}
+              {gate246.isEnvPresenceCheckReady && (
+                <span className="rounded-full bg-cyan-950/40 px-2 py-0.5 text-[10px] font-mono text-cyan-400 border border-cyan-900/40">
+                  ENV_CHECK_READY
+                </span>
+              )}
+              {gate246.isAuthKeyPresenceCheckReady && (
+                <span className="rounded-full bg-cyan-950/40 px-2 py-0.5 text-[10px] font-mono text-cyan-400 border border-cyan-900/40">
+                  AUTHKEY_CHECK_READY
+                </span>
+              )}
+            </div>
+            {Array.isArray(gate246.gateItems) && gate246.gateItems.length > 0 && (
+              <div className="overflow-x-auto rounded border border-zinc-800">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="border-b border-zinc-800 bg-zinc-900/60">
+                      <th className="px-3 py-2 text-left font-medium text-zinc-400">항목</th>
+                      <th className="px-3 py-2 text-left font-medium text-zinc-400">상태</th>
+                      <th className="px-3 py-2 text-left font-medium text-zinc-400">의미</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {gate246.gateItems.map((item: any, idx: number) => (
+                      <tr key={idx} className="border-b border-zinc-800/50 hover:bg-zinc-900/30">
+                        <td className="px-3 py-2 font-mono text-zinc-300">{item.gateItem}</td>
+                        <td className="px-3 py-2">
+                          <span className={`rounded px-1.5 py-0.5 text-[10px] font-mono ${
+                            item.status === 'HARNESS_CONFIRMED' ? 'bg-green-950/50 text-green-400 border border-green-900/40' :
+                            item.status === 'PENDING_USER_APPROVAL' ? 'bg-amber-950/50 text-amber-400 border border-amber-900/40' :
+                            item.status === 'READY_BUT_NOT_EXECUTED' ? 'bg-cyan-950/50 text-cyan-400 border border-cyan-900/40' :
+                            item.status === 'FORBIDDEN' ? 'bg-red-950/50 text-red-400 border border-red-900/40' :
+                            item.status === 'LOCKED' ? 'bg-zinc-900 text-zinc-500 border border-zinc-700' :
+                            item.status === 'NOT_CONNECTED' ? 'bg-zinc-900 text-zinc-500 border border-zinc-700' :
+                            item.status === 'NOT_PRESENT' ? 'bg-zinc-900 text-zinc-600 border border-zinc-800' :
+                            item.status === 'READ_ONLY_INFO' ? 'bg-blue-950/40 text-blue-400 border border-blue-900/40' :
+                            'bg-zinc-800 text-zinc-400'
+                          }`}>
+                            {item.status}
+                          </span>
+                        </td>
+                        <td className="px-3 py-2 text-zinc-400">{item.meaning}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+            {Array.isArray(gate246.misunderstandingPreventionItems) && gate246.misunderstandingPreventionItems.length > 0 && (
+              <div className="mt-3 rounded border border-amber-900/30 bg-amber-950/10 p-3">
+                <p className="mb-1 text-[10px] font-semibold text-amber-400">오해 방지</p>
+                <ul className="space-y-1">
+                  {gate246.misunderstandingPreventionItems.map((item: string, idx: number) => (
+                    <li key={idx} className="text-[10px] text-amber-300/70">• {item}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {gate246.finalNotice && (
+              <p className="mt-3 text-[10px] text-zinc-600 italic">{gate246.finalNotice}</p>
             )}
           </div>
         );
