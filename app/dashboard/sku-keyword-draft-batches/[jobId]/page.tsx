@@ -3846,6 +3846,7 @@ type DraftBatchJob = {
   naverApiConnectionApprovalEvidenceCertificationView?: any;
   naverApiConnectionApprovalUserDecisionGateView?: any;
   naverApiConnectionApprovalExplicitConsentChecklistView?: any;
+  naverApiConnectionApprovalScopeBoundaryMatrixView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -27280,6 +27281,86 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                   <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">오해 방지 사항</h4>
                   <ul className="space-y-1">
                     {evidence219.misunderstandingPreventionItems.map((notice: string, i: number) => (
+                      <li key={i} className="text-[11px] text-slate-400 before:mr-1.5 before:content-['•']">{notice}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 222: Naver API Connection Approval Scope Boundary Matrix Screen Flow ── */}
+      {(() => {
+        const matrix222 = job.naverApiConnectionApprovalScopeBoundaryMatrixView;
+        if (!matrix222) return null;
+        return (
+          <div className="mb-6 rounded-lg border border-violet-900/40 bg-[#080914] p-4 shadow-[0_0_15px_rgba(139,92,246,0.05)]">
+            <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-white">
+              <ClipboardList className="h-5 w-5 text-violet-500" />
+              {matrix222.panelTitle}
+            </h2>
+            <div className="mb-3 flex flex-wrap gap-2">
+              <span className="rounded-full border border-violet-700/50 bg-violet-950/40 px-2 py-0.5 text-xs text-violet-300">
+                {matrix222.status}
+              </span>
+              <span className="rounded-full border border-red-800/50 bg-red-950/30 px-2 py-0.5 text-xs text-red-400">
+                ACTUAL_APPROVAL_NOT_GRANTED
+              </span>
+            </div>
+            <p className="mb-3 text-xs leading-relaxed text-violet-200/70">
+              {matrix222.description}
+            </p>
+            <p className="mb-4 text-xs leading-relaxed text-slate-400/60 italic">
+              {matrix222.finalNotice}
+            </p>
+            <div className="mb-3 text-xs text-slate-500">{matrix222.taskName}</div>
+
+            <div className="mt-4 space-y-4">
+              <div>
+                <h4 className="mb-3 text-xs font-semibold uppercase tracking-wide text-violet-400">Scope Boundary Matrix ({matrix222.matrixItems.length}개 항목)</h4>
+                <div className="overflow-hidden rounded-md border border-violet-900/30">
+                  <table className="w-full text-[11px]">
+                    <thead>
+                      <tr className="border-b border-violet-900/30 bg-violet-950/20">
+                        <th className="px-3 py-2 text-left font-semibold text-violet-300">구분</th>
+                        <th className="px-3 py-2 text-left font-semibold text-violet-300">상태</th>
+                        <th className="px-3 py-2 text-left font-semibold text-violet-300">의미</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {matrix222.matrixItems.map((item: any, i: number) => (
+                        <tr key={i} className={`border-b border-violet-900/20 last:border-0 ${
+                          item.status === 'LOCKED' ? 'bg-red-950/10' :
+                          item.status === 'PENDING_USER_CONSENT' ? 'bg-amber-950/10' :
+                          'bg-emerald-950/10'
+                        }`}>
+                          <td className="px-3 py-2 font-medium text-slate-300">{item.scope}</td>
+                          <td className="px-3 py-2">
+                            <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold border ${
+                              item.status === 'LOCKED'
+                                ? 'bg-red-950/30 border-red-800/40 text-red-400'
+                                : item.status === 'PENDING_USER_CONSENT'
+                                ? 'bg-amber-900/30 border-amber-700/50 text-amber-300'
+                                : 'bg-emerald-950/30 border-emerald-800/40 text-emerald-400'
+                            }`}>
+                              {item.status}
+                            </span>
+                          </td>
+                          <td className="px-3 py-2 text-slate-400/70">{item.meaning}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {matrix222.misunderstandingPreventionItems.length > 0 && (
+                <div>
+                  <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">오해 방지 사항</h4>
+                  <ul className="space-y-1">
+                    {matrix222.misunderstandingPreventionItems.map((notice: string, i: number) => (
                       <li key={i} className="text-[11px] text-slate-400 before:mr-1.5 before:content-['•']">{notice}</li>
                     ))}
                   </ul>
