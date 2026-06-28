@@ -3884,6 +3884,7 @@ type DraftBatchJob = {
   naverTokenIssuanceEnvAuthRuntimeScopeRecheckResultView?: any;
   naverTokenIssuanceOneTimeTestFinalSafetyGateView?: any;
   naverTokenIssuanceOneTimeTestUserFinalApprovalRequestPacketView?: any;
+  naverTokenIssuanceOneTimeTestFinalApprovalPendingSealView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -28478,6 +28479,122 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
 
             {recheck254.finalNotice && (
               <p className="mt-3 text-[10px] text-zinc-600 italic">{recheck254.finalNotice}</p>
+            )}
+          </div>
+        );
+      })()}
+
+      {/* ── Task 262: Naver Token Issuance One-Time Test Final Approval Pending Seal Screen Flow ── */}
+      {(() => {
+        const seal262 = job.naverTokenIssuanceOneTimeTestFinalApprovalPendingSealView;
+        if (!seal262) return null;
+        return (
+          <div className="mt-6 rounded-lg border border-orange-200 bg-orange-50 p-4">
+            <div className="mb-3 flex items-center gap-2">
+              <LockKeyhole className="h-5 w-5 text-orange-600" />
+              <h3 className="text-base font-semibold text-orange-800">
+                {seal262.panelTitle ?? 'Token 발급 1회 테스트 최종 승인 대기 봉인'}
+              </h3>
+              <span className="ml-auto rounded bg-orange-100 px-2 py-0.5 text-xs font-mono text-orange-700">
+                {seal262.status}
+              </span>
+            </div>
+
+            {/* 사용자 안내 */}
+            {seal262.userNotice && (
+              <div className="mb-4 rounded border border-orange-300 bg-orange-100 px-3 py-2">
+                <p className="text-sm font-medium text-orange-800">{seal262.userNotice}</p>
+              </div>
+            )}
+
+            {/* Seal Items 표 */}
+            {Array.isArray(seal262.sealItems) && seal262.sealItems.length > 0 && (
+              <div className="mb-4 overflow-x-auto">
+                <p className="mb-2 text-xs font-semibold text-orange-700 uppercase tracking-wide">봉인 항목 ({seal262.sealItems.length}개)</p>
+                <table className="w-full border-collapse text-xs">
+                  <thead>
+                    <tr className="bg-orange-100 text-left text-orange-800">
+                      <th className="border border-orange-200 px-3 py-1.5 font-semibold">봉인 항목</th>
+                      <th className="border border-orange-200 px-3 py-1.5 font-semibold">상태</th>
+                      <th className="border border-orange-200 px-3 py-1.5 font-semibold">의미</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {seal262.sealItems.map((item: any, idx: number) => (
+                      <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-orange-50'}>
+                        <td className="border border-orange-200 px-3 py-1.5 font-medium text-gray-800">{item.sealItem}</td>
+                        <td className="border border-orange-200 px-3 py-1.5">
+                          <span className={`rounded px-1.5 py-0.5 font-mono text-[10px] font-semibold ${
+                            item.status === 'APPROVAL_REQUEST_PACKET_CONFIRMED' || item.status === 'TARGET_MET' || item.status === 'FINAL_SAFETY_GATE_CONFIRMED'
+                              ? 'bg-green-100 text-green-700'
+                              : item.status === 'PENDING_USER_APPROVAL'
+                              ? 'bg-yellow-100 text-yellow-700'
+                              : item.status === 'NOT_RECEIVED'
+                              ? 'bg-orange-100 text-orange-700'
+                              : item.status === 'LOCKED_UNTIL_USER_APPROVAL'
+                              ? 'bg-red-100 text-red-700'
+                              : item.status === 'FORBIDDEN'
+                              ? 'bg-red-100 text-red-700'
+                              : item.status === 'LOCKED' || item.status === 'NOT_CONNECTED' || item.status === 'NOT_PRESENT'
+                              ? 'bg-gray-100 text-gray-600'
+                              : item.status === 'NOT_ACCESSED' || item.status === 'NOT_MODIFIED'
+                              ? 'bg-blue-50 text-blue-700'
+                              : 'bg-gray-50 text-gray-500'
+                          }`}>
+                            {item.status}
+                          </span>
+                        </td>
+                        <td className="border border-orange-200 px-3 py-1.5 text-gray-600">{item.meaning}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {/* 다음 단계 사용자 승인 문구 안내 */}
+            {seal262.userApprovalRequestNotice && (
+              <div className="mb-3">
+                <p className="mb-2 text-xs font-semibold text-orange-700 uppercase tracking-wide">다음 단계 사용자 승인 안내 (Task 263 기준)</p>
+                <div className="rounded border border-orange-300 bg-white px-3 py-2">
+                  <p className="mb-1 text-xs text-orange-700">{seal262.userApprovalRequestNotice}</p>
+                  {seal262.userApprovalScriptForNextTask && (
+                    <p className="rounded bg-orange-50 px-2 py-1.5 font-mono text-xs text-orange-800">
+                      &quot;{seal262.userApprovalScriptForNextTask}&quot;
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* 오해 방지 사항 */}
+            {Array.isArray(seal262.misunderstandingPreventionItems) && seal262.misunderstandingPreventionItems.length > 0 && (
+              <div className="mb-3">
+                <p className="mb-1.5 text-xs font-semibold text-orange-700 uppercase tracking-wide">오해 방지 사항</p>
+                <ul className="list-inside list-disc space-y-0.5">
+                  {seal262.misunderstandingPreventionItems.map((item: string, idx: number) => (
+                    <li key={idx} className="text-xs text-orange-700">{item}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* 보안 플래그 */}
+            <div className="mt-3 flex flex-wrap gap-2 border-t border-orange-200 pt-3">
+              <span className="rounded bg-white border border-orange-200 px-2 py-0.5 text-[10px] text-orange-700">isUserFinalApprovalPhraseReceived: {String(seal262.isUserFinalApprovalPhraseReceived)}</span>
+              <span className="rounded bg-white border border-orange-200 px-2 py-0.5 text-[10px] text-orange-700">isUserFinalApprovalGrantedForTokenIssuance: {String(seal262.isUserFinalApprovalGrantedForTokenIssuance)}</span>
+              <span className="rounded bg-white border border-orange-200 px-2 py-0.5 text-[10px] text-orange-700">isTokenIssuanceAllowed: {String(seal262.isTokenIssuanceAllowed)}</span>
+              <span className="rounded bg-white border border-orange-200 px-2 py-0.5 text-[10px] text-orange-700">isOneTimeTokenIssuanceTestAllowed: {String(seal262.isOneTimeTokenIssuanceTestAllowed)}</span>
+              <span className="rounded bg-white border border-orange-200 px-2 py-0.5 text-[10px] text-orange-700">isTokenIssued: {String(seal262.isTokenIssued)}</span>
+              <span className="rounded bg-white border border-orange-200 px-2 py-0.5 text-[10px] text-orange-700">isSecretLogged: {String(seal262.isSecretLogged)}</span>
+              <span className="rounded bg-white border border-orange-200 px-2 py-0.5 text-[10px] text-orange-700">isBatchJobResultDisplayOnly: {String(seal262.isBatchJobResultDisplayOnly)}</span>
+            </div>
+
+            {/* 최종 안내 */}
+            {seal262.finalNotice && (
+              <div className="mt-3 rounded border border-orange-300 bg-orange-100 px-3 py-2">
+                <p className="text-xs font-medium text-orange-800">{seal262.finalNotice}</p>
+              </div>
             )}
           </div>
         );
