@@ -205,6 +205,7 @@ import { buildNaverApiConnectionApprovalPreSubmissionReviewView } from '@/src/se
 import { buildNaverApiConnectionApprovalSubmissionLockSealView } from '@/src/services/sku-keyword-final-approval-execution-naver-api-connection-approval-submission-lock-seal-view.service';
 import { buildNaverApiConnectionApprovalEvidenceCertificationView } from '@/src/services/sku-keyword-final-approval-execution-naver-api-connection-approval-evidence-certification-view.service';
 import { buildNaverApiConnectionApprovalUserDecisionGateView } from '@/src/services/sku-keyword-final-approval-execution-naver-api-connection-approval-user-decision-gate-view.service';
+import { buildNaverApiConnectionApprovalExplicitConsentChecklistView } from '@/src/services/sku-keyword-final-approval-execution-naver-api-connection-approval-explicit-consent-checklist-view.service';
 
 // Compute safe DB environment hint from DATABASE_URL without exposing the original value.
 // Returns a classification key, never the actual URL.
@@ -1431,6 +1432,7 @@ export async function GET(
       naverApiConnectionApprovalSubmissionLockSealView: buildNaverApiConnectionApprovalSubmissionLockSealView(job),
       naverApiConnectionApprovalEvidenceCertificationView: buildNaverApiConnectionApprovalEvidenceCertificationView(job),
       naverApiConnectionApprovalUserDecisionGateView: buildNaverApiConnectionApprovalUserDecisionGateView(job),
+      naverApiConnectionApprovalExplicitConsentChecklistView: buildNaverApiConnectionApprovalExplicitConsentChecklistView(job),
     };
 
     return NextResponse.json({ ok: true, job: responseJob });

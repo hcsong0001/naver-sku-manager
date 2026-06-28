@@ -3845,6 +3845,7 @@ type DraftBatchJob = {
   naverApiConnectionApprovalSubmissionLockSealView?: any;
   naverApiConnectionApprovalEvidenceCertificationView?: any;
   naverApiConnectionApprovalUserDecisionGateView?: any;
+  naverApiConnectionApprovalExplicitConsentChecklistView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -27279,6 +27280,77 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                   <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">오해 방지 사항</h4>
                   <ul className="space-y-1">
                     {evidence219.misunderstandingPreventionItems.map((notice: string, i: number) => (
+                      <li key={i} className="text-[11px] text-slate-400 before:mr-1.5 before:content-['•']">{notice}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 221: Naver API Connection Approval Explicit Consent Checklist Screen Flow ── */}
+      {(() => {
+        const consent221 = job.naverApiConnectionApprovalExplicitConsentChecklistView;
+        if (!consent221) return null;
+        return (
+          <div className="mb-6 rounded-lg border border-lime-900/40 bg-[#080914] p-4 shadow-[0_0_15px_rgba(132,204,22,0.05)]">
+            <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-white">
+              <ClipboardList className="h-5 w-5 text-lime-500" />
+              {consent221.panelTitle}
+            </h2>
+            <div className="mb-3 flex flex-wrap gap-2">
+              <span className="rounded-full border border-lime-700/50 bg-lime-950/40 px-2 py-0.5 text-xs text-lime-300">
+                {consent221.status}
+              </span>
+              <span className="rounded-full border border-amber-800/50 bg-amber-950/30 px-2 py-0.5 text-xs text-amber-400">
+                EXPLICIT_CONSENT_REQUIRED
+              </span>
+            </div>
+            <p className="mb-3 text-xs leading-relaxed text-lime-200/70">
+              {consent221.description}
+            </p>
+            <p className="mb-4 text-xs leading-relaxed text-slate-400/60 italic">
+              {consent221.finalNotice}
+            </p>
+            <div className="mb-3 text-xs text-slate-500">{consent221.taskName}</div>
+
+            <div className="mt-4 space-y-4">
+              <div>
+                <h4 className="mb-3 text-xs font-semibold uppercase tracking-wide text-lime-400">Explicit Consent Checklist (10개 항목)</h4>
+                <div className="space-y-2">
+                  {consent221.checklistItems.map((item: any, i: number) => (
+                    <div key={i} className={`flex items-center justify-between rounded-md border p-3 ${
+                      item.status === 'PENDING_EXPLICIT_CONSENT'
+                        ? 'border-amber-700/50 bg-amber-950/20'
+                        : item.status === 'LOCKED'
+                        ? 'border-red-900/30 bg-red-950/10'
+                        : 'border-lime-900/30 bg-lime-950/10'
+                    }`}>
+                      <div className="flex flex-col gap-0.5 min-w-0">
+                        <span className="text-[11px] font-semibold text-lime-200/80">{item.label}</span>
+                        <span className="text-[11px] text-slate-400/70">{item.description}</span>
+                      </div>
+                      <span className={`ml-3 shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold border ${
+                        item.status === 'PENDING_EXPLICIT_CONSENT'
+                          ? 'bg-amber-900/30 border-amber-700/50 text-amber-300'
+                          : item.status === 'LOCKED'
+                          ? 'bg-red-950/30 border-red-800/40 text-red-400'
+                          : 'bg-lime-950/30 border-lime-800/40 text-lime-400'
+                      }`}>
+                        {item.status}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {consent221.misunderstandingPreventionItems.length > 0 && (
+                <div>
+                  <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">오해 방지 사항</h4>
+                  <ul className="space-y-1">
+                    {consent221.misunderstandingPreventionItems.map((notice: string, i: number) => (
                       <li key={i} className="text-[11px] text-slate-400 before:mr-1.5 before:content-['•']">{notice}</li>
                     ))}
                   </ul>
