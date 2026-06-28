@@ -3890,6 +3890,7 @@ type DraftBatchJob = {
   naverProductLookupApiReadinessGateView?: any;
   naverProductLookupApiOneTimeTestUserApprovalRequestPacketView?: any;
   naverProductLookupLiveTestHttp403TokenIssuanceFailureDiagnosisView?: any;
+  naverTokenIssuanceHttp403CredentialAuthReadOnlyChecklistView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -32968,6 +32969,110 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div>isProductLookupApiCalled: {String(diag268.isProductLookupApiCalled)} | isProductUpdateApiCalled: {String(diag268.isProductUpdateApiCalled)}</div>
               <div>isPriceOrStockChanged: {String(diag268.isPriceOrStockChanged)} | isDbWriteExecuted: {String(diag268.isDbWriteExecuted)}</div>
               <div>isProductLookupRetryApprovalRequired: {String(diag268.isProductLookupRetryApprovalRequired)} | isProductLookupRetryApprovalGranted: {String(diag268.isProductLookupRetryApprovalGranted)}</div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 269: HTTP 403 Credential Auth Read-Only Checklist ──────────── */}
+      {(() => {
+        const chk269 = job.naverTokenIssuanceHttp403CredentialAuthReadOnlyChecklistView;
+        if (!chk269) return null;
+        const statusColor = (s: string) => {
+          if (s === 'LOCKED' || s === 'FORBIDDEN') return 'text-red-700 bg-red-100';
+          if (s.includes('USER_PORTAL')) return 'text-amber-700 bg-amber-100';
+          if (s === 'NOT_ACCESSED' || s === 'NOT_MODIFIED' || s === 'NOT_EXECUTED') return 'text-slate-600 bg-slate-100';
+          if (s.includes('REQUIRED') || s.includes('FORBIDDEN_')) return 'text-blue-700 bg-blue-100';
+          return 'text-gray-700 bg-gray-100';
+        };
+        return (
+          <div className="mb-4 rounded-lg border border-amber-400 bg-amber-50 p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <ShieldAlert className="w-5 h-5 text-amber-600 flex-shrink-0" />
+              <h3 className="font-semibold text-amber-800 text-sm">
+                {chk269.panelTitle ?? 'HTTP 403 자격증명/인증 체크리스트 (Task 269)'}
+              </h3>
+              <span className="ml-auto text-xs px-2 py-0.5 rounded font-mono bg-amber-100 text-amber-800">
+                {chk269.status}
+              </span>
+            </div>
+
+            <div className="bg-amber-100 border border-amber-300 rounded p-3 mb-3 text-xs text-amber-900 whitespace-pre-line">
+              {chk269.userConfirmGuideMessage}
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 mb-3 text-xs">
+              <div className="bg-white rounded p-2 border">
+                <span className="text-gray-500">failureStage:</span>{' '}
+                <span className="font-mono font-semibold text-red-700">{chk269.failureStage}</span>
+              </div>
+              <div className="bg-white rounded p-2 border">
+                <span className="text-gray-500">tokenIssuanceHttpStatus:</span>{' '}
+                <span className="font-mono font-semibold text-red-700">{chk269.tokenIssuanceHttpStatus}</span>
+              </div>
+              <div className="bg-white rounded p-2 border">
+                <span className="text-gray-500">isAccessPermissionErrorClassified:</span>{' '}
+                <span className="font-mono font-semibold text-amber-700">{String(chk269.isAccessPermissionErrorClassified)}</span>
+              </div>
+              <div className="bg-white rounded p-2 border">
+                <span className="text-gray-500">isCredentialPresenceCheckOnly:</span>{' '}
+                <span className="font-mono font-semibold text-green-700">{String(chk269.isCredentialPresenceCheckOnly)}</span>
+              </div>
+              <div className="bg-white rounded p-2 border">
+                <span className="text-gray-500">isBcryptRequired:</span>{' '}
+                <span className="font-mono font-semibold text-blue-700">{String(chk269.isBcryptRequired)}</span>
+              </div>
+              <div className="bg-white rounded p-2 border">
+                <span className="text-gray-500">isBase64Required:</span>{' '}
+                <span className="font-mono font-semibold text-blue-700">{String(chk269.isBase64Required)}</span>
+              </div>
+            </div>
+
+            {Array.isArray(chk269.envPresenceCheckResults) && chk269.envPresenceCheckResults.length > 0 && (
+              <div className="mb-3">
+                <div className="text-xs font-semibold text-amber-800 mb-1">Env Key 존재 여부 점검 (값 비출력)</div>
+                <div className="space-y-1">
+                  {chk269.envPresenceCheckResults.map((item: { key: string; presence: string; valueDisplayed: boolean }, idx: number) => (
+                    <div key={idx} className="flex items-center gap-2 text-xs bg-white rounded p-2 border">
+                      <span className="font-mono text-gray-700 min-w-[240px]">{item.key}</span>
+                      <span className={`font-mono font-semibold px-1.5 py-0.5 rounded text-[10px] ${item.presence === 'PRESENT' ? 'text-green-700 bg-green-100' : 'text-red-700 bg-red-100'}`}>
+                        {item.presence}
+                      </span>
+                      <span className="text-gray-400 text-[10px]">valueDisplayed: {String(item.valueDisplayed)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {Array.isArray(chk269.checkItems) && chk269.checkItems.length > 0 && (
+              <div className="mb-3">
+                <div className="text-xs font-semibold text-amber-800 mb-1">
+                  점검 항목 ({chk269.checkItems.length}개)
+                </div>
+                <div className="space-y-1">
+                  {chk269.checkItems.map((item: { label: string; status: string; meaning: string }, idx: number) => (
+                    <div key={idx} className="flex items-start gap-2 text-xs bg-white rounded p-2 border">
+                      <span className="text-gray-700 font-medium min-w-[160px]">{item.label}</span>
+                      <span className={`font-mono text-[10px] px-1 py-0.5 rounded min-w-[220px] ${statusColor(item.status)}`}>
+                        {item.status}
+                      </span>
+                      <span className="text-gray-500">{item.meaning}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {chk269.finalNotice && (
+              <div className="text-xs text-amber-700 mt-2 border-t border-amber-200 pt-2">{chk269.finalNotice}</div>
+            )}
+
+            <div className="mt-2 text-[10px] text-gray-400 font-mono space-y-0.5">
+              <div>isBatchJobResultDisplayOnly: {String(chk269.isBatchJobResultDisplayOnly)} | isNaverApiCalledInThisTask: {String(chk269.isNaverApiCalledInThisTask)}</div>
+              <div>isTokenIssuanceExecutedInThisTask: {String(chk269.isTokenIssuanceExecutedInThisTask)} | isEnvFileDirectlyAccessed: {String(chk269.isEnvFileDirectlyAccessed)}</div>
+              <div>isProductLookupApiCalled: {String(chk269.isProductLookupApiCalled)} | isDbWriteExecuted: {String(chk269.isDbWriteExecuted)}</div>
+              <div>isProductLookupRetryApprovalRequired: {String(chk269.isProductLookupRetryApprovalRequired)} | isProductLookupRetryApprovalGranted: {String(chk269.isProductLookupRetryApprovalGranted)}</div>
             </div>
           </div>
         );
