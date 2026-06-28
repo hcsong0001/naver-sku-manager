@@ -3834,6 +3834,7 @@ type DraftBatchJob = {
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultDisplayOnlyPagePanelOrderRegistryView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultDisplayOnlyStatusPayloadConsistencyAuditView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultDisplayOnlyForbiddenBoundaryAuditView?: any;
+  tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultDisplayOnlyVerificationEvidenceRegistryView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -27188,6 +27189,62 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                   ))}
                 </div>
               </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 210: BatchJob Display-Only Verification Evidence Registry Screen Flow ── */}
+      {(() => {
+        const bjdover210 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultDisplayOnlyVerificationEvidenceRegistryView;
+        if (!bjdover210) return null;
+        return (
+          <div className="mb-6 rounded-lg border border-emerald-900/40 bg-[#080914] p-4 shadow-[0_0_15px_rgba(16,185,129,0.05)]">
+            <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-white">
+              <ClipboardList className="h-5 w-5 text-emerald-500" />
+              {bjdover210.panelTitle}
+            </h2>
+            <div className="mb-3 flex flex-wrap gap-2">
+              <span className="rounded-full border border-emerald-700/50 bg-emerald-950/40 px-2 py-0.5 text-xs text-emerald-300">
+                {bjdover210.registryStatus}
+              </span>
+            </div>
+            <p className="mb-4 text-xs leading-relaxed text-emerald-200/70">
+              {bjdover210.finalNotice}
+            </p>
+            <div className="mb-4 text-xs text-slate-500">{bjdover210.taskName}</div>
+
+            <div className="mt-4 space-y-4">
+              <div>
+                <h4 className="mb-3 text-xs font-semibold uppercase tracking-wide text-emerald-400">Verification Evidence Items</h4>
+                <div className="space-y-2">
+                  {bjdover210.verificationEvidenceItems.map((item: any, i: number) => (
+                    <div key={i} className="rounded-md border border-emerald-900/30 bg-emerald-950/10 p-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-mono font-bold text-emerald-300">{item.verificationStep}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="rounded-full bg-emerald-900/30 px-2 py-0.5 text-[10px] font-semibold text-emerald-400 border border-emerald-800/50">
+                            {item.statusText}
+                          </span>
+                          <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                        </div>
+                      </div>
+                      <div className="mt-1 text-[11px] text-emerald-200/50">{item.result}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {bjdover210.misunderstandingPreventionItems.length > 0 && (
+                <div>
+                  <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">오해 방지 사항</h4>
+                  <ul className="space-y-1">
+                    {bjdover210.misunderstandingPreventionItems.map((notice: string, i: number) => (
+                      <li key={i} className="text-[11px] text-slate-400 before:mr-1.5 before:content-['•']">{notice}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
           </div>
         );
