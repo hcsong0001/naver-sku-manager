@@ -3885,6 +3885,7 @@ type DraftBatchJob = {
   naverTokenIssuanceOneTimeTestFinalSafetyGateView?: any;
   naverTokenIssuanceOneTimeTestUserFinalApprovalRequestPacketView?: any;
   naverTokenIssuanceOneTimeTestFinalApprovalPendingSealView?: any;
+  naverTokenIssuanceOneTimeTestResultView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -28480,6 +28481,105 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             {recheck254.finalNotice && (
               <p className="mt-3 text-[10px] text-zinc-600 italic">{recheck254.finalNotice}</p>
             )}
+          </div>
+        );
+      })()}
+
+      {/* ── Task 263: Naver Token Issuance One-Time Test Result Screen Flow ── */}
+      {(() => {
+        const result263 = job.naverTokenIssuanceOneTimeTestResultView;
+        if (!result263) return null;
+        const statusColor =
+          result263.issuanceTestStatus === 'SUCCESS'
+            ? 'bg-green-50 border-green-300'
+            : result263.issuanceTestStatus === 'FAILURE'
+            ? 'bg-red-50 border-red-300'
+            : 'bg-gray-50 border-gray-300';
+        const statusBadge =
+          result263.issuanceTestStatus === 'SUCCESS'
+            ? 'bg-green-100 text-green-800'
+            : result263.issuanceTestStatus === 'FAILURE'
+            ? 'bg-red-100 text-red-800'
+            : 'bg-gray-100 text-gray-700';
+        return (
+          <div className={`border rounded-lg p-4 mb-4 ${statusColor}`}>
+            <div className="flex items-center gap-2 mb-3">
+              <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0" />
+              <h3 className="font-semibold text-gray-800 text-sm">
+                {result263.panelTitle ?? 'Naver Token 발급 1회 테스트 결과'}
+              </h3>
+              <span className={`ml-auto text-xs px-2 py-0.5 rounded font-mono ${statusBadge}`}>
+                {result263.status ?? 'NAVER_TOKEN_ISSUANCE_ONE_TIME_TEST_EXECUTED'}
+              </span>
+            </div>
+            <p className="text-xs text-gray-600 mb-3">{result263.description}</p>
+            <div className="grid grid-cols-2 gap-2 mb-3 text-xs">
+              <div className="bg-white rounded p-2 border">
+                <span className="text-gray-500">발급 테스트 결과:</span>{' '}
+                <span className={`font-semibold ${result263.issuanceTestStatus === 'SUCCESS' ? 'text-green-700' : result263.issuanceTestStatus === 'FAILURE' ? 'text-red-700' : 'text-gray-600'}`}>
+                  {result263.issuanceTestStatus}
+                </span>
+              </div>
+              <div className="bg-white rounded p-2 border">
+                <span className="text-gray-500">isTokenIssuedForTest:</span>{' '}
+                <span className="font-mono">{String(result263.isTokenIssuedForTest)}</span>
+              </div>
+              <div className="bg-white rounded p-2 border">
+                <span className="text-gray-500">isTokenValueDisplayed:</span>{' '}
+                <span className="font-mono text-red-600 font-semibold">{String(result263.isTokenValueDisplayed)}</span>
+              </div>
+              <div className="bg-white rounded p-2 border">
+                <span className="text-gray-500">isTokenStoredInDb:</span>{' '}
+                <span className="font-mono text-red-600 font-semibold">{String(result263.isTokenStoredInDb)}</span>
+              </div>
+              <div className="bg-white rounded p-2 border">
+                <span className="text-gray-500">tokenTypePresent:</span>{' '}
+                <span className="font-mono">{String(result263.tokenTypePresent)}</span>
+              </div>
+              <div className="bg-white rounded p-2 border">
+                <span className="text-gray-500">expiresInPresent:</span>{' '}
+                <span className="font-mono">{String(result263.expiresInPresent)}</span>
+              </div>
+            </div>
+            {result263.errorReason && (
+              <div className="bg-red-50 border border-red-200 rounded p-2 mb-3 text-xs text-red-700">
+                <span className="font-semibold">오류 요약:</span> {result263.errorReason}
+              </div>
+            )}
+            {Array.isArray(result263.testItems) && result263.testItems.length > 0 && (
+              <div className="mb-3">
+                <div className="text-xs font-semibold text-gray-700 mb-1">
+                  Test Items ({result263.testItems.length}개)
+                </div>
+                <div className="space-y-1">
+                  {result263.testItems.map((item: { testItem: string; status: string; meaning: string }, idx: number) => (
+                    <div key={idx} className="flex items-start gap-2 text-xs bg-white rounded p-2 border">
+                      <span className="text-gray-700 font-medium min-w-[160px]">{item.testItem}</span>
+                      <span className="font-mono text-blue-700 bg-blue-50 px-1 rounded text-[10px] whitespace-nowrap">{item.status}</span>
+                      <span className="text-gray-500">{item.meaning}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            {Array.isArray(result263.misunderstandingPreventionItems) && result263.misunderstandingPreventionItems.length > 0 && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded p-2 mb-2 text-xs text-yellow-800">
+                <div className="font-semibold mb-1">오해 방지 안내</div>
+                <ul className="list-disc list-inside space-y-0.5">
+                  {result263.misunderstandingPreventionItems.map((item: string, idx: number) => (
+                    <li key={idx}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {result263.finalNotice && (
+              <div className="text-xs text-gray-500 mt-2 border-t pt-2">{result263.finalNotice}</div>
+            )}
+            <div className="mt-2 text-[10px] text-gray-400 font-mono">
+              isBatchJobResultDisplayOnly: {String(result263.isBatchJobResultDisplayOnly)} |
+              isNaverTokenIssuanceTestExecuted: {String(result263.isNaverTokenIssuanceTestExecuted)} |
+              isUserFinalApprovalGrantedForTokenIssuance: {String(result263.isUserFinalApprovalGrantedForTokenIssuance)}
+            </div>
           </div>
         );
       })()}

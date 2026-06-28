@@ -245,6 +245,7 @@ import { buildNaverTokenIssuanceEnvAuthRuntimeScopeRecheckResultView } from '@/s
 import { buildNaverTokenIssuanceOneTimeTestFinalSafetyGateView } from '@/src/services/sku-keyword-final-approval-execution-naver-token-issuance-one-time-test-final-safety-gate-view.service';
 import { buildNaverTokenIssuanceOneTimeTestUserFinalApprovalRequestPacketView } from '@/src/services/sku-keyword-final-approval-execution-naver-token-issuance-one-time-test-user-final-approval-request-packet-view.service';
 import { buildNaverTokenIssuanceOneTimeTestFinalApprovalPendingSealView } from '@/src/services/sku-keyword-final-approval-execution-naver-token-issuance-one-time-test-final-approval-pending-seal-view.service';
+import { buildNaverTokenIssuanceOneTimeTestResultView } from '@/src/services/sku-keyword-final-approval-execution-naver-token-issuance-one-time-test-result-view.service';
 
 // Compute safe DB environment hint from DATABASE_URL without exposing the original value.
 // Returns a classification key, never the actual URL.
@@ -545,6 +546,8 @@ export async function GET(
       environmentSafetyResult: { ok: envSafetyResult.allowed },
       liveAdapterSkeletonStatus: 'disabled',
     });
+
+    const naverTokenIssuanceOneTimeTestResultView = await buildNaverTokenIssuanceOneTimeTestResultView(job);
 
     const responseJob = {
       id: job.id,
@@ -1511,6 +1514,7 @@ export async function GET(
       naverTokenIssuanceOneTimeTestFinalSafetyGateView: buildNaverTokenIssuanceOneTimeTestFinalSafetyGateView(job),
       naverTokenIssuanceOneTimeTestUserFinalApprovalRequestPacketView: buildNaverTokenIssuanceOneTimeTestUserFinalApprovalRequestPacketView(job),
       naverTokenIssuanceOneTimeTestFinalApprovalPendingSealView: buildNaverTokenIssuanceOneTimeTestFinalApprovalPendingSealView(job),
+      naverTokenIssuanceOneTimeTestResultView,
     };
 
     return NextResponse.json({ ok: true, job: responseJob });
