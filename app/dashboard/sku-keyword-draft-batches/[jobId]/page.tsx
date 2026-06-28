@@ -3840,6 +3840,7 @@ type DraftBatchJob = {
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultDisplayOnlyPayloadCoverageAuditView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultDisplayOnlyAuditClosureFinalSealView?: any;
   naverApiConnectionReadinessBoundaryView?: any;
+  naverApiConnectionApprovalRequestPacketView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -27194,6 +27195,83 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                   ))}
                 </div>
               </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 216: Naver API Connection Approval Request Packet Screen Flow ── */}
+      {(() => {
+        const naverApproval216 = job.naverApiConnectionApprovalRequestPacketView;
+        if (!naverApproval216) return null;
+        return (
+          <div className="mb-6 rounded-lg border border-purple-900/40 bg-[#080914] p-4 shadow-[0_0_15px_rgba(168,85,247,0.05)]">
+            <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-white">
+              <ClipboardList className="h-5 w-5 text-purple-500" />
+              {naverApproval216.panelTitle}
+            </h2>
+            <div className="mb-3 flex flex-wrap gap-2">
+              <span className="rounded-full border border-purple-700/50 bg-purple-950/40 px-2 py-0.5 text-xs text-purple-300">
+                {naverApproval216.packetStatus}
+              </span>
+              <span className="rounded-full border border-slate-700/50 bg-slate-900/40 px-2 py-0.5 text-xs text-slate-400">
+                READ-ONLY
+              </span>
+            </div>
+            {naverApproval216.packetNotice && (
+              <div className="mb-3 rounded-md border border-purple-800/30 bg-purple-950/20 px-3 py-2">
+                <p className="text-[11px] text-purple-300/80">{naverApproval216.packetNotice}</p>
+              </div>
+            )}
+            <p className="mb-4 text-xs leading-relaxed text-purple-200/70">
+              {naverApproval216.finalNotice}
+            </p>
+            <div className="mb-4 text-xs text-slate-500">{naverApproval216.taskName}</div>
+
+            <div className="mt-4 space-y-4">
+              <div>
+                <h4 className="mb-3 text-xs font-semibold uppercase tracking-wide text-purple-400">Approval Request Items</h4>
+                <div className="space-y-2">
+                  {naverApproval216.approvalRequestItems.map((item: any, i: number) => (
+                    <div key={i} className={`flex items-center justify-between rounded-md border p-3 ${
+                      item.currentStatus === 'FORBIDDEN_UNTIL_APPROVAL'
+                        ? 'border-red-900/40 bg-red-950/10'
+                        : 'border-purple-900/30 bg-purple-950/10'
+                    }`}>
+                      <div className="flex flex-col gap-0.5 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className={`text-[10px] font-bold shrink-0 ${item.currentStatus === 'FORBIDDEN_UNTIL_APPROVAL' ? 'text-red-400' : 'text-purple-400'}`}>
+                            {item.label}
+                          </span>
+                        </div>
+                        <span className="text-[11px] text-purple-200/50">{item.description}</span>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0 ml-3">
+                        {item.currentStatus === 'FORBIDDEN_UNTIL_APPROVAL' ? (
+                          <span className="rounded-full bg-red-900/30 px-2 py-0.5 text-[10px] font-semibold text-red-400 border border-red-800/50">
+                            FORBIDDEN
+                          </span>
+                        ) : (
+                          <span className="rounded-full bg-purple-900/40 px-2 py-0.5 text-[10px] font-semibold text-purple-300 border border-purple-700/50">
+                            PENDING
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {naverApproval216.misunderstandingPreventionItems.length > 0 && (
+                <div>
+                  <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">오해 방지 사항</h4>
+                  <ul className="space-y-1">
+                    {naverApproval216.misunderstandingPreventionItems.map((notice: string, i: number) => (
+                      <li key={i} className="text-[11px] text-slate-400 before:mr-1.5 before:content-['•']">{notice}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
           </div>
         );

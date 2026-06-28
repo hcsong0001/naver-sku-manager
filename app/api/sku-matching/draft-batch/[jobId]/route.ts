@@ -200,6 +200,7 @@ import { buildNaverApiTokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffCl
 import { buildNaverApiTokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultDisplayOnlyPayloadCoverageAuditView } from '@/src/services/sku-keyword-final-approval-execution-batchjob-result-display-only-payload-coverage-audit-view.service';
 import { buildNaverApiTokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultDisplayOnlyAuditClosureFinalSealView } from '@/src/services/sku-keyword-final-approval-execution-batchjob-result-display-only-audit-closure-final-seal-view.service';
 import { buildNaverApiConnectionReadinessBoundaryView } from '@/src/services/sku-keyword-final-approval-execution-naver-api-connection-readiness-boundary-view.service';
+import { buildNaverApiConnectionApprovalRequestPacketView } from '@/src/services/sku-keyword-final-approval-execution-naver-api-connection-approval-request-packet-view.service';
 
 // Compute safe DB environment hint from DATABASE_URL without exposing the original value.
 // Returns a classification key, never the actual URL.
@@ -1421,6 +1422,7 @@ export async function GET(
       tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultDisplayOnlyPayloadCoverageAuditView: buildNaverApiTokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultDisplayOnlyPayloadCoverageAuditView(job),
       tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultDisplayOnlyAuditClosureFinalSealView: buildNaverApiTokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultDisplayOnlyAuditClosureFinalSealView(job),
       naverApiConnectionReadinessBoundaryView: buildNaverApiConnectionReadinessBoundaryView(job),
+      naverApiConnectionApprovalRequestPacketView: buildNaverApiConnectionApprovalRequestPacketView(job),
     };
 
     return NextResponse.json({ ok: true, job: responseJob });
