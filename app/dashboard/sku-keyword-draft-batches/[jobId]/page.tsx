@@ -3841,6 +3841,7 @@ type DraftBatchJob = {
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultDisplayOnlyAuditClosureFinalSealView?: any;
   naverApiConnectionReadinessBoundaryView?: any;
   naverApiConnectionApprovalRequestPacketView?: any;
+  naverApiConnectionApprovalPreSubmissionReviewView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -27195,6 +27196,86 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                   ))}
                 </div>
               </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 217: Naver API Connection Approval Pre-Submission Review Screen Flow ── */}
+      {(() => {
+        const naverPreReview217 = job.naverApiConnectionApprovalPreSubmissionReviewView;
+        if (!naverPreReview217) return null;
+        return (
+          <div className="mb-6 rounded-lg border border-fuchsia-900/40 bg-[#080914] p-4 shadow-[0_0_15px_rgba(217,70,239,0.05)]">
+            <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-white">
+              <ClipboardList className="h-5 w-5 text-fuchsia-500" />
+              {naverPreReview217.panelTitle}
+            </h2>
+            <div className="mb-3 flex flex-wrap gap-2">
+              <span className="rounded-full border border-fuchsia-700/50 bg-fuchsia-950/40 px-2 py-0.5 text-xs text-fuchsia-300">
+                {naverPreReview217.reviewStatus}
+              </span>
+              <span className="rounded-full border border-slate-700/50 bg-slate-900/40 px-2 py-0.5 text-xs text-slate-400">
+                READ-ONLY
+              </span>
+            </div>
+            {naverPreReview217.preSubmissionNotice && (
+              <div className="mb-3 rounded-md border border-fuchsia-800/30 bg-fuchsia-950/20 px-3 py-2">
+                <p className="text-[11px] text-fuchsia-300/80">{naverPreReview217.preSubmissionNotice}</p>
+              </div>
+            )}
+            {naverPreReview217.sourcePacketTask && (
+              <div className="mb-3 text-[11px] text-slate-500">출처: {naverPreReview217.sourcePacketTask}</div>
+            )}
+            <p className="mb-4 text-xs leading-relaxed text-fuchsia-200/70">
+              {naverPreReview217.finalNotice}
+            </p>
+            <div className="mb-4 text-xs text-slate-500">{naverPreReview217.taskName}</div>
+
+            <div className="mt-4 space-y-4">
+              <div>
+                <h4 className="mb-3 text-xs font-semibold uppercase tracking-wide text-fuchsia-400">Pre-Submission Review Items</h4>
+                <div className="space-y-2">
+                  {naverPreReview217.reviewItems.map((item: any, i: number) => (
+                    <div key={i} className={`flex items-center justify-between rounded-md border p-3 ${
+                      item.reviewStatus === 'FORBIDDEN_UNTIL_APPROVAL'
+                        ? 'border-red-900/40 bg-red-950/10'
+                        : 'border-fuchsia-900/30 bg-fuchsia-950/10'
+                    }`}>
+                      <div className="flex flex-col gap-0.5 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className={`text-[10px] font-bold shrink-0 ${item.reviewStatus === 'FORBIDDEN_UNTIL_APPROVAL' ? 'text-red-400' : 'text-fuchsia-400'}`}>
+                            {item.label}
+                          </span>
+                        </div>
+                        <span className="text-[11px] text-fuchsia-200/50">{item.description}</span>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0 ml-3">
+                        {item.reviewStatus === 'FORBIDDEN_UNTIL_APPROVAL' ? (
+                          <span className="rounded-full bg-red-900/30 px-2 py-0.5 text-[10px] font-semibold text-red-400 border border-red-800/50">
+                            FORBIDDEN
+                          </span>
+                        ) : (
+                          <span className="rounded-full bg-fuchsia-900/40 px-2 py-0.5 text-[10px] font-semibold text-fuchsia-300 border border-fuchsia-700/50">
+                            NEEDS APPROVAL
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {naverPreReview217.misunderstandingPreventionItems.length > 0 && (
+                <div>
+                  <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">오해 방지 사항</h4>
+                  <ul className="space-y-1">
+                    {naverPreReview217.misunderstandingPreventionItems.map((notice: string, i: number) => (
+                      <li key={i} className="text-[11px] text-slate-400 before:mr-1.5 before:content-['•']">{notice}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
           </div>
         );
