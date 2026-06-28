@@ -3869,6 +3869,7 @@ type DraftBatchJob = {
   naverApiConnectionApprovalManualRequestWaitingClosureSummaryView?: any;
   naverTokenIssuanceEntryApprovalPacketView?: any;
   naverTokenIssuanceEnvAuthPresencePreflightView?: any;
+  naverTokenIssuanceEnvAuthPresenceCheckHarnessView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -27309,6 +27310,99 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 </div>
               )}
             </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 245: Naver Token Issuance Env Auth Presence Check Harness Screen Flow ── */}
+      {(() => {
+        const harness245 = job.naverTokenIssuanceEnvAuthPresenceCheckHarnessView;
+        if (!harness245) return null;
+        return (
+          <div className="mb-6 rounded-lg border border-indigo-900/30 bg-[#080914] p-4 shadow-[0_0_15px_rgba(99,102,241,0.05)]">
+            <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-white">
+              <Target className="h-4 w-4 text-indigo-400" />
+              {harness245.panelTitle ?? 'Naver Token Issuance Env Auth Presence Check Harness'}
+            </h2>
+            <p className="mb-3 text-xs text-zinc-500">
+              {harness245.description ?? '실제 토큰 발급 전 환경변수/인증정보 존재 여부 확인 Harness 준비 화면입니다.'}
+            </p>
+            <div className="mb-3 flex flex-wrap gap-2">
+              {harness245.status && (
+                <span className="rounded-full bg-indigo-950/50 px-2 py-0.5 text-[10px] font-mono text-indigo-300 border border-indigo-900/40">
+                  {harness245.status}
+                </span>
+              )}
+              {harness245.isBatchJobResultDisplayOnly && (
+                <span className="rounded-full bg-zinc-900 px-2 py-0.5 text-[10px] font-mono text-zinc-400 border border-zinc-800">
+                  DISPLAY_ONLY
+                </span>
+              )}
+              {harness245.isEnvAuthPresenceCheckHarnessReady && (
+                <span className="rounded-full bg-indigo-950/40 px-2 py-0.5 text-[10px] font-mono text-indigo-400 border border-indigo-900/40">
+                  HARNESS_READY
+                </span>
+              )}
+              {harness245.isEnvPresenceCheckPlanned && (
+                <span className="rounded-full bg-amber-950/40 px-2 py-0.5 text-[10px] font-mono text-amber-400 border border-amber-900/40">
+                  ENV_CHECK_PLANNED
+                </span>
+              )}
+              {harness245.isAuthKeyPresenceCheckPlanned && (
+                <span className="rounded-full bg-amber-950/40 px-2 py-0.5 text-[10px] font-mono text-amber-400 border border-amber-900/40">
+                  AUTHKEY_CHECK_PLANNED
+                </span>
+              )}
+            </div>
+            {Array.isArray(harness245.harnessItems) && harness245.harnessItems.length > 0 && (
+              <div className="overflow-x-auto rounded border border-zinc-800">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="border-b border-zinc-800 bg-zinc-900/60">
+                      <th className="px-3 py-2 text-left font-medium text-zinc-400">항목</th>
+                      <th className="px-3 py-2 text-left font-medium text-zinc-400">상태</th>
+                      <th className="px-3 py-2 text-left font-medium text-zinc-400">의미</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {harness245.harnessItems.map((item: any, idx: number) => (
+                      <tr key={idx} className="border-b border-zinc-800/50 hover:bg-zinc-900/30">
+                        <td className="px-3 py-2 font-mono text-zinc-300">{item.harnessItem}</td>
+                        <td className="px-3 py-2">
+                          <span className={`rounded px-1.5 py-0.5 text-[10px] font-mono ${
+                            item.status === 'PREFLIGHT_CONFIRMED' ? 'bg-green-950/50 text-green-400 border border-green-900/40' :
+                            item.status === 'HARNESS_READY' ? 'bg-indigo-950/50 text-indigo-400 border border-indigo-900/40' :
+                            item.status === 'NOT_EXECUTED' ? 'bg-amber-950/50 text-amber-400 border border-amber-900/40' :
+                            item.status === 'FORBIDDEN' ? 'bg-red-950/50 text-red-400 border border-red-900/40' :
+                            item.status === 'LOCKED' ? 'bg-zinc-900 text-zinc-500 border border-zinc-700' :
+                            item.status === 'NOT_CONNECTED' ? 'bg-zinc-900 text-zinc-500 border border-zinc-700' :
+                            item.status === 'NOT_PRESENT' ? 'bg-zinc-900 text-zinc-600 border border-zinc-800' :
+                            item.status === 'READ_ONLY_INFO' ? 'bg-blue-950/40 text-blue-400 border border-blue-900/40' :
+                            'bg-zinc-800 text-zinc-400'
+                          }`}>
+                            {item.status}
+                          </span>
+                        </td>
+                        <td className="px-3 py-2 text-zinc-400">{item.meaning}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+            {Array.isArray(harness245.misunderstandingPreventionItems) && harness245.misunderstandingPreventionItems.length > 0 && (
+              <div className="mt-3 rounded border border-amber-900/30 bg-amber-950/10 p-3">
+                <p className="mb-1 text-[10px] font-semibold text-amber-400">오해 방지</p>
+                <ul className="space-y-1">
+                  {harness245.misunderstandingPreventionItems.map((item: string, idx: number) => (
+                    <li key={idx} className="text-[10px] text-amber-300/70">• {item}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {harness245.finalNotice && (
+              <p className="mt-3 text-[10px] text-zinc-600 italic">{harness245.finalNotice}</p>
+            )}
           </div>
         );
       })()}
