@@ -3873,6 +3873,7 @@ type DraftBatchJob = {
   naverTokenIssuanceEnvAuthPresenceCheckExecutionGateView?: any;
   naverTokenIssuanceEnvAuthPresenceCheckResultView?: any;
   naverTokenIssuanceEnvAuthMissingRemediationGuideView?: any;
+  naverTokenIssuanceEnvAuthUserSetupChecklistView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -27762,6 +27763,136 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
 
             {guide248.finalNotice && (
               <p className="mt-3 text-[10px] text-zinc-600 italic">{guide248.finalNotice}</p>
+            )}
+          </div>
+        );
+      })()}
+
+      {/* ── Task 249: Naver Token Issuance Env Auth User Setup Checklist Screen Flow ── */}
+      {(() => {
+        const checklist249 = job.naverTokenIssuanceEnvAuthUserSetupChecklistView;
+        if (!checklist249) return null;
+        return (
+          <div className="mb-6 rounded-lg border border-orange-900/30 bg-[#151008] p-4 shadow-[0_0_15px_rgba(251,146,60,0.05)]">
+            <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-white">
+              <ClipboardCheck className="h-4 w-4 text-orange-400" />
+              {checklist249.panelTitle ?? 'Naver Token Issuance Env Auth User Setup Checklist'}
+            </h2>
+            <p className="mb-3 text-xs text-zinc-500">
+              {checklist249.description ?? '사용자 직접 설정 체크리스트를 읽기 전용으로 안내하는 화면입니다.'}
+            </p>
+            <div className="mb-3 flex flex-wrap gap-2">
+              {checklist249.status && (
+                <span className="rounded-full bg-orange-950/50 px-2 py-0.5 text-[10px] font-mono text-orange-300 border border-orange-900/40">
+                  {checklist249.status}
+                </span>
+              )}
+              {checklist249.isBatchJobResultDisplayOnly && (
+                <span className="rounded-full bg-zinc-900 px-2 py-0.5 text-[10px] font-mono text-zinc-400 border border-zinc-800">
+                  DISPLAY_ONLY
+                </span>
+              )}
+              {checklist249.isEnvAuthUserSetupChecklistReady && (
+                <span className="rounded-full bg-orange-950/40 px-2 py-0.5 text-[10px] font-mono text-orange-400 border border-orange-900/40">
+                  USER_SETUP_CHECKLIST_READY
+                </span>
+              )}
+              <span className="rounded-full bg-cyan-950/40 px-2 py-0.5 text-[10px] font-mono text-cyan-400 border border-cyan-900/40">
+                PRESENT {checklist249.presencePresentCount}
+              </span>
+              <span className="rounded-full bg-amber-950/40 px-2 py-0.5 text-[10px] font-mono text-amber-400 border border-amber-900/40">
+                MISSING {checklist249.presenceMissingCount}
+              </span>
+            </div>
+
+            {Array.isArray(checklist249.guidanceMessages) && checklist249.guidanceMessages.length > 0 && (
+              <div className="mb-3 rounded border border-orange-900/30 bg-orange-950/10 p-3">
+                <p className="mb-1 text-[10px] font-semibold text-orange-300">사용자 안내</p>
+                <ul className="space-y-1">
+                  {checklist249.guidanceMessages.map((item: string, idx: number) => (
+                    <li key={idx} className="text-[10px] text-orange-200/80">• {item}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {Array.isArray(checklist249.setupKeyItems) && checklist249.setupKeyItems.length > 0 && (
+              <div className="mb-3 overflow-x-auto rounded border border-zinc-800">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="border-b border-zinc-800 bg-zinc-900/60">
+                      <th className="px-3 py-2 text-left font-medium text-zinc-400">Env Key</th>
+                      <th className="px-3 py-2 text-left font-medium text-zinc-400">설정 상태</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {checklist249.setupKeyItems.map((item: any, idx: number) => (
+                      <tr key={idx} className="border-b border-zinc-800/50 hover:bg-zinc-900/30">
+                        <td className="px-3 py-2 font-mono text-zinc-300">{item.keyName}</td>
+                        <td className="px-3 py-2">
+                          <span className="rounded px-1.5 py-0.5 text-[10px] font-mono bg-amber-950/50 text-amber-400 border border-amber-900/40">
+                            {item.setupStatus}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {Array.isArray(checklist249.checklistItems) && checklist249.checklistItems.length > 0 && (
+              <div className="overflow-x-auto rounded border border-zinc-800">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="border-b border-zinc-800 bg-zinc-900/60">
+                      <th className="px-3 py-2 text-left font-medium text-zinc-400">항목</th>
+                      <th className="px-3 py-2 text-left font-medium text-zinc-400">상태</th>
+                      <th className="px-3 py-2 text-left font-medium text-zinc-400">의미</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {checklist249.checklistItems.map((item: any, idx: number) => (
+                      <tr key={idx} className="border-b border-zinc-800/50 hover:bg-zinc-900/30">
+                        <td className="px-3 py-2 font-mono text-zinc-300">{item.checklistItem}</td>
+                        <td className="px-3 py-2">
+                          <span className={`rounded px-1.5 py-0.5 text-[10px] font-mono ${
+                            item.status === 'REMEDIATION_GUIDE_CONFIRMED' ? 'bg-green-950/50 text-green-400 border border-green-900/40' :
+                            item.status === 'MISSING_DETECTED' ? 'bg-amber-950/50 text-amber-400 border border-amber-900/40' :
+                            item.status === 'USER_SETUP_REQUIRED' ? 'bg-orange-950/50 text-orange-300 border border-orange-900/40' :
+                            item.status === 'FORBIDDEN' ? 'bg-red-950/50 text-red-400 border border-red-900/40' :
+                            item.status === 'KEY_NAMES_ONLY' ? 'bg-cyan-950/50 text-cyan-400 border border-cyan-900/40' :
+                            item.status === 'NEXT_STEP_RECHECK_REQUIRED' ? 'bg-blue-950/40 text-blue-400 border border-blue-900/40' :
+                            item.status === 'LOCKED' ? 'bg-zinc-900 text-zinc-500 border border-zinc-700' :
+                            item.status === 'NOT_CONNECTED' ? 'bg-zinc-900 text-zinc-500 border border-zinc-700' :
+                            item.status === 'NOT_PRESENT' ? 'bg-zinc-900 text-zinc-600 border border-zinc-800' :
+                            item.status === 'READ_ONLY_INFO' ? 'bg-blue-950/40 text-blue-400 border border-blue-900/40' :
+                            'bg-zinc-800 text-zinc-400'
+                          }`}>
+                            {item.status}
+                          </span>
+                        </td>
+                        <td className="px-3 py-2 text-zinc-400">{item.meaning}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {Array.isArray(checklist249.misunderstandingPreventionItems) && checklist249.misunderstandingPreventionItems.length > 0 && (
+              <div className="mt-3 rounded border border-amber-900/30 bg-amber-950/10 p-3">
+                <p className="mb-1 text-[10px] font-semibold text-amber-400">오해 방지</p>
+                <ul className="space-y-1">
+                  {checklist249.misunderstandingPreventionItems.map((item: string, idx: number) => (
+                    <li key={idx} className="text-[10px] text-amber-300/70">• {item}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {checklist249.finalNotice && (
+              <p className="mt-3 text-[10px] text-zinc-600 italic">{checklist249.finalNotice}</p>
             )}
           </div>
         );
