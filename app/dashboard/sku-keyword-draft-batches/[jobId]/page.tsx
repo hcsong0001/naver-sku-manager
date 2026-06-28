@@ -3874,6 +3874,7 @@ type DraftBatchJob = {
   naverTokenIssuanceEnvAuthPresenceCheckResultView?: any;
   naverTokenIssuanceEnvAuthMissingRemediationGuideView?: any;
   naverTokenIssuanceEnvAuthUserSetupChecklistView?: any;
+  naverTokenIssuanceEnvAuthUserSetupCompletionWaitingGateView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -27893,6 +27894,142 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
 
             {checklist249.finalNotice && (
               <p className="mt-3 text-[10px] text-zinc-600 italic">{checklist249.finalNotice}</p>
+            )}
+          </div>
+        );
+      })()}
+
+      {/* ── Task 250: Naver Token Issuance Env Auth User Setup Completion Waiting Gate Screen Flow ── */}
+      {(() => {
+        const waitingGate250 = job.naverTokenIssuanceEnvAuthUserSetupCompletionWaitingGateView;
+        if (!waitingGate250) return null;
+        return (
+          <div className="mb-6 rounded-lg border border-amber-900/30 bg-[#151106] p-4 shadow-[0_0_15px_rgba(245,158,11,0.05)]">
+            <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-white">
+              <ClipboardCheck className="h-4 w-4 text-amber-400" />
+              {waitingGate250.panelTitle ?? 'Naver Token Issuance Env Auth User Setup Completion Waiting Gate'}
+            </h2>
+            <p className="mb-3 text-xs text-zinc-500">
+              {waitingGate250.description ?? '사용자 설정 완료 전에는 재확인과 Token 발급으로 넘어갈 수 없음을 표시하는 읽기 전용 Gate입니다.'}
+            </p>
+            <div className="mb-3 flex flex-wrap gap-2">
+              {waitingGate250.status && (
+                <span className="rounded-full bg-amber-950/50 px-2 py-0.5 text-[10px] font-mono text-amber-300 border border-amber-900/40">
+                  {waitingGate250.status}
+                </span>
+              )}
+              {waitingGate250.isBatchJobResultDisplayOnly && (
+                <span className="rounded-full bg-zinc-900 px-2 py-0.5 text-[10px] font-mono text-zinc-400 border border-zinc-800">
+                  DISPLAY_ONLY
+                </span>
+              )}
+              {waitingGate250.isEnvAuthUserSetupCompletionWaitingGateReady && (
+                <span className="rounded-full bg-amber-950/40 px-2 py-0.5 text-[10px] font-mono text-amber-400 border border-amber-900/40">
+                  WAITING_GATE_READY
+                </span>
+              )}
+              {waitingGate250.isRecheckBlockedUntilUserSetup && (
+                <span className="rounded-full bg-red-950/40 px-2 py-0.5 text-[10px] font-mono text-red-400 border border-red-900/40">
+                  RECHECK_BLOCKED
+                </span>
+              )}
+              <span className="rounded-full bg-cyan-950/40 px-2 py-0.5 text-[10px] font-mono text-cyan-400 border border-cyan-900/40">
+                PRESENT {waitingGate250.presencePresentCount}
+              </span>
+              <span className="rounded-full bg-amber-950/40 px-2 py-0.5 text-[10px] font-mono text-amber-400 border border-amber-900/40">
+                MISSING {waitingGate250.presenceMissingCount}
+              </span>
+            </div>
+
+            {Array.isArray(waitingGate250.waitingMessages) && waitingGate250.waitingMessages.length > 0 && (
+              <div className="mb-3 rounded border border-amber-900/30 bg-amber-950/10 p-3">
+                <p className="mb-1 text-[10px] font-semibold text-amber-300">설정 완료 대기 안내</p>
+                <ul className="space-y-1">
+                  {waitingGate250.waitingMessages.map((item: string, idx: number) => (
+                    <li key={idx} className="text-[10px] text-amber-200/80">• {item}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {Array.isArray(waitingGate250.setupKeyItems) && waitingGate250.setupKeyItems.length > 0 && (
+              <div className="mb-3 overflow-x-auto rounded border border-zinc-800">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="border-b border-zinc-800 bg-zinc-900/60">
+                      <th className="px-3 py-2 text-left font-medium text-zinc-400">Env Key</th>
+                      <th className="px-3 py-2 text-left font-medium text-zinc-400">설정 상태</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {waitingGate250.setupKeyItems.map((item: any, idx: number) => (
+                      <tr key={idx} className="border-b border-zinc-800/50 hover:bg-zinc-900/30">
+                        <td className="px-3 py-2 font-mono text-zinc-300">{item.keyName}</td>
+                        <td className="px-3 py-2">
+                          <span className="rounded px-1.5 py-0.5 text-[10px] font-mono bg-amber-950/50 text-amber-400 border border-amber-900/40">
+                            {item.setupStatus}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {Array.isArray(waitingGate250.gateItems) && waitingGate250.gateItems.length > 0 && (
+              <div className="overflow-x-auto rounded border border-zinc-800">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="border-b border-zinc-800 bg-zinc-900/60">
+                      <th className="px-3 py-2 text-left font-medium text-zinc-400">항목</th>
+                      <th className="px-3 py-2 text-left font-medium text-zinc-400">상태</th>
+                      <th className="px-3 py-2 text-left font-medium text-zinc-400">의미</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {waitingGate250.gateItems.map((item: any, idx: number) => (
+                      <tr key={idx} className="border-b border-zinc-800/50 hover:bg-zinc-900/30">
+                        <td className="px-3 py-2 font-mono text-zinc-300">{item.gateItem}</td>
+                        <td className="px-3 py-2">
+                          <span className={`rounded px-1.5 py-0.5 text-[10px] font-mono ${
+                            item.status === 'SETUP_CHECKLIST_CONFIRMED' ? 'bg-green-950/50 text-green-400 border border-green-900/40' :
+                            item.status === 'MISSING_DETECTED' ? 'bg-amber-950/50 text-amber-400 border border-amber-900/40' :
+                            item.status === 'WAITING_USER_SETUP_COMPLETION' ? 'bg-orange-950/50 text-orange-300 border border-orange-900/40' :
+                            item.status === 'RECHECK_BLOCKED_UNTIL_USER_SETUP' ? 'bg-red-950/50 text-red-400 border border-red-900/40' :
+                            item.status === 'BLOCKED_BY_MISSING_ENV_AUTH' ? 'bg-red-950/50 text-red-300 border border-red-900/40' :
+                            item.status === 'FORBIDDEN' ? 'bg-red-950/50 text-red-400 border border-red-900/40' :
+                            item.status === 'KEY_NAMES_ONLY' ? 'bg-cyan-950/50 text-cyan-400 border border-cyan-900/40' :
+                            item.status === 'LOCKED' ? 'bg-zinc-900 text-zinc-500 border border-zinc-700' :
+                            item.status === 'NOT_CONNECTED' ? 'bg-zinc-900 text-zinc-500 border border-zinc-700' :
+                            item.status === 'NOT_PRESENT' ? 'bg-zinc-900 text-zinc-600 border border-zinc-800' :
+                            item.status === 'READ_ONLY_INFO' ? 'bg-blue-950/40 text-blue-400 border border-blue-900/40' :
+                            'bg-zinc-800 text-zinc-400'
+                          }`}>
+                            {item.status}
+                          </span>
+                        </td>
+                        <td className="px-3 py-2 text-zinc-400">{item.meaning}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {Array.isArray(waitingGate250.misunderstandingPreventionItems) && waitingGate250.misunderstandingPreventionItems.length > 0 && (
+              <div className="mt-3 rounded border border-amber-900/30 bg-amber-950/10 p-3">
+                <p className="mb-1 text-[10px] font-semibold text-amber-400">오해 방지</p>
+                <ul className="space-y-1">
+                  {waitingGate250.misunderstandingPreventionItems.map((item: string, idx: number) => (
+                    <li key={idx} className="text-[10px] text-amber-300/70">• {item}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {waitingGate250.finalNotice && (
+              <p className="mt-3 text-[10px] text-zinc-600 italic">{waitingGate250.finalNotice}</p>
             )}
           </div>
         );
