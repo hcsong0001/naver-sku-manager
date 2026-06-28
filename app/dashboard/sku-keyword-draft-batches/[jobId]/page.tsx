@@ -3888,6 +3888,7 @@ type DraftBatchJob = {
   naverTokenIssuanceOneTimeTestResultView?: any;
   naverTokenIssuanceOneTimeTestNonRetentionAuditSealView?: any;
   naverProductLookupApiReadinessGateView?: any;
+  naverProductLookupApiOneTimeTestUserApprovalRequestPacketView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -28483,6 +28484,91 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             {recheck254.finalNotice && (
               <p className="mt-3 text-[10px] text-zinc-600 italic">{recheck254.finalNotice}</p>
             )}
+          </div>
+        );
+      })()}
+
+      {/* ── Task 266: Naver Product Lookup API One-Time Test User Approval Request Packet Screen Flow ── */}
+      {(() => {
+        const pkt266 = job.naverProductLookupApiOneTimeTestUserApprovalRequestPacketView;
+        if (!pkt266) return null;
+        const isReady = pkt266.isProductLookupApprovalRequestPacketReady === true;
+        const panelBorder = isReady ? 'border-blue-300 bg-blue-50' : 'border-orange-300 bg-orange-50';
+        const badgeColor = isReady ? 'bg-blue-100 text-blue-800' : 'bg-orange-100 text-orange-800';
+        return (
+          <div className={`border rounded-lg p-4 mb-4 ${panelBorder}`}>
+            <div className="flex items-center gap-2 mb-3">
+              <ClipboardCheck className="w-5 h-5 text-blue-600 flex-shrink-0" />
+              <h3 className="font-semibold text-gray-800 text-sm">
+                {pkt266.panelTitle ?? 'Naver 상품 조회 API 1회 테스트 사용자 승인 요청 패킷'}
+              </h3>
+              <span className={`ml-auto text-xs px-2 py-0.5 rounded font-mono ${badgeColor}`}>
+                {pkt266.productLookupApprovalRequestPacketStatus}
+              </span>
+            </div>
+            <p className="text-xs text-gray-600 mb-3">{pkt266.description}</p>
+            <div className="grid grid-cols-2 gap-2 mb-3 text-xs">
+              <div className="bg-white rounded p-2 border">
+                <span className="text-gray-500">isProductLookupApprovalRequestPacketReady:</span>{' '}
+                <span className={`font-mono font-semibold ${isReady ? 'text-green-700' : 'text-orange-600'}`}>
+                  {String(pkt266.isProductLookupApprovalRequestPacketReady)}
+                </span>
+              </div>
+              <div className="bg-white rounded p-2 border">
+                <span className="text-gray-500">isProductLookupApiApprovalGranted:</span>{' '}
+                <span className="font-mono text-amber-600 font-semibold">{String(pkt266.isProductLookupApiApprovalGranted)}</span>
+              </div>
+              <div className="bg-white rounded p-2 border">
+                <span className="text-gray-500">isUserApprovalPhraseReceived:</span>{' '}
+                <span className="font-mono text-amber-600 font-semibold">{String(pkt266.isUserApprovalPhraseReceivedForProductLookupApiTest)}</span>
+              </div>
+              <div className="bg-white rounded p-2 border">
+                <span className="text-gray-500">isProductLookupApiCalled:</span>{' '}
+                <span className="font-mono text-red-600 font-semibold">{String(pkt266.isProductLookupApiCalled)}</span>
+              </div>
+            </div>
+            {Array.isArray(pkt266.packetItems) && pkt266.packetItems.length > 0 && (
+              <div className="mb-3">
+                <div className="text-xs font-semibold text-gray-700 mb-1">
+                  Packet Items ({pkt266.packetItems.length}개)
+                </div>
+                <div className="space-y-1">
+                  {pkt266.packetItems.map((item: { packetItem: string; status: string; meaning: string }, idx: number) => (
+                    <div key={idx} className="flex items-start gap-2 text-xs bg-white rounded p-2 border">
+                      <span className="text-gray-700 font-medium min-w-[180px]">{item.packetItem}</span>
+                      <span className="font-mono text-blue-700 bg-blue-50 px-1 rounded text-[10px] whitespace-nowrap">{item.status}</span>
+                      <span className="text-gray-500">{item.meaning}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            {pkt266.userApprovalNotice && pkt266.userApprovalScriptForNextTask && (
+              <div className="bg-blue-50 border border-blue-200 rounded p-3 mb-3">
+                <div className="text-xs font-semibold text-blue-800 mb-1">{pkt266.userApprovalNotice}</div>
+                <div className="text-xs font-mono text-blue-900 bg-white rounded p-2 border border-blue-200 whitespace-pre-wrap">
+                  {pkt266.userApprovalScriptForNextTask}
+                </div>
+              </div>
+            )}
+            {Array.isArray(pkt266.misunderstandingPreventionItems) && pkt266.misunderstandingPreventionItems.length > 0 && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded p-2 mb-2 text-xs text-yellow-800">
+                <div className="font-semibold mb-1">오해 방지 안내</div>
+                <ul className="list-disc list-inside space-y-0.5">
+                  {pkt266.misunderstandingPreventionItems.map((item: string, idx: number) => (
+                    <li key={idx}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {pkt266.finalNotice && (
+              <div className="text-xs text-gray-500 mt-2 border-t pt-2">{pkt266.finalNotice}</div>
+            )}
+            <div className="mt-2 text-[10px] text-gray-400 font-mono">
+              isBatchJobResultDisplayOnly: {String(pkt266.isBatchJobResultDisplayOnly)} |
+              isNaverApiCalledInThisTask: {String(pkt266.isNaverApiCalledInThisTask)} |
+              isTokenIssuanceExecutedInThisTask: {String(pkt266.isTokenIssuanceExecutedInThisTask)}
+            </div>
           </div>
         );
       })()}

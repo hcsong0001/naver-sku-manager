@@ -248,6 +248,7 @@ import { buildNaverTokenIssuanceOneTimeTestFinalApprovalPendingSealView } from '
 import { buildNaverTokenIssuanceOneTimeTestResultView } from '@/src/services/sku-keyword-final-approval-execution-naver-token-issuance-one-time-test-result-view.service';
 import { buildNaverTokenIssuanceOneTimeTestNonRetentionAuditSealView } from '@/src/services/sku-keyword-final-approval-execution-naver-token-issuance-one-time-test-non-retention-audit-seal-view.service';
 import { buildNaverProductLookupApiReadinessGateView } from '@/src/services/sku-keyword-final-approval-execution-naver-product-lookup-api-readiness-gate-view.service';
+import { buildNaverProductLookupApiOneTimeTestUserApprovalRequestPacketView } from '@/src/services/sku-keyword-final-approval-execution-naver-product-lookup-api-one-time-test-user-approval-request-packet-view.service';
 
 // Compute safe DB environment hint from DATABASE_URL without exposing the original value.
 // Returns a classification key, never the actual URL.
@@ -550,6 +551,8 @@ export async function GET(
     });
 
     const naverTokenIssuanceOneTimeTestResultView = await buildNaverTokenIssuanceOneTimeTestResultView(job);
+    const _issuanceTestStatus = naverTokenIssuanceOneTimeTestResultView.issuanceTestStatus ?? 'SUCCESS';
+    const _naverProductLookupApiReadinessGateView = buildNaverProductLookupApiReadinessGateView(job, _issuanceTestStatus);
 
     const responseJob = {
       id: job.id,
@@ -1521,9 +1524,11 @@ export async function GET(
         job,
         naverTokenIssuanceOneTimeTestResultView.issuanceTestStatus ?? 'SUCCESS'
       ),
-      naverProductLookupApiReadinessGateView: buildNaverProductLookupApiReadinessGateView(
+      naverProductLookupApiReadinessGateView: _naverProductLookupApiReadinessGateView,
+      naverProductLookupApiOneTimeTestUserApprovalRequestPacketView: buildNaverProductLookupApiOneTimeTestUserApprovalRequestPacketView(
         job,
-        naverTokenIssuanceOneTimeTestResultView.issuanceTestStatus ?? 'SUCCESS'
+        _issuanceTestStatus,
+        _naverProductLookupApiReadinessGateView.productLookupReadinessStatus
       ),
     };
 
