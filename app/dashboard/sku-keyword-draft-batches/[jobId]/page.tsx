@@ -3829,6 +3829,7 @@ type DraftBatchJob = {
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultDisplayOnlyActualCompletionAuditView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultDisplayOnlyAutoApprovalComplianceAuditView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultDisplayOnlyTaskSequenceReconciliationView?: any;
+  tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultDisplayOnlyFileScopeAuditView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -27179,6 +27180,53 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                       <div className="mt-1 text-[11px] text-slate-400">
                         {item.notes}
                       </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 205: BatchJob Display-Only File Scope Audit Screen Flow ── */}
+      {(() => {
+        const bjdofsa205 = job.tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionBatchJobResultDisplayOnlyFileScopeAuditView;
+        if (!bjdofsa205) return null;
+        return (
+          <div className="mb-6 rounded-lg border border-teal-900/40 bg-[#080914] p-4 shadow-[0_0_15px_rgba(20,184,166,0.05)]">
+            <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-white">
+              <ClipboardList className="h-5 w-5 text-teal-500" />
+              {bjdofsa205.panelTitle}
+            </h2>
+            <div className="mb-3 flex flex-wrap gap-2">
+              <span className="rounded-full border border-teal-700/50 bg-teal-950/40 px-2 py-0.5 text-xs text-teal-300">
+                {bjdofsa205.auditStatus}
+              </span>
+            </div>
+            <p className="mb-4 text-xs leading-relaxed text-teal-200/70">
+              {bjdofsa205.fileScopeConclusion}
+            </p>
+            <div className="mb-4 text-xs text-slate-500">{bjdofsa205.taskName}</div>
+
+            <div className="mt-4 space-y-4">
+              <div>
+                <h4 className="mb-3 text-xs font-semibold uppercase tracking-wide text-teal-400">File Scope Audit Records</h4>
+                <div className="space-y-2">
+                  {bjdofsa205.fileScopeItems.map((item: any, i: number) => (
+                    <div key={i} className="flex flex-col gap-1 rounded-md border border-teal-900/30 bg-teal-950/10 p-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-teal-300 font-mono">{item.pattern}</span>
+                        <div className="flex items-center gap-2">
+                          {item.expectedPatternMaintained && (
+                            <span className="rounded-full bg-emerald-900/30 px-2 py-0.5 text-[10px] font-semibold text-emerald-400 border border-emerald-800/50">
+                              {item.statusText}
+                            </span>
+                          )}
+                          <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                        </div>
+                      </div>
+                      <div className="text-[11px] text-teal-200/70">{item.description}</div>
                     </div>
                   ))}
                 </div>
