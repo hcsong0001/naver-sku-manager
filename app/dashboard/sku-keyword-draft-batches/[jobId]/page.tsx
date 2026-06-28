@@ -3887,6 +3887,7 @@ type DraftBatchJob = {
   naverTokenIssuanceOneTimeTestFinalApprovalPendingSealView?: any;
   naverTokenIssuanceOneTimeTestResultView?: any;
   naverTokenIssuanceOneTimeTestNonRetentionAuditSealView?: any;
+  naverProductLookupApiReadinessGateView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -28482,6 +28483,93 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             {recheck254.finalNotice && (
               <p className="mt-3 text-[10px] text-zinc-600 italic">{recheck254.finalNotice}</p>
             )}
+          </div>
+        );
+      })()}
+
+      {/* ── Task 265: Naver Product Lookup API Readiness Gate Screen Flow ── */}
+      {(() => {
+        const gate265 = job.naverProductLookupApiReadinessGateView;
+        if (!gate265) return null;
+        const isReady = gate265.isReadyForProductLookupApiApprovalGate === true;
+        const panelBorder = isReady ? 'border-indigo-300 bg-indigo-50' : 'border-orange-300 bg-orange-50';
+        const statusBadge = isReady ? 'bg-indigo-100 text-indigo-800' : 'bg-orange-100 text-orange-800';
+        return (
+          <div className={`border rounded-lg p-4 mb-4 ${panelBorder}`}>
+            <div className="flex items-center gap-2 mb-3">
+              <Target className="w-5 h-5 text-indigo-600 flex-shrink-0" />
+              <h3 className="font-semibold text-gray-800 text-sm">
+                {gate265.panelTitle ?? 'Naver 상품 조회 API Readiness Gate'}
+              </h3>
+              <span className={`ml-auto text-xs px-2 py-0.5 rounded font-mono ${statusBadge}`}>
+                {gate265.productLookupReadinessStatus}
+              </span>
+            </div>
+            <p className="text-xs text-gray-600 mb-3">{gate265.description}</p>
+            <div className="grid grid-cols-2 gap-2 mb-3 text-xs">
+              <div className="bg-white rounded p-2 border">
+                <span className="text-gray-500">Task 263 issuanceTestStatus:</span>{' '}
+                <span className={`font-semibold ${gate265.issuanceTestStatus === 'SUCCESS' ? 'text-green-700' : 'text-red-700'}`}>
+                  {gate265.issuanceTestStatus}
+                </span>
+              </div>
+              <div className="bg-white rounded p-2 border">
+                <span className="text-gray-500">isReadyForProductLookupApiApprovalGate:</span>{' '}
+                <span className={`font-mono font-semibold ${isReady ? 'text-green-700' : 'text-orange-600'}`}>
+                  {String(gate265.isReadyForProductLookupApiApprovalGate)}
+                </span>
+              </div>
+              <div className="bg-white rounded p-2 border">
+                <span className="text-gray-500">isProductLookupApiCalled:</span>{' '}
+                <span className="font-mono text-red-600 font-semibold">{String(gate265.isProductLookupApiCalled)}</span>
+              </div>
+              <div className="bg-white rounded p-2 border">
+                <span className="text-gray-500">isProductLookupApiApprovalGranted:</span>{' '}
+                <span className="font-mono text-amber-600 font-semibold">{String(gate265.isProductLookupApiApprovalGranted)}</span>
+              </div>
+              <div className="bg-white rounded p-2 border">
+                <span className="text-gray-500">isProductLookupApiBlockedByTokenFailure:</span>{' '}
+                <span className="font-mono">{String(gate265.isProductLookupApiBlockedByTokenFailure)}</span>
+              </div>
+              <div className="bg-white rounded p-2 border">
+                <span className="text-gray-500">isProductLookupApiBlockedByEnvMissing:</span>{' '}
+                <span className="font-mono">{String(gate265.isProductLookupApiBlockedByEnvMissing)}</span>
+              </div>
+            </div>
+            {Array.isArray(gate265.gateItems) && gate265.gateItems.length > 0 && (
+              <div className="mb-3">
+                <div className="text-xs font-semibold text-gray-700 mb-1">
+                  Gate Items ({gate265.gateItems.length}개)
+                </div>
+                <div className="space-y-1">
+                  {gate265.gateItems.map((item: { gateItem: string; status: string; meaning: string }, idx: number) => (
+                    <div key={idx} className="flex items-start gap-2 text-xs bg-white rounded p-2 border">
+                      <span className="text-gray-700 font-medium min-w-[180px]">{item.gateItem}</span>
+                      <span className="font-mono text-indigo-700 bg-indigo-50 px-1 rounded text-[10px] whitespace-nowrap">{item.status}</span>
+                      <span className="text-gray-500">{item.meaning}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            {Array.isArray(gate265.misunderstandingPreventionItems) && gate265.misunderstandingPreventionItems.length > 0 && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded p-2 mb-2 text-xs text-yellow-800">
+                <div className="font-semibold mb-1">오해 방지 안내</div>
+                <ul className="list-disc list-inside space-y-0.5">
+                  {gate265.misunderstandingPreventionItems.map((item: string, idx: number) => (
+                    <li key={idx}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {gate265.finalNotice && (
+              <div className="text-xs text-gray-500 mt-2 border-t pt-2">{gate265.finalNotice}</div>
+            )}
+            <div className="mt-2 text-[10px] text-gray-400 font-mono">
+              isBatchJobResultDisplayOnly: {String(gate265.isBatchJobResultDisplayOnly)} |
+              isNaverProductLookupApiReadinessGateReady: {String(gate265.isNaverProductLookupApiReadinessGateReady)} |
+              isNaverApiCalledInThisTask: {String(gate265.isNaverApiCalledInThisTask)}
+            </div>
           </div>
         );
       })()}
