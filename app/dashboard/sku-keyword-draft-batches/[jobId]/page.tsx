@@ -3880,6 +3880,7 @@ type DraftBatchJob = {
   naverTokenIssuanceEnvAuthPresenceRecheckResultView?: any;
   naverTokenIssuanceEnvAuthRuntimeScopeDiagnosisView?: any;
   naverTokenIssuanceEnvAuthRuntimeScopeUserCorrectionChecklistView?: any;
+  naverTokenIssuanceRuntimeScopeCorrectionCompletionWaitingView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -28474,6 +28475,117 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
 
             {recheck254.finalNotice && (
               <p className="mt-3 text-[10px] text-zinc-600 italic">{recheck254.finalNotice}</p>
+            )}
+          </div>
+        );
+      })()}
+
+      {/* ── Task 257: Naver Token Issuance Runtime Scope Correction Completion Waiting Screen Flow ── */}
+      {(() => {
+        const waiting257 = job.naverTokenIssuanceRuntimeScopeCorrectionCompletionWaitingView;
+        if (!waiting257) return null;
+        return (
+          <div className="mb-6 rounded-lg border border-yellow-900/30 bg-[#080914] p-4 shadow-[0_0_15px_rgba(234,179,8,0.05)]">
+            <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-white">
+              <AlertCircle className="h-4 w-4 text-yellow-400" />
+              {waiting257.panelTitle ?? 'Runtime Scope 보정 완료 대기'}
+            </h2>
+            <p className="mb-3 text-xs text-zinc-500">
+              {waiting257.description ?? 'Runtime Scope 보정 완료 대기 표시 전용입니다.'}
+            </p>
+            <div className="mb-3 flex flex-wrap gap-2">
+              {waiting257.status && (
+                <span className="rounded-full bg-yellow-950/50 px-2 py-0.5 text-[10px] font-mono text-yellow-300 border border-yellow-900/40">
+                  {waiting257.status}
+                </span>
+              )}
+              {waiting257.isBatchJobResultDisplayOnly && (
+                <span className="rounded-full bg-zinc-900 px-2 py-0.5 text-[10px] font-mono text-zinc-400 border border-zinc-800">
+                  DISPLAY_ONLY
+                </span>
+              )}
+              {waiting257.isMissingEnvAuthStillDetected && (
+                <span className="rounded-full bg-red-950/50 px-2 py-0.5 text-[10px] font-mono text-red-400 border border-red-900/40">
+                  PRESENT {waiting257.presencePresentCount} / MISSING {waiting257.presenceMissingCount}
+                </span>
+              )}
+              {waiting257.isWaitingUserRuntimeScopeCorrectionCompletion && (
+                <span className="rounded-full bg-yellow-950/40 px-2 py-0.5 text-[10px] font-mono text-yellow-400 border border-yellow-900/40">
+                  WAITING_USER_CORRECTION
+                </span>
+              )}
+              {waiting257.isRecheckBlockedUntilRuntimeScopeCorrection && (
+                <span className="rounded-full bg-zinc-900 px-2 py-0.5 text-[10px] font-mono text-zinc-500 border border-zinc-700">
+                  RECHECK_BLOCKED
+                </span>
+              )}
+            </div>
+            {waiting257.userWaitingNotice && (
+              <div className="mb-3 rounded border border-yellow-900/30 bg-yellow-950/10 p-3">
+                <p className="mb-1 text-[10px] font-semibold text-yellow-400">사용자 완료 보고 대기</p>
+                <p className="text-[10px] text-yellow-300/80 leading-relaxed">{waiting257.userWaitingNotice}</p>
+              </div>
+            )}
+            {Array.isArray(waiting257.waitingItems) && waiting257.waitingItems.length > 0 && (
+              <div className="overflow-x-auto rounded border border-zinc-800">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="border-b border-zinc-800 bg-zinc-900/60">
+                      <th className="px-3 py-2 text-left font-medium text-zinc-400">항목</th>
+                      <th className="px-3 py-2 text-left font-medium text-zinc-400">상태</th>
+                      <th className="px-3 py-2 text-left font-medium text-zinc-400">의미</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {waiting257.waitingItems.map((item: any, idx: number) => (
+                      <tr key={idx} className="border-b border-zinc-800/50 hover:bg-zinc-900/30">
+                        <td className="px-3 py-2 font-mono text-zinc-300">{item.waitingItem}</td>
+                        <td className="px-3 py-2">
+                          <span className={`rounded px-1.5 py-0.5 text-[10px] font-mono ${
+                            item.status === 'CORRECTION_CHECKLIST_CONFIRMED' ? 'bg-blue-950/50 text-blue-400 border border-blue-900/40' :
+                            item.status === 'MISSING_STILL_DETECTED' ? 'bg-red-950/50 text-red-400 border border-red-900/40' :
+                            item.status === 'TARGET_NOT_MET' ? 'bg-yellow-950/50 text-yellow-400 border border-yellow-900/40' :
+                            item.status === 'WAITING_USER_CORRECTION_COMPLETION' ? 'bg-yellow-950/60 text-yellow-300 border border-yellow-900/40' :
+                            item.status === 'WAITING_USER_ACTION' ? 'bg-amber-950/50 text-amber-400 border border-amber-900/40' :
+                            item.status === 'RECHECK_NOT_ALLOWED_YET' ? 'bg-zinc-900 text-zinc-400 border border-zinc-600' :
+                            item.status === 'FORBIDDEN' ? 'bg-red-950/50 text-red-400 border border-red-900/40' :
+                            item.status === 'BLOCKED_BY_MISSING_ENV_AUTH' ? 'bg-red-950/40 text-red-500 border border-red-900/30' :
+                            item.status === 'LOCKED' ? 'bg-zinc-900 text-zinc-500 border border-zinc-700' :
+                            item.status === 'NOT_CONNECTED' ? 'bg-zinc-900 text-zinc-500 border border-zinc-700' :
+                            item.status === 'NOT_PRESENT' ? 'bg-zinc-900 text-zinc-600 border border-zinc-800' :
+                            item.status === 'READ_ONLY_INFO' ? 'bg-blue-950/40 text-blue-400 border border-blue-900/40' :
+                            'bg-zinc-800 text-zinc-400'
+                          }`}>
+                            {item.status}
+                          </span>
+                        </td>
+                        <td className="px-3 py-2 text-zinc-400">{item.meaning}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+            {Array.isArray(waiting257.completionReportGuide) && waiting257.completionReportGuide.length > 0 && (
+              <div className="mt-3 rounded border border-zinc-700 bg-zinc-900/60 p-3">
+                <p className="mb-1 text-[10px] font-semibold text-zinc-400">완료 보고 형식 (사용자가 직접 보고)</p>
+                <pre className="text-[10px] text-zinc-500 font-mono whitespace-pre-wrap leading-relaxed">
+                  {waiting257.completionReportGuide.join('\n')}
+                </pre>
+              </div>
+            )}
+            {Array.isArray(waiting257.misunderstandingPreventionItems) && waiting257.misunderstandingPreventionItems.length > 0 && (
+              <div className="mt-3 rounded border border-amber-900/30 bg-amber-950/10 p-3">
+                <p className="mb-1 text-[10px] font-semibold text-amber-400">오해 방지</p>
+                <ul className="space-y-1">
+                  {waiting257.misunderstandingPreventionItems.map((item: string, idx: number) => (
+                    <li key={idx} className="text-[10px] text-amber-300/70">• {item}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {waiting257.finalNotice && (
+              <p className="mt-3 text-[10px] text-zinc-600 italic">{waiting257.finalNotice}</p>
             )}
           </div>
         );
