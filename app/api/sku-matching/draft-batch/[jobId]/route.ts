@@ -260,6 +260,7 @@ import { buildNaverReadOnlyProductDataCaptureResultView } from '@/src/services/s
 import { buildNaverReadOnlyProductDataCaptureSafetyAuditSealView } from '@/src/services/sku-keyword-final-approval-execution-naver-read-only-product-data-capture-safety-audit-seal-view.service';
 import { buildNaverReadOnlyProductDataCaptureCompletenessReviewView } from '@/src/services/sku-keyword-final-approval-execution-naver-read-only-product-data-capture-completeness-review-view.service';
 import { buildNaverReadOnlyProductDataCompletenessCertificationView } from '@/src/services/sku-keyword-final-approval-execution-naver-read-only-product-data-completeness-certification-view.service';
+import { buildNaverBasicProductDataSummaryReviewApprovalPacketView } from '@/src/services/sku-keyword-final-approval-execution-naver-basic-product-data-summary-review-approval-packet-view.service';
 
 // Compute safe DB environment hint from DATABASE_URL without exposing the original value.
 // Returns a classification key, never the actual URL.
@@ -585,6 +586,11 @@ export async function GET(
     const _naverReadOnlyProductDataCaptureCompletenessReviewView = buildNaverReadOnlyProductDataCaptureCompletenessReviewView({
       captureResult: _naverReadOnlyProductDataCaptureResultView,
       safetyAuditSeal: _naverReadOnlyProductDataCaptureSafetyAuditSealView,
+    });
+    const _naverReadOnlyProductDataCompletenessCertificationView = buildNaverReadOnlyProductDataCompletenessCertificationView({
+      completenessReview: _naverReadOnlyProductDataCaptureCompletenessReviewView,
+      safetyAuditSeal: _naverReadOnlyProductDataCaptureSafetyAuditSealView,
+      captureResult: _naverReadOnlyProductDataCaptureResultView,
     });
 
     const responseJob = {
@@ -1575,7 +1581,9 @@ export async function GET(
       naverReadOnlyProductDataCaptureResultView: _naverReadOnlyProductDataCaptureResultView,
       naverReadOnlyProductDataCaptureSafetyAuditSealView: _naverReadOnlyProductDataCaptureSafetyAuditSealView,
       naverReadOnlyProductDataCaptureCompletenessReviewView: _naverReadOnlyProductDataCaptureCompletenessReviewView,
-      naverReadOnlyProductDataCompletenessCertificationView: buildNaverReadOnlyProductDataCompletenessCertificationView({
+      naverReadOnlyProductDataCompletenessCertificationView: _naverReadOnlyProductDataCompletenessCertificationView,
+      naverBasicProductDataSummaryReviewApprovalPacketView: buildNaverBasicProductDataSummaryReviewApprovalPacketView({
+        completenessCertification: _naverReadOnlyProductDataCompletenessCertificationView,
         completenessReview: _naverReadOnlyProductDataCaptureCompletenessReviewView,
         safetyAuditSeal: _naverReadOnlyProductDataCaptureSafetyAuditSealView,
         captureResult: _naverReadOnlyProductDataCaptureResultView,

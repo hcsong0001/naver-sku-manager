@@ -3900,6 +3900,7 @@ type DraftBatchJob = {
   naverReadOnlyProductDataCaptureSafetyAuditSealView?: any;
   naverReadOnlyProductDataCaptureCompletenessReviewView?: any;
   naverReadOnlyProductDataCompletenessCertificationView?: any;
+  naverBasicProductDataSummaryReviewApprovalPacketView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -33756,6 +33757,80 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div>isTokenReissuedInThisTask: {String(c279.isTokenReissuedInThisTask)} | isProductLookupApiCalledInThisTask: {String(c279.isProductLookupApiCalledInThisTask)} | isNaverApiCalledInThisTask: {String(c279.isNaverApiCalledInThisTask)}</div>
               <div>isRawProductApiResponseIncluded: {String(c279.isRawProductApiResponseIncluded)} | isSalePriceRawValueIncluded: {String(c279.isSalePriceRawValueIncluded)} | isDbWriteExecuted: {String(c279.isDbWriteExecuted)}</div>
               <div>isNextStepSeparateApprovalRequired: {String(c279.isNextStepSeparateApprovalRequired)} | isNextStepSeparateApprovalGranted: {String(c279.isNextStepSeparateApprovalGranted)} | isExecutionAllowed: {String(c279.isExecutionAllowed)}</div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 280: Basic Product Data Summary Review Approval Packet ──────── */}
+      {(() => {
+        const c280 = (job as any).naverBasicProductDataSummaryReviewApprovalPacketView;
+        if (!c280) return null;
+        const isComplete = c280.isBasicProductDataSummaryReviewApprovalPacketReadyForCompleteData;
+        const isPartial = c280.isBasicProductDataSummaryReviewApprovalPacketReadyWithMissingFieldNotice;
+        const borderColor = isComplete ? 'border-emerald-300 bg-emerald-50/20' : isPartial ? 'border-amber-200 bg-amber-50/20' : 'border-orange-200 bg-orange-50/20';
+        const iconColor = isComplete ? 'text-emerald-600' : isPartial ? 'text-amber-500' : 'text-orange-500';
+        const statusColor = isComplete ? 'text-emerald-700 font-bold' : isPartial ? 'text-amber-700 font-bold' : 'text-orange-700 font-bold';
+        const itemColor = (s: string) => {
+          if (['COMPLETENESS_CERTIFICATION_CONFIRMED', 'COMPLETENESS_REVIEW_CONFIRMED', 'SAFETY_AUDIT_SEAL_CONFIRMED', 'CAPTURE_RESULT_CONFIRMED'].includes(s)) return 'bg-slate-100 text-slate-700';
+          if (s === 'APPROVAL_PACKET_STATUS_RECORDED') return isComplete ? 'bg-emerald-100 text-emerald-800' : isPartial ? 'bg-amber-100 text-amber-800' : 'bg-orange-100 text-orange-800';
+          if (s === 'READY_FOR_SUMMARY_REVIEW_IF_COMPLETE' || s === 'READY_WITH_MISSING_FIELD_NOTICE') return 'bg-blue-50 text-blue-700';
+          if (s.startsWith('BLOCKED_RECHECK_')) return 'bg-orange-50 text-orange-700';
+          if (s === 'PENDING_USER_APPROVAL') return 'bg-yellow-50 text-yellow-700';
+          if (s === 'LOCKED_UNTIL_USER_APPROVAL') return 'bg-orange-50 text-orange-700';
+          if (s === 'NOT_INCLUDED') return 'bg-red-50 text-red-700';
+          if (s === 'NOT_DISPLAYED' || s === 'NOT_EXECUTED') return 'bg-slate-100 text-slate-600';
+          if (s === 'LOCKED') return 'bg-orange-50 text-orange-700';
+          if (s === 'READ_ONLY_INFO') return 'bg-blue-50 text-blue-600';
+          return 'bg-gray-100 text-gray-600';
+        };
+        return (
+          <div className={`mb-6 rounded-lg border p-4 ${borderColor}`}>
+            <div className="mb-3 flex items-center gap-2">
+              <ShieldAlert className={`w-5 h-5 flex-shrink-0 ${iconColor}`} />
+              <h3 className="font-semibold text-slate-800 text-sm">
+                {c280.panelTitle ?? 'Basic Product Data Summary Review Approval Packet (Task 280)'}
+              </h3>
+              <span className="ml-auto text-xs px-2 py-0.5 rounded font-mono bg-slate-100 text-slate-700">
+                {c280.status}
+              </span>
+            </div>
+            <p className="mb-3 text-xs text-slate-700">{c280.description}</p>
+
+            {/* 승인 요청 패킷 상태 */}
+            <div className="mb-3 rounded border border-slate-200 bg-white/60 p-3 text-xs space-y-1">
+              <div>readOnlyProductDataCompletenessCertificationStatus: <span className="font-mono text-slate-700">{c280.readOnlyProductDataCompletenessCertificationStatus}</span></div>
+              <div>basicProductDataSummaryReviewApprovalPacketStatus: <span className={`font-mono ${statusColor}`}>{c280.basicProductDataSummaryReviewApprovalPacketStatus}</span></div>
+              <div>isBasicProductDataSummaryReviewApprovalRequired: <span className="text-orange-700 font-bold">{String(c280.isBasicProductDataSummaryReviewApprovalRequired)}</span></div>
+              <div>isBasicProductDataSummaryReviewApprovalGranted: <span className="text-slate-500">{String(c280.isBasicProductDataSummaryReviewApprovalGranted)}</span></div>
+            </div>
+
+            {/* 사용자 승인 문구 안내 */}
+            {c280.userApprovalPhraseGuide && (
+              <div className="mb-3 rounded border border-yellow-200 bg-yellow-50/40 p-3 text-xs">
+                <div className="mb-1 font-semibold text-yellow-800">다음 단계(Task 281) 진행을 위한 사용자 승인 문구 안내</div>
+                <div className="font-mono text-yellow-900 whitespace-pre-wrap">{c280.userApprovalPhraseGuide}</div>
+              </div>
+            )}
+
+            {/* packetItems */}
+            <div className="mb-3">
+              <div className="mb-1 text-xs font-semibold text-slate-600">패킷 항목</div>
+              <div className="space-y-1">
+                {Array.isArray(c280.packetItems) && c280.packetItems.map((item: any, idx: number) => (
+                  <div key={idx} className="flex items-start gap-2 text-[11px]">
+                    <span className={`shrink-0 rounded px-1 py-0.5 font-mono text-[10px] ${itemColor(item.status)}`}>{item.status}</span>
+                    <span className="text-slate-600">{item.packetItem}: {item.meaning}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* 안전 플래그 footer */}
+            <div className="mt-2 text-[10px] text-gray-400 font-mono space-y-0.5">
+              <div>isTokenReissuedInThisTask: {String(c280.isTokenReissuedInThisTask)} | isProductLookupApiCalledInThisTask: {String(c280.isProductLookupApiCalledInThisTask)} | isNaverApiCalledInThisTask: {String(c280.isNaverApiCalledInThisTask)}</div>
+              <div>isRawProductApiResponseIncluded: {String(c280.isRawProductApiResponseIncluded)} | isSalePriceRawValueIncluded: {String(c280.isSalePriceRawValueIncluded)} | isDbWriteExecuted: {String(c280.isDbWriteExecuted)}</div>
+              <div>isBasicProductDataSummaryReviewExecutedInThisTask: {String(c280.isBasicProductDataSummaryReviewExecutedInThisTask)} | isExecutionAllowed: {String(c280.isExecutionAllowed)} | hasSubmitAction: {String(c280.hasSubmitAction)}</div>
             </div>
           </div>
         );
