@@ -3914,6 +3914,7 @@ type DraftBatchJob = {
   naverReadOnlyOptionAdditionalStructureExpansionDesignBlueprintOutcomeCertificationView?: any;
   naverReadOnlyDesignFinalizationApprovalPacketView?: any;
   naverReadOnlyDesignFinalizationCandidateView?: any;
+  naverReadOnlyDesignFinalizationCandidateSafetyAuditSealView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -36360,6 +36361,225 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 isProductUpdateApiCalled: {String(c293.isProductUpdateApiCalled)} |
                 isPriceOrStockChanged: {String(c293.isPriceOrStockChanged)} |
                 isDbWriteExecuted: {String(c293.isDbWriteExecuted)}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 294: Read-Only Design Finalization Candidate Safety Audit Seal ── */}
+      {(() => {
+        const c294 = (job as any).naverReadOnlyDesignFinalizationCandidateSafetyAuditSealView;
+        if (!c294) return null;
+        const isComplete =
+          c294.readOnlyDesignFinalizationCandidateStatus ===
+          'FINALIZATION_CANDIDATE_READY_FOR_COMPLETE_BLUEPRINT';
+        const isPartial =
+          c294.readOnlyDesignFinalizationCandidateStatus ===
+          'FINALIZATION_CANDIDATE_READY_WITH_MISSING_FIELD_NOTICE';
+        const isBlocked = !isComplete && !isPartial;
+        const borderColor = isComplete
+          ? 'border-teal-300 bg-teal-50/20'
+          : isPartial
+            ? 'border-amber-200 bg-amber-50/20'
+            : 'border-rose-200 bg-rose-50/20';
+        const iconColor = isComplete
+          ? 'text-teal-600'
+          : isPartial
+            ? 'text-amber-500'
+            : 'text-rose-500';
+        const statusColor = isComplete
+          ? 'text-teal-700 font-bold'
+          : isPartial
+            ? 'text-amber-700 font-bold'
+            : 'text-rose-700 font-bold';
+        const auditItemColor = (s: string) => {
+          if (
+            [
+              'FINALIZATION_CANDIDATE_CONFIRMED',
+              'USER_APPROVAL_CONFIRMED_FOR_TASK_293',
+              'APPROVAL_PACKET_CONFIRMED',
+              'BLUEPRINT_OUTCOME_CERTIFICATION_CONFIRMED',
+              'BLUEPRINT_SAFETY_AUDIT_SEAL_CONFIRMED',
+              'DESIGN_BLUEPRINT_CONFIRMED',
+              'CAPTURE_RESULT_CONFIRMED',
+            ].includes(s)
+          ) {
+            return 'bg-slate-100 text-slate-700';
+          }
+          if (s === 'FINALIZATION_CANDIDATE_STATUS_RECORDED') {
+            return isComplete
+              ? 'bg-teal-100 text-teal-800'
+              : isPartial
+                ? 'bg-amber-100 text-amber-800'
+                : 'bg-rose-100 text-rose-800';
+          }
+          if (
+            [
+              'CANDIDATE_READY_IF_COMPLETE_BLUEPRINT',
+              'CANDIDATE_READY_WITH_MISSING_FIELD_NOTICE',
+            ].includes(s)
+          ) {
+            return isComplete || isPartial
+              ? 'bg-blue-50 text-blue-700'
+              : 'bg-slate-100 text-slate-600';
+          }
+          if (s === 'CANDIDATE_BLOCKED_CONFIRMED') {
+            return isBlocked
+              ? 'bg-rose-100 text-rose-800'
+              : 'bg-slate-100 text-slate-600';
+          }
+          if (
+            [
+              'NOT_FINALIZED',
+              'NOT_APPROVED_FOR_EXECUTION',
+              'NOT_APPROVED_FOR_PRODUCT_CHANGE',
+            ].includes(s)
+          ) {
+            return 'bg-violet-50 text-violet-700';
+          }
+          if (['NOT_STORED', 'NOT_COPIED_FOR_EXECUTION'].includes(s)) {
+            return 'bg-red-50 text-red-700';
+          }
+          if (
+            [
+              'CAPTURED_DATA_ONLY_CONFIRMED',
+              'SUMMARY_REVIEW_ONLY_CONFIRMED',
+            ].includes(s)
+          ) {
+            return 'bg-blue-50 text-blue-700';
+          }
+          if (s === 'NOT_INFERRED') return 'bg-amber-50 text-amber-700';
+          if (s === 'NOT_INCLUDED') return 'bg-red-50 text-red-700';
+          if (s === 'NOT_DISPLAYED' || s === 'NOT_EXECUTED') {
+            return 'bg-slate-100 text-slate-600';
+          }
+          if (s === 'LOCKED') return 'bg-rose-50 text-rose-700';
+          if (s === 'PENDING_SEPARATE_APPROVAL') {
+            return 'bg-orange-100 text-orange-800';
+          }
+          if (s === 'READ_ONLY_INFO') return 'bg-blue-50 text-blue-600';
+          return 'bg-gray-100 text-gray-600';
+        };
+        return (
+          <div className={`mb-6 rounded-lg border p-4 ${borderColor}`}>
+            <div className="mb-3 flex items-center gap-2">
+              <ShieldCheck className={`h-5 w-5 flex-shrink-0 ${iconColor}`} />
+              <h3 className="text-sm font-semibold text-slate-800">
+                {c294.panelTitle ??
+                  'Task 294 - Read-Only Design Finalization Candidate Safety Audit Seal'}
+              </h3>
+              <span className="ml-auto rounded bg-slate-100 px-2 py-0.5 text-xs font-mono text-slate-700">
+                {c294.status}
+              </span>
+            </div>
+            <p className="mb-3 text-xs text-slate-700">{c294.description}</p>
+
+            <div className="mb-3 rounded border border-slate-200 bg-white/60 p-3 text-xs space-y-1">
+              <div>
+                readOnlyDesignFinalizationCandidateStatus:{' '}
+                <span className={`font-mono ${statusColor}`}>
+                  {c294.readOnlyDesignFinalizationCandidateStatus}
+                </span>
+              </div>
+              <div>
+                isFinalizationCandidateConfirmed:{' '}
+                <span className="font-semibold text-emerald-700">
+                  {String(c294.isFinalizationCandidateConfirmed)}
+                </span>{' '}
+                | isUserApprovalConfirmedForTask293:{' '}
+                <span className="font-semibold text-emerald-700">
+                  {String(c294.isUserApprovalConfirmedForTask293)}
+                </span>
+              </div>
+              <div>
+                isReadOnlyDesignFinalizationCandidateDisplayed:{' '}
+                <span className="font-semibold text-slate-700">
+                  {String(c294.isReadOnlyDesignFinalizationCandidateDisplayed)}
+                </span>
+              </div>
+              <div className="text-slate-700">{c294.safetyAuditSummary}</div>
+              {c294.blockingReason && (
+                <div>
+                  blockingReason:{' '}
+                  <span className="font-semibold text-rose-700">
+                    {c294.blockingReason}
+                  </span>
+                </div>
+              )}
+              {isComplete && (
+                <div className="font-semibold text-teal-700">
+                  COMPLETE/PARTIAL에서만 후보가 표시되었음을 감사 봉인합니다.
+                </div>
+              )}
+              {isPartial && (
+                <div className="font-semibold text-amber-700">
+                  missing field notice를 유지한 채 후보가 표시되었음을 감사 봉인합니다.
+                </div>
+              )}
+              {isBlocked && (
+                <div className="font-semibold text-rose-700">
+                  BLOCKED 상태에서는 후보가 표시되지 않았음을 감사 봉인합니다.
+                </div>
+              )}
+            </div>
+
+            <div className="mb-3 rounded border border-blue-200 bg-blue-50/30 p-3 text-xs text-slate-700">
+              <div className="mb-1 font-semibold text-blue-800">감사 봉인 안내</div>
+              <div>
+                Task 294는 Task 293 read-only 설계 확정 후보 표시 결과의 안전성을 감사 봉인하는 단계입니다.
+              </div>
+              <div>
+                Task 293은 설계 확정 후보 표시 전용이며, 실행 승인이나 상품 변경 승인이 아닙니다.
+              </div>
+              <div>
+                이번 Task에서는 Token 재발급, 상품 조회 API 재호출, 상품 수정 API 호출, 가격/재고 변경, DB write를 수행하지 않습니다.
+              </div>
+            </div>
+
+            <div className="mb-3">
+              <div className="mb-1 text-xs font-semibold text-slate-600">감사 항목</div>
+              <div className="space-y-1">
+                {Array.isArray(c294.auditItems) &&
+                  c294.auditItems.map((item: any, idx: number) => (
+                    <div key={idx} className="flex items-start gap-2 text-[11px]">
+                      <span
+                        className={`shrink-0 rounded px-1 py-0.5 font-mono text-[10px] ${auditItemColor(item.status)}`}
+                      >
+                        {item.status}
+                      </span>
+                      <span className="text-slate-600">
+                        {item.auditItem}: {item.meaning}
+                      </span>
+                    </div>
+                  ))}
+              </div>
+            </div>
+
+            <div className="mt-2 space-y-0.5 font-mono text-[10px] text-gray-400">
+              <div>
+                isNaverReadOnlyDesignFinalizationCandidateSafetyAuditSealed:{' '}
+                {String(c294.isNaverReadOnlyDesignFinalizationCandidateSafetyAuditSealed)} |
+                isDesignBlueprintFinalized:{' '}
+                {String(c294.isDesignBlueprintFinalized)} |
+                isExecutionApprovalGranted:{' '}
+                {String(c294.isExecutionApprovalGranted)}
+              </div>
+              <div>
+                isNewApiCallExecutedInThisTask:{' '}
+                {String(c294.isNewApiCallExecutedInThisTask)} |
+                isProductUpdateApiCalled:{' '}
+                {String(c294.isProductUpdateApiCalled)} |
+                isDbWriteExecuted:{' '}
+                {String(c294.isDbWriteExecuted)}
+              </div>
+              <div>
+                isDesignFinalizationCandidateStoredInDb:{' '}
+                {String(c294.isDesignFinalizationCandidateStoredInDb)} |
+                isDesignFinalizationCandidateCopiedForExecution:{' '}
+                {String(c294.isDesignFinalizationCandidateCopiedForExecution)} |
+                isNextStepSeparateApprovalRequired:{' '}
+                {String(c294.isNextStepSeparateApprovalRequired)}
               </div>
             </div>
           </div>
