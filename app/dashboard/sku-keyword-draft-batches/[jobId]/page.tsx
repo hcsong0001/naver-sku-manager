@@ -3938,6 +3938,7 @@ type DraftBatchJob = {
   naverReadOnlyFinalExecutionApprovalCandidateFinalSummaryView?: any;
   naverReadOnlyFinalExecutionApprovalCandidateFinalSummaryOutcomeCertificationView?: any;
   naverReadOnlyFinalExecutionApprovalCandidateFinalSummarySafetyAuditSealView?: any;
+  naverReadOnlyFinalExecutionApprovalCandidateFinalSummarySafetyAuditSealOutcomeCertificationView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -40740,6 +40741,180 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             {c317.requiresSeparateTask318Approval && (
               <p className="text-xs text-cyan-700 border-t border-cyan-200 pt-2">
                 {c317.nextTaskApprovalPhrase}
+              </p>
+            )}
+          </div>
+        );
+      })()}
+
+      {/* ── Task 318: Read-Only Candidate Final Summary Safety Audit Seal Outcome Certification ── */}
+      {job.naverReadOnlyFinalExecutionApprovalCandidateFinalSummarySafetyAuditSealOutcomeCertificationView && (() => {
+        const c318 = job.naverReadOnlyFinalExecutionApprovalCandidateFinalSummarySafetyAuditSealOutcomeCertificationView as {
+          taskId: number;
+          panelTitle: string;
+          description: string;
+          sourceCandidateFinalSummarySafetyAuditSealStatus: string;
+          candidateFinalSummarySafetyAuditSealOutcomeCertificationStatus: string;
+          outcomeCertificationItems: Array<{
+            taskId: number;
+            taskName: string;
+            sourceSafetySealStatus: string;
+            outcomeCertificationStatus: 'READY' | 'PARTIAL_READY' | 'BLOCKED' | 'EMPTY' | 'LOCKED';
+            displayOrder: number;
+            message: string;
+            isDisplayOnly: boolean;
+            actualExecutionBlocked: boolean;
+            mutationBlocked: boolean;
+            apiCallBlocked: boolean;
+          }>;
+          outcomeCertificationSummaryCards: Array<{
+            label: string;
+            count: number;
+            cardType: 'READY' | 'PARTIAL_READY' | 'BLOCKED' | 'EMPTY' | 'LOCKED';
+          }>;
+          outcomeCertifiedReady: boolean;
+          outcomeCertifiedPartialReady: boolean;
+          outcomeCertificationBlocked: boolean;
+          outcomeCertificationEmpty: boolean;
+          certifiedReadyFlowCount: number;
+          certifiedPartialReadyFlowCount: number;
+          certifiedBlockedFlowCount: number;
+          certifiedEmptyFlowCount: number;
+          certifiedLockedFlowCount: number;
+          totalCertifiedFlowCount: number;
+          candidateReadOnlyFlowStillCompleted: boolean;
+          candidateFlowStillDisplayOnly: boolean;
+          safeDisplayFieldsStillCertified: boolean;
+          excludedFieldsStillCertified: boolean;
+          executionStillLocked: boolean;
+          mutationStillBlocked: boolean;
+          apiCallStillBlocked: boolean;
+          requiresSeparateTask319Approval: boolean;
+          nextTaskApprovalPhrase: string;
+        };
+        const getFlowTone = (status: 'READY' | 'PARTIAL_READY' | 'BLOCKED' | 'EMPTY' | 'LOCKED') =>
+          status === 'READY'
+            ? 'bg-green-100 text-green-700 border-green-200'
+            : status === 'PARTIAL_READY'
+              ? 'bg-amber-100 text-amber-700 border-amber-200'
+              : status === 'BLOCKED'
+                ? 'bg-red-100 text-red-700 border-red-200'
+                : status === 'EMPTY'
+                  ? 'bg-slate-100 text-slate-600 border-slate-200'
+                  : 'bg-violet-100 text-violet-700 border-violet-200';
+
+        return (
+          <div className="mb-4 rounded-lg border border-sky-300 bg-sky-50 p-4 space-y-3">
+            <div className="flex items-center gap-2">
+              <FileCheck className="w-5 h-5 text-sky-600" />
+              <h3 className="font-semibold text-sky-800">
+                Task {c318.taskId}: {c318.panelTitle}
+              </h3>
+              <span className={`ml-auto text-xs px-2 py-0.5 rounded-full font-medium ${
+                c318.outcomeCertifiedReady
+                  ? 'bg-green-100 text-green-700'
+                  : c318.outcomeCertifiedPartialReady
+                    ? 'bg-amber-100 text-amber-700'
+                    : c318.outcomeCertificationBlocked
+                      ? 'bg-red-100 text-red-700'
+                      : 'bg-slate-100 text-slate-600'
+              }`}>
+                {c318.candidateFinalSummarySafetyAuditSealOutcomeCertificationStatus.replace(
+                  'NAVER_READ_ONLY_FINAL_EXECUTION_APPROVAL_CANDIDATE_FINAL_SUMMARY_SAFETY_AUDIT_SEAL_',
+                  '',
+                )}
+              </span>
+            </div>
+            <p className="text-sm text-sky-800">{c318.description}</p>
+            <div className="rounded border border-sky-200 bg-sky-100 px-3 py-2 text-xs text-sky-800 flex items-start gap-1">
+              <Lock className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+              <span>
+                이 패널은 후보 최종 요약 Safety Audit Seal 결과를 read-only로 인증하는 화면입니다. 이 화면은 실제 승인, 실제 실행, 상품 변경 승인이 아닙니다. 가격/재고 raw 값, 실행 payload, raw API response, Token/Auth/Signature/Authorization 값은 계속 표시하지 않습니다. Task 319는 사용자 별도 명시 승인 없이는 진행하지 않습니다.
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
+              <div className="rounded bg-sky-100 p-2 text-center text-sky-800">
+                <div className="text-lg font-bold">{c318.totalCertifiedFlowCount}</div>
+                <div className="text-xs">인증 대상 흐름</div>
+              </div>
+              {c318.outcomeCertificationSummaryCards.map((card) => (
+                <div
+                  key={card.cardType}
+                  className={`rounded border p-2 text-center ${getFlowTone(card.cardType)}`}
+                >
+                  <div className="text-lg font-bold">{card.count}</div>
+                  <div className="text-xs">{card.label}</div>
+                </div>
+              ))}
+            </div>
+
+            <div className="rounded border border-sky-200 bg-white/70 px-3 py-2 text-xs text-sky-800">
+              <span className="font-medium">Task 317 원본 Safety Audit Seal 상태:</span> {c318.sourceCandidateFinalSummarySafetyAuditSealStatus}
+            </div>
+
+            <div className="flex flex-wrap gap-3 text-xs">
+              <span className={`flex items-center gap-1 ${c318.candidateReadOnlyFlowStillCompleted ? 'text-green-700' : 'text-red-600'}`}>
+                <CheckCircle2 className="w-3.5 h-3.5" /> 후보 read-only 흐름 완료 유지
+              </span>
+              <span className={`flex items-center gap-1 ${c318.candidateFlowStillDisplayOnly ? 'text-green-700' : 'text-red-600'}`}>
+                <CheckCircle2 className="w-3.5 h-3.5" /> display-only 유지
+              </span>
+              <span className={`flex items-center gap-1 ${c318.safeDisplayFieldsStillCertified ? 'text-green-700' : 'text-red-600'}`}>
+                <CheckCircle2 className="w-3.5 h-3.5" /> safeDisplayFields 유지 인증
+              </span>
+              <span className={`flex items-center gap-1 ${c318.excludedFieldsStillCertified ? 'text-green-700' : 'text-red-600'}`}>
+                <CheckCircle2 className="w-3.5 h-3.5" /> excludedFields 유지 인증
+              </span>
+              <span className={`flex items-center gap-1 ${c318.executionStillLocked ? 'text-green-700' : 'text-red-600'}`}>
+                <Lock className="w-3.5 h-3.5" /> 실행 잠금 유지 인증
+              </span>
+              <span className={`flex items-center gap-1 ${c318.mutationStillBlocked ? 'text-green-700' : 'text-red-600'}`}>
+                <Lock className="w-3.5 h-3.5" /> mutation 차단 유지 인증
+              </span>
+              <span className={`flex items-center gap-1 ${c318.apiCallStillBlocked ? 'text-green-700' : 'text-red-600'}`}>
+                <Lock className="w-3.5 h-3.5" /> API 호출 차단 유지 인증
+              </span>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs border-collapse">
+                <thead>
+                  <tr className="bg-sky-100 text-sky-800">
+                    <th className="border border-sky-200 px-2 py-1 text-left">순서</th>
+                    <th className="border border-sky-200 px-2 py-1 text-left">Task</th>
+                    <th className="border border-sky-200 px-2 py-1 text-left">인증 상태</th>
+                    <th className="border border-sky-200 px-2 py-1 text-left">원본 봉인 상태</th>
+                    <th className="border border-sky-200 px-2 py-1 text-left">메시지</th>
+                    <th className="border border-sky-200 px-2 py-1 text-center">실행 잠금</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {c318.outcomeCertificationItems.map((item) => (
+                    <tr key={item.taskId} className="hover:bg-sky-50">
+                      <td className="border border-sky-200 px-2 py-1 text-center text-gray-600">{item.displayOrder}</td>
+                      <td className="border border-sky-200 px-2 py-1 text-gray-700">
+                        Task {item.taskId} - {item.taskName}
+                      </td>
+                      <td className="border border-sky-200 px-2 py-1">
+                        <span className={`inline-flex rounded-full border px-2 py-0.5 text-xs font-medium ${getFlowTone(item.outcomeCertificationStatus)}`}>
+                          {item.outcomeCertificationStatus}
+                        </span>
+                      </td>
+                      <td className="border border-sky-200 px-2 py-1 text-gray-600">{item.sourceSafetySealStatus}</td>
+                      <td className="border border-sky-200 px-2 py-1 text-gray-600">{item.message}</td>
+                      <td className="border border-sky-200 px-2 py-1 text-center">
+                        <Lock className="w-3.5 h-3.5 text-sky-600 mx-auto" />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {c318.requiresSeparateTask319Approval && (
+              <p className="text-xs text-sky-700 border-t border-sky-200 pt-2">
+                {c318.nextTaskApprovalPhrase}
               </p>
             )}
           </div>
