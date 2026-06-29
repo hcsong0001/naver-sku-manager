@@ -252,6 +252,7 @@ import { buildNaverProductLookupApiOneTimeTestUserApprovalRequestPacketView } fr
 import { buildNaverProductLookupLiveTestHttp403TokenIssuanceFailureDiagnosisView } from '@/src/services/sku-keyword-final-approval-execution-naver-product-lookup-live-test-http-403-token-issuance-failure-diagnosis-view.service';
 import { buildNaverTokenIssuanceHttp403CredentialAuthReadOnlyChecklistView } from '@/src/services/sku-keyword-final-approval-execution-naver-token-issuance-http-403-credential-auth-read-only-checklist-view.service';
 import { buildNaverTokenIssuanceRetryOneTimeTestProductLookupResultView } from '@/src/services/sku-keyword-final-approval-execution-naver-token-issuance-retry-one-time-test-product-lookup-result-view.service';
+import { buildNaverProductLookupLiveRetryResultNonMutationAuditSealView } from '@/src/services/sku-keyword-final-approval-execution-naver-product-lookup-live-retry-result-non-mutation-audit-seal-view.service';
 
 // Compute safe DB environment hint from DATABASE_URL without exposing the original value.
 // Returns a classification key, never the actual URL.
@@ -556,6 +557,7 @@ export async function GET(
     const naverTokenIssuanceOneTimeTestResultView = await buildNaverTokenIssuanceOneTimeTestResultView(job);
     const _issuanceTestStatus = naverTokenIssuanceOneTimeTestResultView.issuanceTestStatus ?? 'SUCCESS';
     const _naverProductLookupApiReadinessGateView = buildNaverProductLookupApiReadinessGateView(job, _issuanceTestStatus);
+    const _naverTokenIssuanceRetryOneTimeTestProductLookupResultView = await buildNaverTokenIssuanceRetryOneTimeTestProductLookupResultView(job);
 
     const responseJob = {
       id: job.id,
@@ -1535,7 +1537,10 @@ export async function GET(
       ),
       naverProductLookupLiveTestHttp403TokenIssuanceFailureDiagnosisView: buildNaverProductLookupLiveTestHttp403TokenIssuanceFailureDiagnosisView(null),
       naverTokenIssuanceHttp403CredentialAuthReadOnlyChecklistView: buildNaverTokenIssuanceHttp403CredentialAuthReadOnlyChecklistView(null),
-      naverTokenIssuanceRetryOneTimeTestProductLookupResultView: await buildNaverTokenIssuanceRetryOneTimeTestProductLookupResultView(job),
+      naverTokenIssuanceRetryOneTimeTestProductLookupResultView: _naverTokenIssuanceRetryOneTimeTestProductLookupResultView,
+      naverProductLookupLiveRetryResultNonMutationAuditSealView: buildNaverProductLookupLiveRetryResultNonMutationAuditSealView(
+        _naverTokenIssuanceRetryOneTimeTestProductLookupResultView
+      ),
     };
 
     return NextResponse.json({ ok: true, job: responseJob });

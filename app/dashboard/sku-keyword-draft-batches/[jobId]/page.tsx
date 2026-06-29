@@ -3892,6 +3892,7 @@ type DraftBatchJob = {
   naverProductLookupLiveTestHttp403TokenIssuanceFailureDiagnosisView?: any;
   naverTokenIssuanceHttp403CredentialAuthReadOnlyChecklistView?: any;
   naverTokenIssuanceRetryOneTimeTestProductLookupResultView?: any;
+  naverProductLookupLiveRetryResultNonMutationAuditSealView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -33171,6 +33172,69 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div>isProductUpdateApiCalled: {String(r271.isProductUpdateApiCalled)} | isPriceOrStockChanged: {String(r271.isPriceOrStockChanged)} | isDbWriteExecuted: {String(r271.isDbWriteExecuted)}</div>
               <div>hasWorkerTrigger: {String(r271.hasWorkerTrigger)} | hasQueueTrigger: {String(r271.hasQueueTrigger)} | hasAdapterTrigger: {String(r271.hasAdapterTrigger)}</div>
               <div>isBatchJobResultDisplayOnly: {String(r271.isBatchJobResultDisplayOnly)} | isUserApprovalGrantedForRetry: {String(r271.isUserApprovalGrantedForRetry)}</div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 272: Live 재시도 결과 비수정 감사 봉인 ─────────────────────── */}
+      {(() => {
+        const s272 = (job as any).naverProductLookupLiveRetryResultNonMutationAuditSealView;
+        if (!s272) return null;
+        const itemColor = (status: string) => {
+          if (status === 'LIVE_RETRY_RESULT_CONFIRMED' || status === 'TOKEN_RETRY_STATUS_RECORDED' || status === 'GW_IP_RESOLUTION_STATUS_RECORDED' || status === 'PRODUCT_LOOKUP_RETRY_STATUS_RECORDED') return 'bg-teal-50 text-teal-800';
+          if (status === 'READ_ONLY_LOOKUP_ONLY') return 'bg-blue-50 text-blue-700';
+          if (status === 'NOT_DISPLAYED' || status === 'NOT_RETURNED_TO_CLIENT' || status === 'NOT_STORED_IN_DB' || status === 'NOT_STORED_IN_FILE' || status === 'NOT_LOGGED') return 'bg-slate-100 text-slate-700';
+          if (status === 'NOT_ACCESSED' || status === 'NOT_MODIFIED' || status === 'NOT_EXECUTED') return 'bg-slate-100 text-slate-600';
+          if (status === 'LOCKED') return 'bg-orange-50 text-orange-700';
+          if (status === 'STOPPED_WITHIN_APPROVAL_SCOPE') return 'bg-amber-50 text-amber-700';
+          if (status === 'PENDING_SEPARATE_APPROVAL') return 'bg-yellow-50 text-yellow-700';
+          if (status === 'READ_ONLY_INFO') return 'bg-blue-50 text-blue-600';
+          return 'bg-gray-100 text-gray-600';
+        };
+        const gwColor = s272.isGwIpNotAllowedResolved ? 'text-emerald-600' : 'text-red-600';
+        return (
+          <div className="mb-6 rounded-lg border border-teal-200 bg-teal-50/30 p-4">
+            <div className="mb-3 flex items-center gap-2">
+              <ShieldAlert className="w-5 h-5 text-teal-600 flex-shrink-0" />
+              <h3 className="font-semibold text-teal-800 text-sm">
+                {s272.panelTitle ?? 'Live 재시도 결과 비수정 감사 봉인 (Task 272)'}
+              </h3>
+              <span className="ml-auto text-xs px-2 py-0.5 rounded font-mono bg-teal-100 text-teal-800">
+                {s272.status}
+              </span>
+            </div>
+            <p className="mb-3 text-xs text-teal-900/80">{s272.description}</p>
+
+            {/* Task 271 결과 요약 */}
+            <div className="mb-3 rounded border border-teal-200 bg-white/60 p-3">
+              <div className="mb-1 text-xs font-semibold text-slate-600">Task 271 결과 참조</div>
+              <div className="flex flex-wrap gap-3 text-xs">
+                <span>tokenRetryStatus: <span className="font-mono font-bold">{s272.tokenRetryStatus}</span></span>
+                <span>productLookupRetryStatus: <span className="font-mono font-bold">{s272.productLookupRetryStatus}</span></span>
+                <span>isGwIpNotAllowedResolved: <span className={`font-mono font-bold ${gwColor}`}>{String(s272.isGwIpNotAllowedResolved)}</span></span>
+              </div>
+            </div>
+
+            {/* auditItems */}
+            <div className="mb-3">
+              <div className="mb-1 text-xs font-semibold text-slate-600">감사 봉인 항목</div>
+              <div className="space-y-1">
+                {Array.isArray(s272.auditItems) && s272.auditItems.map((item: any, idx: number) => (
+                  <div key={idx} className="flex items-start gap-2 text-[11px]">
+                    <span className={`shrink-0 rounded px-1 py-0.5 font-mono text-[10px] ${itemColor(item.status)}`}>{item.status}</span>
+                    <span className="text-slate-600">{item.auditItem}: {item.meaning}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* 안전 플래그 footer */}
+            <div className="mt-2 text-[10px] text-gray-400 font-mono space-y-0.5">
+              <div>isTokenReissuedInThisTask: {String(s272.isTokenReissuedInThisTask)} | isProductLookupApiCalledInThisTask: {String(s272.isProductLookupApiCalledInThisTask)} | isNaverApiCalledInThisTask: {String(s272.isNaverApiCalledInThisTask)}</div>
+              <div>isTokenValueDisplayed: {String(s272.isTokenValueDisplayed)} | isTokenStoredInDb: {String(s272.isTokenStoredInDb)} | isAuthKeyValueDisplayed: {String(s272.isAuthKeyValueDisplayed)}</div>
+              <div>isProductUpdateApiCalled: {String(s272.isProductUpdateApiCalled)} | isPriceOrStockChanged: {String(s272.isPriceOrStockChanged)} | isDbWriteExecuted: {String(s272.isDbWriteExecuted)}</div>
+              <div>isAdditionalCallStoppedWithinApprovalScope: {String(s272.isAdditionalCallStoppedWithinApprovalScope)} | isNextStepSeparateApprovalRequired: {String(s272.isNextStepSeparateApprovalRequired)} | isNextStepSeparateApprovalGranted: {String(s272.isNextStepSeparateApprovalGranted)}</div>
             </div>
           </div>
         );
