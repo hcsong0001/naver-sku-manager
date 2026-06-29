@@ -3924,6 +3924,7 @@ type DraftBatchJob = {
   naverReadOnlyExecutionReadinessReviewView?: any;
   naverReadOnlyExecutionReadinessReviewSafetyAuditSealView?: any;
   naverReadOnlyExecutionReadinessReviewOutcomeCertificationView?: any;
+  naverReadOnlyFinalExecutionApprovalPacketView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -38327,6 +38328,217 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 isNewApiCallExecutedInThisTask: {String(c303.isNewApiCallExecutedInThisTask)} |
                 isReadOnlyExecutionReadinessReviewGranted:{' '}
                 {String(c303.isReadOnlyExecutionReadinessReviewGranted)}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 304: Read-Only Final Execution Approval Packet ───────────────── */}
+      {(() => {
+        const c304 = (job as any).naverReadOnlyFinalExecutionApprovalPacketView;
+        if (!c304) return null;
+        const isComplete =
+          c304.isReadOnlyFinalExecutionApprovalPacketReadyForCompleteExecutionReadinessReview;
+        const isPartial =
+          c304.isReadOnlyFinalExecutionApprovalPacketReadyWithMissingFieldNotice;
+        const isBlocked =
+          c304.isReadOnlyFinalExecutionApprovalPacketBlockedByGwIp ||
+          c304.isReadOnlyFinalExecutionApprovalPacketBlockedByToken ||
+          c304.isReadOnlyFinalExecutionApprovalPacketBlockedByEnv ||
+          c304.isReadOnlyFinalExecutionApprovalPacketBlockedByChannel ||
+          c304.isReadOnlyFinalExecutionApprovalPacketBlockedByProductLookup;
+        const borderColor = isComplete
+          ? 'border-sky-300 bg-sky-50/20'
+          : isPartial
+          ? 'border-amber-300 bg-amber-50/20'
+          : 'border-rose-300 bg-rose-50/20';
+        const iconColor = isComplete
+          ? 'text-sky-600'
+          : isPartial
+          ? 'text-amber-600'
+          : 'text-rose-600';
+        const statusColor = isComplete
+          ? 'text-sky-700'
+          : isPartial
+          ? 'text-amber-700'
+          : 'text-rose-700';
+        const itemColor = (s: string) => {
+          if (
+            s === 'FINAL_EXECUTION_APPROVAL_PACKET_READY' ||
+            s === 'EXECUTION_READINESS_REVIEW_OUTCOME_CERTIFICATION_CONFIRMED' ||
+            s === 'EXECUTION_READINESS_REVIEW_SAFETY_AUDIT_SEAL_CONFIRMED' ||
+            s === 'EXECUTION_READINESS_REVIEW_CONFIRMED' ||
+            s === 'EXECUTION_READINESS_APPROVAL_PACKET_CONFIRMED' ||
+            s === 'EXECUTION_APPROVAL_REVIEW_OUTCOME_CERTIFICATION_CONFIRMED' ||
+            s === 'EXECUTION_APPROVAL_REVIEW_SAFETY_AUDIT_SEAL_CONFIRMED' ||
+            s === 'EXECUTION_APPROVAL_REVIEW_CONFIRMED' ||
+            s === 'EXECUTION_APPROVAL_PACKET_CONFIRMED' ||
+            s === 'FINALIZATION_CANDIDATE_CONFIRMED' ||
+            s === 'DESIGN_BLUEPRINT_CONFIRMED' ||
+            s === 'CAPTURE_RESULT_CONFIRMED' ||
+            s === 'FINAL_EXECUTION_APPROVAL_PACKET_STATUS_RECORDED' ||
+            s === 'READY_FOR_FINAL_EXECUTION_APPROVAL_REVIEW_IF_COMPLETE' ||
+            s === 'READY_WITH_MISSING_FIELD_NOTICE' ||
+            s === 'CAPTURED_DATA_ONLY_CONFIRMED' ||
+            s === 'SUMMARY_REVIEW_ONLY_CONFIRMED' ||
+            s === 'READ_ONLY_INFO'
+          )
+            return 'bg-sky-100 text-sky-800';
+          if (
+            s === 'BLOCKED_RECHECK_REQUIRED' ||
+            s === 'BLOCKED_RECHECK_IP_ALLOWLIST_REQUIRED' ||
+            s === 'BLOCKED_RECHECK_AUTH_REQUIRED' ||
+            s === 'BLOCKED_RECHECK_ENV_REQUIRED' ||
+            s === 'BLOCKED_RECHECK_CHANNEL_PRODUCT_NO_REQUIRED' ||
+            s === 'BLOCKED_RECHECK_PRODUCT_ACCESS_REQUIRED'
+          )
+            return 'bg-rose-100 text-rose-800';
+          if (
+            s === 'PENDING_USER_APPROVAL' ||
+            s === 'NOT_APPROVED' ||
+            s === 'NOT_EXECUTED' ||
+            s === 'NOT_CONNECTED' ||
+            s === 'LOCKED' ||
+            s === 'NOT_APPROVED_FOR_PRODUCT_CHANGE' ||
+            s === 'NOT_STORED' ||
+            s === 'NOT_COPIED_FOR_EXECUTION' ||
+            s === 'NOT_INFERRED' ||
+            s === 'NOT_INCLUDED' ||
+            s === 'NOT_DISPLAYED'
+          )
+            return 'bg-slate-100 text-slate-600';
+          return 'bg-gray-100 text-gray-600';
+        };
+        return (
+          <div className={`mb-4 rounded-lg border p-4 ${borderColor}`}>
+            <div className="mb-3 flex items-center gap-2">
+              <FileBox className={`h-5 w-5 flex-shrink-0 ${iconColor}`} />
+              <h3 className="text-sm font-semibold text-slate-800">
+                {c304.panelTitle ?? 'Task 304 - Read-Only Final Execution Approval Packet'}
+              </h3>
+              <span className="ml-auto rounded bg-slate-100 px-2 py-0.5 text-xs font-mono text-slate-700">
+                {c304.status}
+              </span>
+            </div>
+            <p className="mb-3 text-xs text-slate-700">{c304.description}</p>
+
+            <div className="mb-3 rounded border border-slate-200 bg-white/60 p-3 text-xs space-y-1">
+              <div>
+                readOnlyExecutionReadinessReviewOutcomeCertificationStatus:{' '}
+                <span className="font-mono text-slate-700">
+                  {c304.readOnlyExecutionReadinessReviewOutcomeCertificationStatus}
+                </span>
+              </div>
+              <div>
+                readOnlyFinalExecutionApprovalPacketStatus:{' '}
+                <span className={`font-mono ${statusColor}`}>
+                  {c304.readOnlyFinalExecutionApprovalPacketStatus}
+                </span>
+              </div>
+              <div>
+                isReadOnlyFinalExecutionApprovalReviewRequired:{' '}
+                <span className="font-semibold text-sky-700">
+                  {String(c304.isReadOnlyFinalExecutionApprovalReviewRequired)}
+                </span>{' '}
+                | isUserApprovalPhraseReceivedForReadOnlyFinalExecutionApprovalReview:{' '}
+                <span className="font-semibold text-slate-700">
+                  {String(
+                    c304.isUserApprovalPhraseReceivedForReadOnlyFinalExecutionApprovalReview
+                  )}
+                </span>
+              </div>
+              <div className="text-slate-700">{c304.packetSummary}</div>
+              {c304.blockingReason && (
+                <div>
+                  blockingReason:{' '}
+                  <span className="font-semibold text-rose-700">{c304.blockingReason}</span>
+                </div>
+              )}
+              {isComplete && (
+                <div className="rounded bg-sky-100 px-2 py-1 text-sky-800">
+                  COMPLETE: read-only 최종 실행 승인 검토 패킷 READY 상태입니다.
+                </div>
+              )}
+              {isPartial && (
+                <div className="rounded bg-amber-100 px-2 py-1 text-amber-800">
+                  PARTIAL: 누락 필드 안내 포함 read-only 최종 실행 승인 검토 패킷 READY 상태입니다.
+                </div>
+              )}
+              {isBlocked && (
+                <div className="rounded bg-rose-100 px-2 py-1 text-rose-800">
+                  BLOCKED: 원인별 보정이 필요합니다.
+                </div>
+              )}
+            </div>
+
+            <div className="mb-3 rounded border border-blue-200 bg-blue-50/30 p-3 text-xs text-slate-700">
+              <div className="mb-1 font-semibold text-blue-800">패킷 안내</div>
+              <div>
+                Task 304는 read-only 최종 실행 승인 검토 단계로 진입하기 위한 승인 요청 패킷입니다.
+              </div>
+              <div>
+                이 패킷은 실제 최종 실행 승인, 실제 실행 승인, 실제 실행, 실행 버튼 추가, 상품 변경 승인이
+                아닙니다.
+              </div>
+              <div>
+                이번 Task에서는 Token 재발급, 상품 조회 API 재호출, 상품 수정 API 호출, 가격/재고 변경, DB
+                write, Worker 실행, Queue enqueue, Adapter 연결을 수행하지 않습니다.
+              </div>
+            </div>
+
+            <div className="mb-3 rounded border border-violet-200 bg-violet-50/30 p-3 text-xs text-slate-700">
+              <div className="mb-1 font-semibold text-violet-800">Task 305 승인 문구 안내</div>
+              <div className="mb-1">
+                실제 read-only 최종 실행 승인 검토 단계를 진행하려면 사용자가 아래 문구로 별도 승인해야
+                합니다.
+              </div>
+              <div className="whitespace-pre-wrap break-words font-mono text-[11px] text-violet-900">
+                {c304.requiredUserApprovalPhrase}
+              </div>
+              <div className="mt-2 text-slate-600">
+                이번 Task에서는 위 문구를 안내만 하고 승인으로 처리하지 않습니다.
+              </div>
+            </div>
+
+            <div className="mb-3">
+              <div className="mb-1 text-xs font-semibold text-slate-600">패킷 항목</div>
+              <div className="space-y-1">
+                {Array.isArray(c304.packetItems) &&
+                  c304.packetItems.map((item: any, idx: number) => (
+                    <div key={idx} className="flex items-start gap-2 text-[11px]">
+                      <span
+                        className={`shrink-0 rounded px-1 py-0.5 font-mono text-[10px] ${itemColor(
+                          item.status
+                        )}`}
+                      >
+                        {item.status}
+                      </span>
+                      <span className="text-slate-600">
+                        [{item.packetItem}] {item.meaning}
+                      </span>
+                    </div>
+                  ))}
+              </div>
+            </div>
+
+            <div className="mt-2 space-y-0.5 font-mono text-[10px] text-gray-400">
+              <div>
+                isNaverReadOnlyFinalExecutionApprovalPacketReady:{' '}
+                {String(c304.isNaverReadOnlyFinalExecutionApprovalPacketReady)} |
+                isReadOnlyFinalExecutionApprovalReviewExecutedInThisTask:{' '}
+                {String(c304.isReadOnlyFinalExecutionApprovalReviewExecutedInThisTask)} |
+                isExecutionApprovalGranted: {String(c304.isExecutionApprovalGranted)}
+              </div>
+              <div>
+                hasExecutionButton: {String(c304.hasExecutionButton)} | isWorkerExecutedInThisTask:{' '}
+                {String(c304.isWorkerExecutedInThisTask)} | isDbWriteExecuted:{' '}
+                {String(c304.isDbWriteExecuted)}
+              </div>
+              <div>
+                isNewApiCallExecutedInThisTask: {String(c304.isNewApiCallExecutedInThisTask)} |
+                isFinalExecutionApprovalGrantedInThisTask:{' '}
+                {String(c304.isFinalExecutionApprovalGrantedInThisTask)}
               </div>
             </div>
           </div>
