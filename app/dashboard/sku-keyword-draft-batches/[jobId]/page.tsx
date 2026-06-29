@@ -3943,6 +3943,7 @@ type DraftBatchJob = {
   tmsReadOnlyDeploymentDomainPreparationStatusCheckView?: any;
   tmsReadOnlyDeploymentTargetEnvironmentSelectionComparisonView?: any;
   tmsReadOnlyVpsDeploymentCandidateDetailReviewView?: any;
+  tmsReadOnlyVpsDeploymentCandidateDetailReviewOutcomeCertificationView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -41735,6 +41736,203 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             {c322.requiresSeparateTask323Approval && (
               <p className="text-xs text-cyan-800 border-t border-cyan-200 pt-2">
                 {c322.nextTaskApprovalPhrase}
+              </p>
+            )}
+          </div>
+        );
+      })()}
+
+      {/* ── Task 323: Read-Only VPS Deployment Candidate Detail Review Outcome Certification ── */}
+      {job.tmsReadOnlyVpsDeploymentCandidateDetailReviewOutcomeCertificationView && (() => {
+        const c323 = job.tmsReadOnlyVpsDeploymentCandidateDetailReviewOutcomeCertificationView as {
+          taskId: number;
+          panelTitle: string;
+          description: string;
+          sourceVpsDeploymentCandidateDetailReviewStatus: string;
+          vpsDeploymentCandidateDetailReviewOutcomeCertificationStatus: string;
+          recommendedEnvironmentKey: string;
+          recommendedEnvironmentLabel: string;
+          vpsCandidateCertifiedForReview: boolean;
+          outcomeCertificationSummaryCards: Array<{
+            label: string;
+            value: string;
+            tone: 'positive' | 'neutral' | 'warning';
+          }>;
+          requirementOutcomeCertificationItems: Array<{
+            certificationId: string;
+            label: string;
+            certificationStatus: 'READY' | 'PARTIAL_READY' | 'BLOCKED' | 'NOT_STARTED';
+            message: string;
+          }>;
+          costOutcomeCertificationItems: Array<{
+            certificationId: string;
+            label: string;
+            certificationStatus: 'READY' | 'PARTIAL_READY' | 'BLOCKED' | 'NOT_STARTED';
+            message: string;
+          }>;
+          securityOutcomeCertificationItems: Array<{
+            certificationId: string;
+            label: string;
+            certificationStatus: 'READY' | 'PARTIAL_READY' | 'BLOCKED' | 'NOT_STARTED';
+            message: string;
+          }>;
+          backupOutcomeCertificationItems: Array<{
+            certificationId: string;
+            label: string;
+            certificationStatus: 'READY' | 'PARTIAL_READY' | 'BLOCKED' | 'NOT_STARTED';
+            message: string;
+          }>;
+          domainHttpsOutcomeCertificationItems: Array<{
+            certificationId: string;
+            label: string;
+            certificationStatus: 'READY' | 'PARTIAL_READY' | 'BLOCKED' | 'NOT_STARTED';
+            message: string;
+          }>;
+          operationRiskOutcomeCertificationItems: Array<{
+            certificationId: string;
+            label: string;
+            certificationStatus: 'READY' | 'PARTIAL_READY' | 'BLOCKED' | 'NOT_STARTED';
+            message: string;
+          }>;
+          actualVpsServerCreated: boolean;
+          actualVpsConfigChanged: boolean;
+          actualDeploymentStarted: boolean;
+          actualDomainConnected: boolean;
+          deploymentPreparationStillReadOnly: boolean;
+          domainConnectionStillReadOnly: boolean;
+          requiresSeparateTask324Approval: boolean;
+          nextTaskApprovalPhrase: string;
+        };
+
+        const getCertificationTone = (status: 'READY' | 'PARTIAL_READY' | 'BLOCKED' | 'NOT_STARTED') =>
+          status === 'READY'
+            ? 'bg-green-100 text-green-700 border-green-200'
+            : status === 'PARTIAL_READY'
+              ? 'bg-amber-100 text-amber-700 border-amber-200'
+              : status === 'BLOCKED'
+                ? 'bg-red-100 text-red-700 border-red-200'
+                : 'bg-slate-100 text-slate-600 border-slate-200';
+
+        const getSummaryTone = (tone: 'positive' | 'neutral' | 'warning') =>
+          tone === 'positive'
+            ? 'bg-green-100 text-green-700 border-green-200'
+            : tone === 'warning'
+              ? 'bg-amber-100 text-amber-700 border-amber-200'
+              : 'bg-slate-100 text-slate-700 border-slate-200';
+
+        const renderCertificationGroup = (
+          title: string,
+          items: Array<{
+            certificationId: string;
+            label: string;
+            certificationStatus: 'READY' | 'PARTIAL_READY' | 'BLOCKED' | 'NOT_STARTED';
+            message: string;
+          }>,
+        ) => (
+          <div className="rounded border border-sky-200 bg-white/80 p-3">
+            <h4 className="mb-2 text-sm font-semibold text-sky-900">{title}</h4>
+            <div className="space-y-2">
+              {items.map((item) => (
+                <div key={item.certificationId} className="rounded border border-sky-100 bg-sky-50/70 p-2">
+                  <div className="flex items-center gap-2">
+                    <div className="text-xs font-medium text-sky-950">{item.label}</div>
+                    <span className={`ml-auto inline-flex rounded-full border px-2 py-0.5 text-[11px] font-medium ${getCertificationTone(item.certificationStatus)}`}>
+                      {item.certificationStatus}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-xs text-sky-800">{item.message}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+
+        return (
+          <div className="mb-4 rounded-lg border border-sky-300 bg-sky-50 p-4 space-y-3">
+            <div className="flex items-center gap-2">
+              <ClipboardCheck className="w-5 h-5 text-sky-600" />
+              <h3 className="font-semibold text-sky-900">
+                Task {c323.taskId}: {c323.panelTitle}
+              </h3>
+              <span className={`ml-auto text-xs px-2 py-0.5 rounded-full font-medium ${getCertificationTone(
+                c323.vpsDeploymentCandidateDetailReviewOutcomeCertificationStatus.replace(
+                  'TMS_READ_ONLY_VPS_DEPLOYMENT_CANDIDATE_DETAIL_REVIEW_OUTCOME_',
+                  '',
+                ).replace('CERTIFIED_', '') as 'READY' | 'PARTIAL_READY' | 'BLOCKED' | 'NOT_STARTED',
+              )}`}>
+                {c323.vpsDeploymentCandidateDetailReviewOutcomeCertificationStatus.replace(
+                  'TMS_READ_ONLY_VPS_DEPLOYMENT_CANDIDATE_DETAIL_REVIEW_OUTCOME_',
+                  '',
+                )}
+              </span>
+            </div>
+
+            <p className="text-sm text-sky-900">{c323.description}</p>
+
+            <div className="rounded border border-sky-200 bg-sky-100 px-3 py-2 text-xs text-sky-900 flex items-start gap-1">
+              <Lock className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+              <span>
+                이 패널은 VPS 배포 후보 상세 검토 결과를 read-only로 인증하는 화면입니다. 이 화면은 실제 VPS 생성, 실제 배포 실행, 실제 도메인 연결 작업이 아닙니다. DNS, SSL, 포트포워딩, 서버/VPS 설정, 운영 DB 연결을 변경하지 않습니다. Task 324는 사용자 별도 명시 승인 없이는 진행하지 않습니다.
+              </span>
+            </div>
+
+            <div className="rounded border border-sky-200 bg-white/70 px-3 py-2 text-xs text-sky-900">
+              <span className="font-medium">Task 322 원본 상세 검토 상태:</span> {c323.sourceVpsDeploymentCandidateDetailReviewStatus}
+            </div>
+
+            <div className="rounded border border-sky-200 bg-white/80 p-3 text-sm text-sky-950">
+              <div className="font-semibold">VPS 추천 후보 인증: {c323.recommendedEnvironmentLabel}</div>
+              <p className="mt-1 text-xs text-sky-800">
+                추천 환경 키: {c323.recommendedEnvironmentKey} / VPS 추천 후보 인증 여부:{' '}
+                {c323.vpsCandidateCertifiedForReview ? '예' : '아니오'}
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {c323.outcomeCertificationSummaryCards.map((card) => (
+                <div key={card.label} className={`rounded border p-2 text-center ${getSummaryTone(card.tone)}`}>
+                  <div className="text-sm font-bold">{card.value}</div>
+                  <div className="text-xs">{card.label}</div>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex flex-wrap gap-3 text-xs">
+              <span className={`flex items-center gap-1 ${c323.vpsCandidateCertifiedForReview ? 'text-green-700' : 'text-red-600'}`}>
+                <CheckCircle2 className="w-3.5 h-3.5" /> VPS 추천 후보 인증
+              </span>
+              <span className={`flex items-center gap-1 ${c323.actualVpsServerCreated ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="w-3.5 h-3.5" /> 실제 VPS 생성 미수행
+              </span>
+              <span className={`flex items-center gap-1 ${c323.actualVpsConfigChanged ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="w-3.5 h-3.5" /> 실제 VPS 설정 변경 미수행
+              </span>
+              <span className={`flex items-center gap-1 ${c323.actualDeploymentStarted ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="w-3.5 h-3.5" /> 실제 배포 미시작
+              </span>
+              <span className={`flex items-center gap-1 ${c323.actualDomainConnected ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="w-3.5 h-3.5" /> 실제 도메인 연결 미시작
+              </span>
+              <span className={`flex items-center gap-1 ${c323.deploymentPreparationStillReadOnly ? 'text-green-700' : 'text-red-600'}`}>
+                <CheckCircle2 className="w-3.5 h-3.5" /> 배포 준비 read-only 유지
+              </span>
+              <span className={`flex items-center gap-1 ${c323.domainConnectionStillReadOnly ? 'text-green-700' : 'text-red-600'}`}>
+                <CheckCircle2 className="w-3.5 h-3.5" /> 도메인 연결 read-only 유지
+              </span>
+            </div>
+
+            <div className="grid gap-3 lg:grid-cols-2">
+              {renderCertificationGroup('VPS 요구사항 검토 인증', c323.requirementOutcomeCertificationItems)}
+              {renderCertificationGroup('VPS 비용 검토 인증', c323.costOutcomeCertificationItems)}
+              {renderCertificationGroup('VPS 보안 검토 인증', c323.securityOutcomeCertificationItems)}
+              {renderCertificationGroup('VPS 백업 검토 인증', c323.backupOutcomeCertificationItems)}
+              {renderCertificationGroup('VPS 도메인/HTTPS 검토 인증', c323.domainHttpsOutcomeCertificationItems)}
+              {renderCertificationGroup('VPS 운영 리스크 검토 인증', c323.operationRiskOutcomeCertificationItems)}
+            </div>
+
+            {c323.requiresSeparateTask324Approval && (
+              <p className="text-xs text-sky-800 border-t border-sky-200 pt-2">
+                {c323.nextTaskApprovalPhrase}
               </p>
             )}
           </div>
