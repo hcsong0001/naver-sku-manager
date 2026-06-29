@@ -269,6 +269,7 @@ import { buildNaverReadOnlyProductStructureReviewView } from '@/src/services/sku
 import { buildNaverReadOnlyProductStructureReviewSafetyAuditSealView } from '@/src/services/sku-keyword-final-approval-execution-naver-read-only-product-structure-review-safety-audit-seal-view.service';
 import { buildNaverReadOnlyProductStructureReviewOutcomeCertificationView } from '@/src/services/sku-keyword-final-approval-execution-naver-read-only-product-structure-review-outcome-certification-view.service';
 import { buildNaverReadOnlyOptionAdditionalStructureExpansionPlanningCandidateView } from '@/src/services/sku-keyword-final-approval-execution-naver-read-only-option-additional-structure-expansion-planning-candidate-view.service';
+import { buildNaverReadOnlyOptionAdditionalStructureExpansionDesignBlueprintView } from '@/src/services/sku-keyword-final-approval-execution-naver-read-only-option-additional-structure-expansion-design-blueprint-view.service';
 
 // Compute safe DB environment hint from DATABASE_URL without exposing the original value.
 // Returns a classification key, never the actual URL.
@@ -657,6 +658,20 @@ export async function GET(
       });
     const _naverReadOnlyOptionAdditionalStructureExpansionPlanningCandidateView =
       buildNaverReadOnlyOptionAdditionalStructureExpansionPlanningCandidateView({
+        outcomeCertification:
+          _naverReadOnlyProductStructureReviewOutcomeCertificationView,
+        safetyAuditSeal:
+          _naverReadOnlyProductStructureReviewSafetyAuditSealView,
+        structureReview: _naverReadOnlyProductStructureReviewView,
+        approvalPacket:
+          _naverReadOnlyProductStructureReviewApprovalPacketView,
+        summaryReview: _naverBasicProductDataSummaryReviewView,
+        captureResult: _naverReadOnlyProductDataCaptureResultView,
+      });
+    const _naverReadOnlyOptionAdditionalStructureExpansionDesignBlueprintView =
+      buildNaverReadOnlyOptionAdditionalStructureExpansionDesignBlueprintView({
+        planningCandidate:
+          _naverReadOnlyOptionAdditionalStructureExpansionPlanningCandidateView,
         outcomeCertification:
           _naverReadOnlyProductStructureReviewOutcomeCertificationView,
         safetyAuditSeal:
@@ -1672,6 +1687,8 @@ export async function GET(
         _naverReadOnlyProductStructureReviewOutcomeCertificationView,
       naverReadOnlyOptionAdditionalStructureExpansionPlanningCandidateView:
         _naverReadOnlyOptionAdditionalStructureExpansionPlanningCandidateView,
+      naverReadOnlyOptionAdditionalStructureExpansionDesignBlueprintView:
+        _naverReadOnlyOptionAdditionalStructureExpansionDesignBlueprintView,
     };
 
     return NextResponse.json({ ok: true, job: responseJob });

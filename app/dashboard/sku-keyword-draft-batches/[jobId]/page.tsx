@@ -3909,6 +3909,7 @@ type DraftBatchJob = {
   naverReadOnlyProductStructureReviewSafetyAuditSealView?: any;
   naverReadOnlyProductStructureReviewOutcomeCertificationView?: any;
   naverReadOnlyOptionAdditionalStructureExpansionPlanningCandidateView?: any;
+  naverReadOnlyOptionAdditionalStructureExpansionDesignBlueprintView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -35208,6 +35209,221 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 isProductUpdateApiCalled: {String(c288.isProductUpdateApiCalled)} |
                 isPriceOrStockChanged: {String(c288.isPriceOrStockChanged)} |
                 isDbWriteExecuted: {String(c288.isDbWriteExecuted)}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 289: Option/Additional Structure Expansion Design Blueprint ─── */}
+      {(() => {
+        const c289 = (job as any)
+          .naverReadOnlyOptionAdditionalStructureExpansionDesignBlueprintView;
+        if (!c289) return null;
+        const isComplete = c289.isDesignBlueprintReadyForCompleteSummary;
+        const isPartial = c289.isDesignBlueprintReadyWithMissingFieldNotice;
+        const isBlocked = !c289.isReadOnlyDesignBlueprintCreatable;
+        const borderColor = isComplete
+          ? 'border-emerald-300 bg-emerald-50/20'
+          : isPartial
+            ? 'border-amber-200 bg-amber-50/20'
+            : 'border-orange-200 bg-orange-50/20';
+        const iconColor = isComplete
+          ? 'text-emerald-600'
+          : isPartial
+            ? 'text-amber-500'
+            : 'text-orange-500';
+        const statusColor = isComplete
+          ? 'text-emerald-700 font-bold'
+          : isPartial
+            ? 'text-amber-700 font-bold'
+            : 'text-orange-700 font-bold';
+        const itemColor = (s: string) => {
+          if (
+            [
+              'PLANNING_CANDIDATE_CONFIRMED',
+              'OUTCOME_CERTIFICATION_CONFIRMED',
+              'SAFETY_AUDIT_SEAL_CONFIRMED',
+              'STRUCTURE_REVIEW_CONFIRMED',
+              'APPROVAL_PACKET_CONFIRMED',
+              'SUMMARY_REVIEW_CONFIRMED',
+              'CAPTURE_RESULT_CONFIRMED',
+            ].includes(s)
+          ) {
+            return 'bg-slate-100 text-slate-700';
+          }
+          if (s === 'DESIGN_BLUEPRINT_STATUS_RECORDED') {
+            return isComplete
+              ? 'bg-emerald-100 text-emerald-800'
+              : isPartial
+                ? 'bg-amber-100 text-amber-800'
+                : 'bg-orange-100 text-orange-800';
+          }
+          if (s === 'BLUEPRINT_READY') return 'bg-blue-50 text-blue-700';
+          if (s === 'BLUEPRINT_BLOCKED') return 'bg-orange-100 text-orange-800';
+          if (
+            ['CAPTURED_DATA_ONLY_CONFIRMED', 'SUMMARY_REVIEW_ONLY_CONFIRMED'].includes(
+              s
+            )
+          ) {
+            return 'bg-blue-50 text-blue-700';
+          }
+          if (s === 'NOT_INFERRED') return 'bg-amber-50 text-amber-700';
+          if (s === 'NOT_AVAILABLE_IN_CAPTURED_DATA') {
+            return 'bg-orange-50 text-orange-700';
+          }
+          if (s === 'NOT_INCLUDED') return 'bg-red-50 text-red-700';
+          if (s === 'NOT_DISPLAYED' || s === 'NOT_EXECUTED') {
+            return 'bg-slate-100 text-slate-600';
+          }
+          if (s === 'LOCKED') return 'bg-orange-50 text-orange-700';
+          if (s === 'READ_ONLY_INFO') return 'bg-blue-50 text-blue-600';
+          return 'bg-gray-100 text-gray-600';
+        };
+        const areaColor = (status: string) =>
+          status === '후속 검토 후보'
+            ? 'text-emerald-700'
+            : status === '확인 필요'
+              ? 'text-orange-700'
+              : 'text-slate-600';
+        return (
+          <div className={`mb-6 rounded-lg border p-4 ${borderColor}`}>
+            <div className="mb-3 flex items-center gap-2">
+              <ShieldAlert className={`h-5 w-5 flex-shrink-0 ${iconColor}`} />
+              <h3 className="text-sm font-semibold text-slate-800">
+                {c289.panelTitle ??
+                  'Task 289 - Option/Additional Structure Expansion Design Blueprint'}
+              </h3>
+              <span className="ml-auto rounded bg-slate-100 px-2 py-0.5 text-xs font-mono text-slate-700">
+                {c289.status}
+              </span>
+            </div>
+            <p className="mb-3 text-xs text-slate-700">{c289.description}</p>
+
+            <div className="mb-3 rounded border border-slate-200 bg-white/60 p-3 text-xs space-y-1">
+              <div>
+                optionAdditionalStructureExpansionPlanningCandidateStatus:{' '}
+                <span className="font-mono text-slate-700">
+                  {c289.optionAdditionalStructureExpansionPlanningCandidateStatus}
+                </span>
+              </div>
+              <div>
+                optionAdditionalStructureExpansionDesignBlueprintStatus:{' '}
+                <span className={`font-mono ${statusColor}`}>
+                  {c289.optionAdditionalStructureExpansionDesignBlueprintStatus}
+                </span>
+              </div>
+              <div>
+                isReadOnlyDesignBlueprintCreatable:{' '}
+                <span
+                  className={
+                    c289.isReadOnlyDesignBlueprintCreatable
+                      ? 'text-emerald-700 font-bold'
+                      : 'text-orange-600 font-semibold'
+                  }
+                >
+                  {String(c289.isReadOnlyDesignBlueprintCreatable)}
+                </span>
+              </div>
+              <div>
+                designBlueprintReason:{' '}
+                <span className="text-slate-700">{c289.designBlueprintReason}</span>
+              </div>
+              {c289.blockingReason && (
+                <div>
+                  blockingReason:{' '}
+                  <span className="font-semibold text-orange-700">
+                    {c289.blockingReason}
+                  </span>
+                </div>
+              )}
+              {isComplete && (
+                <div className="font-semibold text-emerald-700">
+                  COMPLETE이면 read-only 설계안 생성 가능
+                </div>
+              )}
+              {isPartial && (
+                <div className="font-semibold text-amber-700">
+                  PARTIAL이면 read-only 설계안 생성 가능, 단 missing field notice 유지
+                </div>
+              )}
+              {isBlocked && (
+                <div className="font-semibold text-orange-700">
+                  동일 원인으로 설계안 생성 차단
+                </div>
+              )}
+            </div>
+
+            <div className="mb-3 rounded border border-blue-200 bg-blue-50/30 p-3 text-xs">
+              <div className="mb-2 font-semibold text-blue-800">검토할 구조 영역</div>
+              <div className="space-y-1">
+                {Array.isArray(c289.structureAreasToReview) &&
+                  c289.structureAreasToReview.map((area: any, idx: number) => (
+                    <div key={idx} className="text-[11px]">
+                      <span className={`font-semibold ${areaColor(area.status)}`}>
+                        {area.area} [{area.status}]
+                      </span>
+                      : <span className="text-slate-600">{area.reason}</span>
+                    </div>
+                  ))}
+              </div>
+            </div>
+
+            <div className="mb-3">
+              <div className="mb-1 text-xs font-semibold text-slate-600">설계안 초안 항목</div>
+              <div className="space-y-1">
+                {Array.isArray(c289.blueprintItems) &&
+                  c289.blueprintItems.map((item: any, idx: number) => (
+                    <div key={idx} className="flex items-start gap-2 text-[11px]">
+                      <span
+                        className={`shrink-0 rounded px-1 py-0.5 font-mono text-[10px] ${itemColor(item.status)}`}
+                      >
+                        {item.status}
+                      </span>
+                      <span className="text-slate-600">
+                        {item.item}: {item.meaning}
+                      </span>
+                    </div>
+                  ))}
+              </div>
+            </div>
+
+            <div className="mb-3">
+              <div className="mb-1 text-xs font-semibold text-slate-600">안전 제한 및 미실행 항목</div>
+              <div className="space-y-1">
+                {Array.isArray(c289.safetyRestrictions) &&
+                  c289.safetyRestrictions.map((item: string, idx: number) => (
+                    <div key={idx} className="text-[11px] text-slate-700">
+                      제한: {item}
+                    </div>
+                  ))}
+                {Array.isArray(c289.nonExecutedItems) &&
+                  c289.nonExecutedItems.map((item: string, idx: number) => (
+                    <div key={`n-${idx}`} className="text-[11px] text-slate-600">
+                      미실행: {item}
+                    </div>
+                  ))}
+              </div>
+            </div>
+
+            <div className="mt-2 space-y-0.5 font-mono text-[10px] text-gray-400">
+              <div>
+                isDesignConfirmed: {String(c289.isDesignConfirmed)} |
+                isExecutionApproved: {String(c289.isExecutionApproved)} |
+                isProductLookupApiCalledInThisTask:{' '}
+                {String(c289.isProductLookupApiCalledInThisTask)}
+              </div>
+              <div>
+                isRawProductApiResponseIncluded:{' '}
+                {String(c289.isRawProductApiResponseIncluded)} |
+                isSalePriceRawValueIncluded: {String(c289.isSalePriceRawValueIncluded)} |
+                isStockQuantityRawValueIncluded:{' '}
+                {String(c289.isStockQuantityRawValueIncluded)}
+              </div>
+              <div>
+                isProductUpdateApiCalled: {String(c289.isProductUpdateApiCalled)} |
+                isPriceOrStockChanged: {String(c289.isPriceOrStockChanged)} |
+                isDbWriteExecuted: {String(c289.isDbWriteExecuted)}
               </div>
             </div>
           </div>
