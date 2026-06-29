@@ -3934,6 +3934,7 @@ type DraftBatchJob = {
   naverReadOnlyFinalExecutionApprovalCandidateDetailReviewView?: any;
   naverReadOnlyFinalExecutionApprovalCandidateDetailReviewOutcomeCertificationView?: any;
   naverReadOnlyFinalExecutionApprovalCandidateDetailReviewSafetyAuditSealView?: any;
+  naverReadOnlyFinalExecutionApprovalCandidateDetailReviewSafetyAuditSealOutcomeCertificationView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -40026,6 +40027,176 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             {c313.requiresSeparateTask314Approval && (
               <p className="text-xs text-cyan-500 border-t border-cyan-200 pt-2">
                 {c313.nextTaskApprovalPhrase}
+              </p>
+            )}
+          </div>
+        );
+      })()}
+
+      {/* ── Task 314: Read-Only Candidate Detail Review Safety Audit Seal Outcome Certification ── */}
+      {job.naverReadOnlyFinalExecutionApprovalCandidateDetailReviewSafetyAuditSealOutcomeCertificationView && (() => {
+        const c314 = job.naverReadOnlyFinalExecutionApprovalCandidateDetailReviewSafetyAuditSealOutcomeCertificationView as {
+          taskId: number;
+          panelTitle: string;
+          description: string;
+          candidateDetailReviewSafetyAuditSealOutcomeCertificationStatus: string;
+          outcomeCertificationItems: Array<{
+            candidateId: string;
+            displayOrder: number;
+            displayName: string;
+            sourceSafetySealStatus: string;
+            outcomeCertificationStatus: string;
+            isReady: boolean;
+            isPartialReady: boolean;
+            isBlocked: boolean;
+            isLocked: boolean;
+            warningCount: number;
+            errorCount: number;
+            outcomeCertificationMessage: string;
+            safeDisplayFields: string[];
+            excludedFields: string[];
+            actualExecutionBlocked: boolean;
+            mutationBlocked: boolean;
+            apiCallBlocked: boolean;
+            isDisplayOnly: boolean;
+          }>;
+          outcomeCertificationSummaryCards: Array<{ label: string; count: number; cardType: string }>;
+          certifiedReadyCount: number;
+          certifiedPartialReadyCount: number;
+          certifiedBlockedCount: number;
+          certifiedLockedCount: number;
+          totalCertifiedCount: number;
+          outcomeCertifiedReady: boolean;
+          outcomeCertifiedPartialReady: boolean;
+          outcomeCertificationBlocked: boolean;
+          outcomeCertificationEmpty: boolean;
+          safeDisplayFieldsStillCertified: boolean;
+          excludedFieldsStillCertified: boolean;
+          executionStillLocked: boolean;
+          mutationStillBlocked: boolean;
+          apiCallStillBlocked: boolean;
+          isReadOnlySafetyAuditSealOutcomeCertification: boolean;
+          requiresSeparateTask315Approval: boolean;
+          nextTaskApprovalPhrase: string;
+        };
+        return (
+          <div className="mb-4 rounded-lg border border-indigo-300 bg-indigo-50 p-4 space-y-3">
+            <div className="flex items-center gap-2">
+              <FileCheck className="w-5 h-5 text-indigo-600" />
+              <h3 className="font-semibold text-indigo-800">
+                Task {c314.taskId}: {c314.panelTitle}
+              </h3>
+              <span className={`ml-auto text-xs px-2 py-0.5 rounded-full font-medium ${
+                c314.outcomeCertifiedReady
+                  ? 'bg-green-100 text-green-700'
+                  : c314.outcomeCertifiedPartialReady
+                    ? 'bg-yellow-100 text-yellow-700'
+                    : c314.outcomeCertificationBlocked
+                      ? 'bg-red-100 text-red-700'
+                      : 'bg-gray-100 text-gray-600'
+              }`}>
+                {c314.candidateDetailReviewSafetyAuditSealOutcomeCertificationStatus.replace(
+                  'NAVER_READ_ONLY_FINAL_EXECUTION_APPROVAL_CANDIDATE_DETAIL_REVIEW_SAFETY_AUDIT_SEAL_',
+                  '',
+                )}
+              </span>
+            </div>
+            <p className="text-sm text-indigo-700">{c314.description}</p>
+            <div className="rounded border border-indigo-200 bg-indigo-100 px-3 py-2 text-xs text-indigo-700 flex items-start gap-1">
+              <Lock className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+              <span>이 패널은 최종 실행 승인 후보 상세 검토 Safety Audit Seal 결과를 read-only로 인증하는 화면입니다. 이 화면은 실제 승인, 실제 실행, 상품 변경 승인이 아닙니다. 가격/재고 raw 값, 실행 payload, raw API response, Token/Auth/Signature/Authorization 값은 계속 표시하지 않습니다.</span>
+            </div>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+              <div className="rounded p-2 text-center bg-indigo-100 text-indigo-800">
+                <div className="text-lg font-bold">{c314.totalCertifiedCount}</div>
+                <div className="text-xs">인증 대상 총 후보</div>
+              </div>
+              {c314.outcomeCertificationSummaryCards.map((card) => (
+                <div
+                  key={card.cardType}
+                  className={`rounded p-2 text-center ${
+                    card.cardType === 'READY'
+                      ? 'bg-green-100 text-green-700'
+                      : card.cardType === 'PARTIAL_READY'
+                        ? 'bg-yellow-100 text-yellow-700'
+                        : card.cardType === 'BLOCKED'
+                          ? 'bg-red-100 text-red-700'
+                          : 'bg-gray-100 text-gray-600'
+                  }`}
+                >
+                  <div className="text-lg font-bold">{card.count}</div>
+                  <div className="text-xs">{card.label}</div>
+                </div>
+              ))}
+            </div>
+            <div className="flex flex-wrap gap-3 text-xs">
+              <span className={`flex items-center gap-1 ${c314.safeDisplayFieldsStillCertified ? 'text-green-600' : 'text-red-600'}`}>
+                <CheckCircle2 className="w-3.5 h-3.5" /> safeDisplayFields 유지
+              </span>
+              <span className={`flex items-center gap-1 ${c314.excludedFieldsStillCertified ? 'text-green-600' : 'text-red-600'}`}>
+                <CheckCircle2 className="w-3.5 h-3.5" /> excludedFields 유지
+              </span>
+              <span className={`flex items-center gap-1 ${c314.executionStillLocked ? 'text-green-600' : 'text-red-600'}`}>
+                <Lock className="w-3.5 h-3.5" /> 실행 잠금 유지
+              </span>
+              <span className={`flex items-center gap-1 ${c314.mutationStillBlocked ? 'text-green-600' : 'text-red-600'}`}>
+                <Lock className="w-3.5 h-3.5" /> Mutation 차단 유지
+              </span>
+              <span className={`flex items-center gap-1 ${c314.apiCallStillBlocked ? 'text-green-600' : 'text-red-600'}`}>
+                <Lock className="w-3.5 h-3.5" /> API 호출 차단 유지
+              </span>
+            </div>
+            {c314.outcomeCertificationEmpty ? (
+              <p className="text-sm text-gray-500 text-center py-2">인증 대상 항목이 없습니다.</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs border-collapse">
+                  <thead>
+                    <tr className="bg-indigo-100 text-indigo-700">
+                      <th className="border border-indigo-200 px-2 py-1 text-left">순번</th>
+                      <th className="border border-indigo-200 px-2 py-1 text-left">인증 상태</th>
+                      <th className="border border-indigo-200 px-2 py-1 text-left">표시명</th>
+                      <th className="border border-indigo-200 px-2 py-1 text-left">Safety Seal 원본 상태</th>
+                      <th className="border border-indigo-200 px-2 py-1 text-center">경고</th>
+                      <th className="border border-indigo-200 px-2 py-1 text-center">오류</th>
+                      <th className="border border-indigo-200 px-2 py-1 text-left">인증 메시지</th>
+                      <th className="border border-indigo-200 px-2 py-1 text-center">실행 잠금</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {c314.outcomeCertificationItems.map((item) => (
+                      <tr key={item.candidateId} className="hover:bg-indigo-50">
+                        <td className="border border-indigo-200 px-2 py-1 text-center text-gray-600">{item.displayOrder}</td>
+                        <td className="border border-indigo-200 px-2 py-1">
+                          <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${
+                            item.outcomeCertificationStatus === 'READY'
+                              ? 'bg-green-100 text-green-700'
+                              : item.outcomeCertificationStatus === 'PARTIAL_READY'
+                                ? 'bg-yellow-100 text-yellow-700'
+                                : item.outcomeCertificationStatus === 'BLOCKED'
+                                  ? 'bg-red-100 text-red-700'
+                                  : 'bg-gray-100 text-gray-600'
+                          }`}>
+                            {item.outcomeCertificationStatus}
+                          </span>
+                        </td>
+                        <td className="border border-indigo-200 px-2 py-1 text-gray-700">{item.displayName}</td>
+                        <td className="border border-indigo-200 px-2 py-1 text-gray-600">{item.sourceSafetySealStatus}</td>
+                        <td className="border border-indigo-200 px-2 py-1 text-center text-yellow-700">{item.warningCount > 0 ? item.warningCount : '-'}</td>
+                        <td className="border border-indigo-200 px-2 py-1 text-center text-red-700">{item.errorCount > 0 ? item.errorCount : '-'}</td>
+                        <td className="border border-indigo-200 px-2 py-1 text-gray-600">{item.outcomeCertificationMessage}</td>
+                        <td className="border border-indigo-200 px-2 py-1 text-center">
+                          <Lock className="w-3.5 h-3.5 text-indigo-500 mx-auto" />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+            {c314.requiresSeparateTask315Approval && (
+              <p className="text-xs text-indigo-500 border-t border-indigo-200 pt-2">
+                {c314.nextTaskApprovalPhrase}
               </p>
             )}
           </div>
