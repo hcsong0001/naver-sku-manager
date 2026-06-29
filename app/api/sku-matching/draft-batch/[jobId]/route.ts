@@ -286,6 +286,7 @@ import { buildNaverReadOnlyExecutionReadinessReviewSafetyAuditSealView } from '@
 import { buildNaverReadOnlyExecutionReadinessReviewOutcomeCertificationView } from '@/src/services/sku-keyword-final-approval-execution-naver-read-only-execution-readiness-review-outcome-certification-view.service';
 import { buildNaverReadOnlyFinalExecutionApprovalPacketView } from '@/src/services/sku-keyword-final-approval-execution-naver-read-only-final-execution-approval-packet-view.service';
 import { buildNaverReadOnlyFinalExecutionApprovalReviewView } from '@/src/services/sku-keyword-final-approval-execution-naver-read-only-final-execution-approval-review-view.service';
+import { buildNaverReadOnlyFinalExecutionApprovalReviewOutcomeCertificationView } from '@/src/services/sku-keyword-final-approval-execution-naver-read-only-final-execution-approval-review-outcome-certification-view.service';
 
 // Compute safe DB environment hint from DATABASE_URL without exposing the original value.
 // Returns a classification key, never the actual URL.
@@ -953,6 +954,11 @@ export async function GET(
       buildNaverReadOnlyFinalExecutionApprovalReviewView({
         finalExecutionApprovalPacket:
           _naverReadOnlyFinalExecutionApprovalPacketView,
+      });
+    const _naverReadOnlyFinalExecutionApprovalReviewOutcomeCertificationView =
+      buildNaverReadOnlyFinalExecutionApprovalReviewOutcomeCertificationView({
+        finalExecutionApprovalReview:
+          _naverReadOnlyFinalExecutionApprovalReviewView,
       });
 
     const responseJob = {
@@ -1993,6 +1999,8 @@ export async function GET(
         _naverReadOnlyFinalExecutionApprovalPacketView,
       naverReadOnlyFinalExecutionApprovalReviewView:
         _naverReadOnlyFinalExecutionApprovalReviewView,
+      naverReadOnlyFinalExecutionApprovalReviewOutcomeCertificationView:
+        _naverReadOnlyFinalExecutionApprovalReviewOutcomeCertificationView,
     };
 
     return NextResponse.json({ ok: true, job: responseJob });
