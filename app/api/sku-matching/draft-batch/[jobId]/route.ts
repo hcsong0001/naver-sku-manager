@@ -271,6 +271,7 @@ import { buildNaverReadOnlyProductStructureReviewOutcomeCertificationView } from
 import { buildNaverReadOnlyOptionAdditionalStructureExpansionPlanningCandidateView } from '@/src/services/sku-keyword-final-approval-execution-naver-read-only-option-additional-structure-expansion-planning-candidate-view.service';
 import { buildNaverReadOnlyOptionAdditionalStructureExpansionDesignBlueprintView } from '@/src/services/sku-keyword-final-approval-execution-naver-read-only-option-additional-structure-expansion-design-blueprint-view.service';
 import { buildNaverReadOnlyOptionAdditionalStructureExpansionDesignBlueprintSafetyAuditSealView } from '@/src/services/sku-keyword-final-approval-execution-naver-read-only-option-additional-structure-expansion-design-blueprint-safety-audit-seal-view.service';
+import { buildNaverReadOnlyOptionAdditionalStructureExpansionDesignBlueprintOutcomeCertificationView } from '@/src/services/sku-keyword-final-approval-execution-naver-read-only-option-additional-structure-expansion-design-blueprint-outcome-certification-view.service';
 
 // Compute safe DB environment hint from DATABASE_URL without exposing the original value.
 // Returns a classification key, never the actual URL.
@@ -694,6 +695,20 @@ export async function GET(
             _naverReadOnlyProductStructureReviewOutcomeCertificationView,
           structureSafetyAuditSeal:
             _naverReadOnlyProductStructureReviewSafetyAuditSealView,
+          structureReview: _naverReadOnlyProductStructureReviewView,
+          captureResult: _naverReadOnlyProductDataCaptureResultView,
+        }
+      );
+    const _naverReadOnlyOptionAdditionalStructureExpansionDesignBlueprintOutcomeCertificationView =
+      buildNaverReadOnlyOptionAdditionalStructureExpansionDesignBlueprintOutcomeCertificationView(
+        {
+          designBlueprint:
+            _naverReadOnlyOptionAdditionalStructureExpansionDesignBlueprintView,
+          safetyAuditSeal:
+            _naverReadOnlyOptionAdditionalStructureExpansionDesignBlueprintSafetyAuditSealView,
+          planningApprovalPacket: null,
+          structureOutcomeCertification:
+            _naverReadOnlyProductStructureReviewOutcomeCertificationView,
           structureReview: _naverReadOnlyProductStructureReviewView,
           captureResult: _naverReadOnlyProductDataCaptureResultView,
         }
@@ -1707,6 +1722,8 @@ export async function GET(
         _naverReadOnlyOptionAdditionalStructureExpansionDesignBlueprintView,
       naverReadOnlyOptionAdditionalStructureExpansionDesignBlueprintSafetyAuditSealView:
         _naverReadOnlyOptionAdditionalStructureExpansionDesignBlueprintSafetyAuditSealView,
+      naverReadOnlyOptionAdditionalStructureExpansionDesignBlueprintOutcomeCertificationView:
+        _naverReadOnlyOptionAdditionalStructureExpansionDesignBlueprintOutcomeCertificationView,
     };
 
     return NextResponse.json({ ok: true, job: responseJob });
