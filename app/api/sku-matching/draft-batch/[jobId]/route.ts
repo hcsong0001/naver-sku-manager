@@ -290,6 +290,7 @@ import { buildNaverReadOnlyFinalExecutionApprovalReviewOutcomeCertificationView 
 import { buildNaverReadOnlyFinalExecutionApprovalSafetyAuditSealView } from '@/src/services/sku-keyword-final-approval-execution-naver-read-only-final-execution-approval-safety-audit-seal-view.service';
 import { buildNaverReadOnlyFinalExecutionApprovalSafetyAuditSealOutcomeCertificationView } from '@/src/services/sku-keyword-final-approval-execution-naver-read-only-final-execution-approval-safety-audit-seal-outcome-certification-view.service';
 import { buildNaverReadOnlyFinalExecutionApprovalSummaryDashboardView } from '@/src/services/sku-keyword-final-approval-execution-naver-read-only-final-execution-approval-summary-dashboard-view.service';
+import { buildNaverReadOnlyFinalExecutionApprovalCandidateListView } from '@/src/services/sku-keyword-final-approval-execution-naver-read-only-final-execution-approval-candidate-list-view.service';
 
 // Compute safe DB environment hint from DATABASE_URL without exposing the original value.
 // Returns a classification key, never the actual URL.
@@ -1081,6 +1082,12 @@ export async function GET(
             isLocked: false,
           },
         ],
+      });
+
+    const _naverReadOnlyFinalExecutionApprovalCandidateListView =
+      buildNaverReadOnlyFinalExecutionApprovalCandidateListView({
+        summaryDashboard: _naverReadOnlyFinalExecutionApprovalSummaryDashboardView,
+        items,
       });
 
     const responseJob = {
@@ -2129,6 +2136,8 @@ export async function GET(
         _naverReadOnlyFinalExecutionApprovalSafetyAuditSealOutcomeCertificationView,
       naverReadOnlyFinalExecutionApprovalSummaryDashboardView:
         _naverReadOnlyFinalExecutionApprovalSummaryDashboardView,
+      naverReadOnlyFinalExecutionApprovalCandidateListView:
+        _naverReadOnlyFinalExecutionApprovalCandidateListView,
     };
 
     return NextResponse.json({ ok: true, job: responseJob });

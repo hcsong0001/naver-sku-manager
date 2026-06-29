@@ -3930,6 +3930,7 @@ type DraftBatchJob = {
   naverReadOnlyFinalExecutionApprovalSafetyAuditSealView?: any;
   naverReadOnlyFinalExecutionApprovalSafetyAuditSealOutcomeCertificationView?: any;
   naverReadOnlyFinalExecutionApprovalSummaryDashboardView?: any;
+  naverReadOnlyFinalExecutionApprovalCandidateListView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -39401,6 +39402,148 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             {c309.requiresSeparateTask310Approval && (
               <p className="text-xs text-indigo-500 border-t border-indigo-200 pt-2">
                 {c309.nextTaskApprovalPhrase}
+              </p>
+            )}
+          </div>
+        );
+      })()}
+
+      {/* ── Task 310: Read-Only Final Execution Approval Candidate List ── */}
+      {job.naverReadOnlyFinalExecutionApprovalCandidateListView && (() => {
+        const c310 = job.naverReadOnlyFinalExecutionApprovalCandidateListView as {
+          taskId: number;
+          panelTitle: string;
+          description: string;
+          candidateListStatus: string;
+          candidateItems: Array<{
+            candidateId: string;
+            displayOrder: number;
+            displayName: string;
+            skuDisplayLabel: string;
+            naverProductDisplayLabel: string;
+            storeDisplayLabel: string;
+            sourceItemStatus: string;
+            candidateStatus: string;
+            isReady: boolean;
+            isPartialReady: boolean;
+            isBlocked: boolean;
+            warningCount: number;
+            errorCount: number;
+            message: string;
+            isDisplayOnly: boolean;
+          }>;
+          candidateSummaryCards: Array<{ label: string; count: number; cardType: string }>;
+          readyCandidateCount: number;
+          partialReadyCandidateCount: number;
+          blockedCandidateCount: number;
+          lockedCandidateCount: number;
+          totalCandidateCount: number;
+          candidateListReady: boolean;
+          candidateListPartialReady: boolean;
+          candidateListBlocked: boolean;
+          candidateListEmpty: boolean;
+          isReadOnlyCandidateList: boolean;
+          requiresSeparateTask311Approval: boolean;
+          nextTaskApprovalPhrase: string;
+        };
+        return (
+          <div className="mb-4 rounded-lg border border-purple-300 bg-purple-50 p-4 space-y-3">
+            <div className="flex items-center gap-2">
+              <ClipboardList className="w-5 h-5 text-purple-600" />
+              <h3 className="font-semibold text-purple-800">
+                Task {c310.taskId}: {c310.panelTitle}
+              </h3>
+              <span className={`ml-auto text-xs px-2 py-0.5 rounded-full font-medium ${
+                c310.candidateListReady
+                  ? 'bg-green-100 text-green-700'
+                  : c310.candidateListPartialReady
+                    ? 'bg-yellow-100 text-yellow-700'
+                    : c310.candidateListBlocked
+                      ? 'bg-red-100 text-red-700'
+                      : 'bg-gray-100 text-gray-600'
+              }`}>
+                {c310.candidateListStatus.replace('NAVER_READ_ONLY_FINAL_EXECUTION_APPROVAL_CANDIDATE_LIST_', '')}
+              </span>
+            </div>
+            <p className="text-sm text-purple-700">{c310.description}</p>
+            <div className="rounded border border-purple-200 bg-purple-100 px-3 py-2 text-xs text-purple-700 flex items-center gap-1">
+              <Lock className="w-3.5 h-3.5 flex-shrink-0" />
+              <span>이 목록은 최종 실행 승인 후보를 read-only로 보여주는 화면입니다. 실제 승인·실행·상품 변경이 아닙니다. 가격/재고 raw 값과 실행 payload는 표시하지 않습니다.</span>
+            </div>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {c310.candidateSummaryCards.map((card) => (
+                <div
+                  key={card.cardType}
+                  className={`rounded p-2 text-center ${
+                    card.cardType === 'READY'
+                      ? 'bg-green-100 text-green-700'
+                      : card.cardType === 'PARTIAL_READY'
+                        ? 'bg-yellow-100 text-yellow-700'
+                        : card.cardType === 'BLOCKED'
+                          ? 'bg-red-100 text-red-700'
+                          : 'bg-gray-100 text-gray-600'
+                  }`}
+                >
+                  <div className="text-lg font-bold">{card.count}</div>
+                  <div className="text-xs">{card.label}</div>
+                </div>
+              ))}
+            </div>
+            {c310.candidateListEmpty ? (
+              <p className="text-sm text-gray-500 text-center py-2">후보 항목이 없습니다.</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs border-collapse">
+                  <thead>
+                    <tr className="bg-purple-100 text-purple-700">
+                      <th className="border border-purple-200 px-2 py-1 text-left">순번</th>
+                      <th className="border border-purple-200 px-2 py-1 text-left">후보 상태</th>
+                      <th className="border border-purple-200 px-2 py-1 text-left">SKU 표시명</th>
+                      <th className="border border-purple-200 px-2 py-1 text-left">Naver 상품</th>
+                      <th className="border border-purple-200 px-2 py-1 text-left">스토어/채널</th>
+                      <th className="border border-purple-200 px-2 py-1 text-left">원본 상태</th>
+                      <th className="border border-purple-200 px-2 py-1 text-center">경고</th>
+                      <th className="border border-purple-200 px-2 py-1 text-center">오류</th>
+                      <th className="border border-purple-200 px-2 py-1 text-left">메시지</th>
+                      <th className="border border-purple-200 px-2 py-1 text-center">실행 잠금</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {c310.candidateItems.map((item) => (
+                      <tr key={item.candidateId} className="hover:bg-purple-50">
+                        <td className="border border-purple-200 px-2 py-1 text-center text-gray-600">{item.displayOrder}</td>
+                        <td className="border border-purple-200 px-2 py-1">
+                          <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${
+                            item.candidateStatus === 'READY'
+                              ? 'bg-green-100 text-green-700'
+                              : item.candidateStatus === 'PARTIAL_READY'
+                                ? 'bg-yellow-100 text-yellow-700'
+                                : item.candidateStatus === 'BLOCKED'
+                                  ? 'bg-red-100 text-red-700'
+                                  : 'bg-gray-100 text-gray-600'
+                          }`}>
+                            {item.candidateStatus}
+                          </span>
+                        </td>
+                        <td className="border border-purple-200 px-2 py-1 text-gray-700 font-mono">{item.skuDisplayLabel}</td>
+                        <td className="border border-purple-200 px-2 py-1 text-gray-700">{item.naverProductDisplayLabel}</td>
+                        <td className="border border-purple-200 px-2 py-1 text-gray-600">{item.storeDisplayLabel}</td>
+                        <td className="border border-purple-200 px-2 py-1 text-gray-600">{item.sourceItemStatus}</td>
+                        <td className="border border-purple-200 px-2 py-1 text-center text-yellow-700">{item.warningCount > 0 ? item.warningCount : '-'}</td>
+                        <td className="border border-purple-200 px-2 py-1 text-center text-red-700">{item.errorCount > 0 ? item.errorCount : '-'}</td>
+                        <td className="border border-purple-200 px-2 py-1 text-gray-600">{item.message}</td>
+                        <td className="border border-purple-200 px-2 py-1 text-center">
+                          <Lock className="w-3.5 h-3.5 text-purple-500 mx-auto" />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+            {c310.requiresSeparateTask311Approval && (
+              <p className="text-xs text-purple-500 border-t border-purple-200 pt-2">
+                {c310.nextTaskApprovalPhrase}
               </p>
             )}
           </div>
