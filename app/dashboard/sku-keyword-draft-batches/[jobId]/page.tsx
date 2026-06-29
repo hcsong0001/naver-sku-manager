@@ -3902,6 +3902,7 @@ type DraftBatchJob = {
   naverReadOnlyProductDataCompletenessCertificationView?: any;
   naverBasicProductDataSummaryReviewApprovalPacketView?: any;
   naverBasicProductDataSummaryReviewView?: any;
+  naverBasicProductDataSummaryReviewSafetyAuditSealView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -33917,6 +33918,66 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div>isTokenReissuedInThisTask: {String(c281.isTokenReissuedInThisTask)} | isProductLookupApiCalledInThisTask: {String(c281.isProductLookupApiCalledInThisTask)} | isNewApiCallExecutedInThisTask: {String(c281.isNewApiCallExecutedInThisTask)}</div>
               <div>isRawProductApiResponseIncluded: {String(c281.isRawProductApiResponseIncluded)} | isSalePriceRawValueIncluded: {String(c281.isSalePriceRawValueIncluded)} | isDbWriteExecuted: {String(c281.isDbWriteExecuted)}</div>
               <div>isNextStepSeparateApprovalRequired: {String(c281.isNextStepSeparateApprovalRequired)} | isNextStepSeparateApprovalGranted: {String(c281.isNextStepSeparateApprovalGranted)} | isCapturedDataUsedOnly: {String(c281.isCapturedDataUsedOnly)}</div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 282: Safety Audit Seal ──────────────────────────────────────────── */}
+      {(() => {
+        const c282 = (job as any).naverBasicProductDataSummaryReviewSafetyAuditSealView;
+        if (!c282) return null;
+        const itemColor = (s: string) => {
+          if (['SUMMARY_REVIEW_CONFIRMED', 'APPROVAL_PACKET_CONFIRMED', 'CAPTURE_RESULT_CONFIRMED', 'CAPTURED_DATA_ONLY_CONFIRMED'].includes(s)) return 'bg-slate-100 text-slate-700';
+          if (s === 'SUMMARY_REVIEW_STATUS_RECORDED' || s === 'BASIC_SUMMARY_VIEW_ONLY') return 'bg-blue-50 text-blue-700';
+          if (s === 'NOT_INCLUDED') return 'bg-red-50 text-red-700';
+          if (s === 'PRESENCE_FLAG_ONLY') return 'bg-blue-50 text-blue-600';
+          if (s === 'NOT_STORED') return 'bg-orange-50 text-orange-700';
+          if (s === 'NOT_DISPLAYED' || s === 'NOT_EXECUTED') return 'bg-slate-100 text-slate-600';
+          if (s === 'LOCKED') return 'bg-orange-50 text-orange-700';
+          if (s === 'PENDING_SEPARATE_APPROVAL') return 'bg-yellow-50 text-yellow-700';
+          if (s === 'READ_ONLY_INFO') return 'bg-blue-50 text-blue-600';
+          return 'bg-gray-100 text-gray-600';
+        };
+        return (
+          <div className="mb-6 rounded-lg border border-emerald-300 bg-emerald-50/20 p-4">
+            <div className="mb-3 flex items-center gap-2">
+              <ShieldAlert className="w-5 h-5 flex-shrink-0 text-emerald-600" />
+              <h3 className="font-semibold text-slate-800 text-sm">
+                {c282.panelTitle ?? 'Safety Audit Seal (Task 282)'}
+              </h3>
+              <span className="ml-auto text-xs px-2 py-0.5 rounded font-mono bg-slate-100 text-slate-700">
+                {c282.status}
+              </span>
+            </div>
+            <p className="mb-3 text-xs text-slate-700">{c282.description}</p>
+
+            {/* 감사 요약 */}
+            <div className="mb-3 rounded border border-slate-200 bg-white/60 p-3 text-xs space-y-1">
+              <div>basicProductDataSummaryReviewStatus: <span className="font-mono text-slate-700">{c282.basicProductDataSummaryReviewStatus}</span></div>
+              <div>isSummaryReviewConfirmed: <span className="text-emerald-700 font-bold">{String(c282.isSummaryReviewConfirmed)}</span></div>
+              <div>isCapturedDataUsedOnly: <span className="text-emerald-700 font-bold">{String(c282.isCapturedDataUsedOnly)}</span></div>
+              <div>isNewApiCallExecutedInThisTask: <span className="text-emerald-700 font-bold">{String(c282.isNewApiCallExecutedInThisTask)}</span></div>
+            </div>
+
+            {/* auditItems */}
+            <div className="mb-3">
+              <div className="mb-1 text-xs font-semibold text-slate-600">감사 항목</div>
+              <div className="space-y-1">
+                {Array.isArray(c282.auditItems) && c282.auditItems.map((item: any, idx: number) => (
+                  <div key={idx} className="flex items-start gap-2 text-[11px]">
+                    <span className={`shrink-0 rounded px-1 py-0.5 font-mono text-[10px] ${itemColor(item.status)}`}>{item.status}</span>
+                    <span className="text-slate-600">{item.auditItem}: {item.meaning}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* 감사 footer */}
+            <div className="mt-2 text-[10px] text-gray-400 font-mono space-y-0.5">
+              <div>isSalePricePresenceFlagOnly: {String(c282.isSalePricePresenceFlagOnly)} | isStockQuantityPresenceFlagOnly: {String(c282.isStockQuantityPresenceFlagOnly)} | isBasicProductDataSummaryViewOnly: {String(c282.isBasicProductDataSummaryViewOnly)}</div>
+              <div>isRawProductApiResponseIncluded: {String(c282.isRawProductApiResponseIncluded)} | isRawProductApiResponseStored: {String(c282.isRawProductApiResponseStored)} | isDbWriteExecuted: {String(c282.isDbWriteExecuted)}</div>
+              <div>sealed: true | isNextStepSeparateApprovalRequired: {String(c282.isNextStepSeparateApprovalRequired)} | isNextStepSeparateApprovalGranted: {String(c282.isNextStepSeparateApprovalGranted)}</div>
             </div>
           </div>
         );
