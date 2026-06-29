@@ -3916,6 +3916,7 @@ type DraftBatchJob = {
   naverReadOnlyDesignFinalizationCandidateView?: any;
   naverReadOnlyDesignFinalizationCandidateSafetyAuditSealView?: any;
   naverReadOnlyDesignFinalizationCandidateOutcomeCertificationView?: any;
+  naverReadOnlyExecutionApprovalPacketView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -36789,6 +36790,209 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 {String(c295.isDesignFinalizationCandidateStoredInDb)} |
                 isNextStepSeparateApprovalRequired:{' '}
                 {String(c295.isNextStepSeparateApprovalRequired)}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 296: Read-Only Execution Approval Packet ── */}
+      {(() => {
+        const c296 = (job as any).naverReadOnlyExecutionApprovalPacketView;
+        if (!c296) return null;
+        const isComplete = c296.isReadOnlyExecutionApprovalPacketReadyForCompleteFinalizationCandidate;
+        const isPartial = c296.isReadOnlyExecutionApprovalPacketReadyWithMissingFieldNotice;
+        const isBlocked =
+          !isComplete && !isPartial;
+        const borderColor = isComplete
+          ? 'border-sky-300 bg-sky-50/20'
+          : isPartial
+            ? 'border-amber-200 bg-amber-50/20'
+            : 'border-rose-200 bg-rose-50/20';
+        const iconColor = isComplete
+          ? 'text-sky-600'
+          : isPartial
+            ? 'text-amber-500'
+            : 'text-rose-500';
+        const statusColor = isComplete
+          ? 'text-sky-700 font-bold'
+          : isPartial
+            ? 'text-amber-700 font-bold'
+            : 'text-rose-700 font-bold';
+        const itemColor = (s: string) => {
+          if (
+            [
+              'FINALIZATION_CANDIDATE_OUTCOME_CERTIFICATION_CONFIRMED',
+              'FINALIZATION_CANDIDATE_SAFETY_AUDIT_SEAL_CONFIRMED',
+              'FINALIZATION_CANDIDATE_CONFIRMED',
+              'DESIGN_FINALIZATION_APPROVAL_PACKET_CONFIRMED',
+              'DESIGN_BLUEPRINT_CONFIRMED',
+              'CAPTURE_RESULT_CONFIRMED',
+            ].includes(s)
+          ) return 'bg-slate-100 text-slate-700';
+          if (s === 'EXECUTION_APPROVAL_PACKET_STATUS_RECORDED')
+            return isComplete
+              ? 'bg-sky-100 text-sky-800'
+              : isPartial
+                ? 'bg-amber-100 text-amber-800'
+                : 'bg-rose-100 text-rose-800';
+          if (s === 'READY_FOR_EXECUTION_REVIEW_IF_COMPLETE_CANDIDATE')
+            return isComplete ? 'bg-blue-50 text-blue-700' : 'bg-slate-100 text-slate-600';
+          if (s === 'READY_WITH_MISSING_FIELD_NOTICE')
+            return isPartial ? 'bg-blue-50 text-blue-700' : 'bg-slate-100 text-slate-600';
+          if (s === 'BLOCKED_RECHECK_REQUIRED')
+            return isBlocked ? 'bg-rose-100 text-rose-800' : 'bg-slate-100 text-slate-600';
+          if (
+            [
+              'BLOCKED_RECHECK_IP_ALLOWLIST_REQUIRED',
+              'BLOCKED_RECHECK_AUTH_REQUIRED',
+              'BLOCKED_RECHECK_ENV_REQUIRED',
+              'BLOCKED_RECHECK_CHANNEL_PRODUCT_NO_REQUIRED',
+              'BLOCKED_RECHECK_PRODUCT_ACCESS_REQUIRED',
+            ].includes(s)
+          )
+            return isBlocked ? 'bg-orange-100 text-orange-800' : 'bg-slate-100 text-slate-600';
+          if (s === 'PENDING_USER_APPROVAL') return 'bg-orange-100 text-orange-800';
+          if (s === 'LOCKED_UNTIL_USER_APPROVAL') return 'bg-rose-50 text-rose-700';
+          if (s === 'NOT_EXECUTED') return 'bg-slate-100 text-slate-600';
+          if (s === 'NOT_CONNECTED') return 'bg-slate-100 text-slate-600';
+          if (s === 'LOCKED') return 'bg-rose-50 text-rose-700';
+          if (s === 'NOT_FINALIZED') return 'bg-violet-50 text-violet-700';
+          if (s === 'NOT_APPROVED_FOR_PRODUCT_CHANGE') return 'bg-violet-50 text-violet-700';
+          if (s === 'NOT_STORED') return 'bg-red-50 text-red-700';
+          if (s === 'NOT_COPIED_FOR_EXECUTION') return 'bg-red-50 text-red-700';
+          if (['CAPTURED_DATA_ONLY_CONFIRMED', 'SUMMARY_REVIEW_ONLY_CONFIRMED'].includes(s))
+            return 'bg-blue-50 text-blue-700';
+          if (s === 'NOT_INFERRED') return 'bg-amber-50 text-amber-700';
+          if (s === 'NOT_INCLUDED') return 'bg-red-50 text-red-700';
+          if (s === 'NOT_DISPLAYED') return 'bg-slate-100 text-slate-600';
+          if (s === 'READ_ONLY_INFO') return 'bg-blue-50 text-blue-600';
+          return 'bg-gray-100 text-gray-600';
+        };
+        return (
+          <div className={`mb-6 rounded-lg border p-4 ${borderColor}`}>
+            <div className="mb-3 flex items-center gap-2">
+              <ShieldCheck className={`h-5 w-5 flex-shrink-0 ${iconColor}`} />
+              <h3 className="text-sm font-semibold text-slate-800">
+                {c296.panelTitle ?? 'Task 296 - Read-Only Execution Approval Packet'}
+              </h3>
+              <span className="ml-auto rounded bg-slate-100 px-2 py-0.5 text-xs font-mono text-slate-700">
+                {c296.status}
+              </span>
+            </div>
+            <p className="mb-3 text-xs text-slate-700">{c296.description}</p>
+
+            <div className="mb-3 rounded border border-slate-200 bg-white/60 p-3 text-xs space-y-1">
+              <div>
+                readOnlyDesignFinalizationCandidateOutcomeCertificationStatus:{' '}
+                <span className="font-mono text-slate-700">
+                  {c296.readOnlyDesignFinalizationCandidateOutcomeCertificationStatus}
+                </span>
+              </div>
+              <div>
+                readOnlyExecutionApprovalPacketStatus:{' '}
+                <span className={`font-mono ${statusColor}`}>
+                  {c296.readOnlyExecutionApprovalPacketStatus}
+                </span>
+              </div>
+              <div>
+                isReadOnlyExecutionApprovalRequired:{' '}
+                <span className="font-semibold text-slate-700">
+                  {String(c296.isReadOnlyExecutionApprovalRequired)}
+                </span>{' '}
+                | isReadOnlyExecutionApprovalGranted:{' '}
+                <span className="font-semibold text-rose-700">
+                  {String(c296.isReadOnlyExecutionApprovalGranted)}
+                </span>
+              </div>
+              <div className="text-slate-700">{c296.approvalPacketSummary}</div>
+              {c296.blockingReason && (
+                <div>
+                  blockingReason:{' '}
+                  <span className="font-semibold text-rose-700">{c296.blockingReason}</span>
+                </div>
+              )}
+              {isComplete && (
+                <div className="font-semibold text-sky-700">
+                  COMPLETE: 사용자 별도 승인 후 Task 297 실행 승인 검토 요청 가능합니다.
+                </div>
+              )}
+              {isPartial && (
+                <div className="font-semibold text-amber-700">
+                  PARTIAL: missing field notice 포함, 사용자 별도 승인 후 Task 297 실행 승인 검토 요청 가능합니다.
+                </div>
+              )}
+              {isBlocked && (
+                <div className="font-semibold text-rose-700">
+                  BLOCKED: 원인별 보정 후 별도 승인 기준을 재확인해야 합니다.
+                </div>
+              )}
+            </div>
+
+            <div className="mb-3 rounded border border-orange-200 bg-orange-50/30 p-3 text-xs text-slate-700">
+              <div className="mb-1 font-semibold text-orange-800">사용자 승인 문구 안내 (Task 297 기준)</div>
+              <div className="rounded bg-white/70 p-2 font-mono text-slate-700 text-[10px] leading-relaxed">
+                {c296.userApprovalPhrase}
+              </div>
+              <div className="mt-1 text-[10px] text-slate-500">
+                * 이번 Task에서는 위 문구를 안내만 하고 승인으로 처리하지 않습니다.
+              </div>
+            </div>
+
+            <div className="mb-3 rounded border border-blue-200 bg-blue-50/30 p-3 text-xs text-slate-700">
+              <div className="mb-1 font-semibold text-blue-800">패킷 안내</div>
+              <div>
+                Task 296은 read-only 실행 승인 검토 단계로 진입하기 위한 승인 요청 패킷입니다.
+                이번 Task는 실제 실행 승인, 실행 버튼 추가, 상품 변경 승인이 아닙니다.
+              </div>
+              <div>
+                이번 Task에서는 Token 재발급, 상품 조회 API 재호출, 상품 수정 API 호출, 가격/재고 변경, DB write, Worker 실행, Queue enqueue, Adapter 연결을 수행하지 않습니다.
+              </div>
+            </div>
+
+            <div className="mb-3">
+              <div className="mb-1 text-xs font-semibold text-slate-600">패킷 항목</div>
+              <div className="space-y-1">
+                {Array.isArray(c296.packetItems) &&
+                  c296.packetItems.map((item: any, idx: number) => (
+                    <div key={idx} className="flex items-start gap-2 text-[11px]">
+                      <span
+                        className={`shrink-0 rounded px-1 py-0.5 font-mono text-[10px] ${itemColor(item.status)}`}
+                      >
+                        {item.status}
+                      </span>
+                      <span className="text-slate-600">
+                        {item.packetItem}: {item.meaning}
+                      </span>
+                    </div>
+                  ))}
+              </div>
+            </div>
+
+            <div className="mt-2 space-y-0.5 font-mono text-[10px] text-gray-400">
+              <div>
+                isNaverReadOnlyExecutionApprovalPacketReady:{' '}
+                {String(c296.isNaverReadOnlyExecutionApprovalPacketReady)} |
+                isDesignBlueprintFinalized:{' '}
+                {String(c296.isDesignBlueprintFinalized)} |
+                isExecutionApprovalGranted:{' '}
+                {String(c296.isExecutionApprovalGranted)}
+              </div>
+              <div>
+                isNewApiCallExecutedInThisTask:{' '}
+                {String(c296.isNewApiCallExecutedInThisTask)} |
+                isProductUpdateApiCalled:{' '}
+                {String(c296.isProductUpdateApiCalled)} |
+                isDbWriteExecuted:{' '}
+                {String(c296.isDbWriteExecuted)}
+              </div>
+              <div>
+                hasExecutionButton:{' '}
+                {String(c296.hasExecutionButton)} |
+                hasWorkerTrigger:{' '}
+                {String(c296.hasWorkerTrigger)} |
+                isNextStepSeparateApprovalRequired:{' '}
+                {String(c296.isNextStepSeparateApprovalRequired)}
               </div>
             </div>
           </div>
