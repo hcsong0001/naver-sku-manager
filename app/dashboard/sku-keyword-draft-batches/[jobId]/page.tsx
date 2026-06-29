@@ -3935,6 +3935,7 @@ type DraftBatchJob = {
   naverReadOnlyFinalExecutionApprovalCandidateDetailReviewOutcomeCertificationView?: any;
   naverReadOnlyFinalExecutionApprovalCandidateDetailReviewSafetyAuditSealView?: any;
   naverReadOnlyFinalExecutionApprovalCandidateDetailReviewSafetyAuditSealOutcomeCertificationView?: any;
+  naverReadOnlyFinalExecutionApprovalCandidateFinalSummaryView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -40197,6 +40198,198 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             {c314.requiresSeparateTask315Approval && (
               <p className="text-xs text-indigo-500 border-t border-indigo-200 pt-2">
                 {c314.nextTaskApprovalPhrase}
+              </p>
+            )}
+          </div>
+        );
+      })()}
+
+      {/* ── Task 315: Read-Only Candidate Final Summary ── */}
+      {job.naverReadOnlyFinalExecutionApprovalCandidateFinalSummaryView && (() => {
+        const c315 = job.naverReadOnlyFinalExecutionApprovalCandidateFinalSummaryView as {
+          taskId: number;
+          panelTitle: string;
+          description: string;
+          candidateFinalSummaryStatus: string;
+          summaryFlowItems: Array<{
+            taskId: number;
+            taskName: string;
+            sourceStatus: string;
+            summaryStatus: 'READY' | 'PARTIAL_READY' | 'BLOCKED' | 'EMPTY' | 'LOCKED';
+            displayOrder: number;
+            message: string;
+            isDisplayOnly: boolean;
+            actualExecutionBlocked: boolean;
+            mutationBlocked: boolean;
+            apiCallBlocked: boolean;
+          }>;
+          candidateFinalSummaryCards: Array<{
+            label: string;
+            count: number;
+            cardType: 'READY' | 'PARTIAL_READY' | 'BLOCKED' | 'EMPTY' | 'LOCKED';
+          }>;
+          readyFlowCount: number;
+          partialReadyFlowCount: number;
+          blockedFlowCount: number;
+          emptyFlowCount: number;
+          lockedFlowCount: number;
+          totalFlowCount: number;
+          candidateFinalSummaryReady: boolean;
+          candidateFinalSummaryPartialReady: boolean;
+          candidateFinalSummaryBlocked: boolean;
+          candidateFinalSummaryEmpty: boolean;
+          candidateReadOnlyFlowCompleted: boolean;
+          candidateFlowStillDisplayOnly: boolean;
+          safeDisplayFieldsStillCertified: boolean;
+          excludedFieldsStillCertified: boolean;
+          executionStillLocked: boolean;
+          mutationStillBlocked: boolean;
+          apiCallStillBlocked: boolean;
+          requiresSeparateTask316Approval: boolean;
+          nextTaskApprovalPhrase: string;
+        };
+        const getFlowTone = (status: 'READY' | 'PARTIAL_READY' | 'BLOCKED' | 'EMPTY' | 'LOCKED') =>
+          status === 'READY'
+            ? 'bg-green-100 text-green-700 border-green-200'
+            : status === 'PARTIAL_READY'
+              ? 'bg-amber-100 text-amber-700 border-amber-200'
+              : status === 'BLOCKED'
+                ? 'bg-red-100 text-red-700 border-red-200'
+                : status === 'EMPTY'
+                  ? 'bg-slate-100 text-slate-600 border-slate-200'
+                  : 'bg-violet-100 text-violet-700 border-violet-200';
+
+        return (
+          <div className="mb-4 rounded-lg border border-emerald-300 bg-emerald-50 p-4 space-y-3">
+            <div className="flex items-center gap-2">
+              <ListChecks className="w-5 h-5 text-emerald-600" />
+              <h3 className="font-semibold text-emerald-800">
+                Task {c315.taskId}: {c315.panelTitle}
+              </h3>
+              <span className={`ml-auto text-xs px-2 py-0.5 rounded-full font-medium ${
+                c315.candidateFinalSummaryReady
+                  ? 'bg-green-100 text-green-700'
+                  : c315.candidateFinalSummaryPartialReady
+                    ? 'bg-amber-100 text-amber-700'
+                    : c315.candidateFinalSummaryBlocked
+                      ? 'bg-red-100 text-red-700'
+                      : 'bg-slate-100 text-slate-600'
+              }`}>
+                {c315.candidateFinalSummaryStatus.replace(
+                  'NAVER_READ_ONLY_FINAL_EXECUTION_APPROVAL_CANDIDATE_FINAL_SUMMARY_',
+                  '',
+                )}
+              </span>
+            </div>
+            <p className="text-sm text-emerald-800">{c315.description}</p>
+            <div className="rounded border border-emerald-200 bg-emerald-100 px-3 py-2 text-xs text-emerald-800 flex items-start gap-1">
+              <Lock className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+              <span>
+                이 패널은 최종 실행 승인 후보 목록·상세 검토·인증·안전 봉인 결과를 read-only로 최종 요약하는 화면입니다. 이 화면은 실제 승인, 실제 실행, 상품 변경 승인이 아닙니다. 가격/재고 raw 값, 실행 payload, raw API response, Token/Auth/Signature/Authorization 값은 계속 표시하지 않습니다. Task 316은 사용자 별도 명시 승인 없이는 진행하지 않습니다.
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
+              <div className="rounded bg-emerald-100 p-2 text-center text-emerald-800">
+                <div className="text-lg font-bold">{c315.totalFlowCount}</div>
+                <div className="text-xs">요약 대상 Task</div>
+              </div>
+              {c315.candidateFinalSummaryCards.map((card) => (
+                <div
+                  key={card.cardType}
+                  className={`rounded border p-2 text-center ${getFlowTone(card.cardType)}`}
+                >
+                  <div className="text-lg font-bold">{card.count}</div>
+                  <div className="text-xs">{card.label}</div>
+                </div>
+              ))}
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 text-xs sm:grid-cols-3 lg:grid-cols-5">
+              <div className="rounded border border-emerald-200 bg-white/70 p-2 text-emerald-800">
+                <div className="font-medium">READY</div>
+                <div>{c315.readyFlowCount}</div>
+              </div>
+              <div className="rounded border border-amber-200 bg-white/70 p-2 text-amber-800">
+                <div className="font-medium">PARTIAL</div>
+                <div>{c315.partialReadyFlowCount}</div>
+              </div>
+              <div className="rounded border border-red-200 bg-white/70 p-2 text-red-800">
+                <div className="font-medium">BLOCKED</div>
+                <div>{c315.blockedFlowCount}</div>
+              </div>
+              <div className="rounded border border-slate-200 bg-white/70 p-2 text-slate-700">
+                <div className="font-medium">EMPTY</div>
+                <div>{c315.emptyFlowCount}</div>
+              </div>
+              <div className="rounded border border-violet-200 bg-white/70 p-2 text-violet-800">
+                <div className="font-medium">LOCKED</div>
+                <div>{c315.lockedFlowCount}</div>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap gap-3 text-xs">
+              <span className={`flex items-center gap-1 ${c315.candidateReadOnlyFlowCompleted ? 'text-green-700' : 'text-red-600'}`}>
+                <CheckCircle2 className="w-3.5 h-3.5" /> 후보 read-only 흐름 완료
+              </span>
+              <span className={`flex items-center gap-1 ${c315.candidateFlowStillDisplayOnly ? 'text-green-700' : 'text-red-600'}`}>
+                <CheckCircle2 className="w-3.5 h-3.5" /> display-only 유지
+              </span>
+              <span className={`flex items-center gap-1 ${c315.safeDisplayFieldsStillCertified ? 'text-green-700' : 'text-red-600'}`}>
+                <CheckCircle2 className="w-3.5 h-3.5" /> safeDisplayFields 유지
+              </span>
+              <span className={`flex items-center gap-1 ${c315.excludedFieldsStillCertified ? 'text-green-700' : 'text-red-600'}`}>
+                <CheckCircle2 className="w-3.5 h-3.5" /> excludedFields 유지
+              </span>
+              <span className={`flex items-center gap-1 ${c315.executionStillLocked ? 'text-green-700' : 'text-red-600'}`}>
+                <Lock className="w-3.5 h-3.5" /> 실행 잠금 유지
+              </span>
+              <span className={`flex items-center gap-1 ${c315.mutationStillBlocked ? 'text-green-700' : 'text-red-600'}`}>
+                <Lock className="w-3.5 h-3.5" /> mutation 차단 유지
+              </span>
+              <span className={`flex items-center gap-1 ${c315.apiCallStillBlocked ? 'text-green-700' : 'text-red-600'}`}>
+                <Lock className="w-3.5 h-3.5" /> API 호출 차단 유지
+              </span>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs border-collapse">
+                <thead>
+                  <tr className="bg-emerald-100 text-emerald-800">
+                    <th className="border border-emerald-200 px-2 py-1 text-left">순서</th>
+                    <th className="border border-emerald-200 px-2 py-1 text-left">Task</th>
+                    <th className="border border-emerald-200 px-2 py-1 text-left">요약 상태</th>
+                    <th className="border border-emerald-200 px-2 py-1 text-left">원본 상태</th>
+                    <th className="border border-emerald-200 px-2 py-1 text-left">메시지</th>
+                    <th className="border border-emerald-200 px-2 py-1 text-center">실행 잠금</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {c315.summaryFlowItems.map((item) => (
+                    <tr key={item.taskId} className="hover:bg-emerald-50">
+                      <td className="border border-emerald-200 px-2 py-1 text-center text-gray-600">{item.displayOrder}</td>
+                      <td className="border border-emerald-200 px-2 py-1 text-gray-700">
+                        Task {item.taskId} - {item.taskName}
+                      </td>
+                      <td className="border border-emerald-200 px-2 py-1">
+                        <span className={`inline-flex rounded-full border px-2 py-0.5 text-xs font-medium ${getFlowTone(item.summaryStatus)}`}>
+                          {item.summaryStatus}
+                        </span>
+                      </td>
+                      <td className="border border-emerald-200 px-2 py-1 text-gray-600">{item.sourceStatus}</td>
+                      <td className="border border-emerald-200 px-2 py-1 text-gray-600">{item.message}</td>
+                      <td className="border border-emerald-200 px-2 py-1 text-center">
+                        <Lock className="w-3.5 h-3.5 text-emerald-600 mx-auto" />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {c315.requiresSeparateTask316Approval && (
+              <p className="text-xs text-emerald-700 border-t border-emerald-200 pt-2">
+                {c315.nextTaskApprovalPhrase}
               </p>
             )}
           </div>
