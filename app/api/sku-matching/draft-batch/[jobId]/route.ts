@@ -306,6 +306,7 @@ import { buildTmsReadOnlyVpsDeploymentCandidateDetailReviewView } from '@/src/se
 import { buildTmsReadOnlyVpsDeploymentCandidateDetailReviewOutcomeCertificationView } from '@/src/services/tms-read-only-vps-deployment-candidate-detail-review-outcome-certification-view.service';
 import { buildTmsReadOnlyVpsDeploymentCandidateSafetyAuditSealView } from '@/src/services/tms-read-only-vps-deployment-candidate-safety-audit-seal-view.service';
 import { buildTmsReadOnlyVpsDeploymentCandidateSafetyAuditSealOutcomeCertificationView } from '@/src/services/tms-read-only-vps-deployment-candidate-safety-audit-seal-outcome-certification-view.service';
+import { buildTmsReadOnlyVpsDeploymentCandidateReadinessReviewView } from '@/src/services/tms-read-only-vps-deployment-candidate-readiness-review-view.service';
 
 // Compute safe DB environment hint from DATABASE_URL without exposing the original value.
 // Returns a classification key, never the actual URL.
@@ -1186,6 +1187,11 @@ export async function GET(
       buildTmsReadOnlyVpsDeploymentCandidateSafetyAuditSealOutcomeCertificationView({
         vpsDeploymentCandidateSafetyAuditSeal:
           _tmsReadOnlyVpsDeploymentCandidateSafetyAuditSealView,
+      });
+    const _tmsReadOnlyVpsDeploymentCandidateReadinessReviewView =
+      buildTmsReadOnlyVpsDeploymentCandidateReadinessReviewView({
+        vpsDeploymentCandidateSafetyAuditSealOutcomeCertification:
+          _tmsReadOnlyVpsDeploymentCandidateSafetyAuditSealOutcomeCertificationView,
       });
 
     const responseJob = {
@@ -2266,6 +2272,8 @@ export async function GET(
         _tmsReadOnlyVpsDeploymentCandidateSafetyAuditSealView,
       tmsReadOnlyVpsDeploymentCandidateSafetyAuditSealOutcomeCertificationView:
         _tmsReadOnlyVpsDeploymentCandidateSafetyAuditSealOutcomeCertificationView,
+      tmsReadOnlyVpsDeploymentCandidateReadinessReviewView:
+        _tmsReadOnlyVpsDeploymentCandidateReadinessReviewView,
     };
 
     return NextResponse.json({ ok: true, job: responseJob });
