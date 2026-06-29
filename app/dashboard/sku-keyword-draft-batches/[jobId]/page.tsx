@@ -3910,6 +3910,7 @@ type DraftBatchJob = {
   naverReadOnlyProductStructureReviewOutcomeCertificationView?: any;
   naverReadOnlyOptionAdditionalStructureExpansionPlanningCandidateView?: any;
   naverReadOnlyOptionAdditionalStructureExpansionDesignBlueprintView?: any;
+  naverReadOnlyOptionAdditionalStructureExpansionDesignBlueprintSafetyAuditSealView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -35424,6 +35425,240 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 isProductUpdateApiCalled: {String(c289.isProductUpdateApiCalled)} |
                 isPriceOrStockChanged: {String(c289.isPriceOrStockChanged)} |
                 isDbWriteExecuted: {String(c289.isDbWriteExecuted)}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 290: Option/Additional Structure Expansion Design Blueprint Safety Audit Seal ─ */}
+      {(() => {
+        const c290 = (job as any)
+          .naverReadOnlyOptionAdditionalStructureExpansionDesignBlueprintSafetyAuditSealView;
+        if (!c290) return null;
+        const isComplete = c290.isDesignBlueprintAvailableForCompleteSummary;
+        const isPartial = c290.isDesignBlueprintAvailableWithMissingFieldNotice;
+        const isBlocked = c290.isDesignBlueprintBlocked;
+        const borderColor = isComplete
+          ? 'border-emerald-300 bg-emerald-50/20'
+          : isPartial
+            ? 'border-amber-200 bg-amber-50/20'
+            : 'border-rose-200 bg-rose-50/20';
+        const iconColor = isComplete
+          ? 'text-emerald-600'
+          : isPartial
+            ? 'text-amber-500'
+            : 'text-rose-500';
+        const statusColor = isComplete
+          ? 'text-emerald-700 font-bold'
+          : isPartial
+            ? 'text-amber-700 font-bold'
+            : 'text-rose-700 font-bold';
+        const itemColor = (s: string) => {
+          if (
+            [
+              'DESIGN_BLUEPRINT_CONFIRMED',
+              'PLANNING_CANDIDATE_CONFIRMED',
+              'STRUCTURE_OUTCOME_CERTIFICATION_CONFIRMED',
+              'STRUCTURE_SAFETY_AUDIT_SEAL_CONFIRMED',
+              'STRUCTURE_REVIEW_CONFIRMED',
+              'CAPTURE_RESULT_CONFIRMED',
+            ].includes(s)
+          ) {
+            return 'bg-slate-100 text-slate-700';
+          }
+          if (
+            [
+              'DESIGN_BLUEPRINT_STATUS_RECORDED',
+              'DESIGN_AVAILABILITY_RECORDED',
+              'MISSING_FIELD_NOTICE_PRESERVED',
+            ].includes(s)
+          ) {
+            return isComplete
+              ? 'bg-emerald-100 text-emerald-800'
+              : isPartial
+                ? 'bg-amber-100 text-amber-800'
+                : 'bg-rose-100 text-rose-800';
+          }
+          if (
+            ['CAPTURED_DATA_ONLY_CONFIRMED', 'SUMMARY_REVIEW_ONLY_CONFIRMED'].includes(
+              s
+            )
+          ) {
+            return 'bg-blue-50 text-blue-700';
+          }
+          if (['NOT_FINALIZED', 'NOT_APPROVED_FOR_EXECUTION'].includes(s)) {
+            return 'bg-violet-50 text-violet-700';
+          }
+          if (s === 'NOT_INFERRED') return 'bg-amber-50 text-amber-700';
+          if (s === 'NOT_AVAILABLE_IN_CAPTURED_DATA') {
+            return 'bg-orange-50 text-orange-700';
+          }
+          if (s === 'NOT_INCLUDED' || s === 'NOT_STORED') {
+            return 'bg-red-50 text-red-700';
+          }
+          if (s === 'NOT_DISPLAYED' || s === 'NOT_EXECUTED') {
+            return 'bg-slate-100 text-slate-600';
+          }
+          if (s === 'LOCKED') return 'bg-rose-50 text-rose-700';
+          if (s === 'PENDING_SEPARATE_APPROVAL') {
+            return 'bg-orange-100 text-orange-800';
+          }
+          if (s === 'READ_ONLY_INFO') return 'bg-blue-50 text-blue-600';
+          return 'bg-gray-100 text-gray-600';
+        };
+        return (
+          <div className={`mb-6 rounded-lg border p-4 ${borderColor}`}>
+            <div className="mb-3 flex items-center gap-2">
+              <ShieldCheck className={`h-5 w-5 flex-shrink-0 ${iconColor}`} />
+              <h3 className="text-sm font-semibold text-slate-800">
+                {c290.panelTitle ??
+                  'Task 290 - Option/Additional Structure Expansion Design Blueprint Safety Audit Seal'}
+              </h3>
+              <span className="ml-auto rounded bg-slate-100 px-2 py-0.5 text-xs font-mono text-slate-700">
+                {c290.status}
+              </span>
+            </div>
+            <p className="mb-3 text-xs text-slate-700">{c290.description}</p>
+
+            <div className="mb-3 rounded border border-slate-200 bg-white/60 p-3 text-xs space-y-1">
+              <div>
+                optionAdditionalStructureExpansionPlanningCandidateStatus:{' '}
+                <span className="font-mono text-slate-700">
+                  {c290.optionAdditionalStructureExpansionPlanningCandidateStatus}
+                </span>
+              </div>
+              <div>
+                optionAdditionalStructureExpansionDesignBlueprintStatus:{' '}
+                <span className={`font-mono ${statusColor}`}>
+                  {c290.optionAdditionalStructureExpansionDesignBlueprintStatus}
+                </span>
+              </div>
+              <div>
+                safetyAuditSummary:{' '}
+                <span className="text-slate-700">{c290.safetyAuditSummary}</span>
+              </div>
+              {c290.blockingReason && (
+                <div>
+                  blockingReason:{' '}
+                  <span className="font-semibold text-rose-700">
+                    {c290.blockingReason}
+                  </span>
+                </div>
+              )}
+              <div>
+                isDesignBlueprintFinalized:{' '}
+                <span className="font-semibold text-violet-700">
+                  {String(c290.isDesignBlueprintFinalized)}
+                </span>{' '}
+                | isDesignBlueprintApprovedForExecution:{' '}
+                <span className="font-semibold text-violet-700">
+                  {String(c290.isDesignBlueprintApprovedForExecution)}
+                </span>
+              </div>
+              <div>
+                isExecutionApprovalGranted:{' '}
+                <span className="font-semibold text-violet-700">
+                  {String(c290.isExecutionApprovalGranted)}
+                </span>{' '}
+                | isMissingFieldNoticePreserved:{' '}
+                <span
+                  className={
+                    c290.isMissingFieldNoticePreserved
+                      ? 'text-amber-700 font-bold'
+                      : 'text-slate-600 font-semibold'
+                  }
+                >
+                  {String(c290.isMissingFieldNoticePreserved)}
+                </span>
+              </div>
+              {isComplete && (
+                <div className="font-semibold text-emerald-700">
+                  COMPLETE 상태였던 설계안 가능 결과를 read-only 안전 감사 봉인으로 유지합니다.
+                </div>
+              )}
+              {isPartial && (
+                <div className="font-semibold text-amber-700">
+                  PARTIAL 상태와 missing field notice를 유지한 설계안 가능 결과를 read-only 안전 감사 봉인으로 유지합니다.
+                </div>
+              )}
+              {isBlocked && (
+                <div className="font-semibold text-rose-700">
+                  BLOCKED 상태는 동일 원인으로 설계안 불가 상태를 유지한 채 안전 감사 봉인만 수행합니다.
+                </div>
+              )}
+            </div>
+
+            <div className="mb-3 rounded border border-blue-200 bg-blue-50/30 p-3 text-xs text-slate-700">
+              <div className="mb-1 font-semibold text-blue-800">안전 안내</div>
+              <div>
+                Task 290은 Task 289 설계안 블루프린트를 확인하는 감사 봉인 단계이며, 설계 확정도 실행 승인도 아닙니다.
+              </div>
+              <div>
+                현재 캡처 데이터에는 옵션/추가상품 상세 구조가 없어 이를 추정하지 않았고, 기존 캡처 데이터와 기존 요약 검토 결과만 사용했습니다.
+              </div>
+              <div>
+                이번 Task에서는 새 API 호출, 상품 수정, 가격/재고 변경, DB write를 수행하지 않으며 raw response와 Token/Auth 값도 표시하지 않습니다.
+              </div>
+            </div>
+
+            <div className="mb-3">
+              <div className="mb-1 text-xs font-semibold text-slate-600">감사 봉인 항목</div>
+              <div className="space-y-1">
+                {Array.isArray(c290.auditItems) &&
+                  c290.auditItems.map((item: any, idx: number) => (
+                    <div key={idx} className="flex items-start gap-2 text-[11px]">
+                      <span
+                        className={`shrink-0 rounded px-1 py-0.5 font-mono text-[10px] ${itemColor(item.status)}`}
+                      >
+                        {item.status}
+                      </span>
+                      <span className="text-slate-600">
+                        {item.auditItem}: {item.meaning}
+                      </span>
+                    </div>
+                  ))}
+              </div>
+            </div>
+
+            <div className="mb-3">
+              <div className="mb-1 text-xs font-semibold text-slate-600">안전 제한 및 미실행 항목</div>
+              <div className="space-y-1">
+                {Array.isArray(c290.safetyRestrictions) &&
+                  c290.safetyRestrictions.map((item: string, idx: number) => (
+                    <div key={idx} className="text-[11px] text-slate-700">
+                      제한: {item}
+                    </div>
+                  ))}
+                {Array.isArray(c290.nonExecutedItems) &&
+                  c290.nonExecutedItems.map((item: string, idx: number) => (
+                    <div key={`n-${idx}`} className="text-[11px] text-slate-600">
+                      미실행: {item}
+                    </div>
+                  ))}
+              </div>
+            </div>
+
+            <div className="mt-2 space-y-0.5 font-mono text-[10px] text-gray-400">
+              <div>
+                isNewApiCallExecutedInThisTask:{' '}
+                {String(c290.isNewApiCallExecutedInThisTask)} |
+                isOptionAdditionalStructureExpansionDesignReexecutedInThisTask:{' '}
+                {String(c290.isOptionAdditionalStructureExpansionDesignReexecutedInThisTask)} |
+                isProductLookupApiCalledInThisTask:{' '}
+                {String(c290.isProductLookupApiCalledInThisTask)}
+              </div>
+              <div>
+                isRawProductApiResponseIncluded:{' '}
+                {String(c290.isRawProductApiResponseIncluded)} |
+                isTokenValueDisplayed: {String(c290.isTokenValueDisplayed)} |
+                isAuthorizationHeaderDisplayed:{' '}
+                {String(c290.isAuthorizationHeaderDisplayed)}
+              </div>
+              <div>
+                isProductUpdateApiCalled: {String(c290.isProductUpdateApiCalled)} |
+                isPriceOrStockChanged: {String(c290.isPriceOrStockChanged)} |
+                isDbWriteExecuted: {String(c290.isDbWriteExecuted)}
               </div>
             </div>
           </div>

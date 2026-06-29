@@ -270,6 +270,7 @@ import { buildNaverReadOnlyProductStructureReviewSafetyAuditSealView } from '@/s
 import { buildNaverReadOnlyProductStructureReviewOutcomeCertificationView } from '@/src/services/sku-keyword-final-approval-execution-naver-read-only-product-structure-review-outcome-certification-view.service';
 import { buildNaverReadOnlyOptionAdditionalStructureExpansionPlanningCandidateView } from '@/src/services/sku-keyword-final-approval-execution-naver-read-only-option-additional-structure-expansion-planning-candidate-view.service';
 import { buildNaverReadOnlyOptionAdditionalStructureExpansionDesignBlueprintView } from '@/src/services/sku-keyword-final-approval-execution-naver-read-only-option-additional-structure-expansion-design-blueprint-view.service';
+import { buildNaverReadOnlyOptionAdditionalStructureExpansionDesignBlueprintSafetyAuditSealView } from '@/src/services/sku-keyword-final-approval-execution-naver-read-only-option-additional-structure-expansion-design-blueprint-safety-audit-seal-view.service';
 
 // Compute safe DB environment hint from DATABASE_URL without exposing the original value.
 // Returns a classification key, never the actual URL.
@@ -682,6 +683,21 @@ export async function GET(
         summaryReview: _naverBasicProductDataSummaryReviewView,
         captureResult: _naverReadOnlyProductDataCaptureResultView,
       });
+    const _naverReadOnlyOptionAdditionalStructureExpansionDesignBlueprintSafetyAuditSealView =
+      buildNaverReadOnlyOptionAdditionalStructureExpansionDesignBlueprintSafetyAuditSealView(
+        {
+          designBlueprint:
+            _naverReadOnlyOptionAdditionalStructureExpansionDesignBlueprintView,
+          planningCandidate:
+            _naverReadOnlyOptionAdditionalStructureExpansionPlanningCandidateView,
+          structureOutcomeCertification:
+            _naverReadOnlyProductStructureReviewOutcomeCertificationView,
+          structureSafetyAuditSeal:
+            _naverReadOnlyProductStructureReviewSafetyAuditSealView,
+          structureReview: _naverReadOnlyProductStructureReviewView,
+          captureResult: _naverReadOnlyProductDataCaptureResultView,
+        }
+      );
 
     const responseJob = {
       id: job.id,
@@ -1689,6 +1705,8 @@ export async function GET(
         _naverReadOnlyOptionAdditionalStructureExpansionPlanningCandidateView,
       naverReadOnlyOptionAdditionalStructureExpansionDesignBlueprintView:
         _naverReadOnlyOptionAdditionalStructureExpansionDesignBlueprintView,
+      naverReadOnlyOptionAdditionalStructureExpansionDesignBlueprintSafetyAuditSealView:
+        _naverReadOnlyOptionAdditionalStructureExpansionDesignBlueprintSafetyAuditSealView,
     };
 
     return NextResponse.json({ ok: true, job: responseJob });
