@@ -3913,6 +3913,7 @@ type DraftBatchJob = {
   naverReadOnlyOptionAdditionalStructureExpansionDesignBlueprintSafetyAuditSealView?: any;
   naverReadOnlyOptionAdditionalStructureExpansionDesignBlueprintOutcomeCertificationView?: any;
   naverReadOnlyDesignFinalizationApprovalPacketView?: any;
+  naverReadOnlyDesignFinalizationCandidateView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -36122,6 +36123,243 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 isProductUpdateApiCalled: {String(c292.isProductUpdateApiCalled)} |
                 isPriceOrStockChanged: {String(c292.isPriceOrStockChanged)} |
                 isDbWriteExecuted: {String(c292.isDbWriteExecuted)}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 293: Read-Only Design Finalization Candidate ──────────────── */}
+      {(() => {
+        const c293 = (job as any).naverReadOnlyDesignFinalizationCandidateView;
+        if (!c293) return null;
+        const isComplete =
+          c293.isReadOnlyDesignFinalizationCandidateReadyForCompleteBlueprint;
+        const isPartial =
+          c293.isReadOnlyDesignFinalizationCandidateReadyWithMissingFieldNotice;
+        const isBlocked =
+          c293.isReadOnlyDesignFinalizationCandidateBlockedByGwIp ||
+          c293.isReadOnlyDesignFinalizationCandidateBlockedByToken ||
+          c293.isReadOnlyDesignFinalizationCandidateBlockedByEnv ||
+          c293.isReadOnlyDesignFinalizationCandidateBlockedByChannel ||
+          c293.isReadOnlyDesignFinalizationCandidateBlockedByProductLookup;
+        const borderColor = isComplete
+          ? 'border-emerald-300 bg-emerald-50/20'
+          : isPartial
+            ? 'border-amber-200 bg-amber-50/20'
+            : 'border-rose-200 bg-rose-50/20';
+        const iconColor = isComplete
+          ? 'text-emerald-600'
+          : isPartial
+            ? 'text-amber-500'
+            : 'text-rose-500';
+        const statusColor = isComplete
+          ? 'text-emerald-700 font-bold'
+          : isPartial
+            ? 'text-amber-700 font-bold'
+            : 'text-rose-700 font-bold';
+        const itemColor = (s: string) => {
+          if (
+            [
+              'USER_APPROVAL_CONFIRMED_FOR_TASK_293',
+              'APPROVAL_PACKET_CONFIRMED',
+              'BLUEPRINT_OUTCOME_CERTIFICATION_CONFIRMED',
+              'BLUEPRINT_SAFETY_AUDIT_SEAL_CONFIRMED',
+              'DESIGN_BLUEPRINT_CONFIRMED',
+              'CAPTURE_RESULT_CONFIRMED',
+            ].includes(s)
+          ) {
+            return 'bg-slate-100 text-slate-700';
+          }
+          if (s === 'FINALIZATION_CANDIDATE_STATUS_RECORDED') {
+            return isComplete
+              ? 'bg-emerald-100 text-emerald-800'
+              : isPartial
+                ? 'bg-amber-100 text-amber-800'
+                : 'bg-rose-100 text-rose-800';
+          }
+          if (
+            ['CANDIDATE_READY_IF_COMPLETE_BLUEPRINT', 'CANDIDATE_READY_WITH_MISSING_FIELD_NOTICE'].includes(
+              s
+            )
+          ) {
+            return isComplete || isPartial
+              ? 'bg-blue-50 text-blue-700'
+              : 'bg-slate-100 text-slate-600';
+          }
+          if (s === 'CANDIDATE_BLOCKED') {
+            return isBlocked ? 'bg-rose-100 text-rose-800' : 'bg-slate-100 text-slate-600';
+          }
+          if (
+            ['NOT_FINALIZED', 'NOT_APPROVED_FOR_EXECUTION', 'NOT_APPROVED_FOR_PRODUCT_CHANGE'].includes(
+              s
+            )
+          ) {
+            return 'bg-violet-50 text-violet-700';
+          }
+          if (s === 'NOT_STORED') return 'bg-red-50 text-red-700';
+          if (
+            ['CAPTURED_DATA_ONLY_CONFIRMED', 'SUMMARY_REVIEW_ONLY_CONFIRMED'].includes(
+              s
+            )
+          ) {
+            return 'bg-blue-50 text-blue-700';
+          }
+          if (s === 'NOT_INFERRED') return 'bg-amber-50 text-amber-700';
+          if (s === 'NOT_INCLUDED') return 'bg-red-50 text-red-700';
+          if (s === 'NOT_DISPLAYED' || s === 'NOT_EXECUTED') {
+            return 'bg-slate-100 text-slate-600';
+          }
+          if (s === 'LOCKED') return 'bg-rose-50 text-rose-700';
+          if (s === 'PENDING_SEPARATE_APPROVAL') {
+            return 'bg-orange-100 text-orange-800';
+          }
+          if (s === 'READ_ONLY_INFO') return 'bg-blue-50 text-blue-600';
+          if (s === 'MISSING_FIELD_NOTICE_PRESERVED') {
+            return isPartial ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-600';
+          }
+          return 'bg-gray-100 text-gray-600';
+        };
+        return (
+          <div className={`mb-6 rounded-lg border p-4 ${borderColor}`}>
+            <div className="mb-3 flex items-center gap-2">
+              <Target className={`h-5 w-5 flex-shrink-0 ${iconColor}`} />
+              <h3 className="text-sm font-semibold text-slate-800">
+                {c293.panelTitle ?? 'Task 293 - Read-Only Design Finalization Candidate'}
+              </h3>
+              <span className="ml-auto rounded bg-slate-100 px-2 py-0.5 text-xs font-mono text-slate-700">
+                {c293.status}
+              </span>
+            </div>
+            <p className="mb-3 text-xs text-slate-700">{c293.description}</p>
+
+            <div className="mb-3 rounded border border-slate-200 bg-white/60 p-3 text-xs space-y-1">
+              <div>
+                readOnlyDesignFinalizationApprovalPacketStatus:{' '}
+                <span className="font-mono text-slate-700">
+                  {c293.readOnlyDesignFinalizationApprovalPacketStatus}
+                </span>
+              </div>
+              <div>
+                readOnlyDesignFinalizationCandidateStatus:{' '}
+                <span className={`font-mono ${statusColor}`}>
+                  {c293.readOnlyDesignFinalizationCandidateStatus}
+                </span>
+              </div>
+              <div>
+                candidateSummary:{' '}
+                <span className="text-slate-700">{c293.candidateSummary}</span>
+              </div>
+              {c293.blockingReason && (
+                <div>
+                  blockingReason:{' '}
+                  <span className="font-semibold text-rose-700">
+                    {c293.blockingReason}
+                  </span>
+                </div>
+              )}
+              <div>
+                isUserApprovalConfirmedForTask293:{' '}
+                <span className="font-semibold text-emerald-700">
+                  {String(c293.isUserApprovalConfirmedForTask293)}
+                </span>{' '}
+                | isReadOnlyDesignFinalizationCandidateDisplayed:{' '}
+                <span className="font-semibold text-slate-700">
+                  {String(c293.isReadOnlyDesignFinalizationCandidateDisplayed)}
+                </span>
+              </div>
+              {isComplete && (
+                <div className="font-semibold text-emerald-700">
+                  Task 289 설계안을 read-only 확정 후보로 표시합니다.
+                </div>
+              )}
+              {isPartial && (
+                <div className="font-semibold text-amber-700">
+                  missing field notice를 유지한 채 Task 289 설계안을 read-only 확정 후보로 표시합니다.
+                </div>
+              )}
+              {isBlocked && (
+                <div className="font-semibold text-rose-700">
+                  BLOCKED 상태이므로 확정 후보를 표시하지 않습니다.
+                </div>
+              )}
+            </div>
+
+            <div className="mb-3 rounded border border-blue-200 bg-blue-50/30 p-3 text-xs text-slate-700">
+              <div className="mb-1 font-semibold text-blue-800">후보 안내</div>
+              <div>
+                Task 293은 Task 289 설계안 블루프린트를 read-only 확정 후보로 표시하는 단계입니다.
+              </div>
+              <div>
+                이 단계는 실행 승인이나 상품 변경 승인이 아니며, 설계안을 DB에 저장하지 않습니다.
+              </div>
+              <div>
+                이번 Task에서는 Token 재발급, 상품 조회 API 재호출, 상품 수정 API 호출, 가격/재고 변경, DB write를 수행하지 않습니다.
+              </div>
+            </div>
+
+            <div className="mb-3">
+              <div className="mb-1 text-xs font-semibold text-slate-600">확정 후보 항목</div>
+              <div className="space-y-1">
+                {Array.isArray(c293.candidateItems) &&
+                  c293.candidateItems.map((item: any, idx: number) => (
+                    <div key={idx} className="flex items-start gap-2 text-[11px]">
+                      <span
+                        className={`shrink-0 rounded px-1 py-0.5 font-mono text-[10px] ${itemColor(item.status)}`}
+                      >
+                        {item.status}
+                      </span>
+                      <span className="text-slate-600">
+                        {item.candidateItem}: {item.meaning}
+                      </span>
+                    </div>
+                  ))}
+              </div>
+            </div>
+
+            {c293.designFinalizationCandidate && (
+              <div className="mb-3 rounded border border-violet-200 bg-violet-50/30 p-3 text-xs text-slate-700">
+                <div className="mb-1 font-semibold text-violet-800">확정 후보 payload</div>
+                <div>
+                  sourceDesignBlueprintTask: {c293.designFinalizationCandidate.sourceDesignBlueprintTask}
+                </div>
+                <div>
+                  sourceApprovalPacketTask: {c293.designFinalizationCandidate.sourceApprovalPacketTask}
+                </div>
+                <div>
+                  candidateType: {c293.designFinalizationCandidate.candidateType}
+                </div>
+                <div>
+                  finalizationCandidateStatus: {c293.designFinalizationCandidate.finalizationCandidateStatus}
+                </div>
+                <div>
+                  designBlueprintReferenceOnly: {String(c293.designFinalizationCandidate.designBlueprintReferenceOnly)} |
+                  designBlueprintCopiedForExecution: {String(c293.designFinalizationCandidate.designBlueprintCopiedForExecution)} |
+                  designBlueprintPersistedToDb: {String(c293.designFinalizationCandidate.designBlueprintPersistedToDb)}
+                </div>
+              </div>
+            )}
+
+            <div className="mt-2 space-y-0.5 font-mono text-[10px] text-gray-400">
+              <div>
+                isReadOnlyDesignFinalizationExecutedInThisTask:{' '}
+                {String(c293.isReadOnlyDesignFinalizationExecutedInThisTask)} |
+                isNewApiCallExecutedInThisTask:{' '}
+                {String(c293.isNewApiCallExecutedInThisTask)} |
+                isProductLookupApiCalledInThisTask:{' '}
+                {String(c293.isProductLookupApiCalledInThisTask)}
+              </div>
+              <div>
+                isRawProductApiResponseIncluded:{' '}
+                {String(c293.isRawProductApiResponseIncluded)} |
+                isTokenValueDisplayed: {String(c293.isTokenValueDisplayed)} |
+                isAuthorizationHeaderDisplayed:{' '}
+                {String(c293.isAuthorizationHeaderDisplayed)}
+              </div>
+              <div>
+                isProductUpdateApiCalled: {String(c293.isProductUpdateApiCalled)} |
+                isPriceOrStockChanged: {String(c293.isPriceOrStockChanged)} |
+                isDbWriteExecuted: {String(c293.isDbWriteExecuted)}
               </div>
             </div>
           </div>
