@@ -3893,6 +3893,7 @@ type DraftBatchJob = {
   naverTokenIssuanceHttp403CredentialAuthReadOnlyChecklistView?: any;
   naverTokenIssuanceRetryOneTimeTestProductLookupResultView?: any;
   naverProductLookupLiveRetryResultNonMutationAuditSealView?: any;
+  naverProductLookupLiveRetryOutcomeDecisionGateView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -33235,6 +33236,74 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div>isTokenValueDisplayed: {String(s272.isTokenValueDisplayed)} | isTokenStoredInDb: {String(s272.isTokenStoredInDb)} | isAuthKeyValueDisplayed: {String(s272.isAuthKeyValueDisplayed)}</div>
               <div>isProductUpdateApiCalled: {String(s272.isProductUpdateApiCalled)} | isPriceOrStockChanged: {String(s272.isPriceOrStockChanged)} | isDbWriteExecuted: {String(s272.isDbWriteExecuted)}</div>
               <div>isAdditionalCallStoppedWithinApprovalScope: {String(s272.isAdditionalCallStoppedWithinApprovalScope)} | isNextStepSeparateApprovalRequired: {String(s272.isNextStepSeparateApprovalRequired)} | isNextStepSeparateApprovalGranted: {String(s272.isNextStepSeparateApprovalGranted)}</div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 273: Live 재시도 결과 Decision Gate ─────────────────────────── */}
+      {(() => {
+        const g273 = (job as any).naverProductLookupLiveRetryOutcomeDecisionGateView;
+        if (!g273) return null;
+        const isReady = g273.nextDecisionStatus === 'READY_FOR_READ_ONLY_PRODUCT_DATA_CAPTURE_GATE';
+        const decisionColor = isReady ? 'text-emerald-700 font-bold' : 'text-red-700 font-bold';
+        const borderColor = isReady ? 'border-emerald-300 bg-emerald-50/30' : 'border-red-200 bg-red-50/20';
+        const iconColor = isReady ? 'text-emerald-600' : 'text-red-500';
+        const itemColor = (s: string) => {
+          if (s === 'LIVE_RETRY_RESULT_CONFIRMED' || s === 'NON_MUTATION_AUDIT_CONFIRMED' || s === 'TOKEN_RETRY_STATUS_RECORDED' || s === 'GW_IP_RESOLUTION_STATUS_RECORDED' || s === 'PRODUCT_LOOKUP_RETRY_STATUS_RECORDED') return 'bg-slate-100 text-slate-700';
+          if (s === 'DECISION_STATUS_RECORDED') return isReady ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800';
+          if (s === 'READY_IF_LOOKUP_SUCCESS') return isReady ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-100 text-gray-500';
+          if (s === 'RECHECK_IP_ALLOWLIST_REQUIRED' || s === 'RECHECK_AUTH_REQUIRED' || s === 'RECHECK_ENV_REQUIRED' || s === 'RECHECK_CHANNEL_PRODUCT_NO_REQUIRED' || s === 'RECHECK_PRODUCT_ACCESS_REQUIRED') return 'bg-amber-50 text-amber-700';
+          if (s === 'NOT_DISPLAYED' || s === 'NOT_STORED' || s === 'NOT_EXECUTED') return 'bg-slate-100 text-slate-600';
+          if (s === 'LOCKED') return 'bg-orange-50 text-orange-700';
+          if (s === 'PENDING_SEPARATE_APPROVAL') return 'bg-yellow-50 text-yellow-700';
+          if (s === 'READ_ONLY_INFO') return 'bg-blue-50 text-blue-600';
+          return 'bg-gray-100 text-gray-600';
+        };
+        return (
+          <div className={`mb-6 rounded-lg border p-4 ${borderColor}`}>
+            <div className="mb-3 flex items-center gap-2">
+              <ShieldAlert className={`w-5 h-5 flex-shrink-0 ${iconColor}`} />
+              <h3 className="font-semibold text-slate-800 text-sm">
+                {g273.panelTitle ?? 'Live 재시도 결과 Decision Gate (Task 273)'}
+              </h3>
+              <span className="ml-auto text-xs px-2 py-0.5 rounded font-mono bg-slate-100 text-slate-700">
+                {g273.status}
+              </span>
+            </div>
+            <p className="mb-3 text-xs text-slate-700">{g273.description}</p>
+
+            {/* 참조 상태 요약 */}
+            <div className="mb-3 rounded border border-slate-200 bg-white/60 p-3">
+              <div className="mb-1 text-xs font-semibold text-slate-600">Task 271/272 결과 참조</div>
+              <div className="flex flex-wrap gap-3 text-xs">
+                <span>tokenRetryStatus: <span className="font-mono font-bold">{g273.tokenRetryStatus}</span></span>
+                <span>productLookupRetryStatus: <span className="font-mono font-bold">{g273.productLookupRetryStatus}</span></span>
+                <span>isGwIpNotAllowedResolved: <span className={`font-mono font-bold ${g273.isGwIpNotAllowedResolved ? 'text-emerald-600' : 'text-red-600'}`}>{String(g273.isGwIpNotAllowedResolved)}</span></span>
+              </div>
+              <div className="mt-2 text-xs">
+                nextDecisionStatus: <span className={`font-mono ${decisionColor}`}>{g273.nextDecisionStatus}</span>
+              </div>
+            </div>
+
+            {/* decisionItems */}
+            <div className="mb-3">
+              <div className="mb-1 text-xs font-semibold text-slate-600">Decision Gate 항목</div>
+              <div className="space-y-1">
+                {Array.isArray(g273.decisionItems) && g273.decisionItems.map((item: any, idx: number) => (
+                  <div key={idx} className="flex items-start gap-2 text-[11px]">
+                    <span className={`shrink-0 rounded px-1 py-0.5 font-mono text-[10px] ${itemColor(item.status)}`}>{item.status}</span>
+                    <span className="text-slate-600">{item.decisionItem}: {item.meaning}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* 안전 플래그 footer */}
+            <div className="mt-2 text-[10px] text-gray-400 font-mono space-y-0.5">
+              <div>isTokenReissuedInThisTask: {String(g273.isTokenReissuedInThisTask)} | isProductLookupApiCalledInThisTask: {String(g273.isProductLookupApiCalledInThisTask)} | isNaverApiCalledInThisTask: {String(g273.isNaverApiCalledInThisTask)}</div>
+              <div>isTokenValueDisplayed: {String(g273.isTokenValueDisplayed)} | isAuthKeyValueDisplayed: {String(g273.isAuthKeyValueDisplayed)} | isDbWriteExecuted: {String(g273.isDbWriteExecuted)}</div>
+              <div>isNextStepSeparateApprovalRequired: {String(g273.isNextStepSeparateApprovalRequired)} | isNextStepSeparateApprovalGranted: {String(g273.isNextStepSeparateApprovalGranted)} | isExecutionAllowed: {String(g273.isExecutionAllowed)}</div>
             </div>
           </div>
         );
