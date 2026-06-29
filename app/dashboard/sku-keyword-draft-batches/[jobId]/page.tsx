@@ -3940,6 +3940,7 @@ type DraftBatchJob = {
   naverReadOnlyFinalExecutionApprovalCandidateFinalSummarySafetyAuditSealView?: any;
   naverReadOnlyFinalExecutionApprovalCandidateFinalSummarySafetyAuditSealOutcomeCertificationView?: any;
   naverReadOnlyFinalExecutionApprovalCandidateFlowClosureSummaryView?: any;
+  tmsReadOnlyDeploymentDomainPreparationStatusCheckView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -41103,6 +41104,221 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             {c319.requiresSeparateTask320Approval && (
               <p className="text-xs text-indigo-700 border-t border-indigo-200 pt-2">
                 {c319.nextTaskApprovalPhrase}
+              </p>
+            )}
+          </div>
+        );
+      })()}
+
+      {/* ── Task 320: Read-Only Deployment / Domain Preparation Status Check ── */}
+      {job.tmsReadOnlyDeploymentDomainPreparationStatusCheckView && (() => {
+        const c320 = job.tmsReadOnlyDeploymentDomainPreparationStatusCheckView as {
+          taskId: number;
+          panelTitle: string;
+          description: string;
+          sourceCandidateFlowClosureSummaryStatus: string;
+          deploymentDomainPreparationStatus: string;
+          preparationCheckItems: Array<{
+            checkId: string;
+            category: 'CANDIDATE_FLOW' | 'DEPLOYMENT' | 'DOMAIN' | 'SECURITY' | 'SERVER' | 'SAFETY_LOCK';
+            label: string;
+            status: 'READY' | 'PARTIAL_READY' | 'BLOCKED' | 'NOT_STARTED';
+            message: string;
+            isReadOnly: boolean;
+            actualChangePerformed: boolean;
+          }>;
+          deploymentPreparationItems: Array<{
+            checkId: string;
+            label: string;
+            status: 'READY' | 'PARTIAL_READY' | 'BLOCKED' | 'NOT_STARTED';
+            message: string;
+          }>;
+          domainPreparationItems: Array<{
+            checkId: string;
+            label: string;
+            status: 'READY' | 'PARTIAL_READY' | 'BLOCKED' | 'NOT_STARTED';
+            message: string;
+          }>;
+          securityPreparationItems: Array<{
+            checkId: string;
+            label: string;
+            status: 'READY' | 'PARTIAL_READY' | 'BLOCKED' | 'NOT_STARTED';
+            message: string;
+          }>;
+          readOnlySafetyItems: Array<{
+            checkId: string;
+            label: string;
+            status: 'READY' | 'PARTIAL_READY' | 'BLOCKED' | 'NOT_STARTED';
+            message: string;
+          }>;
+          preparationSummaryCards: Array<{
+            label: string;
+            count: number;
+            cardType: 'READY' | 'PARTIAL_READY' | 'BLOCKED' | 'NOT_STARTED';
+          }>;
+          candidateFlowReadOnlyClosed: boolean;
+          candidateFlowSafeForDeploymentPreparation: boolean;
+          deploymentNotStarted: boolean;
+          domainConnectionNotStarted: boolean;
+          executionStillLocked: boolean;
+          mutationStillBlocked: boolean;
+          apiCallStillBlocked: boolean;
+          dbWriteStillBlocked: boolean;
+          workerQueueAdapterStillBlocked: boolean;
+          requiresSeparateTask321Approval: boolean;
+          nextTaskApprovalPhrase: string;
+        };
+        const getPreparationTone = (status: 'READY' | 'PARTIAL_READY' | 'BLOCKED' | 'NOT_STARTED') =>
+          status === 'READY'
+            ? 'bg-green-100 text-green-700 border-green-200'
+            : status === 'PARTIAL_READY'
+              ? 'bg-amber-100 text-amber-700 border-amber-200'
+              : status === 'BLOCKED'
+                ? 'bg-red-100 text-red-700 border-red-200'
+                : 'bg-slate-100 text-slate-600 border-slate-200';
+
+        const renderItemList = (
+          title: string,
+          items: Array<{
+            checkId: string;
+            label: string;
+            status: 'READY' | 'PARTIAL_READY' | 'BLOCKED' | 'NOT_STARTED';
+            message: string;
+          }>,
+        ) => (
+          <div className="rounded border border-fuchsia-200 bg-white/80 p-3">
+            <h4 className="mb-2 text-sm font-semibold text-fuchsia-800">{title}</h4>
+            <div className="space-y-2">
+              {items.map((item) => (
+                <div key={item.checkId} className="rounded border border-fuchsia-100 bg-fuchsia-50/60 p-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-medium text-fuchsia-900">{item.label}</span>
+                    <span className={`ml-auto inline-flex rounded-full border px-2 py-0.5 text-[11px] font-medium ${getPreparationTone(item.status)}`}>
+                      {item.status}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-xs text-fuchsia-700">{item.message}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+
+        return (
+          <div className="mb-4 rounded-lg border border-fuchsia-300 bg-fuchsia-50 p-4 space-y-3">
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="w-5 h-5 text-fuchsia-600" />
+              <h3 className="font-semibold text-fuchsia-800">
+                Task {c320.taskId}: {c320.panelTitle}
+              </h3>
+              <span className={`ml-auto text-xs px-2 py-0.5 rounded-full font-medium ${
+                c320.deploymentDomainPreparationStatus.endsWith('_PARTIAL_READY')
+                  ? 'bg-amber-100 text-amber-700'
+                  : c320.deploymentDomainPreparationStatus.endsWith('_BLOCKED')
+                    ? 'bg-red-100 text-red-700'
+                    : c320.deploymentDomainPreparationStatus.endsWith('_NOT_STARTED')
+                      ? 'bg-slate-100 text-slate-600'
+                      : 'bg-green-100 text-green-700'
+              }`}>
+                {c320.deploymentDomainPreparationStatus.replace(
+                  'TMS_READ_ONLY_DEPLOYMENT_DOMAIN_PREPARATION_STATUS_',
+                  '',
+                )}
+              </span>
+            </div>
+
+            <p className="text-sm text-fuchsia-800">{c320.description}</p>
+
+            <div className="rounded border border-fuchsia-200 bg-fuchsia-100 px-3 py-2 text-xs text-fuchsia-800 flex items-start gap-1">
+              <Lock className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+              <span>
+                이 패널은 배포와 도메인 연결 전 준비 상태를 read-only로 점검하는 화면입니다. 이 화면은 실제 배포 실행이나 실제 도메인 연결 작업이 아닙니다. DNS, SSL, 포트포워딩, 서버 설정, NAS/VPS 설정을 변경하지 않습니다. Task 321은 사용자 별도 명시 승인 없이는 진행하지 않습니다.
+              </span>
+            </div>
+
+            <div className="rounded border border-fuchsia-200 bg-white/70 px-3 py-2 text-xs text-fuchsia-800">
+              <span className="font-medium">Task 319 원본 Closure 상태:</span> {c320.sourceCandidateFlowClosureSummaryStatus}
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
+              {c320.preparationSummaryCards.map((card) => (
+                <div
+                  key={card.cardType}
+                  className={`rounded border p-2 text-center ${getPreparationTone(card.cardType)}`}
+                >
+                  <div className="text-lg font-bold">{card.count}</div>
+                  <div className="text-xs">{card.label}</div>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex flex-wrap gap-3 text-xs">
+              <span className={`flex items-center gap-1 ${c320.candidateFlowReadOnlyClosed ? 'text-green-700' : 'text-red-600'}`}>
+                <CheckCircle2 className="w-3.5 h-3.5" /> 후보 흐름 read-only 종료 유지
+              </span>
+              <span className={`flex items-center gap-1 ${c320.candidateFlowSafeForDeploymentPreparation ? 'text-green-700' : 'text-red-600'}`}>
+                <CheckCircle2 className="w-3.5 h-3.5" /> 배포 전 안전 상태 유지
+              </span>
+              <span className={`flex items-center gap-1 ${c320.deploymentNotStarted ? 'text-green-700' : 'text-red-600'}`}>
+                <Lock className="w-3.5 h-3.5" /> 실제 배포 미시작
+              </span>
+              <span className={`flex items-center gap-1 ${c320.domainConnectionNotStarted ? 'text-green-700' : 'text-red-600'}`}>
+                <Lock className="w-3.5 h-3.5" /> 실제 도메인 연결 미시작
+              </span>
+              <span className={`flex items-center gap-1 ${c320.executionStillLocked ? 'text-green-700' : 'text-red-600'}`}>
+                <Lock className="w-3.5 h-3.5" /> 실행 잠금 유지
+              </span>
+              <span className={`flex items-center gap-1 ${c320.mutationStillBlocked ? 'text-green-700' : 'text-red-600'}`}>
+                <Lock className="w-3.5 h-3.5" /> mutation 차단 유지
+              </span>
+              <span className={`flex items-center gap-1 ${c320.apiCallStillBlocked ? 'text-green-700' : 'text-red-600'}`}>
+                <Lock className="w-3.5 h-3.5" /> API 호출 차단 유지
+              </span>
+              <span className={`flex items-center gap-1 ${c320.dbWriteStillBlocked ? 'text-green-700' : 'text-red-600'}`}>
+                <Lock className="w-3.5 h-3.5" /> DB write 차단 유지
+              </span>
+              <span className={`flex items-center gap-1 ${c320.workerQueueAdapterStillBlocked ? 'text-green-700' : 'text-red-600'}`}>
+                <Lock className="w-3.5 h-3.5" /> Worker / Queue / Adapter 차단 유지
+              </span>
+            </div>
+
+            <div className="grid gap-3 lg:grid-cols-2">
+              {renderItemList('배포 준비 점검 항목', c320.deploymentPreparationItems)}
+              {renderItemList('도메인 준비 점검 항목', c320.domainPreparationItems)}
+              {renderItemList('보안 준비 점검 항목', c320.securityPreparationItems)}
+              {renderItemList('Read-only Safety 점검 항목', c320.readOnlySafetyItems)}
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs border-collapse">
+                <thead>
+                  <tr className="bg-fuchsia-100 text-fuchsia-800">
+                    <th className="border border-fuchsia-200 px-2 py-1 text-left">구분</th>
+                    <th className="border border-fuchsia-200 px-2 py-1 text-left">점검 항목</th>
+                    <th className="border border-fuchsia-200 px-2 py-1 text-left">상태</th>
+                    <th className="border border-fuchsia-200 px-2 py-1 text-left">메시지</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {c320.preparationCheckItems.map((item) => (
+                    <tr key={item.checkId} className="hover:bg-fuchsia-50">
+                      <td className="border border-fuchsia-200 px-2 py-1 text-gray-700">{item.category}</td>
+                      <td className="border border-fuchsia-200 px-2 py-1 text-gray-700">{item.label}</td>
+                      <td className="border border-fuchsia-200 px-2 py-1">
+                        <span className={`inline-flex rounded-full border px-2 py-0.5 text-xs font-medium ${getPreparationTone(item.status)}`}>
+                          {item.status}
+                        </span>
+                      </td>
+                      <td className="border border-fuchsia-200 px-2 py-1 text-gray-600">{item.message}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {c320.requiresSeparateTask321Approval && (
+              <p className="text-xs text-fuchsia-700 border-t border-fuchsia-200 pt-2">
+                {c320.nextTaskApprovalPhrase}
               </p>
             )}
           </div>

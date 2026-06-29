@@ -300,6 +300,7 @@ import { buildNaverReadOnlyFinalExecutionApprovalCandidateFinalSummaryOutcomeCer
 import { buildNaverReadOnlyFinalExecutionApprovalCandidateFinalSummarySafetyAuditSealView } from '@/src/services/sku-keyword-final-approval-execution-naver-read-only-final-execution-approval-candidate-final-summary-safety-audit-seal-view.service';
 import { buildNaverReadOnlyFinalExecutionApprovalCandidateFinalSummarySafetyAuditSealOutcomeCertificationView } from '@/src/services/sku-keyword-final-approval-execution-naver-read-only-final-execution-approval-candidate-final-summary-safety-audit-seal-outcome-certification-view.service';
 import { buildNaverReadOnlyFinalExecutionApprovalCandidateFlowClosureSummaryView } from '@/src/services/sku-keyword-final-approval-execution-naver-read-only-final-execution-approval-candidate-flow-closure-summary-view.service';
+import { buildTmsReadOnlyDeploymentDomainPreparationStatusCheckView } from '@/src/services/tms-read-only-deployment-domain-preparation-status-check-view.service';
 
 // Compute safe DB environment hint from DATABASE_URL without exposing the original value.
 // Returns a classification key, never the actual URL.
@@ -1152,6 +1153,11 @@ export async function GET(
           _naverReadOnlyFinalExecutionApprovalCandidateFinalSummarySafetyAuditSealView,
         candidateFinalSummarySafetyAuditSealOutcomeCertification:
           _naverReadOnlyFinalExecutionApprovalCandidateFinalSummarySafetyAuditSealOutcomeCertificationView,
+      });
+    const _tmsReadOnlyDeploymentDomainPreparationStatusCheckView =
+      buildTmsReadOnlyDeploymentDomainPreparationStatusCheckView({
+        candidateFlowClosureSummary:
+          _naverReadOnlyFinalExecutionApprovalCandidateFlowClosureSummaryView,
       });
 
     const responseJob = {
@@ -2220,6 +2226,8 @@ export async function GET(
         _naverReadOnlyFinalExecutionApprovalCandidateFinalSummarySafetyAuditSealOutcomeCertificationView,
       naverReadOnlyFinalExecutionApprovalCandidateFlowClosureSummaryView:
         _naverReadOnlyFinalExecutionApprovalCandidateFlowClosureSummaryView,
+      tmsReadOnlyDeploymentDomainPreparationStatusCheckView:
+        _tmsReadOnlyDeploymentDomainPreparationStatusCheckView,
     };
 
     return NextResponse.json({ ok: true, job: responseJob });
