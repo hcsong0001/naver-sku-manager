@@ -301,6 +301,7 @@ import { buildNaverReadOnlyFinalExecutionApprovalCandidateFinalSummarySafetyAudi
 import { buildNaverReadOnlyFinalExecutionApprovalCandidateFinalSummarySafetyAuditSealOutcomeCertificationView } from '@/src/services/sku-keyword-final-approval-execution-naver-read-only-final-execution-approval-candidate-final-summary-safety-audit-seal-outcome-certification-view.service';
 import { buildNaverReadOnlyFinalExecutionApprovalCandidateFlowClosureSummaryView } from '@/src/services/sku-keyword-final-approval-execution-naver-read-only-final-execution-approval-candidate-flow-closure-summary-view.service';
 import { buildTmsReadOnlyDeploymentDomainPreparationStatusCheckView } from '@/src/services/tms-read-only-deployment-domain-preparation-status-check-view.service';
+import { buildTmsReadOnlyDeploymentTargetEnvironmentSelectionComparisonView } from '@/src/services/tms-read-only-deployment-target-environment-selection-comparison-view.service';
 
 // Compute safe DB environment hint from DATABASE_URL without exposing the original value.
 // Returns a classification key, never the actual URL.
@@ -1158,6 +1159,10 @@ export async function GET(
       buildTmsReadOnlyDeploymentDomainPreparationStatusCheckView({
         candidateFlowClosureSummary:
           _naverReadOnlyFinalExecutionApprovalCandidateFlowClosureSummaryView,
+      });
+    const _tmsReadOnlyDeploymentTargetEnvironmentSelectionComparisonView =
+      buildTmsReadOnlyDeploymentTargetEnvironmentSelectionComparisonView({
+        deploymentDomainPreparation: _tmsReadOnlyDeploymentDomainPreparationStatusCheckView,
       });
 
     const responseJob = {
@@ -2228,6 +2233,8 @@ export async function GET(
         _naverReadOnlyFinalExecutionApprovalCandidateFlowClosureSummaryView,
       tmsReadOnlyDeploymentDomainPreparationStatusCheckView:
         _tmsReadOnlyDeploymentDomainPreparationStatusCheckView,
+      tmsReadOnlyDeploymentTargetEnvironmentSelectionComparisonView:
+        _tmsReadOnlyDeploymentTargetEnvironmentSelectionComparisonView,
     };
 
     return NextResponse.json({ ok: true, job: responseJob });

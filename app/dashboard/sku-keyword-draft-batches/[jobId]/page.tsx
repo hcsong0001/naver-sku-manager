@@ -3941,6 +3941,7 @@ type DraftBatchJob = {
   naverReadOnlyFinalExecutionApprovalCandidateFinalSummarySafetyAuditSealOutcomeCertificationView?: any;
   naverReadOnlyFinalExecutionApprovalCandidateFlowClosureSummaryView?: any;
   tmsReadOnlyDeploymentDomainPreparationStatusCheckView?: any;
+  tmsReadOnlyDeploymentTargetEnvironmentSelectionComparisonView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -41319,6 +41320,223 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             {c320.requiresSeparateTask321Approval && (
               <p className="text-xs text-fuchsia-700 border-t border-fuchsia-200 pt-2">
                 {c320.nextTaskApprovalPhrase}
+              </p>
+            )}
+          </div>
+        );
+      })()}
+
+      {/* ── Task 321: Read-Only Deployment Target Environment Selection Comparison ── */}
+      {job.tmsReadOnlyDeploymentTargetEnvironmentSelectionComparisonView && (() => {
+        const c321 = job.tmsReadOnlyDeploymentTargetEnvironmentSelectionComparisonView as {
+          taskId: number;
+          panelTitle: string;
+          description: string;
+          sourceDeploymentDomainPreparationStatus: string;
+          deploymentTargetEnvironmentSelectionComparisonStatus: string;
+          environmentOptions: Array<{
+            environmentKey: 'NAS' | 'COMPANY_PC' | 'HOME_PC' | 'VPS';
+            environmentLabel: string;
+            summary: string;
+            stabilityScore: number;
+            accessibilityScore: number;
+            recoveryScore: number;
+            costScore: number;
+            domainSuitabilityScore: number;
+            securityScore: number;
+            overallScore: number;
+            pros: string[];
+            cons: string[];
+            recommendedUse: string;
+            isRecommended: boolean;
+            isReadOnly: boolean;
+          }>;
+          environmentComparisonSummaryCards: Array<{
+            label: string;
+            value: string;
+            tone: 'positive' | 'neutral' | 'warning';
+          }>;
+          recommendedEnvironmentKey: 'NAS' | 'COMPANY_PC' | 'HOME_PC' | 'VPS';
+          recommendedEnvironmentLabel: string;
+          recommendationReason: string;
+          comparisonCriteria: Array<{
+            criterionKey: string;
+            label: string;
+            description: string;
+          }>;
+          actualDeploymentTargetSelected: boolean;
+          actualDeploymentStarted: boolean;
+          actualDomainConnected: boolean;
+          deploymentPreparationStillReadOnly: boolean;
+          domainConnectionStillReadOnly: boolean;
+          requiresSeparateTask322Approval: boolean;
+          nextTaskApprovalPhrase: string;
+        };
+
+        const getComparisonTone = (status: string) =>
+          status.endsWith('_READY')
+            ? 'bg-green-100 text-green-700 border-green-200'
+            : status.endsWith('_PARTIAL_READY')
+              ? 'bg-amber-100 text-amber-700 border-amber-200'
+              : status.endsWith('_BLOCKED')
+                ? 'bg-red-100 text-red-700 border-red-200'
+                : 'bg-slate-100 text-slate-600 border-slate-200';
+
+        const getCardTone = (tone: 'positive' | 'neutral' | 'warning') =>
+          tone === 'positive'
+            ? 'bg-green-100 text-green-700 border-green-200'
+            : tone === 'warning'
+              ? 'bg-amber-100 text-amber-700 border-amber-200'
+              : 'bg-slate-100 text-slate-700 border-slate-200';
+
+        return (
+          <div className="mb-4 rounded-lg border border-emerald-300 bg-emerald-50 p-4 space-y-3">
+            <div className="flex items-center gap-2">
+              <ListChecks className="w-5 h-5 text-emerald-600" />
+              <h3 className="font-semibold text-emerald-800">
+                Task {c321.taskId}: {c321.panelTitle}
+              </h3>
+              <span className={`ml-auto text-xs px-2 py-0.5 rounded-full font-medium ${
+                getComparisonTone(c321.deploymentTargetEnvironmentSelectionComparisonStatus)
+              }`}>
+                {c321.deploymentTargetEnvironmentSelectionComparisonStatus.replace(
+                  'TMS_READ_ONLY_DEPLOYMENT_TARGET_ENVIRONMENT_SELECTION_COMPARISON_',
+                  '',
+                )}
+              </span>
+            </div>
+
+            <p className="text-sm text-emerald-800">{c321.description}</p>
+
+            <div className="rounded border border-emerald-200 bg-emerald-100 px-3 py-2 text-xs text-emerald-800 flex items-start gap-1">
+              <Lock className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+              <span>
+                이 패널은 배포 대상 환경을 read-only로 비교하는 화면입니다. 이 화면은 실제 배포 대상 선택 저장, 실제 배포 실행, 실제 도메인 연결 작업이 아닙니다. DNS, SSL, 포트포워딩, 서버/NAS/PC/VPS 설정을 변경하지 않습니다. Task 322는 사용자 별도 명시 승인 없이는 진행하지 않습니다.
+              </span>
+            </div>
+
+            <div className="rounded border border-emerald-200 bg-white/70 px-3 py-2 text-xs text-emerald-800">
+              <span className="font-medium">Task 320 원본 준비 상태:</span> {c321.sourceDeploymentDomainPreparationStatus}
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {c321.environmentComparisonSummaryCards.map((card) => (
+                <div key={card.label} className={`rounded border p-2 text-center ${getCardTone(card.tone)}`}>
+                  <div className="text-sm font-bold">{card.value}</div>
+                  <div className="text-xs">{card.label}</div>
+                </div>
+              ))}
+            </div>
+
+            <div className="rounded border border-emerald-200 bg-white/80 p-3 text-sm text-emerald-900">
+              <div className="font-semibold">추천 환경: {c321.recommendedEnvironmentLabel}</div>
+              <p className="mt-1 text-xs text-emerald-700">{c321.recommendationReason}</p>
+            </div>
+
+            <div className="grid gap-3 lg:grid-cols-2">
+              {c321.environmentOptions.map((option) => (
+                <div key={option.environmentKey} className={`rounded border p-3 ${
+                  option.isRecommended
+                    ? 'border-emerald-300 bg-white'
+                    : 'border-emerald-200 bg-white/80'
+                }`}>
+                  <div className="flex items-center gap-2">
+                    <div className="text-sm font-semibold text-emerald-900">{option.environmentLabel}</div>
+                    {option.isRecommended && (
+                      <span className="ml-auto rounded-full bg-green-100 px-2 py-0.5 text-[11px] font-medium text-green-700">
+                        추천
+                      </span>
+                    )}
+                  </div>
+                  <p className="mt-1 text-xs text-emerald-700">{option.summary}</p>
+                  <div className="mt-2 grid grid-cols-3 gap-2 text-xs">
+                    <div className="rounded bg-emerald-50 p-2 text-center">
+                      <div className="font-bold text-emerald-800">{option.stabilityScore}</div>
+                      <div className="text-emerald-600">안정성</div>
+                    </div>
+                    <div className="rounded bg-emerald-50 p-2 text-center">
+                      <div className="font-bold text-emerald-800">{option.accessibilityScore}</div>
+                      <div className="text-emerald-600">접근성</div>
+                    </div>
+                    <div className="rounded bg-emerald-50 p-2 text-center">
+                      <div className="font-bold text-emerald-800">{option.recoveryScore}</div>
+                      <div className="text-emerald-600">복구성</div>
+                    </div>
+                    <div className="rounded bg-emerald-50 p-2 text-center">
+                      <div className="font-bold text-emerald-800">{option.costScore}</div>
+                      <div className="text-emerald-600">비용</div>
+                    </div>
+                    <div className="rounded bg-emerald-50 p-2 text-center">
+                      <div className="font-bold text-emerald-800">{option.domainSuitabilityScore}</div>
+                      <div className="text-emerald-600">도메인</div>
+                    </div>
+                    <div className="rounded bg-emerald-50 p-2 text-center">
+                      <div className="font-bold text-emerald-800">{option.securityScore}</div>
+                      <div className="text-emerald-600">보안</div>
+                    </div>
+                  </div>
+                  <div className="mt-2 rounded bg-emerald-100 px-2 py-1 text-xs text-emerald-900">
+                    종합 점수: <span className="font-semibold">{option.overallScore}</span>
+                  </div>
+                  <div className="mt-2 text-xs text-emerald-800">
+                    <div className="font-medium">권장 용도</div>
+                    <div>{option.recommendedUse}</div>
+                  </div>
+                  <div className="mt-2 grid gap-2 sm:grid-cols-2 text-xs">
+                    <div>
+                      <div className="font-medium text-emerald-900">장점</div>
+                      <ul className="mt-1 list-disc pl-4 text-emerald-700">
+                        {option.pros.map((item) => (
+                          <li key={item}>{item}</li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div>
+                      <div className="font-medium text-emerald-900">주의점</div>
+                      <ul className="mt-1 list-disc pl-4 text-emerald-700">
+                        {option.cons.map((item) => (
+                          <li key={item}>{item}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="rounded border border-emerald-200 bg-white/80 p-3">
+              <h4 className="mb-2 text-sm font-semibold text-emerald-800">비교 기준</h4>
+              <div className="grid gap-2 sm:grid-cols-2">
+                {c321.comparisonCriteria.map((criterion) => (
+                  <div key={criterion.criterionKey} className="rounded border border-emerald-100 bg-emerald-50/70 p-2">
+                    <div className="text-xs font-medium text-emerald-900">{criterion.label}</div>
+                    <div className="mt-1 text-xs text-emerald-700">{criterion.description}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex flex-wrap gap-3 text-xs">
+              <span className={`flex items-center gap-1 ${c321.actualDeploymentTargetSelected ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="w-3.5 h-3.5" /> 실제 배포 대상 선택 저장 미수행
+              </span>
+              <span className={`flex items-center gap-1 ${c321.actualDeploymentStarted ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="w-3.5 h-3.5" /> 실제 배포 미시작
+              </span>
+              <span className={`flex items-center gap-1 ${c321.actualDomainConnected ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="w-3.5 h-3.5" /> 실제 도메인 연결 미시작
+              </span>
+              <span className={`flex items-center gap-1 ${c321.deploymentPreparationStillReadOnly ? 'text-green-700' : 'text-red-600'}`}>
+                <CheckCircle2 className="w-3.5 h-3.5" /> 배포 준비 read-only 유지
+              </span>
+              <span className={`flex items-center gap-1 ${c321.domainConnectionStillReadOnly ? 'text-green-700' : 'text-red-600'}`}>
+                <CheckCircle2 className="w-3.5 h-3.5" /> 도메인 연결 read-only 유지
+              </span>
+            </div>
+
+            {c321.requiresSeparateTask322Approval && (
+              <p className="text-xs text-emerald-700 border-t border-emerald-200 pt-2">
+                {c321.nextTaskApprovalPhrase}
               </p>
             )}
           </div>
