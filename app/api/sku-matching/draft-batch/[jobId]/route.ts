@@ -293,6 +293,7 @@ import { buildNaverReadOnlyFinalExecutionApprovalSummaryDashboardView } from '@/
 import { buildNaverReadOnlyFinalExecutionApprovalCandidateListView } from '@/src/services/sku-keyword-final-approval-execution-naver-read-only-final-execution-approval-candidate-list-view.service';
 import { buildNaverReadOnlyFinalExecutionApprovalCandidateDetailReviewView } from '@/src/services/sku-keyword-final-approval-execution-naver-read-only-final-execution-approval-candidate-detail-review-view.service';
 import { buildNaverReadOnlyFinalExecutionApprovalCandidateDetailReviewOutcomeCertificationView } from '@/src/services/sku-keyword-final-approval-execution-naver-read-only-final-execution-approval-candidate-detail-review-outcome-certification-view.service';
+import { buildNaverReadOnlyFinalExecutionApprovalCandidateDetailReviewSafetyAuditSealView } from '@/src/services/sku-keyword-final-approval-execution-naver-read-only-final-execution-approval-candidate-detail-review-safety-audit-seal-view.service';
 
 // Compute safe DB environment hint from DATABASE_URL without exposing the original value.
 // Returns a classification key, never the actual URL.
@@ -1098,6 +1099,10 @@ export async function GET(
     const _naverReadOnlyFinalExecutionApprovalCandidateDetailReviewOutcomeCertificationView =
       buildNaverReadOnlyFinalExecutionApprovalCandidateDetailReviewOutcomeCertificationView({
         candidateDetailReview: _naverReadOnlyFinalExecutionApprovalCandidateDetailReviewView,
+      });
+    const _naverReadOnlyFinalExecutionApprovalCandidateDetailReviewSafetyAuditSealView =
+      buildNaverReadOnlyFinalExecutionApprovalCandidateDetailReviewSafetyAuditSealView({
+        outcomeCertification: _naverReadOnlyFinalExecutionApprovalCandidateDetailReviewOutcomeCertificationView,
       });
 
     const responseJob = {
@@ -2152,6 +2157,8 @@ export async function GET(
         _naverReadOnlyFinalExecutionApprovalCandidateDetailReviewView,
       naverReadOnlyFinalExecutionApprovalCandidateDetailReviewOutcomeCertificationView:
         _naverReadOnlyFinalExecutionApprovalCandidateDetailReviewOutcomeCertificationView,
+      naverReadOnlyFinalExecutionApprovalCandidateDetailReviewSafetyAuditSealView:
+        _naverReadOnlyFinalExecutionApprovalCandidateDetailReviewSafetyAuditSealView,
     };
 
     return NextResponse.json({ ok: true, job: responseJob });
