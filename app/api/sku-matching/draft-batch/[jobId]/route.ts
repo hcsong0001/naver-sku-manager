@@ -305,6 +305,7 @@ import { buildTmsReadOnlyDeploymentTargetEnvironmentSelectionComparisonView } fr
 import { buildTmsReadOnlyVpsDeploymentCandidateDetailReviewView } from '@/src/services/tms-read-only-vps-deployment-candidate-detail-review-view.service';
 import { buildTmsReadOnlyVpsDeploymentCandidateDetailReviewOutcomeCertificationView } from '@/src/services/tms-read-only-vps-deployment-candidate-detail-review-outcome-certification-view.service';
 import { buildTmsReadOnlyVpsDeploymentCandidateSafetyAuditSealView } from '@/src/services/tms-read-only-vps-deployment-candidate-safety-audit-seal-view.service';
+import { buildTmsReadOnlyVpsDeploymentCandidateSafetyAuditSealOutcomeCertificationView } from '@/src/services/tms-read-only-vps-deployment-candidate-safety-audit-seal-outcome-certification-view.service';
 
 // Compute safe DB environment hint from DATABASE_URL without exposing the original value.
 // Returns a classification key, never the actual URL.
@@ -1180,6 +1181,11 @@ export async function GET(
       buildTmsReadOnlyVpsDeploymentCandidateSafetyAuditSealView({
         vpsDeploymentCandidateDetailReviewOutcomeCertification:
           _tmsReadOnlyVpsDeploymentCandidateDetailReviewOutcomeCertificationView,
+      });
+    const _tmsReadOnlyVpsDeploymentCandidateSafetyAuditSealOutcomeCertificationView =
+      buildTmsReadOnlyVpsDeploymentCandidateSafetyAuditSealOutcomeCertificationView({
+        vpsDeploymentCandidateSafetyAuditSeal:
+          _tmsReadOnlyVpsDeploymentCandidateSafetyAuditSealView,
       });
 
     const responseJob = {
@@ -2258,6 +2264,8 @@ export async function GET(
         _tmsReadOnlyVpsDeploymentCandidateDetailReviewOutcomeCertificationView,
       tmsReadOnlyVpsDeploymentCandidateSafetyAuditSealView:
         _tmsReadOnlyVpsDeploymentCandidateSafetyAuditSealView,
+      tmsReadOnlyVpsDeploymentCandidateSafetyAuditSealOutcomeCertificationView:
+        _tmsReadOnlyVpsDeploymentCandidateSafetyAuditSealOutcomeCertificationView,
     };
 
     return NextResponse.json({ ok: true, job: responseJob });
