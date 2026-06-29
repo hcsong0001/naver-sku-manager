@@ -3920,6 +3920,7 @@ type DraftBatchJob = {
   naverReadOnlyExecutionApprovalReviewView?: any;
   naverReadOnlyExecutionApprovalReviewSafetyAuditSealView?: any;
   naverReadOnlyExecutionApprovalReviewOutcomeCertificationView?: any;
+  naverReadOnlyExecutionReadinessApprovalPacketView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -37546,6 +37547,199 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 {String(c299.isNewApiCallExecutedInThisTask)} |
                 isNextStepSeparateApprovalRequired:{' '}
                 {String(c299.isNextStepSeparateApprovalRequired)}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 300: Read-Only Execution Readiness Approval Packet ── */}
+      {(() => {
+        const c300 = (job as any).naverReadOnlyExecutionReadinessApprovalPacketView;
+        if (!c300) return null;
+        const isComplete =
+          c300.isReadOnlyExecutionReadinessApprovalPacketReadyForCompleteExecutionApprovalReview;
+        const isPartial =
+          c300.isReadOnlyExecutionReadinessApprovalPacketReadyWithMissingFieldNotice;
+        const isBlocked =
+          !isComplete && !isPartial;
+        const borderColor = isComplete
+          ? 'border-sky-300 bg-sky-50/20'
+          : isPartial
+          ? 'border-amber-300 bg-amber-50/20'
+          : 'border-rose-300 bg-rose-50/20';
+        const iconColor = isComplete
+          ? 'text-sky-600'
+          : isPartial
+          ? 'text-amber-600'
+          : 'text-rose-600';
+        const statusColor = isComplete
+          ? 'text-sky-700'
+          : isPartial
+          ? 'text-amber-700'
+          : 'text-rose-700';
+        const itemColor = (s: string) => {
+          if (
+            s === 'EXECUTION_READINESS_APPROVAL_PACKET_READY' ||
+            s === 'EXECUTION_APPROVAL_REVIEW_OUTCOME_CERTIFICATION_CONFIRMED' ||
+            s === 'EXECUTION_APPROVAL_REVIEW_SAFETY_AUDIT_SEAL_CONFIRMED' ||
+            s === 'EXECUTION_APPROVAL_REVIEW_CONFIRMED' ||
+            s === 'EXECUTION_APPROVAL_PACKET_CONFIRMED' ||
+            s === 'FINALIZATION_CANDIDATE_CONFIRMED' ||
+            s === 'DESIGN_BLUEPRINT_CONFIRMED' ||
+            s === 'CAPTURE_RESULT_CONFIRMED' ||
+            s === 'EXECUTION_READINESS_APPROVAL_PACKET_STATUS_RECORDED' ||
+            s === 'READY_FOR_EXECUTION_READINESS_REVIEW_IF_COMPLETE' ||
+            s === 'READY_WITH_MISSING_FIELD_NOTICE' ||
+            s === 'CAPTURED_DATA_ONLY_CONFIRMED' ||
+            s === 'SUMMARY_REVIEW_ONLY_CONFIRMED' ||
+            s === 'READ_ONLY_INFO'
+          )
+            return 'bg-sky-100 text-sky-800';
+          if (s === 'PENDING_USER_APPROVAL')
+            return 'bg-amber-100 text-amber-800';
+          if (
+            s === 'BLOCKED_RECHECK_REQUIRED' ||
+            s === 'BLOCKED_RECHECK_IP_ALLOWLIST_REQUIRED' ||
+            s === 'BLOCKED_RECHECK_AUTH_REQUIRED' ||
+            s === 'BLOCKED_RECHECK_ENV_REQUIRED' ||
+            s === 'BLOCKED_RECHECK_CHANNEL_PRODUCT_NO_REQUIRED' ||
+            s === 'BLOCKED_RECHECK_PRODUCT_ACCESS_REQUIRED'
+          )
+            return 'bg-rose-100 text-rose-800';
+          if (
+            s === 'NOT_MARKED_READY_FOR_EXECUTION' ||
+            s === 'NOT_APPROVED' ||
+            s === 'NOT_EXECUTED' ||
+            s === 'NOT_CONNECTED' ||
+            s === 'LOCKED' ||
+            s === 'NOT_APPROVED_FOR_PRODUCT_CHANGE' ||
+            s === 'NOT_STORED' ||
+            s === 'NOT_COPIED_FOR_EXECUTION' ||
+            s === 'NOT_INFERRED' ||
+            s === 'NOT_INCLUDED' ||
+            s === 'NOT_DISPLAYED'
+          )
+            return 'bg-slate-100 text-slate-600';
+          return 'bg-gray-100 text-gray-600';
+        };
+        return (
+          <div className={`mb-4 rounded-lg border p-4 ${borderColor}`}>
+            <div className="mb-3 flex items-center gap-2">
+              <ShieldCheck className={`h-5 w-5 flex-shrink-0 ${iconColor}`} />
+              <h3 className="text-sm font-semibold text-slate-800">
+                {c300.panelTitle ?? 'Task 300 - Read-Only Execution Readiness Approval Packet'}
+              </h3>
+              <span className="ml-auto rounded bg-slate-100 px-2 py-0.5 text-xs font-mono text-slate-700">
+                {c300.status}
+              </span>
+            </div>
+            <p className="mb-3 text-xs text-slate-700">{c300.description}</p>
+
+            <div className="mb-3 rounded border border-slate-200 bg-white/60 p-3 text-xs space-y-1">
+              <div>
+                readOnlyExecutionApprovalReviewOutcomeCertificationStatus:{' '}
+                <span className="font-mono text-slate-700">
+                  {c300.readOnlyExecutionApprovalReviewOutcomeCertificationStatus}
+                </span>
+              </div>
+              <div>
+                readOnlyExecutionReadinessApprovalPacketStatus:{' '}
+                <span className={`font-mono ${statusColor}`}>
+                  {c300.readOnlyExecutionReadinessApprovalPacketStatus}
+                </span>
+              </div>
+              <div>
+                isNaverReadOnlyExecutionReadinessApprovalPacketReady:{' '}
+                <span className="font-semibold text-sky-700">
+                  {String(c300.isNaverReadOnlyExecutionReadinessApprovalPacketReady)}
+                </span>{' '}
+                | isReadOnlyExecutionReadinessReviewRequired:{' '}
+                <span className="font-semibold text-sky-700">
+                  {String(c300.isReadOnlyExecutionReadinessReviewRequired)}
+                </span>
+              </div>
+              <div>
+                isReadOnlyExecutionReadinessReviewGranted:{' '}
+                <span className="font-semibold text-rose-700">
+                  {String(c300.isReadOnlyExecutionReadinessReviewGranted)}
+                </span>{' '}
+                | isUserApprovalPhraseReceivedForReadOnlyExecutionReadinessReview:{' '}
+                <span className="font-semibold text-rose-700">
+                  {String(c300.isUserApprovalPhraseReceivedForReadOnlyExecutionReadinessReview)}
+                </span>
+              </div>
+              <div className="text-slate-700">{c300.packetSummary}</div>
+              {c300.blockingReason && (
+                <div>
+                  blockingReason:{' '}
+                  <span className="font-semibold text-rose-700">{c300.blockingReason}</span>
+                </div>
+              )}
+              {(isComplete || isPartial) && (
+                <div className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-amber-900 text-xs mt-2">
+                  <div className="font-semibold mb-1">다음 단계 진행을 위한 사용자 승인 문구 (Task 301용)</div>
+                  <div className="font-mono text-[10px] leading-relaxed">{c300.userApprovalPhrase}</div>
+                </div>
+              )}
+              {isComplete && (
+                <div className="rounded bg-sky-100 px-2 py-1 text-sky-800">
+                  COMPLETE: 사용자 승인 후 read-only 실행 준비 검토 패킷이 준비됩니다.
+                </div>
+              )}
+              {isPartial && (
+                <div className="rounded bg-amber-100 px-2 py-1 text-amber-800">
+                  PARTIAL: missing field notice 포함 사용자 승인 후 실행 준비 검토 패킷이 준비됩니다.
+                </div>
+              )}
+              {isBlocked && (
+                <div className="rounded bg-rose-100 px-2 py-1 text-rose-800">
+                  BLOCKED: 원인별 보정이 필요합니다.
+                </div>
+              )}
+            </div>
+
+            <div className="mb-3">
+              <div className="mb-1 text-xs font-semibold text-slate-600">패킷 항목</div>
+              <div className="space-y-1">
+                {Array.isArray(c300.packetItems) &&
+                  c300.packetItems.map((item: any, idx: number) => (
+                    <div key={idx} className="flex items-start gap-2 text-[11px]">
+                      <span
+                        className={`shrink-0 rounded px-1 py-0.5 font-mono text-[10px] ${itemColor(item.status)}`}
+                      >
+                        {item.status}
+                      </span>
+                      <span className="text-slate-600">
+                        [{item.packetItem}] {item.meaning}
+                      </span>
+                    </div>
+                  ))}
+              </div>
+            </div>
+
+            <div className="mt-2 space-y-0.5 font-mono text-[10px] text-gray-400">
+              <div>
+                isNaverReadOnlyExecutionReadinessApprovalPacketReady:{' '}
+                {String(c300.isNaverReadOnlyExecutionReadinessApprovalPacketReady)} |
+                isMarkedReadyForExecutionInThisTask:{' '}
+                {String(c300.isMarkedReadyForExecutionInThisTask)} |
+                isExecutionApprovalGranted:{' '}
+                {String(c300.isExecutionApprovalGranted)}
+              </div>
+              <div>
+                hasExecutionButton:{' '}
+                {String(c300.hasExecutionButton)} |
+                isWorkerExecutedInThisTask:{' '}
+                {String(c300.isWorkerExecutedInThisTask)} |
+                isDbWriteExecuted:{' '}
+                {String(c300.isDbWriteExecuted)}
+              </div>
+              <div>
+                isNewApiCallExecutedInThisTask:{' '}
+                {String(c300.isNewApiCallExecutedInThisTask)} |
+                isReadOnlyExecutionReadinessReviewGranted:{' '}
+                {String(c300.isReadOnlyExecutionReadinessReviewGranted)}
               </div>
             </div>
           </div>
