@@ -3921,6 +3921,7 @@ type DraftBatchJob = {
   naverReadOnlyExecutionApprovalReviewSafetyAuditSealView?: any;
   naverReadOnlyExecutionApprovalReviewOutcomeCertificationView?: any;
   naverReadOnlyExecutionReadinessApprovalPacketView?: any;
+  naverReadOnlyExecutionReadinessReviewView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -37740,6 +37741,192 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 {String(c300.isNewApiCallExecutedInThisTask)} |
                 isReadOnlyExecutionReadinessReviewGranted:{' '}
                 {String(c300.isReadOnlyExecutionReadinessReviewGranted)}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 301: Read-Only Execution Readiness Review ── */}
+      {(() => {
+        const c301 = (job as any).naverReadOnlyExecutionReadinessReviewView;
+        if (!c301) return null;
+        const isComplete =
+          c301.isReadOnlyExecutionReadinessReviewReadyForCompleteExecutionApprovalReview;
+        const isPartial =
+          c301.isReadOnlyExecutionReadinessReviewReadyWithMissingFieldNotice;
+        const isBlocked =
+          !isComplete && !isPartial;
+        const borderColor = isComplete
+          ? 'border-sky-300 bg-sky-50/20'
+          : isPartial
+          ? 'border-amber-300 bg-amber-50/20'
+          : 'border-rose-300 bg-rose-50/20';
+        const iconColor = isComplete
+          ? 'text-sky-600'
+          : isPartial
+          ? 'text-amber-600'
+          : 'text-rose-600';
+        const statusColor = isComplete
+          ? 'text-sky-700'
+          : isPartial
+          ? 'text-amber-700'
+          : 'text-rose-700';
+        const itemColor = (s: string) => {
+          if (
+            s === 'USER_APPROVAL_CONFIRMED_FOR_TASK_301' ||
+            s === 'EXECUTION_READINESS_APPROVAL_PACKET_CONFIRMED' ||
+            s === 'EXECUTION_APPROVAL_REVIEW_OUTCOME_CERTIFICATION_CONFIRMED' ||
+            s === 'EXECUTION_APPROVAL_REVIEW_SAFETY_AUDIT_SEAL_CONFIRMED' ||
+            s === 'EXECUTION_APPROVAL_REVIEW_CONFIRMED' ||
+            s === 'EXECUTION_APPROVAL_PACKET_CONFIRMED' ||
+            s === 'FINALIZATION_CANDIDATE_CONFIRMED' ||
+            s === 'DESIGN_BLUEPRINT_CONFIRMED' ||
+            s === 'CAPTURE_RESULT_CONFIRMED' ||
+            s === 'EXECUTION_READINESS_REVIEW_STATUS_RECORDED' ||
+            s === 'READINESS_REVIEW_READY_IF_COMPLETE' ||
+            s === 'READINESS_REVIEW_READY_WITH_MISSING_FIELD_NOTICE' ||
+            s === 'CAPTURED_DATA_ONLY_CONFIRMED' ||
+            s === 'SUMMARY_REVIEW_ONLY_CONFIRMED' ||
+            s === 'READ_ONLY_INFO'
+          )
+            return 'bg-sky-100 text-sky-800';
+          if (
+            s === 'READINESS_REVIEW_BLOCKED_RECHECK_REQUIRED' ||
+            s === 'READINESS_REVIEW_BLOCKED_RECHECK_IP_ALLOWLIST_REQUIRED' ||
+            s === 'READINESS_REVIEW_BLOCKED_RECHECK_AUTH_REQUIRED' ||
+            s === 'READINESS_REVIEW_BLOCKED_RECHECK_ENV_REQUIRED' ||
+            s === 'READINESS_REVIEW_BLOCKED_RECHECK_CHANNEL_PRODUCT_NO_REQUIRED' ||
+            s === 'READINESS_REVIEW_BLOCKED_RECHECK_PRODUCT_ACCESS_REQUIRED'
+          )
+            return 'bg-rose-100 text-rose-800';
+          if (
+            s === 'NOT_MARKED_READY_FOR_EXECUTION' ||
+            s === 'NOT_APPROVED' ||
+            s === 'NOT_EXECUTED' ||
+            s === 'NOT_CONNECTED' ||
+            s === 'LOCKED' ||
+            s === 'NOT_APPROVED_FOR_PRODUCT_CHANGE' ||
+            s === 'NOT_STORED' ||
+            s === 'NOT_COPIED_FOR_EXECUTION' ||
+            s === 'NOT_INFERRED' ||
+            s === 'NOT_INCLUDED' ||
+            s === 'NOT_DISPLAYED'
+          )
+            return 'bg-slate-100 text-slate-600';
+          return 'bg-gray-100 text-gray-600';
+        };
+        return (
+          <div className={`mb-4 rounded-lg border p-4 ${borderColor}`}>
+            <div className="mb-3 flex items-center gap-2">
+              <CheckCircle2 className={`h-5 w-5 flex-shrink-0 ${iconColor}`} />
+              <h3 className="text-sm font-semibold text-slate-800">
+                {c301.panelTitle ?? 'Task 301 - Read-Only Execution Readiness Review'}
+              </h3>
+              <span className="ml-auto rounded bg-slate-100 px-2 py-0.5 text-xs font-mono text-slate-700">
+                {c301.status}
+              </span>
+            </div>
+            <p className="mb-3 text-xs text-slate-700">{c301.description}</p>
+
+            <div className="mb-3 rounded border border-slate-200 bg-white/60 p-3 text-xs space-y-1">
+              <div>
+                readOnlyExecutionReadinessApprovalPacketStatus:{' '}
+                <span className="font-mono text-slate-700">
+                  {c301.readOnlyExecutionReadinessApprovalPacketStatus}
+                </span>
+              </div>
+              <div>
+                readOnlyExecutionReadinessReviewStatus:{' '}
+                <span className={`font-mono ${statusColor}`}>
+                  {c301.readOnlyExecutionReadinessReviewStatus}
+                </span>
+              </div>
+              <div>
+                isUserApprovalConfirmedForTask301:{' '}
+                <span className="font-semibold text-sky-700">
+                  {String(c301.isUserApprovalConfirmedForTask301)}
+                </span>{' '}
+                | isExecutionReadinessReviewStatusRecorded:{' '}
+                <span className="font-semibold text-sky-700">
+                  {String(c301.isExecutionReadinessReviewStatusRecorded)}
+                </span>
+              </div>
+              <div>
+                isReadOnlyExecutionReadinessReviewAvailable:{' '}
+                <span className={`font-semibold ${isBlocked ? 'text-rose-700' : 'text-sky-700'}`}>
+                  {String(c301.isReadOnlyExecutionReadinessReviewAvailable)}
+                </span>{' '}
+                | isReadOnlyExecutionReadinessReviewBlocked:{' '}
+                <span className={`font-semibold ${isBlocked ? 'text-rose-700' : 'text-slate-500'}`}>
+                  {String(c301.isReadOnlyExecutionReadinessReviewBlocked)}
+                </span>
+              </div>
+              <div className="text-slate-700">{c301.readinessReviewSummary}</div>
+              {c301.blockingReason && (
+                <div>
+                  blockingReason:{' '}
+                  <span className="font-semibold text-rose-700">{c301.blockingReason}</span>
+                </div>
+              )}
+              {isComplete && (
+                <div className="rounded bg-sky-100 px-2 py-1 text-sky-800">
+                  COMPLETE: 실행 준비 검토 가능 상태입니다.
+                </div>
+              )}
+              {isPartial && (
+                <div className="rounded bg-amber-100 px-2 py-1 text-amber-800">
+                  PARTIAL: missing field notice 포함 실행 준비 검토 가능 상태입니다.
+                </div>
+              )}
+              {isBlocked && (
+                <div className="rounded bg-rose-100 px-2 py-1 text-rose-800">
+                  BLOCKED: 원인별 보정이 필요합니다.
+                </div>
+              )}
+            </div>
+
+            <div className="mb-3">
+              <div className="mb-1 text-xs font-semibold text-slate-600">검토 항목</div>
+              <div className="space-y-1">
+                {Array.isArray(c301.reviewItems) &&
+                  c301.reviewItems.map((item: any, idx: number) => (
+                    <div key={idx} className="flex items-start gap-2 text-[11px]">
+                      <span
+                        className={`shrink-0 rounded px-1 py-0.5 font-mono text-[10px] ${itemColor(item.status)}`}
+                      >
+                        {item.status}
+                      </span>
+                      <span className="text-slate-600">
+                        [{item.reviewItem}] {item.meaning}
+                      </span>
+                    </div>
+                  ))}
+              </div>
+            </div>
+
+            <div className="mt-2 space-y-0.5 font-mono text-[10px] text-gray-400">
+              <div>
+                isNaverReadOnlyExecutionReadinessReviewReady:{' '}
+                {String(c301.isNaverReadOnlyExecutionReadinessReviewReady)} |
+                isMarkedReadyForExecutionInThisTask:{' '}
+                {String(c301.isMarkedReadyForExecutionInThisTask)} |
+                isExecutionApprovalGranted:{' '}
+                {String(c301.isExecutionApprovalGranted)}
+              </div>
+              <div>
+                hasExecutionButton:{' '}
+                {String(c301.hasExecutionButton)} |
+                isWorkerExecutedInThisTask:{' '}
+                {String(c301.isWorkerExecutedInThisTask)} |
+                isDbWriteExecuted:{' '}
+                {String(c301.isDbWriteExecuted)}
+              </div>
+              <div>
+                isNewApiCallExecutedInThisTask:{' '}
+                {String(c301.isNewApiCallExecutedInThisTask)} |
+                isReadOnlyExecutionReadinessReviewGranted:{' '}
+                {String(c301.isReadOnlyExecutionReadinessReviewGranted)}
               </div>
             </div>
           </div>

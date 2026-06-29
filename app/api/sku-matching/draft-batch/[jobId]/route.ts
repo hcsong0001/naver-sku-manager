@@ -281,6 +281,7 @@ import { buildNaverReadOnlyExecutionApprovalReviewView } from '@/src/services/sk
 import { buildNaverReadOnlyExecutionApprovalReviewSafetyAuditSealView } from '@/src/services/sku-keyword-final-approval-execution-naver-read-only-execution-approval-review-safety-audit-seal-view.service';
 import { buildNaverReadOnlyExecutionApprovalReviewOutcomeCertificationView } from '@/src/services/sku-keyword-final-approval-execution-naver-read-only-execution-approval-review-outcome-certification-view.service';
 import { buildNaverReadOnlyExecutionReadinessApprovalPacketView } from '@/src/services/sku-keyword-final-approval-execution-naver-read-only-execution-readiness-approval-packet-view.service';
+import { buildNaverReadOnlyExecutionReadinessReviewView } from '@/src/services/sku-keyword-final-approval-execution-naver-read-only-execution-readiness-review-view.service';
 
 // Compute safe DB environment hint from DATABASE_URL without exposing the original value.
 // Returns a classification key, never the actual URL.
@@ -845,6 +846,26 @@ export async function GET(
 
     const _naverReadOnlyExecutionReadinessApprovalPacketView =
       buildNaverReadOnlyExecutionReadinessApprovalPacketView({
+        executionApprovalReviewOutcomeCertification:
+          _naverReadOnlyExecutionApprovalReviewOutcomeCertificationView,
+        executionApprovalReviewSafetyAuditSeal:
+          _naverReadOnlyExecutionApprovalReviewSafetyAuditSealView,
+        executionApprovalReview:
+          _naverReadOnlyExecutionApprovalReviewView,
+        executionApprovalPacket:
+          _naverReadOnlyExecutionApprovalPacketView,
+        finalizationCandidate:
+          _naverReadOnlyDesignFinalizationCandidateView,
+        designBlueprint:
+          _naverReadOnlyOptionAdditionalStructureExpansionDesignBlueprintView,
+        captureResult:
+          _naverReadOnlyProductDataCaptureResultView,
+      });
+
+    const _naverReadOnlyExecutionReadinessReviewView =
+      buildNaverReadOnlyExecutionReadinessReviewView({
+        executionReadinessApprovalPacket:
+          _naverReadOnlyExecutionReadinessApprovalPacketView,
         executionApprovalReviewOutcomeCertification:
           _naverReadOnlyExecutionApprovalReviewOutcomeCertificationView,
         executionApprovalReviewSafetyAuditSeal:
@@ -1889,6 +1910,8 @@ export async function GET(
         _naverReadOnlyExecutionApprovalReviewOutcomeCertificationView,
       naverReadOnlyExecutionReadinessApprovalPacketView:
         _naverReadOnlyExecutionReadinessApprovalPacketView,
+      naverReadOnlyExecutionReadinessReviewView:
+        _naverReadOnlyExecutionReadinessReviewView,
     };
 
     return NextResponse.json({ ok: true, job: responseJob });
