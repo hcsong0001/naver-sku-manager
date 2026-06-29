@@ -3912,6 +3912,7 @@ type DraftBatchJob = {
   naverReadOnlyOptionAdditionalStructureExpansionDesignBlueprintView?: any;
   naverReadOnlyOptionAdditionalStructureExpansionDesignBlueprintSafetyAuditSealView?: any;
   naverReadOnlyOptionAdditionalStructureExpansionDesignBlueprintOutcomeCertificationView?: any;
+  naverReadOnlyDesignFinalizationApprovalPacketView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -35902,6 +35903,225 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 isProductUpdateApiCalled: {String(c291.isProductUpdateApiCalled)} |
                 isPriceOrStockChanged: {String(c291.isPriceOrStockChanged)} |
                 isDbWriteExecuted: {String(c291.isDbWriteExecuted)}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 292: Read-Only Design Finalization Approval Packet ─────────── */}
+      {(() => {
+        const c292 = (job as any).naverReadOnlyDesignFinalizationApprovalPacketView;
+        if (!c292) return null;
+        const isComplete =
+          c292.isReadOnlyDesignFinalizationApprovalPacketReadyForCompleteBlueprint;
+        const isPartial =
+          c292.isReadOnlyDesignFinalizationApprovalPacketReadyWithMissingFieldNotice;
+        const isBlocked =
+          c292.isReadOnlyDesignFinalizationApprovalPacketBlockedByGwIp ||
+          c292.isReadOnlyDesignFinalizationApprovalPacketBlockedByToken ||
+          c292.isReadOnlyDesignFinalizationApprovalPacketBlockedByEnv ||
+          c292.isReadOnlyDesignFinalizationApprovalPacketBlockedByChannel ||
+          c292.isReadOnlyDesignFinalizationApprovalPacketBlockedByProductLookup;
+        const borderColor = isComplete
+          ? 'border-emerald-300 bg-emerald-50/20'
+          : isPartial
+            ? 'border-amber-200 bg-amber-50/20'
+            : 'border-rose-200 bg-rose-50/20';
+        const iconColor = isComplete
+          ? 'text-emerald-600'
+          : isPartial
+            ? 'text-amber-500'
+            : 'text-rose-500';
+        const statusColor = isComplete
+          ? 'text-emerald-700 font-bold'
+          : isPartial
+            ? 'text-amber-700 font-bold'
+            : 'text-rose-700 font-bold';
+        const itemColor = (s: string) => {
+          if (
+            [
+              'BLUEPRINT_OUTCOME_CERTIFICATION_CONFIRMED',
+              'BLUEPRINT_SAFETY_AUDIT_SEAL_CONFIRMED',
+              'DESIGN_BLUEPRINT_CONFIRMED',
+              'PLANNING_CANDIDATE_CONFIRMED',
+              'CAPTURE_RESULT_CONFIRMED',
+            ].includes(s)
+          ) {
+            return 'bg-slate-100 text-slate-700';
+          }
+          if (s === 'APPROVAL_PACKET_STATUS_RECORDED') {
+            return isComplete
+              ? 'bg-emerald-100 text-emerald-800'
+              : isPartial
+                ? 'bg-amber-100 text-amber-800'
+                : 'bg-rose-100 text-rose-800';
+          }
+          if (
+            ['READY_FOR_FINALIZATION_IF_COMPLETE_BLUEPRINT', 'READY_WITH_MISSING_FIELD_NOTICE'].includes(
+              s
+            )
+          ) {
+            return isComplete || isPartial
+              ? 'bg-blue-50 text-blue-700'
+              : 'bg-slate-100 text-slate-600';
+          }
+          if (
+            [
+              'BLOCKED_RECHECK_IP_ALLOWLIST_REQUIRED',
+              'BLOCKED_RECHECK_AUTH_REQUIRED',
+              'BLOCKED_RECHECK_ENV_REQUIRED',
+              'BLOCKED_RECHECK_CHANNEL_PRODUCT_NO_REQUIRED',
+              'BLOCKED_RECHECK_PRODUCT_ACCESS_REQUIRED',
+            ].includes(s)
+          ) {
+            return isBlocked
+              ? 'bg-rose-100 text-rose-800'
+              : 'bg-slate-100 text-slate-600';
+          }
+          if (['PENDING_USER_APPROVAL', 'LOCKED_UNTIL_USER_APPROVAL'].includes(s)) {
+            return 'bg-violet-50 text-violet-700';
+          }
+          if (
+            ['CAPTURED_DATA_ONLY_CONFIRMED', 'SUMMARY_REVIEW_ONLY_CONFIRMED'].includes(
+              s
+            )
+          ) {
+            return 'bg-blue-50 text-blue-700';
+          }
+          if (s === 'NOT_INFERRED') return 'bg-amber-50 text-amber-700';
+          if (s === 'NOT_INCLUDED') return 'bg-red-50 text-red-700';
+          if (s === 'NOT_DISPLAYED' || s === 'NOT_EXECUTED') {
+            return 'bg-slate-100 text-slate-600';
+          }
+          if (s === 'LOCKED') return 'bg-rose-50 text-rose-700';
+          if (s === 'READ_ONLY_INFO') return 'bg-blue-50 text-blue-600';
+          if (['NOT_FINALIZED', 'NOT_APPROVED_FOR_EXECUTION'].includes(s)) {
+            return 'bg-violet-50 text-violet-700';
+          }
+          return 'bg-gray-100 text-gray-600';
+        };
+        return (
+          <div className={`mb-6 rounded-lg border p-4 ${borderColor}`}>
+            <div className="mb-3 flex items-center gap-2">
+              <FileBox className={`h-5 w-5 flex-shrink-0 ${iconColor}`} />
+              <h3 className="text-sm font-semibold text-slate-800">
+                {c292.panelTitle ?? 'Task 292 - Read-Only Design Finalization Approval Packet'}
+              </h3>
+              <span className="ml-auto rounded bg-slate-100 px-2 py-0.5 text-xs font-mono text-slate-700">
+                {c292.status}
+              </span>
+            </div>
+            <p className="mb-3 text-xs text-slate-700">{c292.description}</p>
+
+            <div className="mb-3 rounded border border-slate-200 bg-white/60 p-3 text-xs space-y-1">
+              <div>
+                optionAdditionalStructureExpansionDesignBlueprintOutcomeCertificationStatus:{' '}
+                <span className="font-mono text-slate-700">
+                  {c292.optionAdditionalStructureExpansionDesignBlueprintOutcomeCertificationStatus}
+                </span>
+              </div>
+              <div>
+                readOnlyDesignFinalizationApprovalPacketStatus:{' '}
+                <span className={`font-mono ${statusColor}`}>
+                  {c292.readOnlyDesignFinalizationApprovalPacketStatus}
+                </span>
+              </div>
+              <div>
+                approvalPacketSummary:{' '}
+                <span className="text-slate-700">{c292.approvalPacketSummary}</span>
+              </div>
+              {c292.blockingReason && (
+                <div>
+                  blockingReason:{' '}
+                  <span className="font-semibold text-rose-700">
+                    {c292.blockingReason}
+                  </span>
+                </div>
+              )}
+              <div>
+                isReadOnlyDesignFinalizationApprovalGranted:{' '}
+                <span className="font-semibold text-violet-700">
+                  {String(c292.isReadOnlyDesignFinalizationApprovalGranted)}
+                </span>{' '}
+                | isUserApprovalPhraseReceivedForReadOnlyDesignFinalization:{' '}
+                <span className="font-semibold text-violet-700">
+                  {String(c292.isUserApprovalPhraseReceivedForReadOnlyDesignFinalization)}
+                </span>
+              </div>
+              {isComplete && (
+                <div className="font-semibold text-emerald-700">
+                  COMPLETE면 read-only 설계 확정 승인 패킷 READY 상태입니다.
+                </div>
+              )}
+              {isPartial && (
+                <div className="font-semibold text-amber-700">
+                  PARTIAL이면 누락 필드 안내 포함 승인 패킷 READY 상태입니다.
+                </div>
+              )}
+              {isBlocked && (
+                <div className="font-semibold text-rose-700">
+                  BLOCKED이면 원인별 보정이 필요하며 승인 패킷은 차단 안내만 표시합니다.
+                </div>
+              )}
+            </div>
+
+            <div className="mb-3 rounded border border-blue-200 bg-blue-50/30 p-3 text-xs text-slate-700">
+              <div className="mb-1 font-semibold text-blue-800">승인 안내</div>
+              <div>
+                Task 292는 read-only 설계 확정 단계로 진입하기 위한 승인 요청 패킷입니다. 사용자 별도 승인 전까지 실제 설계 확정을 수행하지 않습니다.
+              </div>
+              <div>
+                이번 Task는 실행 승인이나 상품 변경 승인이 아니며, Token 재발급, 상품 조회 API 재호출, 상품 수정 API 호출, 가격/재고 변경, DB write를 수행하지 않습니다.
+              </div>
+            </div>
+
+            <div className="mb-3 rounded border border-violet-200 bg-violet-50/30 p-3 text-xs text-slate-700">
+              <div className="mb-1 font-semibold text-violet-800">Task 293 승인 문구 안내</div>
+              <div className="whitespace-pre-wrap break-words font-mono text-[11px] text-violet-900">
+                {c292.requiredUserApprovalPhrase}
+              </div>
+            </div>
+
+            <div className="mb-3">
+              <div className="mb-1 text-xs font-semibold text-slate-600">승인 요청 패킷 항목</div>
+              <div className="space-y-1">
+                {Array.isArray(c292.packetItems) &&
+                  c292.packetItems.map((item: any, idx: number) => (
+                    <div key={idx} className="flex items-start gap-2 text-[11px]">
+                      <span
+                        className={`shrink-0 rounded px-1 py-0.5 font-mono text-[10px] ${itemColor(item.status)}`}
+                      >
+                        {item.status}
+                      </span>
+                      <span className="text-slate-600">
+                        {item.packetItem}: {item.meaning}
+                      </span>
+                    </div>
+                  ))}
+              </div>
+            </div>
+
+            <div className="mt-2 space-y-0.5 font-mono text-[10px] text-gray-400">
+              <div>
+                isReadOnlyDesignFinalizationExecutedInThisTask:{' '}
+                {String(c292.isReadOnlyDesignFinalizationExecutedInThisTask)} |
+                isNewApiCallExecutedInThisTask:{' '}
+                {String(c292.isNewApiCallExecutedInThisTask)} |
+                isProductLookupApiCalledInThisTask:{' '}
+                {String(c292.isProductLookupApiCalledInThisTask)}
+              </div>
+              <div>
+                isRawProductApiResponseIncluded:{' '}
+                {String(c292.isRawProductApiResponseIncluded)} |
+                isTokenValueDisplayed: {String(c292.isTokenValueDisplayed)} |
+                isAuthorizationHeaderDisplayed:{' '}
+                {String(c292.isAuthorizationHeaderDisplayed)}
+              </div>
+              <div>
+                isProductUpdateApiCalled: {String(c292.isProductUpdateApiCalled)} |
+                isPriceOrStockChanged: {String(c292.isPriceOrStockChanged)} |
+                isDbWriteExecuted: {String(c292.isDbWriteExecuted)}
               </div>
             </div>
           </div>

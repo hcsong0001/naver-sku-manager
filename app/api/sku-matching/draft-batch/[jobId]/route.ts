@@ -272,6 +272,7 @@ import { buildNaverReadOnlyOptionAdditionalStructureExpansionPlanningCandidateVi
 import { buildNaverReadOnlyOptionAdditionalStructureExpansionDesignBlueprintView } from '@/src/services/sku-keyword-final-approval-execution-naver-read-only-option-additional-structure-expansion-design-blueprint-view.service';
 import { buildNaverReadOnlyOptionAdditionalStructureExpansionDesignBlueprintSafetyAuditSealView } from '@/src/services/sku-keyword-final-approval-execution-naver-read-only-option-additional-structure-expansion-design-blueprint-safety-audit-seal-view.service';
 import { buildNaverReadOnlyOptionAdditionalStructureExpansionDesignBlueprintOutcomeCertificationView } from '@/src/services/sku-keyword-final-approval-execution-naver-read-only-option-additional-structure-expansion-design-blueprint-outcome-certification-view.service';
+import { buildNaverReadOnlyDesignFinalizationApprovalPacketView } from '@/src/services/sku-keyword-final-approval-execution-naver-read-only-design-finalization-approval-packet-view.service';
 
 // Compute safe DB environment hint from DATABASE_URL without exposing the original value.
 // Returns a classification key, never the actual URL.
@@ -713,6 +714,17 @@ export async function GET(
           captureResult: _naverReadOnlyProductDataCaptureResultView,
         }
       );
+    const _naverReadOnlyDesignFinalizationApprovalPacketView =
+      buildNaverReadOnlyDesignFinalizationApprovalPacketView({
+        blueprintOutcomeCertification:
+          _naverReadOnlyOptionAdditionalStructureExpansionDesignBlueprintOutcomeCertificationView,
+        blueprintSafetyAuditSeal:
+          _naverReadOnlyOptionAdditionalStructureExpansionDesignBlueprintSafetyAuditSealView,
+        designBlueprint:
+          _naverReadOnlyOptionAdditionalStructureExpansionDesignBlueprintView,
+        planningApprovalPacket: null,
+        captureResult: _naverReadOnlyProductDataCaptureResultView,
+      });
 
     const responseJob = {
       id: job.id,
@@ -1724,6 +1736,8 @@ export async function GET(
         _naverReadOnlyOptionAdditionalStructureExpansionDesignBlueprintSafetyAuditSealView,
       naverReadOnlyOptionAdditionalStructureExpansionDesignBlueprintOutcomeCertificationView:
         _naverReadOnlyOptionAdditionalStructureExpansionDesignBlueprintOutcomeCertificationView,
+      naverReadOnlyDesignFinalizationApprovalPacketView:
+        _naverReadOnlyDesignFinalizationApprovalPacketView,
     };
 
     return NextResponse.json({ ok: true, job: responseJob });
