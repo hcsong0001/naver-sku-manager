@@ -302,6 +302,7 @@ import { buildNaverReadOnlyFinalExecutionApprovalCandidateFinalSummarySafetyAudi
 import { buildNaverReadOnlyFinalExecutionApprovalCandidateFlowClosureSummaryView } from '@/src/services/sku-keyword-final-approval-execution-naver-read-only-final-execution-approval-candidate-flow-closure-summary-view.service';
 import { buildTmsReadOnlyDeploymentDomainPreparationStatusCheckView } from '@/src/services/tms-read-only-deployment-domain-preparation-status-check-view.service';
 import { buildTmsReadOnlyDeploymentTargetEnvironmentSelectionComparisonView } from '@/src/services/tms-read-only-deployment-target-environment-selection-comparison-view.service';
+import { buildTmsReadOnlyVpsDeploymentCandidateDetailReviewView } from '@/src/services/tms-read-only-vps-deployment-candidate-detail-review-view.service';
 
 // Compute safe DB environment hint from DATABASE_URL without exposing the original value.
 // Returns a classification key, never the actual URL.
@@ -1163,6 +1164,11 @@ export async function GET(
     const _tmsReadOnlyDeploymentTargetEnvironmentSelectionComparisonView =
       buildTmsReadOnlyDeploymentTargetEnvironmentSelectionComparisonView({
         deploymentDomainPreparation: _tmsReadOnlyDeploymentDomainPreparationStatusCheckView,
+      });
+    const _tmsReadOnlyVpsDeploymentCandidateDetailReviewView =
+      buildTmsReadOnlyVpsDeploymentCandidateDetailReviewView({
+        deploymentTargetEnvironmentSelectionComparison:
+          _tmsReadOnlyDeploymentTargetEnvironmentSelectionComparisonView,
       });
 
     const responseJob = {
@@ -2235,6 +2241,8 @@ export async function GET(
         _tmsReadOnlyDeploymentDomainPreparationStatusCheckView,
       tmsReadOnlyDeploymentTargetEnvironmentSelectionComparisonView:
         _tmsReadOnlyDeploymentTargetEnvironmentSelectionComparisonView,
+      tmsReadOnlyVpsDeploymentCandidateDetailReviewView:
+        _tmsReadOnlyVpsDeploymentCandidateDetailReviewView,
     };
 
     return NextResponse.json({ ok: true, job: responseJob });

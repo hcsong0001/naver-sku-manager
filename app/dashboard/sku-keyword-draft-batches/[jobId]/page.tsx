@@ -3942,6 +3942,7 @@ type DraftBatchJob = {
   naverReadOnlyFinalExecutionApprovalCandidateFlowClosureSummaryView?: any;
   tmsReadOnlyDeploymentDomainPreparationStatusCheckView?: any;
   tmsReadOnlyDeploymentTargetEnvironmentSelectionComparisonView?: any;
+  tmsReadOnlyVpsDeploymentCandidateDetailReviewView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -41537,6 +41538,203 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             {c321.requiresSeparateTask322Approval && (
               <p className="text-xs text-emerald-700 border-t border-emerald-200 pt-2">
                 {c321.nextTaskApprovalPhrase}
+              </p>
+            )}
+          </div>
+        );
+      })()}
+
+      {/* ── Task 322: Read-Only VPS Deployment Candidate Detail Review ── */}
+      {job.tmsReadOnlyVpsDeploymentCandidateDetailReviewView && (() => {
+        const c322 = job.tmsReadOnlyVpsDeploymentCandidateDetailReviewView as {
+          taskId: number;
+          panelTitle: string;
+          description: string;
+          sourceDeploymentTargetEnvironmentSelectionComparisonStatus: string;
+          vpsDeploymentCandidateDetailReviewStatus: string;
+          recommendedEnvironmentKey: 'NAS' | 'COMPANY_PC' | 'HOME_PC' | 'VPS';
+          recommendedEnvironmentLabel: string;
+          vpsCandidateSelectedForReview: boolean;
+          vpsDetailSummaryCards: Array<{
+            label: string;
+            value: string;
+            tone: 'positive' | 'neutral' | 'warning';
+          }>;
+          vpsRequirementItems: Array<{
+            reviewId: string;
+            label: string;
+            status: 'READY' | 'PARTIAL_READY' | 'BLOCKED' | 'NOT_STARTED';
+            message: string;
+          }>;
+          vpsCostReviewItems: Array<{
+            reviewId: string;
+            label: string;
+            status: 'READY' | 'PARTIAL_READY' | 'BLOCKED' | 'NOT_STARTED';
+            message: string;
+          }>;
+          vpsSecurityReviewItems: Array<{
+            reviewId: string;
+            label: string;
+            status: 'READY' | 'PARTIAL_READY' | 'BLOCKED' | 'NOT_STARTED';
+            message: string;
+          }>;
+          vpsBackupReviewItems: Array<{
+            reviewId: string;
+            label: string;
+            status: 'READY' | 'PARTIAL_READY' | 'BLOCKED' | 'NOT_STARTED';
+            message: string;
+          }>;
+          vpsDomainHttpsReviewItems: Array<{
+            reviewId: string;
+            label: string;
+            status: 'READY' | 'PARTIAL_READY' | 'BLOCKED' | 'NOT_STARTED';
+            message: string;
+          }>;
+          vpsOperationRiskItems: Array<{
+            reviewId: string;
+            label: string;
+            status: 'READY' | 'PARTIAL_READY' | 'BLOCKED' | 'NOT_STARTED';
+            message: string;
+          }>;
+          actualVpsServerCreated: boolean;
+          actualVpsConfigChanged: boolean;
+          actualDeploymentStarted: boolean;
+          actualDomainConnected: boolean;
+          deploymentPreparationStillReadOnly: boolean;
+          domainConnectionStillReadOnly: boolean;
+          requiresSeparateTask323Approval: boolean;
+          nextTaskApprovalPhrase: string;
+        };
+
+        const getDetailTone = (status: 'READY' | 'PARTIAL_READY' | 'BLOCKED' | 'NOT_STARTED') =>
+          status === 'READY'
+            ? 'bg-green-100 text-green-700 border-green-200'
+            : status === 'PARTIAL_READY'
+              ? 'bg-amber-100 text-amber-700 border-amber-200'
+              : status === 'BLOCKED'
+                ? 'bg-red-100 text-red-700 border-red-200'
+                : 'bg-slate-100 text-slate-600 border-slate-200';
+
+        const getSummaryTone = (tone: 'positive' | 'neutral' | 'warning') =>
+          tone === 'positive'
+            ? 'bg-green-100 text-green-700 border-green-200'
+            : tone === 'warning'
+              ? 'bg-amber-100 text-amber-700 border-amber-200'
+              : 'bg-slate-100 text-slate-700 border-slate-200';
+
+        const renderReviewGroup = (
+          title: string,
+          items: Array<{
+            reviewId: string;
+            label: string;
+            status: 'READY' | 'PARTIAL_READY' | 'BLOCKED' | 'NOT_STARTED';
+            message: string;
+          }>,
+        ) => (
+          <div className="rounded border border-cyan-200 bg-white/80 p-3">
+            <h4 className="mb-2 text-sm font-semibold text-cyan-900">{title}</h4>
+            <div className="space-y-2">
+              {items.map((item) => (
+                <div key={item.reviewId} className="rounded border border-cyan-100 bg-cyan-50/70 p-2">
+                  <div className="flex items-center gap-2">
+                    <div className="text-xs font-medium text-cyan-950">{item.label}</div>
+                    <span className={`ml-auto inline-flex rounded-full border px-2 py-0.5 text-[11px] font-medium ${getDetailTone(item.status)}`}>
+                      {item.status}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-xs text-cyan-800">{item.message}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+
+        return (
+          <div className="mb-4 rounded-lg border border-cyan-300 bg-cyan-50 p-4 space-y-3">
+            <div className="flex items-center gap-2">
+              <FileCheck className="w-5 h-5 text-cyan-600" />
+              <h3 className="font-semibold text-cyan-900">
+                Task {c322.taskId}: {c322.panelTitle}
+              </h3>
+              <span className={`ml-auto text-xs px-2 py-0.5 rounded-full font-medium ${getDetailTone(
+                c322.vpsDeploymentCandidateDetailReviewStatus.replace(
+                  'TMS_READ_ONLY_VPS_DEPLOYMENT_CANDIDATE_DETAIL_REVIEW_',
+                  '',
+                ) as 'READY' | 'PARTIAL_READY' | 'BLOCKED' | 'NOT_STARTED',
+              )}`}>
+                {c322.vpsDeploymentCandidateDetailReviewStatus.replace(
+                  'TMS_READ_ONLY_VPS_DEPLOYMENT_CANDIDATE_DETAIL_REVIEW_',
+                  '',
+                )}
+              </span>
+            </div>
+
+            <p className="text-sm text-cyan-900">{c322.description}</p>
+
+            <div className="rounded border border-cyan-200 bg-cyan-100 px-3 py-2 text-xs text-cyan-900 flex items-start gap-1">
+              <Lock className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+              <span>
+                이 패널은 VPS 배포 후보를 read-only로 상세 검토하는 화면입니다. 이 화면은 실제 VPS 생성, 실제 배포 실행, 실제 도메인 연결 작업이 아닙니다. DNS, SSL, 포트포워딩, 서버/VPS 설정, 운영 DB 연결을 변경하지 않습니다. Task 323은 사용자 별도 명시 승인 없이는 진행하지 않습니다.
+              </span>
+            </div>
+
+            <div className="rounded border border-cyan-200 bg-white/70 px-3 py-2 text-xs text-cyan-900">
+              <span className="font-medium">Task 321 원본 비교 상태:</span> {c322.sourceDeploymentTargetEnvironmentSelectionComparisonStatus}
+            </div>
+
+            <div className="rounded border border-cyan-200 bg-white/80 p-3 text-sm text-cyan-950">
+              <div className="font-semibold">추천 후보: {c322.recommendedEnvironmentLabel}</div>
+              <p className="mt-1 text-xs text-cyan-800">
+                추천 환경 키: {c322.recommendedEnvironmentKey} / VPS 상세 검토 대상 여부:{' '}
+                {c322.vpsCandidateSelectedForReview ? '예' : '아니오'}
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {c322.vpsDetailSummaryCards.map((card) => (
+                <div key={card.label} className={`rounded border p-2 text-center ${getSummaryTone(card.tone)}`}>
+                  <div className="text-sm font-bold">{card.value}</div>
+                  <div className="text-xs">{card.label}</div>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex flex-wrap gap-3 text-xs">
+              <span className={`flex items-center gap-1 ${c322.vpsCandidateSelectedForReview ? 'text-green-700' : 'text-red-600'}`}>
+                <CheckCircle2 className="w-3.5 h-3.5" /> VPS 추천 후보 확인
+              </span>
+              <span className={`flex items-center gap-1 ${c322.actualVpsServerCreated ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="w-3.5 h-3.5" /> 실제 VPS 생성 미수행
+              </span>
+              <span className={`flex items-center gap-1 ${c322.actualVpsConfigChanged ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="w-3.5 h-3.5" /> 실제 VPS 설정 변경 미수행
+              </span>
+              <span className={`flex items-center gap-1 ${c322.actualDeploymentStarted ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="w-3.5 h-3.5" /> 실제 배포 미시작
+              </span>
+              <span className={`flex items-center gap-1 ${c322.actualDomainConnected ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="w-3.5 h-3.5" /> 실제 도메인 연결 미시작
+              </span>
+              <span className={`flex items-center gap-1 ${c322.deploymentPreparationStillReadOnly ? 'text-green-700' : 'text-red-600'}`}>
+                <CheckCircle2 className="w-3.5 h-3.5" /> 배포 준비 read-only 유지
+              </span>
+              <span className={`flex items-center gap-1 ${c322.domainConnectionStillReadOnly ? 'text-green-700' : 'text-red-600'}`}>
+                <CheckCircle2 className="w-3.5 h-3.5" /> 도메인 연결 read-only 유지
+              </span>
+            </div>
+
+            <div className="grid gap-3 lg:grid-cols-2">
+              {renderReviewGroup('VPS 요구사항 검토', c322.vpsRequirementItems)}
+              {renderReviewGroup('VPS 비용 검토', c322.vpsCostReviewItems)}
+              {renderReviewGroup('VPS 보안 검토', c322.vpsSecurityReviewItems)}
+              {renderReviewGroup('VPS 백업 검토', c322.vpsBackupReviewItems)}
+              {renderReviewGroup('VPS 도메인/HTTPS 검토', c322.vpsDomainHttpsReviewItems)}
+              {renderReviewGroup('VPS 운영 리스크 검토', c322.vpsOperationRiskItems)}
+            </div>
+
+            {c322.requiresSeparateTask323Approval && (
+              <p className="text-xs text-cyan-800 border-t border-cyan-200 pt-2">
+                {c322.nextTaskApprovalPhrase}
               </p>
             )}
           </div>
