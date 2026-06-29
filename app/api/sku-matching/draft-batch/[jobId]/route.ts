@@ -263,6 +263,7 @@ import { buildNaverReadOnlyProductDataCompletenessCertificationView } from '@/sr
 import { buildNaverBasicProductDataSummaryReviewApprovalPacketView } from '@/src/services/sku-keyword-final-approval-execution-naver-basic-product-data-summary-review-approval-packet-view.service';
 import { buildNaverBasicProductDataSummaryReviewView } from '@/src/services/sku-keyword-final-approval-execution-naver-basic-product-data-summary-review-view.service';
 import { buildNaverBasicProductDataSummaryReviewSafetyAuditSealView } from '@/src/services/sku-keyword-final-approval-execution-naver-basic-product-data-summary-review-safety-audit-seal-view.service';
+import { buildNaverBasicProductDataSummaryReviewOutcomeCertificationView } from '@/src/services/sku-keyword-final-approval-execution-naver-basic-product-data-summary-review-outcome-certification-view.service';
 
 // Compute safe DB environment hint from DATABASE_URL without exposing the original value.
 // Returns a classification key, never the actual URL.
@@ -609,6 +610,13 @@ export async function GET(
       approvalPacket: _naverBasicProductDataSummaryReviewApprovalPacketView,
       captureResult: _naverReadOnlyProductDataCaptureResultView,
     });
+    const _naverBasicProductDataSummaryReviewOutcomeCertificationView =
+      buildNaverBasicProductDataSummaryReviewOutcomeCertificationView({
+        summaryReview: _naverBasicProductDataSummaryReviewView,
+        safetyAuditSeal: _naverBasicProductDataSummaryReviewSafetyAuditSealView,
+        approvalPacket: _naverBasicProductDataSummaryReviewApprovalPacketView,
+        captureResult: _naverReadOnlyProductDataCaptureResultView,
+      });
 
     const responseJob = {
       id: job.id,
@@ -1602,6 +1610,8 @@ export async function GET(
       naverBasicProductDataSummaryReviewApprovalPacketView: _naverBasicProductDataSummaryReviewApprovalPacketView,
       naverBasicProductDataSummaryReviewView: _naverBasicProductDataSummaryReviewView,
       naverBasicProductDataSummaryReviewSafetyAuditSealView: _naverBasicProductDataSummaryReviewSafetyAuditSealView,
+      naverBasicProductDataSummaryReviewOutcomeCertificationView:
+        _naverBasicProductDataSummaryReviewOutcomeCertificationView,
     };
 
     return NextResponse.json({ ok: true, job: responseJob });

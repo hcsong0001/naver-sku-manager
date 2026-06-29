@@ -3903,6 +3903,7 @@ type DraftBatchJob = {
   naverBasicProductDataSummaryReviewApprovalPacketView?: any;
   naverBasicProductDataSummaryReviewView?: any;
   naverBasicProductDataSummaryReviewSafetyAuditSealView?: any;
+  naverBasicProductDataSummaryReviewOutcomeCertificationView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -33978,6 +33979,182 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div>isSalePricePresenceFlagOnly: {String(c282.isSalePricePresenceFlagOnly)} | isStockQuantityPresenceFlagOnly: {String(c282.isStockQuantityPresenceFlagOnly)} | isBasicProductDataSummaryViewOnly: {String(c282.isBasicProductDataSummaryViewOnly)}</div>
               <div>isRawProductApiResponseIncluded: {String(c282.isRawProductApiResponseIncluded)} | isRawProductApiResponseStored: {String(c282.isRawProductApiResponseStored)} | isDbWriteExecuted: {String(c282.isDbWriteExecuted)}</div>
               <div>sealed: true | isNextStepSeparateApprovalRequired: {String(c282.isNextStepSeparateApprovalRequired)} | isNextStepSeparateApprovalGranted: {String(c282.isNextStepSeparateApprovalGranted)}</div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 283: Outcome Certification ───────────────────────────────────── */}
+      {(() => {
+        const c283 = (job as any).naverBasicProductDataSummaryReviewOutcomeCertificationView;
+        if (!c283) return null;
+        const isComplete = c283.isCertifiedSummaryReadyForCompleteData;
+        const isPartial = c283.isCertifiedSummaryReadyWithMissingFieldNotice;
+        const isBlocked = c283.isNextReadOnlyProductStructureReviewBlocked;
+        const borderColor = isComplete
+          ? 'border-emerald-300 bg-emerald-50/20'
+          : isPartial
+            ? 'border-amber-200 bg-amber-50/20'
+            : 'border-orange-200 bg-orange-50/20';
+        const iconColor = isComplete
+          ? 'text-emerald-600'
+          : isPartial
+            ? 'text-amber-500'
+            : 'text-orange-500';
+        const statusColor = isComplete
+          ? 'text-emerald-700 font-bold'
+          : isPartial
+            ? 'text-amber-700 font-bold'
+            : 'text-orange-700 font-bold';
+        const itemColor = (s: string) => {
+          if (
+            [
+              'SAFETY_AUDIT_SEAL_CONFIRMED',
+              'SUMMARY_REVIEW_CONFIRMED',
+              'APPROVAL_PACKET_CONFIRMED',
+              'CAPTURE_RESULT_CONFIRMED',
+            ].includes(s)
+          ) {
+            return 'bg-slate-100 text-slate-700';
+          }
+          if (s === 'OUTCOME_CERTIFICATION_STATUS_RECORDED') {
+            return isComplete
+              ? 'bg-emerald-100 text-emerald-800'
+              : isPartial
+                ? 'bg-amber-100 text-amber-800'
+                : 'bg-orange-100 text-orange-800';
+          }
+          if (s === 'CERTIFIED_READY_IF_COMPLETE') {
+            return isComplete ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600';
+          }
+          if (s === 'CERTIFIED_READY_WITH_MISSING_FIELD_NOTICE') {
+            return isPartial ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-600';
+          }
+          if (s.startsWith('CERTIFIED_BLOCKED_RECHECK_')) {
+            return isBlocked ? 'bg-orange-100 text-orange-800' : 'bg-slate-100 text-slate-600';
+          }
+          if (s === 'CAPTURED_DATA_ONLY_CONFIRMED') return 'bg-blue-50 text-blue-700';
+          if (s === 'NOT_INCLUDED') return 'bg-red-50 text-red-700';
+          if (s === 'NOT_DISPLAYED' || s === 'NOT_EXECUTED') {
+            return 'bg-slate-100 text-slate-600';
+          }
+          if (s === 'LOCKED') return 'bg-orange-50 text-orange-700';
+          if (s === 'PENDING_SEPARATE_APPROVAL') return 'bg-yellow-50 text-yellow-700';
+          if (s === 'READ_ONLY_INFO') return 'bg-blue-50 text-blue-600';
+          return 'bg-gray-100 text-gray-600';
+        };
+        return (
+          <div className={`mb-6 rounded-lg border p-4 ${borderColor}`}>
+            <div className="mb-3 flex items-center gap-2">
+              <ShieldAlert className={`w-5 h-5 flex-shrink-0 ${iconColor}`} />
+              <h3 className="font-semibold text-slate-800 text-sm">
+                {c283.panelTitle ??
+                  'Naver Basic Product Data Summary Review Outcome Certification (Task 283)'}
+              </h3>
+              <span className="ml-auto rounded bg-slate-100 px-2 py-0.5 text-xs font-mono text-slate-700">
+                {c283.status}
+              </span>
+            </div>
+            <p className="mb-3 text-xs text-slate-700">{c283.description}</p>
+
+            <div className="mb-3 rounded border border-slate-200 bg-white/60 p-3 text-xs space-y-1">
+              <div>
+                basicProductDataSummaryReviewStatus:{' '}
+                <span className="font-mono text-slate-700">
+                  {c283.basicProductDataSummaryReviewStatus}
+                </span>
+              </div>
+              <div>
+                basicProductDataSummaryReviewOutcomeCertificationStatus:{' '}
+                <span className={`font-mono ${statusColor}`}>
+                  {c283.basicProductDataSummaryReviewOutcomeCertificationStatus}
+                </span>
+              </div>
+              <div>
+                isReadyForNextReadOnlyProductStructureReview:{' '}
+                <span
+                  className={
+                    c283.isReadyForNextReadOnlyProductStructureReview
+                      ? 'text-emerald-700 font-bold'
+                      : 'text-orange-600 font-semibold'
+                  }
+                >
+                  {String(c283.isReadyForNextReadOnlyProductStructureReview)}
+                </span>
+              </div>
+              <div>
+                isMissingFieldNoticeRequired:{' '}
+                <span
+                  className={
+                    c283.isMissingFieldNoticeRequired
+                      ? 'text-amber-700 font-semibold'
+                      : 'text-slate-600'
+                  }
+                >
+                  {String(c283.isMissingFieldNoticeRequired)}
+                </span>
+              </div>
+              <div>
+                isCapturedDataUsedOnly:{' '}
+                <span className="text-emerald-700 font-bold">
+                  {String(c283.isCapturedDataUsedOnly)}
+                </span>
+              </div>
+              {isComplete && (
+                <div className="font-semibold text-emerald-700">
+                  COMPLETE 인증 완료 — 다음 read-only 상품 구조 검토 후보 상태
+                </div>
+              )}
+              {isPartial && (
+                <div className="font-semibold text-amber-700">
+                  PARTIAL 인증 완료 — 누락 필드 안내 포함 다음 read-only 상품 구조 검토 후보 상태
+                </div>
+              )}
+              {isBlocked && (
+                <div className="font-semibold text-orange-700">
+                  BLOCKED 인증 상태 — 원인별 보정 후 다시 검토 필요
+                </div>
+              )}
+            </div>
+
+            <div className="mb-3">
+              <div className="mb-1 text-xs font-semibold text-slate-600">인증 항목</div>
+              <div className="space-y-1">
+                {Array.isArray(c283.certificationItems) &&
+                  c283.certificationItems.map((item: any, idx: number) => (
+                    <div key={idx} className="flex items-start gap-2 text-[11px]">
+                      <span
+                        className={`shrink-0 rounded px-1 py-0.5 font-mono text-[10px] ${itemColor(item.status)}`}
+                      >
+                        {item.status}
+                      </span>
+                      <span className="text-slate-600">
+                        {item.certificationItem}: {item.meaning}
+                      </span>
+                    </div>
+                  ))}
+              </div>
+            </div>
+
+            <div className="mt-2 space-y-0.5 font-mono text-[10px] text-gray-400">
+              <div>
+                isNewApiCallExecutedInThisTask: {String(c283.isNewApiCallExecutedInThisTask)} |
+                isProductLookupApiCalledInThisTask:{' '}
+                {String(c283.isProductLookupApiCalledInThisTask)} | isNaverApiCalledInThisTask:{' '}
+                {String(c283.isNaverApiCalledInThisTask)}
+              </div>
+              <div>
+                isSalePriceRawValueIncluded: {String(c283.isSalePriceRawValueIncluded)} |
+                isStockQuantityRawValueIncluded:{' '}
+                {String(c283.isStockQuantityRawValueIncluded)} |
+                isRawProductApiResponseIncluded:{' '}
+                {String(c283.isRawProductApiResponseIncluded)}
+              </div>
+              <div>
+                isProductUpdateApiCalled: {String(c283.isProductUpdateApiCalled)} |
+                isPriceOrStockChanged: {String(c283.isPriceOrStockChanged)} |
+                isDbWriteExecuted: {String(c283.isDbWriteExecuted)}
+              </div>
             </div>
           </div>
         );
