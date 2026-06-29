@@ -3894,6 +3894,7 @@ type DraftBatchJob = {
   naverTokenIssuanceRetryOneTimeTestProductLookupResultView?: any;
   naverProductLookupLiveRetryResultNonMutationAuditSealView?: any;
   naverProductLookupLiveRetryOutcomeDecisionGateView?: any;
+  naverProductLookupLiveRetryOutcomeCertificationView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -33304,6 +33305,72 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div>isTokenReissuedInThisTask: {String(g273.isTokenReissuedInThisTask)} | isProductLookupApiCalledInThisTask: {String(g273.isProductLookupApiCalledInThisTask)} | isNaverApiCalledInThisTask: {String(g273.isNaverApiCalledInThisTask)}</div>
               <div>isTokenValueDisplayed: {String(g273.isTokenValueDisplayed)} | isAuthKeyValueDisplayed: {String(g273.isAuthKeyValueDisplayed)} | isDbWriteExecuted: {String(g273.isDbWriteExecuted)}</div>
               <div>isNextStepSeparateApprovalRequired: {String(g273.isNextStepSeparateApprovalRequired)} | isNextStepSeparateApprovalGranted: {String(g273.isNextStepSeparateApprovalGranted)} | isExecutionAllowed: {String(g273.isExecutionAllowed)}</div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 274: Live 재시도 결과 Outcome Certification ──────────────────── */}
+      {(() => {
+        const c274 = (job as any).naverProductLookupLiveRetryOutcomeCertificationView;
+        if (!c274) return null;
+        const isCertReady = c274.isCertifiedReadyForReadOnlyProductDataCaptureGate;
+        const borderColor = isCertReady ? 'border-emerald-300 bg-emerald-50/20' : 'border-orange-200 bg-orange-50/20';
+        const iconColor = isCertReady ? 'text-emerald-600' : 'text-orange-500';
+        const certColor = isCertReady ? 'text-emerald-700 font-bold' : 'text-orange-700 font-bold';
+        const itemColor = (s: string) => {
+          if (s === 'DECISION_GATE_CONFIRMED' || s === 'NON_MUTATION_AUDIT_CONFIRMED' || s === 'LIVE_RETRY_RESULT_CONFIRMED') return 'bg-slate-100 text-slate-700';
+          if (s === 'CERTIFICATION_STATUS_RECORDED') return isCertReady ? 'bg-emerald-100 text-emerald-800' : 'bg-orange-100 text-orange-800';
+          if (s === 'READY_IF_DECISION_READY') return isCertReady ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-100 text-gray-500';
+          if (s === 'IP_ALLOWLIST_RECHECK_REQUIRED' || s === 'AUTH_RECHECK_REQUIRED' || s === 'ENV_RECHECK_REQUIRED' || s === 'CHANNEL_PRODUCT_NO_RECHECK_REQUIRED' || s === 'PRODUCT_ACCESS_RECHECK_REQUIRED') return 'bg-amber-50 text-amber-700';
+          if (s === 'SEPARATE_APPROVAL_REQUIRED') return 'bg-yellow-50 text-yellow-700';
+          if (s === 'NOT_EXECUTED' || s === 'NOT_DISPLAYED' || s === 'NOT_ACCESSED' || s === 'NOT_MODIFIED') return 'bg-slate-100 text-slate-600';
+          if (s === 'LOCKED') return 'bg-orange-50 text-orange-700';
+          if (s === 'READ_ONLY_INFO') return 'bg-blue-50 text-blue-600';
+          return 'bg-gray-100 text-gray-600';
+        };
+        return (
+          <div className={`mb-6 rounded-lg border p-4 ${borderColor}`}>
+            <div className="mb-3 flex items-center gap-2">
+              <ShieldAlert className={`w-5 h-5 flex-shrink-0 ${iconColor}`} />
+              <h3 className="font-semibold text-slate-800 text-sm">
+                {c274.panelTitle ?? 'Live 재시도 결과 Outcome Certification (Task 274)'}
+              </h3>
+              <span className="ml-auto text-xs px-2 py-0.5 rounded font-mono bg-slate-100 text-slate-700">
+                {c274.status}
+              </span>
+            </div>
+            <p className="mb-3 text-xs text-slate-700">{c274.description}</p>
+
+            {/* Certification 요약 */}
+            <div className="mb-3 rounded border border-slate-200 bg-white/60 p-3">
+              <div className="mb-1 text-xs font-semibold text-slate-600">Certification 결과</div>
+              <div className="text-xs">
+                outcomeCertificationStatus: <span className={`font-mono ${certColor}`}>{c274.outcomeCertificationStatus}</span>
+              </div>
+              <div className="mt-1 text-xs">
+                nextDecisionStatus: <span className="font-mono text-slate-600">{c274.nextDecisionStatus}</span>
+              </div>
+            </div>
+
+            {/* certificationItems */}
+            <div className="mb-3">
+              <div className="mb-1 text-xs font-semibold text-slate-600">인증 항목</div>
+              <div className="space-y-1">
+                {Array.isArray(c274.certificationItems) && c274.certificationItems.map((item: any, idx: number) => (
+                  <div key={idx} className="flex items-start gap-2 text-[11px]">
+                    <span className={`shrink-0 rounded px-1 py-0.5 font-mono text-[10px] ${itemColor(item.status)}`}>{item.status}</span>
+                    <span className="text-slate-600">{item.certificationItem}: {item.meaning}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* 안전 플래그 footer */}
+            <div className="mt-2 text-[10px] text-gray-400 font-mono space-y-0.5">
+              <div>isTokenReissuedInThisTask: {String(c274.isTokenReissuedInThisTask)} | isProductLookupApiCalledInThisTask: {String(c274.isProductLookupApiCalledInThisTask)} | isNaverApiCalledInThisTask: {String(c274.isNaverApiCalledInThisTask)}</div>
+              <div>isTokenValueDisplayed: {String(c274.isTokenValueDisplayed)} | isAuthKeyValueDisplayed: {String(c274.isAuthKeyValueDisplayed)} | isDbWriteExecuted: {String(c274.isDbWriteExecuted)}</div>
+              <div>isNextStepSeparateApprovalRequired: {String(c274.isNextStepSeparateApprovalRequired)} | isNextStepSeparateApprovalGranted: {String(c274.isNextStepSeparateApprovalGranted)} | isExecutionAllowed: {String(c274.isExecutionAllowed)}</div>
             </div>
           </div>
         );

@@ -254,6 +254,7 @@ import { buildNaverTokenIssuanceHttp403CredentialAuthReadOnlyChecklistView } fro
 import { buildNaverTokenIssuanceRetryOneTimeTestProductLookupResultView } from '@/src/services/sku-keyword-final-approval-execution-naver-token-issuance-retry-one-time-test-product-lookup-result-view.service';
 import { buildNaverProductLookupLiveRetryResultNonMutationAuditSealView } from '@/src/services/sku-keyword-final-approval-execution-naver-product-lookup-live-retry-result-non-mutation-audit-seal-view.service';
 import { buildNaverProductLookupLiveRetryOutcomeDecisionGateView } from '@/src/services/sku-keyword-final-approval-execution-naver-product-lookup-live-retry-outcome-decision-gate-view.service';
+import { buildNaverProductLookupLiveRetryOutcomeCertificationView } from '@/src/services/sku-keyword-final-approval-execution-naver-product-lookup-live-retry-outcome-certification-view.service';
 
 // Compute safe DB environment hint from DATABASE_URL without exposing the original value.
 // Returns a classification key, never the actual URL.
@@ -559,6 +560,10 @@ export async function GET(
     const _issuanceTestStatus = naverTokenIssuanceOneTimeTestResultView.issuanceTestStatus ?? 'SUCCESS';
     const _naverProductLookupApiReadinessGateView = buildNaverProductLookupApiReadinessGateView(job, _issuanceTestStatus);
     const _naverTokenIssuanceRetryOneTimeTestProductLookupResultView = await buildNaverTokenIssuanceRetryOneTimeTestProductLookupResultView(job);
+    const _naverProductLookupLiveRetryOutcomeDecisionGateView = buildNaverProductLookupLiveRetryOutcomeDecisionGateView(
+      _naverTokenIssuanceRetryOneTimeTestProductLookupResultView,
+      null
+    );
 
     const responseJob = {
       id: job.id,
@@ -1542,9 +1547,9 @@ export async function GET(
       naverProductLookupLiveRetryResultNonMutationAuditSealView: buildNaverProductLookupLiveRetryResultNonMutationAuditSealView(
         _naverTokenIssuanceRetryOneTimeTestProductLookupResultView
       ),
-      naverProductLookupLiveRetryOutcomeDecisionGateView: buildNaverProductLookupLiveRetryOutcomeDecisionGateView(
-        _naverTokenIssuanceRetryOneTimeTestProductLookupResultView,
-        null
+      naverProductLookupLiveRetryOutcomeDecisionGateView: _naverProductLookupLiveRetryOutcomeDecisionGateView,
+      naverProductLookupLiveRetryOutcomeCertificationView: buildNaverProductLookupLiveRetryOutcomeCertificationView(
+        _naverProductLookupLiveRetryOutcomeDecisionGateView
       ),
     };
 
