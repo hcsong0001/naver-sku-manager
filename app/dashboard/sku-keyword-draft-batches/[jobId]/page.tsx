@@ -3898,6 +3898,7 @@ type DraftBatchJob = {
   naverReadOnlyProductDataCaptureApprovalPacketView?: any;
   naverReadOnlyProductDataCaptureResultView?: any;
   naverReadOnlyProductDataCaptureSafetyAuditSealView?: any;
+  naverReadOnlyProductDataCaptureCompletenessReviewView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -33603,6 +33604,86 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div>isTokenReissuedInThisTask: {String(c277.isTokenReissuedInThisTask)} | isProductLookupApiCalledInThisTask: {String(c277.isProductLookupApiCalledInThisTask)} | isNaverApiCalledInThisTask: {String(c277.isNaverApiCalledInThisTask)}</div>
               <div>isRawProductApiResponseIncluded: {String(c277.isRawProductApiResponseIncluded)} | isDbWriteExecuted: {String(c277.isDbWriteExecuted)} | isSalePriceRawValueIncluded: {String(c277.isSalePriceRawValueIncluded)}</div>
               <div>isNextStepSeparateApprovalRequired: {String(c277.isNextStepSeparateApprovalRequired)} | isNextStepSeparateApprovalGranted: {String(c277.isNextStepSeparateApprovalGranted)} | sealed: {String(isSealed)}</div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 278: Read-Only Product Data Capture Completeness Review ─────── */}
+      {(() => {
+        const c278 = (job as any).naverReadOnlyProductDataCaptureCompletenessReviewView;
+        if (!c278) return null;
+        const isComplete = c278.isBasicProductDataCompleteForReview;
+        const isPartial = c278.isBasicProductDataPartialForReview;
+        const borderColor = isComplete ? 'border-emerald-300 bg-emerald-50/20' : isPartial ? 'border-amber-200 bg-amber-50/20' : 'border-orange-200 bg-orange-50/20';
+        const iconColor = isComplete ? 'text-emerald-600' : isPartial ? 'text-amber-500' : 'text-orange-500';
+        const statusColor = isComplete ? 'text-emerald-700 font-bold' : isPartial ? 'text-amber-700 font-bold' : 'text-orange-700 font-bold';
+        const itemColor = (s: string) => {
+          if (s === 'CAPTURE_RESULT_CONFIRMED' || s === 'SAFETY_AUDIT_SEAL_CONFIRMED') return 'bg-slate-100 text-slate-700';
+          if (s === 'COMPLETENESS_STATUS_RECORDED') return isComplete ? 'bg-emerald-100 text-emerald-800' : isPartial ? 'bg-amber-100 text-amber-800' : 'bg-orange-100 text-orange-800';
+          if (s === 'FIELD_PRESENCE_REVIEWED') return 'bg-blue-50 text-blue-700';
+          if (s === 'PRESENCE_FLAG_ONLY') return 'bg-blue-50 text-blue-600';
+          if (s === 'ALLOWED_FIELDS_ONLY_CONFIRMED') return 'bg-emerald-50 text-emerald-700';
+          if (s === 'NOT_INCLUDED') return 'bg-red-50 text-red-700';
+          if (s === 'NOT_DISPLAYED' || s === 'NOT_EXECUTED') return 'bg-slate-100 text-slate-600';
+          if (s === 'LOCKED') return 'bg-orange-50 text-orange-700';
+          if (s === 'PENDING_SEPARATE_APPROVAL') return 'bg-yellow-50 text-yellow-700';
+          if (s === 'READ_ONLY_INFO') return 'bg-blue-50 text-blue-600';
+          return 'bg-gray-100 text-gray-600';
+        };
+        const presenceColor = (s: string) => s === 'PRESENT' ? 'text-emerald-600' : s === 'MISSING' ? 'text-orange-600' : 'text-blue-600';
+        return (
+          <div className={`mb-6 rounded-lg border p-4 ${borderColor}`}>
+            <div className="mb-3 flex items-center gap-2">
+              <ShieldAlert className={`w-5 h-5 flex-shrink-0 ${iconColor}`} />
+              <h3 className="font-semibold text-slate-800 text-sm">
+                {c278.panelTitle ?? 'Read-Only Product Data Capture Completeness Review (Task 278)'}
+              </h3>
+              <span className="ml-auto text-xs px-2 py-0.5 rounded font-mono bg-slate-100 text-slate-700">
+                {c278.status}
+              </span>
+            </div>
+            <p className="mb-3 text-xs text-slate-700">{c278.description}</p>
+
+            {/* Completeness 요약 */}
+            <div className="mb-3 rounded border border-slate-200 bg-white/60 p-3 text-xs">
+              <div className="mb-1 font-semibold text-slate-600">Completeness 결과</div>
+              <div>readOnlyProductDataCompletenessStatus: <span className={`font-mono ${statusColor}`}>{c278.readOnlyProductDataCompletenessStatus}</span></div>
+            </div>
+
+            {/* 필드 존재 여부 리뷰 */}
+            {Array.isArray(c278.fieldReviewItems) && c278.fieldReviewItems.length > 0 && (
+              <div className="mb-3 rounded border border-slate-200 bg-white/50 p-3">
+                <div className="mb-2 text-xs font-semibold text-slate-600">필드 존재 여부 리뷰</div>
+                <div className="grid grid-cols-2 gap-1">
+                  {c278.fieldReviewItems.map((item: any, idx: number) => (
+                    <div key={idx} className="flex items-center gap-1 text-[11px]">
+                      <span className="text-slate-500 font-mono">{item.fieldName}:</span>
+                      <span className={`font-semibold ${presenceColor(item.fieldPresenceStatus)}`}>{item.fieldPresenceStatus}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* reviewItems */}
+            <div className="mb-3">
+              <div className="mb-1 text-xs font-semibold text-slate-600">리뷰 항목</div>
+              <div className="space-y-1">
+                {Array.isArray(c278.reviewItems) && c278.reviewItems.map((item: any, idx: number) => (
+                  <div key={idx} className="flex items-start gap-2 text-[11px]">
+                    <span className={`shrink-0 rounded px-1 py-0.5 font-mono text-[10px] ${itemColor(item.status)}`}>{item.status}</span>
+                    <span className="text-slate-600">{item.reviewItem}: {item.meaning}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* 안전 플래그 footer */}
+            <div className="mt-2 text-[10px] text-gray-400 font-mono space-y-0.5">
+              <div>isTokenReissuedInThisTask: {String(c278.isTokenReissuedInThisTask)} | isProductLookupApiCalledInThisTask: {String(c278.isProductLookupApiCalledInThisTask)} | isNaverApiCalledInThisTask: {String(c278.isNaverApiCalledInThisTask)}</div>
+              <div>isRawProductApiResponseIncluded: {String(c278.isRawProductApiResponseIncluded)} | isSalePriceRawValueIncluded: {String(c278.isSalePriceRawValueIncluded)} | isDbWriteExecuted: {String(c278.isDbWriteExecuted)}</div>
+              <div>isNextStepSeparateApprovalRequired: {String(c278.isNextStepSeparateApprovalRequired)} | isNextStepSeparateApprovalGranted: {String(c278.isNextStepSeparateApprovalGranted)} | isExecutionAllowed: {String(c278.isExecutionAllowed)}</div>
             </div>
           </div>
         );
