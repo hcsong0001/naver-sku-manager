@@ -3897,6 +3897,7 @@ type DraftBatchJob = {
   naverProductLookupLiveRetryOutcomeCertificationView?: any;
   naverReadOnlyProductDataCaptureApprovalPacketView?: any;
   naverReadOnlyProductDataCaptureResultView?: any;
+  naverReadOnlyProductDataCaptureSafetyAuditSealView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -33531,6 +33532,77 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div>isTokenReissuedInThisTask: {String(c276.isTokenReissuedInThisTask)} | isProductLookupApiCalledInThisTask: {String(c276.isProductLookupApiCalledInThisTask)} | isNaverApiCalledInThisTask: {String(c276.isNaverApiCalledInThisTask)}</div>
               <div>isRawProductApiResponseDisplayed: {String(c276.isRawProductApiResponseDisplayed)} | isDbWriteExecuted: {String(c276.isDbWriteExecuted)} | isProductUpdateApiCalled: {String(c276.isProductUpdateApiCalled)}</div>
               <div>isNextStepSeparateApprovalRequired: {String(c276.isNextStepSeparateApprovalRequired)} | isNextStepSeparateApprovalGranted: {String(c276.isNextStepSeparateApprovalGranted)} | isExecutionAllowed: {String(c276.isExecutionAllowed)}</div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 277: Read-Only Product Data Capture Safety Audit Seal ─────────── */}
+      {(() => {
+        const c277 = (job as any).naverReadOnlyProductDataCaptureSafetyAuditSealView;
+        if (!c277) return null;
+        const isSealed = c277.isNaverReadOnlyProductDataCaptureSafetyAuditSealed;
+        const isCaptured = c277.readOnlyProductDataCaptureStatus === 'CAPTURED_FROM_READ_ONLY_LOOKUP_RESULT';
+        const borderColor = isCaptured ? 'border-emerald-300 bg-emerald-50/20' : 'border-orange-200 bg-orange-50/20';
+        const iconColor = isCaptured ? 'text-emerald-600' : 'text-orange-500';
+        const itemColor = (s: string) => {
+          if (s === 'CAPTURE_RESULT_CONFIRMED' || s === 'APPROVAL_PACKET_CONFIRMED') return 'bg-slate-100 text-slate-700';
+          if (s === 'CAPTURE_STATUS_RECORDED') return isCaptured ? 'bg-emerald-100 text-emerald-800' : 'bg-orange-100 text-orange-800';
+          if (s === 'ALLOWED_FIELDS_ONLY_CONFIRMED') return 'bg-emerald-50 text-emerald-700';
+          if (s === 'NOT_INCLUDED') return 'bg-red-50 text-red-700';
+          if (s === 'PRESENCE_FLAG_ONLY') return 'bg-blue-50 text-blue-700';
+          if (s === 'NOT_DISPLAYED' || s === 'NOT_STORED') return 'bg-slate-100 text-slate-600';
+          if (s === 'NOT_EXECUTED' || s === 'NOT_ACCESSED' || s === 'NOT_MODIFIED') return 'bg-slate-100 text-slate-600';
+          if (s === 'LOCKED') return 'bg-orange-50 text-orange-700';
+          if (s === 'PENDING_SEPARATE_APPROVAL') return 'bg-yellow-50 text-yellow-700';
+          if (s === 'READ_ONLY_INFO') return 'bg-blue-50 text-blue-600';
+          return 'bg-gray-100 text-gray-600';
+        };
+        return (
+          <div className={`mb-6 rounded-lg border p-4 ${borderColor}`}>
+            <div className="mb-3 flex items-center gap-2">
+              <ShieldAlert className={`w-5 h-5 flex-shrink-0 ${iconColor}`} />
+              <h3 className="font-semibold text-slate-800 text-sm">
+                {c277.panelTitle ?? 'Read-Only Product Data Capture Safety Audit Seal (Task 277)'}
+              </h3>
+              <span className="ml-auto text-xs px-2 py-0.5 rounded font-mono bg-slate-100 text-slate-700">
+                {c277.status}
+              </span>
+            </div>
+            <p className="mb-3 text-xs text-slate-700">{c277.description}</p>
+
+            {/* 감사 봉인 요약 */}
+            <div className="mb-3 rounded border border-slate-200 bg-white/60 p-3 text-xs">
+              <div className="mb-1 font-semibold text-slate-600">감사 봉인 요약</div>
+              <div>captureStatus: <span className="font-mono text-slate-700">{c277.readOnlyProductDataCaptureStatus}</span></div>
+              <div className="mt-1 flex flex-wrap gap-2 text-[10px]">
+                <span className={`rounded px-1 py-0.5 ${c277.isCapturedProductDataAllowedFieldsOnly ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>허용필드만: {String(c277.isCapturedProductDataAllowedFieldsOnly)}</span>
+                <span className="rounded px-1 py-0.5 bg-slate-100 text-slate-600">rawResponse미포함: {String(!c277.isRawProductApiResponseIncluded)}</span>
+                <span className="rounded px-1 py-0.5 bg-slate-100 text-slate-600">가격원값미포함: {String(!c277.isSalePriceRawValueIncluded)}</span>
+                <span className="rounded px-1 py-0.5 bg-slate-100 text-slate-600">재고원값미포함: {String(!c277.isStockQuantityRawValueIncluded)}</span>
+                <span className="rounded px-1 py-0.5 bg-blue-50 text-blue-600">가격presenceOnly: {String(c277.isSalePricePresenceFlagOnly)}</span>
+                <span className="rounded px-1 py-0.5 bg-blue-50 text-blue-600">재고presenceOnly: {String(c277.isStockQuantityPresenceFlagOnly)}</span>
+              </div>
+            </div>
+
+            {/* auditItems */}
+            <div className="mb-3">
+              <div className="mb-1 text-xs font-semibold text-slate-600">감사 항목</div>
+              <div className="space-y-1">
+                {Array.isArray(c277.auditItems) && c277.auditItems.map((item: any, idx: number) => (
+                  <div key={idx} className="flex items-start gap-2 text-[11px]">
+                    <span className={`shrink-0 rounded px-1 py-0.5 font-mono text-[10px] ${itemColor(item.status)}`}>{item.status}</span>
+                    <span className="text-slate-600">{item.auditItem}: {item.meaning}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* 안전 플래그 footer */}
+            <div className="mt-2 text-[10px] text-gray-400 font-mono space-y-0.5">
+              <div>isTokenReissuedInThisTask: {String(c277.isTokenReissuedInThisTask)} | isProductLookupApiCalledInThisTask: {String(c277.isProductLookupApiCalledInThisTask)} | isNaverApiCalledInThisTask: {String(c277.isNaverApiCalledInThisTask)}</div>
+              <div>isRawProductApiResponseIncluded: {String(c277.isRawProductApiResponseIncluded)} | isDbWriteExecuted: {String(c277.isDbWriteExecuted)} | isSalePriceRawValueIncluded: {String(c277.isSalePriceRawValueIncluded)}</div>
+              <div>isNextStepSeparateApprovalRequired: {String(c277.isNextStepSeparateApprovalRequired)} | isNextStepSeparateApprovalGranted: {String(c277.isNextStepSeparateApprovalGranted)} | sealed: {String(isSealed)}</div>
             </div>
           </div>
         );
