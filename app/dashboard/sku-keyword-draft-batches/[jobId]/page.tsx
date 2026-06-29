@@ -3929,6 +3929,7 @@ type DraftBatchJob = {
   naverReadOnlyFinalExecutionApprovalReviewOutcomeCertificationView?: any;
   naverReadOnlyFinalExecutionApprovalSafetyAuditSealView?: any;
   naverReadOnlyFinalExecutionApprovalSafetyAuditSealOutcomeCertificationView?: any;
+  naverReadOnlyFinalExecutionApprovalSummaryDashboardView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -39308,6 +39309,100 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 {String(c308.dbWritePerformed)} | workerStarted: {String(c308.workerStarted)}
               </div>
             </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 309: Read-Only Final Execution Approval Summary Dashboard ── */}
+      {job.naverReadOnlyFinalExecutionApprovalSummaryDashboardView && (() => {
+        const c309 = job.naverReadOnlyFinalExecutionApprovalSummaryDashboardView as {
+          taskId: number;
+          panelTitle: string;
+          description: string;
+          summaryDashboardStatus: string;
+          readOnlyChainItems: Array<{ taskId: number; taskLabel: string; status: string; isReady: boolean; isPartialReady: boolean; isBlocked: boolean; isLocked: boolean }>;
+          summaryCards: Array<{ label: string; count: number; cardType: string }>;
+          readyCount: number;
+          partialReadyCount: number;
+          blockedCount: number;
+          lockedCount: number;
+          totalItemCount: number;
+          overallReady: boolean;
+          overallPartialReady: boolean;
+          overallBlocked: boolean;
+          requiresSeparateTask310Approval: boolean;
+          nextTaskApprovalPhrase: string;
+        };
+        return (
+          <div className="mb-4 rounded-lg border border-indigo-300 bg-indigo-50 p-4 space-y-3">
+            <div className="flex items-center gap-2">
+              <ListChecks className="w-5 h-5 text-indigo-600" />
+              <h3 className="font-semibold text-indigo-800">
+                Task {c309.taskId}: {c309.panelTitle}
+              </h3>
+              <span className={`ml-auto text-xs px-2 py-0.5 rounded-full font-medium ${
+                c309.overallReady
+                  ? 'bg-green-100 text-green-700'
+                  : c309.overallPartialReady
+                    ? 'bg-yellow-100 text-yellow-700'
+                    : 'bg-red-100 text-red-700'
+              }`}>
+                {c309.summaryDashboardStatus}
+              </span>
+            </div>
+            <p className="text-sm text-indigo-700">{c309.description}</p>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {c309.summaryCards.map((card) => (
+                <div
+                  key={card.cardType}
+                  className={`rounded p-2 text-center ${
+                    card.cardType === 'READY'
+                      ? 'bg-green-100 text-green-700'
+                      : card.cardType === 'PARTIAL_READY'
+                        ? 'bg-yellow-100 text-yellow-700'
+                        : card.cardType === 'BLOCKED'
+                          ? 'bg-red-100 text-red-700'
+                          : 'bg-gray-100 text-gray-600'
+                  }`}
+                >
+                  <div className="text-lg font-bold">{card.count}</div>
+                  <div className="text-xs">{card.label}</div>
+                </div>
+              ))}
+            </div>
+            <ul className="space-y-1">
+              {c309.readOnlyChainItems.map((item) => (
+                <li key={item.taskId} className="flex items-center gap-2 text-sm">
+                  <span className={`w-2 h-2 rounded-full flex-shrink-0 ${
+                    item.status === 'READY'
+                      ? 'bg-green-500'
+                      : item.status === 'PARTIAL_READY'
+                        ? 'bg-yellow-500'
+                        : item.status === 'BLOCKED'
+                          ? 'bg-red-500'
+                          : 'bg-gray-400'
+                  }`} />
+                  <span className="text-indigo-700 font-mono text-xs">T{item.taskId}</span>
+                  <span className="text-gray-700">{item.taskLabel}</span>
+                  <span className={`ml-auto text-xs px-1.5 py-0.5 rounded ${
+                    item.status === 'READY'
+                      ? 'bg-green-100 text-green-700'
+                      : item.status === 'PARTIAL_READY'
+                        ? 'bg-yellow-100 text-yellow-700'
+                        : item.status === 'BLOCKED'
+                          ? 'bg-red-100 text-red-700'
+                          : 'bg-gray-100 text-gray-600'
+                  }`}>
+                    {item.status}
+                  </span>
+                </li>
+              ))}
+            </ul>
+            {c309.requiresSeparateTask310Approval && (
+              <p className="text-xs text-indigo-500 border-t border-indigo-200 pt-2">
+                {c309.nextTaskApprovalPhrase}
+              </p>
+            )}
           </div>
         );
       })()}

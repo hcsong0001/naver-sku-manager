@@ -289,6 +289,7 @@ import { buildNaverReadOnlyFinalExecutionApprovalReviewView } from '@/src/servic
 import { buildNaverReadOnlyFinalExecutionApprovalReviewOutcomeCertificationView } from '@/src/services/sku-keyword-final-approval-execution-naver-read-only-final-execution-approval-review-outcome-certification-view.service';
 import { buildNaverReadOnlyFinalExecutionApprovalSafetyAuditSealView } from '@/src/services/sku-keyword-final-approval-execution-naver-read-only-final-execution-approval-safety-audit-seal-view.service';
 import { buildNaverReadOnlyFinalExecutionApprovalSafetyAuditSealOutcomeCertificationView } from '@/src/services/sku-keyword-final-approval-execution-naver-read-only-final-execution-approval-safety-audit-seal-outcome-certification-view.service';
+import { buildNaverReadOnlyFinalExecutionApprovalSummaryDashboardView } from '@/src/services/sku-keyword-final-approval-execution-naver-read-only-final-execution-approval-summary-dashboard-view.service';
 
 // Compute safe DB environment hint from DATABASE_URL without exposing the original value.
 // Returns a classification key, never the actual URL.
@@ -971,6 +972,115 @@ export async function GET(
       buildNaverReadOnlyFinalExecutionApprovalSafetyAuditSealOutcomeCertificationView({
         finalExecutionApprovalSafetyAuditSeal:
           _naverReadOnlyFinalExecutionApprovalSafetyAuditSealView,
+      });
+    const _naverReadOnlyFinalExecutionApprovalSummaryDashboardView =
+      buildNaverReadOnlyFinalExecutionApprovalSummaryDashboardView({
+        chainItems: [
+          {
+            taskId: 296,
+            taskLabel: '실행 승인 패킷',
+            isReady: _naverReadOnlyExecutionApprovalPacketView.isReadOnlyExecutionApprovalPacketReadyForCompleteFinalizationCandidate,
+            isPartialReady: _naverReadOnlyExecutionApprovalPacketView.isReadOnlyExecutionApprovalPacketReadyWithMissingFieldNotice,
+            isBlocked: !_naverReadOnlyExecutionApprovalPacketView.isReadOnlyExecutionApprovalPacketReadyForCompleteFinalizationCandidate && !_naverReadOnlyExecutionApprovalPacketView.isReadOnlyExecutionApprovalPacketReadyWithMissingFieldNotice,
+            isLocked: false,
+          },
+          {
+            taskId: 297,
+            taskLabel: '실행 승인 검토',
+            isReady: _naverReadOnlyExecutionApprovalReviewView.isReadOnlyExecutionApprovalReviewReadyForCompleteFinalizationCandidate,
+            isPartialReady: _naverReadOnlyExecutionApprovalReviewView.isReadOnlyExecutionApprovalReviewReadyWithMissingFieldNotice,
+            isBlocked: _naverReadOnlyExecutionApprovalReviewView.isReadOnlyExecutionApprovalReviewBlocked,
+            isLocked: false,
+          },
+          {
+            taskId: 298,
+            taskLabel: '실행 승인 검토 안전 감사 봉인',
+            isReady: _naverReadOnlyExecutionApprovalReviewSafetyAuditSealView.isReadOnlyExecutionApprovalReviewAvailable && !_naverReadOnlyExecutionApprovalReviewSafetyAuditSealView.isMissingFieldNoticePreserved,
+            isPartialReady: _naverReadOnlyExecutionApprovalReviewSafetyAuditSealView.isMissingFieldNoticePreserved,
+            isBlocked: _naverReadOnlyExecutionApprovalReviewSafetyAuditSealView.isReadOnlyExecutionApprovalReviewBlocked,
+            isLocked: false,
+          },
+          {
+            taskId: 299,
+            taskLabel: '실행 승인 검토 결과 인증',
+            isReady: _naverReadOnlyExecutionApprovalReviewOutcomeCertificationView.isReadyForNextReadOnlyExecutionReadinessApprovalPacket && !_naverReadOnlyExecutionApprovalReviewOutcomeCertificationView.isMissingFieldNoticePreserved,
+            isPartialReady: _naverReadOnlyExecutionApprovalReviewOutcomeCertificationView.isMissingFieldNoticePreserved,
+            isBlocked: _naverReadOnlyExecutionApprovalReviewOutcomeCertificationView.isNextReadOnlyExecutionReadinessApprovalPacketBlocked,
+            isLocked: false,
+          },
+          {
+            taskId: 300,
+            taskLabel: '실행 준비 승인 패킷',
+            isReady: _naverReadOnlyExecutionReadinessApprovalPacketView.isReadOnlyExecutionReadinessApprovalPacketReadyForCompleteExecutionApprovalReview,
+            isPartialReady: _naverReadOnlyExecutionReadinessApprovalPacketView.isReadOnlyExecutionReadinessApprovalPacketReadyWithMissingFieldNotice,
+            isBlocked: !_naverReadOnlyExecutionReadinessApprovalPacketView.isReadOnlyExecutionReadinessApprovalPacketReadyForCompleteExecutionApprovalReview && !_naverReadOnlyExecutionReadinessApprovalPacketView.isReadOnlyExecutionReadinessApprovalPacketReadyWithMissingFieldNotice,
+            isLocked: false,
+          },
+          {
+            taskId: 301,
+            taskLabel: '실행 준비 검토',
+            isReady: _naverReadOnlyExecutionReadinessReviewView.isReadOnlyExecutionReadinessReviewReadyForCompleteExecutionApprovalReview,
+            isPartialReady: _naverReadOnlyExecutionReadinessReviewView.isReadOnlyExecutionReadinessReviewReadyWithMissingFieldNotice,
+            isBlocked: _naverReadOnlyExecutionReadinessReviewView.isReadOnlyExecutionReadinessReviewBlocked,
+            isLocked: false,
+          },
+          {
+            taskId: 302,
+            taskLabel: '실행 준비 검토 안전 감사 봉인',
+            isReady: _naverReadOnlyExecutionReadinessReviewSafetyAuditSealView.isReadOnlyExecutionReadinessReviewAvailable && !_naverReadOnlyExecutionReadinessReviewSafetyAuditSealView.isMissingFieldNoticePreserved,
+            isPartialReady: _naverReadOnlyExecutionReadinessReviewSafetyAuditSealView.isMissingFieldNoticePreserved,
+            isBlocked: _naverReadOnlyExecutionReadinessReviewSafetyAuditSealView.isReadOnlyExecutionReadinessReviewBlocked,
+            isLocked: false,
+          },
+          {
+            taskId: 303,
+            taskLabel: '실행 준비 검토 결과 인증',
+            isReady: _naverReadOnlyExecutionReadinessReviewOutcomeCertificationView.isReadyForNextReadOnlyFinalExecutionApprovalPacket && !_naverReadOnlyExecutionReadinessReviewOutcomeCertificationView.isMissingFieldNoticePreserved,
+            isPartialReady: _naverReadOnlyExecutionReadinessReviewOutcomeCertificationView.isMissingFieldNoticePreserved,
+            isBlocked: _naverReadOnlyExecutionReadinessReviewOutcomeCertificationView.isNextReadOnlyFinalExecutionApprovalPacketBlocked,
+            isLocked: false,
+          },
+          {
+            taskId: 304,
+            taskLabel: '최종 실행 승인 패킷',
+            isReady: _naverReadOnlyFinalExecutionApprovalPacketView.isReadOnlyFinalExecutionApprovalPacketReadyForCompleteExecutionReadinessReview,
+            isPartialReady: _naverReadOnlyFinalExecutionApprovalPacketView.isReadOnlyFinalExecutionApprovalPacketReadyWithMissingFieldNotice,
+            isBlocked: !_naverReadOnlyFinalExecutionApprovalPacketView.isReadOnlyFinalExecutionApprovalPacketReadyForCompleteExecutionReadinessReview && !_naverReadOnlyFinalExecutionApprovalPacketView.isReadOnlyFinalExecutionApprovalPacketReadyWithMissingFieldNotice,
+            isLocked: false,
+          },
+          {
+            taskId: 305,
+            taskLabel: '최종 실행 승인 검토',
+            isReady: _naverReadOnlyFinalExecutionApprovalReviewView.approvalReviewReady,
+            isPartialReady: _naverReadOnlyFinalExecutionApprovalReviewView.approvalReviewPartialReady,
+            isBlocked: _naverReadOnlyFinalExecutionApprovalReviewView.approvalReviewBlocked,
+            isLocked: false,
+          },
+          {
+            taskId: 306,
+            taskLabel: '최종 실행 승인 검토 결과 인증',
+            isReady: _naverReadOnlyFinalExecutionApprovalReviewOutcomeCertificationView.outcomeCertifiedReady,
+            isPartialReady: _naverReadOnlyFinalExecutionApprovalReviewOutcomeCertificationView.outcomeCertifiedPartialReady,
+            isBlocked: _naverReadOnlyFinalExecutionApprovalReviewOutcomeCertificationView.outcomeCertificationBlocked,
+            isLocked: false,
+          },
+          {
+            taskId: 307,
+            taskLabel: '최종 실행 승인 안전 감사 봉인',
+            isReady: _naverReadOnlyFinalExecutionApprovalSafetyAuditSealView.safetyAuditSealReady,
+            isPartialReady: _naverReadOnlyFinalExecutionApprovalSafetyAuditSealView.safetyAuditSealPartialReady,
+            isBlocked: _naverReadOnlyFinalExecutionApprovalSafetyAuditSealView.safetyAuditSealBlocked,
+            isLocked: false,
+          },
+          {
+            taskId: 308,
+            taskLabel: '최종 실행 승인 봉인 결과 인증',
+            isReady: _naverReadOnlyFinalExecutionApprovalSafetyAuditSealOutcomeCertificationView.sealOutcomeCertifiedReady,
+            isPartialReady: _naverReadOnlyFinalExecutionApprovalSafetyAuditSealOutcomeCertificationView.sealOutcomeCertifiedPartialReady,
+            isBlocked: _naverReadOnlyFinalExecutionApprovalSafetyAuditSealOutcomeCertificationView.sealOutcomeCertificationBlocked,
+            isLocked: false,
+          },
+        ],
       });
 
     const responseJob = {
@@ -2017,6 +2127,8 @@ export async function GET(
         _naverReadOnlyFinalExecutionApprovalSafetyAuditSealView,
       naverReadOnlyFinalExecutionApprovalSafetyAuditSealOutcomeCertificationView:
         _naverReadOnlyFinalExecutionApprovalSafetyAuditSealOutcomeCertificationView,
+      naverReadOnlyFinalExecutionApprovalSummaryDashboardView:
+        _naverReadOnlyFinalExecutionApprovalSummaryDashboardView,
     };
 
     return NextResponse.json({ ok: true, job: responseJob });
