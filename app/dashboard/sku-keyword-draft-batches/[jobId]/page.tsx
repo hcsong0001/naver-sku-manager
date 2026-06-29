@@ -3944,6 +3944,7 @@ type DraftBatchJob = {
   tmsReadOnlyDeploymentTargetEnvironmentSelectionComparisonView?: any;
   tmsReadOnlyVpsDeploymentCandidateDetailReviewView?: any;
   tmsReadOnlyVpsDeploymentCandidateDetailReviewOutcomeCertificationView?: any;
+  tmsReadOnlyVpsDeploymentCandidateSafetyAuditSealView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -41933,6 +41934,223 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             {c323.requiresSeparateTask324Approval && (
               <p className="text-xs text-sky-800 border-t border-sky-200 pt-2">
                 {c323.nextTaskApprovalPhrase}
+              </p>
+            )}
+          </div>
+        );
+      })()}
+
+      {/* ── Task 324: Read-Only VPS Deployment Candidate Safety Audit Seal ── */}
+      {job.tmsReadOnlyVpsDeploymentCandidateSafetyAuditSealView && (() => {
+        const c324 = job.tmsReadOnlyVpsDeploymentCandidateSafetyAuditSealView as {
+          taskId: number;
+          panelTitle: string;
+          description: string;
+          sourceVpsDeploymentCandidateDetailReviewOutcomeCertificationStatus: string;
+          vpsDeploymentCandidateSafetyAuditSealStatus: string;
+          recommendedEnvironmentKey: string;
+          recommendedEnvironmentLabel: string;
+          vpsCandidateSafetySealed: boolean;
+          deploymentSafetySealItems: Array<{
+            sealId: string;
+            label: string;
+            sealStatus: 'READY' | 'PARTIAL_READY' | 'BLOCKED' | 'NOT_STARTED';
+            message: string;
+          }>;
+          domainSafetySealItems: Array<{
+            sealId: string;
+            label: string;
+            sealStatus: 'READY' | 'PARTIAL_READY' | 'BLOCKED' | 'NOT_STARTED';
+            message: string;
+          }>;
+          serverSafetySealItems: Array<{
+            sealId: string;
+            label: string;
+            sealStatus: 'READY' | 'PARTIAL_READY' | 'BLOCKED' | 'NOT_STARTED';
+            message: string;
+          }>;
+          operatingDbSafetySealItems: Array<{
+            sealId: string;
+            label: string;
+            sealStatus: 'READY' | 'PARTIAL_READY' | 'BLOCKED' | 'NOT_STARTED';
+            message: string;
+          }>;
+          apiDbWorkerSafetySealItems: Array<{
+            sealId: string;
+            label: string;
+            sealStatus: 'READY' | 'PARTIAL_READY' | 'BLOCKED' | 'NOT_STARTED';
+            message: string;
+          }>;
+          secretExposureSafetySealItems: Array<{
+            sealId: string;
+            label: string;
+            sealStatus: 'READY' | 'PARTIAL_READY' | 'BLOCKED' | 'NOT_STARTED';
+            message: string;
+          }>;
+          safetySealSummaryCards: Array<{
+            label: string;
+            value: string;
+            tone: 'positive' | 'neutral' | 'warning';
+          }>;
+          actualVpsServerCreated: boolean;
+          actualVpsConfigChanged: boolean;
+          actualDeploymentStarted: boolean;
+          actualDomainConnected: boolean;
+          deploymentPreparationStillReadOnly: boolean;
+          domainConnectionStillReadOnly: boolean;
+          apiCallStillBlocked: boolean;
+          dbWriteStillBlocked: boolean;
+          workerQueueAdapterStillBlocked: boolean;
+          tokenOrAuthStillHidden: boolean;
+          rawApiResponseStillHidden: boolean;
+          requiresSeparateTask325Approval: boolean;
+          nextTaskApprovalPhrase: string;
+        };
+
+        const getSafetyTone = (status: 'READY' | 'PARTIAL_READY' | 'BLOCKED' | 'NOT_STARTED') =>
+          status === 'READY'
+            ? 'bg-green-100 text-green-700 border-green-200'
+            : status === 'PARTIAL_READY'
+              ? 'bg-amber-100 text-amber-700 border-amber-200'
+              : status === 'BLOCKED'
+                ? 'bg-red-100 text-red-700 border-red-200'
+                : 'bg-slate-100 text-slate-600 border-slate-200';
+
+        const getSummaryTone = (tone: 'positive' | 'neutral' | 'warning') =>
+          tone === 'positive'
+            ? 'bg-green-100 text-green-700 border-green-200'
+            : tone === 'warning'
+              ? 'bg-amber-100 text-amber-700 border-amber-200'
+              : 'bg-slate-100 text-slate-700 border-slate-200';
+
+        const renderSafetyGroup = (
+          title: string,
+          items: Array<{
+            sealId: string;
+            label: string;
+            sealStatus: 'READY' | 'PARTIAL_READY' | 'BLOCKED' | 'NOT_STARTED';
+            message: string;
+          }>,
+        ) => (
+          <div className="rounded border border-violet-200 bg-white/80 p-3">
+            <h4 className="mb-2 text-sm font-semibold text-violet-900">{title}</h4>
+            <div className="space-y-2">
+              {items.map((item) => (
+                <div key={item.sealId} className="rounded border border-violet-100 bg-violet-50/70 p-2">
+                  <div className="flex items-center gap-2">
+                    <div className="text-xs font-medium text-violet-950">{item.label}</div>
+                    <span className={`ml-auto inline-flex rounded-full border px-2 py-0.5 text-[11px] font-medium ${getSafetyTone(item.sealStatus)}`}>
+                      {item.sealStatus}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-xs text-violet-800">{item.message}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+
+        return (
+          <div className="mb-4 rounded-lg border border-violet-300 bg-violet-50 p-4 space-y-3">
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="w-5 h-5 text-violet-600" />
+              <h3 className="font-semibold text-violet-900">
+                Task {c324.taskId}: {c324.panelTitle}
+              </h3>
+              <span className={`ml-auto text-xs px-2 py-0.5 rounded-full font-medium ${getSafetyTone(
+                c324.vpsDeploymentCandidateSafetyAuditSealStatus.replace(
+                  'TMS_READ_ONLY_VPS_DEPLOYMENT_CANDIDATE_SAFETY_AUDIT_SEAL_',
+                  '',
+                ) as 'READY' | 'PARTIAL_READY' | 'BLOCKED' | 'NOT_STARTED',
+              )}`}>
+                {c324.vpsDeploymentCandidateSafetyAuditSealStatus.replace(
+                  'TMS_READ_ONLY_VPS_DEPLOYMENT_CANDIDATE_SAFETY_AUDIT_SEAL_',
+                  '',
+                )}
+              </span>
+            </div>
+
+            <p className="text-sm text-violet-900">{c324.description}</p>
+
+            <div className="rounded border border-violet-200 bg-violet-100 px-3 py-2 text-xs text-violet-900 flex items-start gap-1">
+              <Lock className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+              <span>
+                이 패널은 VPS 배포 후보 상세 검토 결과 인증 이후의 안전 조건을 read-only로 봉인하는 화면입니다. 이 화면은 실제 VPS 생성, 실제 배포 실행, 실제 도메인 연결 작업이 아닙니다. DNS, SSL, 포트포워딩, 서버/VPS 설정, 운영 DB 연결을 변경하지 않습니다. Task 325는 사용자 별도 명시 승인 없이는 진행하지 않습니다.
+              </span>
+            </div>
+
+            <div className="rounded border border-violet-200 bg-white/70 px-3 py-2 text-xs text-violet-900">
+              <span className="font-medium">Task 323 원본 인증 상태:</span> {c324.sourceVpsDeploymentCandidateDetailReviewOutcomeCertificationStatus}
+            </div>
+
+            <div className="rounded border border-violet-200 bg-white/80 p-3 text-sm text-violet-950">
+              <div className="font-semibold">VPS 후보 안전 봉인: {c324.recommendedEnvironmentLabel}</div>
+              <p className="mt-1 text-xs text-violet-800">
+                추천 환경 키: {c324.recommendedEnvironmentKey} / 안전 봉인 여부:{' '}
+                {c324.vpsCandidateSafetySealed ? '예' : '아니오'}
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {c324.safetySealSummaryCards.map((card) => (
+                <div key={card.label} className={`rounded border p-2 text-center ${getSummaryTone(card.tone)}`}>
+                  <div className="text-sm font-bold">{card.value}</div>
+                  <div className="text-xs">{card.label}</div>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex flex-wrap gap-3 text-xs">
+              <span className={`flex items-center gap-1 ${c324.vpsCandidateSafetySealed ? 'text-green-700' : 'text-red-600'}`}>
+                <CheckCircle2 className="w-3.5 h-3.5" /> VPS 후보 안전 봉인 유지
+              </span>
+              <span className={`flex items-center gap-1 ${c324.actualVpsServerCreated ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="w-3.5 h-3.5" /> 실제 VPS 생성 미수행
+              </span>
+              <span className={`flex items-center gap-1 ${c324.actualVpsConfigChanged ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="w-3.5 h-3.5" /> 실제 VPS 설정 변경 미수행
+              </span>
+              <span className={`flex items-center gap-1 ${c324.actualDeploymentStarted ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="w-3.5 h-3.5" /> 실제 배포 미시작
+              </span>
+              <span className={`flex items-center gap-1 ${c324.actualDomainConnected ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="w-3.5 h-3.5" /> 실제 도메인 연결 미시작
+              </span>
+              <span className={`flex items-center gap-1 ${c324.deploymentPreparationStillReadOnly ? 'text-green-700' : 'text-red-600'}`}>
+                <CheckCircle2 className="w-3.5 h-3.5" /> 배포 준비 read-only 유지
+              </span>
+              <span className={`flex items-center gap-1 ${c324.domainConnectionStillReadOnly ? 'text-green-700' : 'text-red-600'}`}>
+                <CheckCircle2 className="w-3.5 h-3.5" /> 도메인 연결 read-only 유지
+              </span>
+              <span className={`flex items-center gap-1 ${c324.apiCallStillBlocked ? 'text-green-700' : 'text-red-600'}`}>
+                <Lock className="w-3.5 h-3.5" /> API 호출 차단 유지
+              </span>
+              <span className={`flex items-center gap-1 ${c324.dbWriteStillBlocked ? 'text-green-700' : 'text-red-600'}`}>
+                <Lock className="w-3.5 h-3.5" /> DB write 차단 유지
+              </span>
+              <span className={`flex items-center gap-1 ${c324.workerQueueAdapterStillBlocked ? 'text-green-700' : 'text-red-600'}`}>
+                <Lock className="w-3.5 h-3.5" /> Worker / Queue / Adapter 차단 유지
+              </span>
+              <span className={`flex items-center gap-1 ${c324.tokenOrAuthStillHidden ? 'text-green-700' : 'text-red-600'}`}>
+                <Lock className="w-3.5 h-3.5" /> Token/Auth 비노출 유지
+              </span>
+              <span className={`flex items-center gap-1 ${c324.rawApiResponseStillHidden ? 'text-green-700' : 'text-red-600'}`}>
+                <Lock className="w-3.5 h-3.5" /> raw API response 비노출 유지
+              </span>
+            </div>
+
+            <div className="grid gap-3 lg:grid-cols-2">
+              {renderSafetyGroup('배포 Safety Seal 항목', c324.deploymentSafetySealItems)}
+              {renderSafetyGroup('도메인 Safety Seal 항목', c324.domainSafetySealItems)}
+              {renderSafetyGroup('서버/VPS Safety Seal 항목', c324.serverSafetySealItems)}
+              {renderSafetyGroup('운영 DB Safety Seal 항목', c324.operatingDbSafetySealItems)}
+              {renderSafetyGroup('API / DB / Worker Safety Seal 항목', c324.apiDbWorkerSafetySealItems)}
+              {renderSafetyGroup('Secret Exposure Safety Seal 항목', c324.secretExposureSafetySealItems)}
+            </div>
+
+            {c324.requiresSeparateTask325Approval && (
+              <p className="text-xs text-violet-800 border-t border-violet-200 pt-2">
+                {c324.nextTaskApprovalPhrase}
               </p>
             )}
           </div>
