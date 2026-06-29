@@ -3895,6 +3895,7 @@ type DraftBatchJob = {
   naverProductLookupLiveRetryResultNonMutationAuditSealView?: any;
   naverProductLookupLiveRetryOutcomeDecisionGateView?: any;
   naverProductLookupLiveRetryOutcomeCertificationView?: any;
+  naverReadOnlyProductDataCaptureApprovalPacketView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -33371,6 +33372,79 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div>isTokenReissuedInThisTask: {String(c274.isTokenReissuedInThisTask)} | isProductLookupApiCalledInThisTask: {String(c274.isProductLookupApiCalledInThisTask)} | isNaverApiCalledInThisTask: {String(c274.isNaverApiCalledInThisTask)}</div>
               <div>isTokenValueDisplayed: {String(c274.isTokenValueDisplayed)} | isAuthKeyValueDisplayed: {String(c274.isAuthKeyValueDisplayed)} | isDbWriteExecuted: {String(c274.isDbWriteExecuted)}</div>
               <div>isNextStepSeparateApprovalRequired: {String(c274.isNextStepSeparateApprovalRequired)} | isNextStepSeparateApprovalGranted: {String(c274.isNextStepSeparateApprovalGranted)} | isExecutionAllowed: {String(c274.isExecutionAllowed)}</div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 275: Read-Only Product Data Capture Approval Packet ──────────── */}
+      {(() => {
+        const c275 = (job as any).naverReadOnlyProductDataCaptureApprovalPacketView;
+        if (!c275) return null;
+        const isReady = c275.isReadOnlyProductDataCaptureApprovalPacketReady;
+        const borderColor = isReady ? 'border-emerald-300 bg-emerald-50/20' : 'border-orange-200 bg-orange-50/20';
+        const iconColor = isReady ? 'text-emerald-600' : 'text-orange-500';
+        const packetColor = isReady ? 'text-emerald-700 font-bold' : 'text-orange-700 font-bold';
+        const itemColor = (s: string) => {
+          if (s === 'OUTCOME_CERTIFICATION_CONFIRMED' || s === 'DECISION_GATE_CONFIRMED' || s === 'NON_MUTATION_AUDIT_CONFIRMED') return 'bg-slate-100 text-slate-700';
+          if (s === 'APPROVAL_PACKET_STATUS_RECORDED') return isReady ? 'bg-emerald-100 text-emerald-800' : 'bg-orange-100 text-orange-800';
+          if (s === 'READY_IF_CERTIFIED_READY') return isReady ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-100 text-gray-500';
+          if (s === 'BLOCKED_RECHECK_IP_ALLOWLIST_REQUIRED' || s === 'BLOCKED_RECHECK_AUTH_REQUIRED' || s === 'BLOCKED_RECHECK_ENV_REQUIRED' || s === 'BLOCKED_RECHECK_CHANNEL_PRODUCT_NO_REQUIRED' || s === 'BLOCKED_RECHECK_PRODUCT_ACCESS_REQUIRED') return 'bg-amber-50 text-amber-700';
+          if (s === 'PENDING_USER_APPROVAL') return 'bg-yellow-50 text-yellow-700';
+          if (s === 'LOCKED_UNTIL_USER_APPROVAL') return 'bg-orange-50 text-orange-700';
+          if (s === 'NOT_EXECUTED' || s === 'NOT_DISPLAYED' || s === 'NOT_ACCESSED' || s === 'NOT_MODIFIED') return 'bg-slate-100 text-slate-600';
+          if (s === 'LOCKED') return 'bg-orange-50 text-orange-700';
+          if (s === 'READ_ONLY_INFO') return 'bg-blue-50 text-blue-600';
+          return 'bg-gray-100 text-gray-600';
+        };
+        return (
+          <div className={`mb-6 rounded-lg border p-4 ${borderColor}`}>
+            <div className="mb-3 flex items-center gap-2">
+              <ShieldAlert className={`w-5 h-5 flex-shrink-0 ${iconColor}`} />
+              <h3 className="font-semibold text-slate-800 text-sm">
+                {c275.panelTitle ?? 'Read-Only Product Data Capture Approval Packet (Task 275)'}
+              </h3>
+              <span className="ml-auto text-xs px-2 py-0.5 rounded font-mono bg-slate-100 text-slate-700">
+                {c275.status}
+              </span>
+            </div>
+            <p className="mb-3 text-xs text-slate-700">{c275.description}</p>
+
+            {/* Approval Packet 요약 */}
+            <div className="mb-3 rounded border border-slate-200 bg-white/60 p-3">
+              <div className="mb-1 text-xs font-semibold text-slate-600">Approval Packet 결과</div>
+              <div className="text-xs">
+                readOnlyProductDataCaptureApprovalPacketStatus: <span className={`font-mono ${packetColor}`}>{c275.readOnlyProductDataCaptureApprovalPacketStatus}</span>
+              </div>
+              <div className="mt-1 text-xs">
+                outcomeCertificationStatus: <span className="font-mono text-slate-600">{c275.outcomeCertificationStatus}</span>
+              </div>
+            </div>
+
+            {/* 사용자 승인 문구 안내 */}
+            <div className="mb-3 rounded border border-yellow-200 bg-yellow-50/60 p-3">
+              <div className="mb-1 text-xs font-semibold text-yellow-700">다음 단계 사용자 승인 문구 안내 (Task 276 기준, 이번 Task에서 승인으로 처리하지 않음)</div>
+              <p className="text-[11px] text-yellow-800 font-mono leading-relaxed">{c275.userApprovalPhraseGuide}</p>
+            </div>
+
+            {/* packetItems */}
+            <div className="mb-3">
+              <div className="mb-1 text-xs font-semibold text-slate-600">패킷 항목</div>
+              <div className="space-y-1">
+                {Array.isArray(c275.packetItems) && c275.packetItems.map((item: any, idx: number) => (
+                  <div key={idx} className="flex items-start gap-2 text-[11px]">
+                    <span className={`shrink-0 rounded px-1 py-0.5 font-mono text-[10px] ${itemColor(item.status)}`}>{item.status}</span>
+                    <span className="text-slate-600">{item.packetItem}: {item.meaning}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* 안전 플래그 footer */}
+            <div className="mt-2 text-[10px] text-gray-400 font-mono space-y-0.5">
+              <div>isTokenReissuedInThisTask: {String(c275.isTokenReissuedInThisTask)} | isProductLookupApiCalledInThisTask: {String(c275.isProductLookupApiCalledInThisTask)} | isNaverApiCalledInThisTask: {String(c275.isNaverApiCalledInThisTask)}</div>
+              <div>isTokenValueDisplayed: {String(c275.isTokenValueDisplayed)} | isAuthKeyValueDisplayed: {String(c275.isAuthKeyValueDisplayed)} | isDbWriteExecuted: {String(c275.isDbWriteExecuted)}</div>
+              <div>isReadOnlyProductDataCaptureApprovalRequired: {String(c275.isReadOnlyProductDataCaptureApprovalRequired)} | isReadOnlyProductDataCaptureApprovalGranted: {String(c275.isReadOnlyProductDataCaptureApprovalGranted)} | isExecutionAllowed: {String(c275.isExecutionAllowed)}</div>
             </div>
           </div>
         );
