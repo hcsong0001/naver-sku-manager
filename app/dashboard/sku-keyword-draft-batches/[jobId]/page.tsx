@@ -3931,6 +3931,7 @@ type DraftBatchJob = {
   naverReadOnlyFinalExecutionApprovalSafetyAuditSealOutcomeCertificationView?: any;
   naverReadOnlyFinalExecutionApprovalSummaryDashboardView?: any;
   naverReadOnlyFinalExecutionApprovalCandidateListView?: any;
+  naverReadOnlyFinalExecutionApprovalCandidateDetailReviewView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -39544,6 +39545,154 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             {c310.requiresSeparateTask311Approval && (
               <p className="text-xs text-purple-500 border-t border-purple-200 pt-2">
                 {c310.nextTaskApprovalPhrase}
+              </p>
+            )}
+          </div>
+        );
+      })()}
+
+      {/* ── Task 311: Read-Only Final Execution Approval Candidate Detail Review ── */}
+      {job.naverReadOnlyFinalExecutionApprovalCandidateDetailReviewView && (() => {
+        const c311 = job.naverReadOnlyFinalExecutionApprovalCandidateDetailReviewView as {
+          taskId: number;
+          panelTitle: string;
+          description: string;
+          candidateDetailReviewStatus: string;
+          candidateDetailItems: Array<{
+            candidateId: string;
+            displayOrder: number;
+            displayName: string;
+            skuDisplayLabel: string;
+            naverProductDisplayLabel: string;
+            storeDisplayLabel: string;
+            sourceCandidateStatus: string;
+            detailReviewStatus: string;
+            isReady: boolean;
+            isPartialReady: boolean;
+            isBlocked: boolean;
+            warningCount: number;
+            errorCount: number;
+            reviewMessage: string;
+            safeDisplayFields: string[];
+            excludedFields: string[];
+            isDisplayOnly: boolean;
+          }>;
+          detailSummaryCards: Array<{ label: string; count: number; cardType: string }>;
+          readyDetailCount: number;
+          partialReadyDetailCount: number;
+          blockedDetailCount: number;
+          lockedDetailCount: number;
+          totalDetailCount: number;
+          candidateDetailReviewReady: boolean;
+          candidateDetailReviewPartialReady: boolean;
+          candidateDetailReviewBlocked: boolean;
+          candidateDetailReviewEmpty: boolean;
+          isReadOnlyCandidateDetailReview: boolean;
+          requiresSeparateTask312Approval: boolean;
+          nextTaskApprovalPhrase: string;
+        };
+        return (
+          <div className="mb-4 rounded-lg border border-amber-300 bg-amber-50 p-4 space-y-3">
+            <div className="flex items-center gap-2">
+              <FileText className="w-5 h-5 text-amber-600" />
+              <h3 className="font-semibold text-amber-800">
+                Task {c311.taskId}: {c311.panelTitle}
+              </h3>
+              <span className={`ml-auto text-xs px-2 py-0.5 rounded-full font-medium ${
+                c311.candidateDetailReviewReady
+                  ? 'bg-green-100 text-green-700'
+                  : c311.candidateDetailReviewPartialReady
+                    ? 'bg-yellow-100 text-yellow-700'
+                    : c311.candidateDetailReviewBlocked
+                      ? 'bg-red-100 text-red-700'
+                      : 'bg-gray-100 text-gray-600'
+              }`}>
+                {c311.candidateDetailReviewStatus.replace('NAVER_READ_ONLY_FINAL_EXECUTION_APPROVAL_CANDIDATE_DETAIL_REVIEW_', '')}
+              </span>
+            </div>
+            <p className="text-sm text-amber-700">{c311.description}</p>
+            <div className="rounded border border-amber-200 bg-amber-100 px-3 py-2 text-xs text-amber-700 flex items-start gap-1">
+              <Lock className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+              <span>이 패널은 최종 실행 승인 후보의 상세 정보를 read-only로 검토하는 화면입니다. 실제 승인·실행·상품 변경 승인이 아닙니다. 가격/재고 raw 값, 실행 payload, raw API response, Token/Auth/Signature/Authorization 값은 표시하지 않습니다.</span>
+            </div>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {c311.detailSummaryCards.map((card) => (
+                <div
+                  key={card.cardType}
+                  className={`rounded p-2 text-center ${
+                    card.cardType === 'READY'
+                      ? 'bg-green-100 text-green-700'
+                      : card.cardType === 'PARTIAL_READY'
+                        ? 'bg-yellow-100 text-yellow-700'
+                        : card.cardType === 'BLOCKED'
+                          ? 'bg-red-100 text-red-700'
+                          : 'bg-gray-100 text-gray-600'
+                  }`}
+                >
+                  <div className="text-lg font-bold">{card.count}</div>
+                  <div className="text-xs">{card.label}</div>
+                </div>
+              ))}
+            </div>
+            {c311.candidateDetailReviewEmpty ? (
+              <p className="text-sm text-gray-500 text-center py-2">상세 검토 항목이 없습니다.</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs border-collapse">
+                  <thead>
+                    <tr className="bg-amber-100 text-amber-700">
+                      <th className="border border-amber-200 px-2 py-1 text-left">순번</th>
+                      <th className="border border-amber-200 px-2 py-1 text-left">검토 상태</th>
+                      <th className="border border-amber-200 px-2 py-1 text-left">SKU 표시명</th>
+                      <th className="border border-amber-200 px-2 py-1 text-left">Naver 상품</th>
+                      <th className="border border-amber-200 px-2 py-1 text-left">스토어/채널</th>
+                      <th className="border border-amber-200 px-2 py-1 text-center">경고</th>
+                      <th className="border border-amber-200 px-2 py-1 text-center">오류</th>
+                      <th className="border border-amber-200 px-2 py-1 text-left">검토 메시지</th>
+                      <th className="border border-amber-200 px-2 py-1 text-center">실행 잠금</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {c311.candidateDetailItems.map((item) => (
+                      <tr key={item.candidateId} className="hover:bg-amber-50">
+                        <td className="border border-amber-200 px-2 py-1 text-center text-gray-600">{item.displayOrder}</td>
+                        <td className="border border-amber-200 px-2 py-1">
+                          <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${
+                            item.detailReviewStatus === 'READY'
+                              ? 'bg-green-100 text-green-700'
+                              : item.detailReviewStatus === 'PARTIAL_READY'
+                                ? 'bg-yellow-100 text-yellow-700'
+                                : item.detailReviewStatus === 'BLOCKED'
+                                  ? 'bg-red-100 text-red-700'
+                                  : 'bg-gray-100 text-gray-600'
+                          }`}>
+                            {item.detailReviewStatus}
+                          </span>
+                        </td>
+                        <td className="border border-amber-200 px-2 py-1 text-gray-700 font-mono">{item.skuDisplayLabel}</td>
+                        <td className="border border-amber-200 px-2 py-1 text-gray-700">{item.naverProductDisplayLabel}</td>
+                        <td className="border border-amber-200 px-2 py-1 text-gray-600">{item.storeDisplayLabel}</td>
+                        <td className="border border-amber-200 px-2 py-1 text-center text-yellow-700">{item.warningCount > 0 ? item.warningCount : '-'}</td>
+                        <td className="border border-amber-200 px-2 py-1 text-center text-red-700">{item.errorCount > 0 ? item.errorCount : '-'}</td>
+                        <td className="border border-amber-200 px-2 py-1 text-gray-600">{item.reviewMessage}</td>
+                        <td className="border border-amber-200 px-2 py-1 text-center">
+                          <Lock className="w-3.5 h-3.5 text-amber-500 mx-auto" />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+            {c311.candidateDetailItems.length > 0 && (
+              <div className="text-xs text-amber-600 space-y-1">
+                <div><span className="font-medium">안전 표시 필드:</span> {c311.candidateDetailItems[0]?.safeDisplayFields.join(', ')}</div>
+                <div><span className="font-medium">제외 필드:</span> {c311.candidateDetailItems[0]?.excludedFields.join(', ')}</div>
+              </div>
+            )}
+            {c311.requiresSeparateTask312Approval && (
+              <p className="text-xs text-amber-500 border-t border-amber-200 pt-2">
+                {c311.nextTaskApprovalPhrase}
               </p>
             )}
           </div>
