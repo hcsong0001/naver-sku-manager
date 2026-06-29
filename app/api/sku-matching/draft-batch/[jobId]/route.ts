@@ -266,6 +266,7 @@ import { buildNaverBasicProductDataSummaryReviewSafetyAuditSealView } from '@/sr
 import { buildNaverBasicProductDataSummaryReviewOutcomeCertificationView } from '@/src/services/sku-keyword-final-approval-execution-naver-basic-product-data-summary-review-outcome-certification-view.service';
 import { buildNaverReadOnlyProductStructureReviewApprovalPacketView } from '@/src/services/sku-keyword-final-approval-execution-naver-read-only-product-structure-review-approval-packet-view.service';
 import { buildNaverReadOnlyProductStructureReviewView } from '@/src/services/sku-keyword-final-approval-execution-naver-read-only-product-structure-review-view.service';
+import { buildNaverReadOnlyProductStructureReviewSafetyAuditSealView } from '@/src/services/sku-keyword-final-approval-execution-naver-read-only-product-structure-review-safety-audit-seal-view.service';
 
 // Compute safe DB environment hint from DATABASE_URL without exposing the original value.
 // Returns a classification key, never the actual URL.
@@ -632,6 +633,14 @@ export async function GET(
         approvalPacketView: _naverReadOnlyProductStructureReviewApprovalPacketView,
         outcomeCertification:
           _naverBasicProductDataSummaryReviewOutcomeCertificationView,
+        summaryReview: _naverBasicProductDataSummaryReviewView,
+        captureResult: _naverReadOnlyProductDataCaptureResultView,
+      });
+    const _naverReadOnlyProductStructureReviewSafetyAuditSealView =
+      buildNaverReadOnlyProductStructureReviewSafetyAuditSealView({
+        structureReview: _naverReadOnlyProductStructureReviewView,
+        approvalPacket:
+          _naverReadOnlyProductStructureReviewApprovalPacketView,
         summaryReview: _naverBasicProductDataSummaryReviewView,
         captureResult: _naverReadOnlyProductDataCaptureResultView,
       });
@@ -1634,6 +1643,8 @@ export async function GET(
         _naverReadOnlyProductStructureReviewApprovalPacketView,
       naverReadOnlyProductStructureReviewView:
         _naverReadOnlyProductStructureReviewView,
+      naverReadOnlyProductStructureReviewSafetyAuditSealView:
+        _naverReadOnlyProductStructureReviewSafetyAuditSealView,
     };
 
     return NextResponse.json({ ok: true, job: responseJob });

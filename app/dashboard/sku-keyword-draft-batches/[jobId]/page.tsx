@@ -3906,6 +3906,7 @@ type DraftBatchJob = {
   naverBasicProductDataSummaryReviewOutcomeCertificationView?: any;
   naverReadOnlyProductStructureReviewApprovalPacketView?: any;
   naverReadOnlyProductStructureReviewView?: any;
+  naverReadOnlyProductStructureReviewSafetyAuditSealView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -34564,6 +34565,187 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 isProductUpdateApiCalled: {String(c285.isProductUpdateApiCalled)} |
                 isPriceOrStockChanged: {String(c285.isPriceOrStockChanged)} |
                 isDbWriteExecuted: {String(c285.isDbWriteExecuted)}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 286: Read-Only Product Structure Review Safety Audit Seal ───── */}
+      {(() => {
+        const c286 = (job as any).naverReadOnlyProductStructureReviewSafetyAuditSealView;
+        if (!c286) return null;
+        const isSealed = c286.isNaverReadOnlyProductStructureReviewSafetyAuditSealed;
+        const isReady =
+          c286.readOnlyProductStructureReviewStatus ===
+            'READ_ONLY_PRODUCT_STRUCTURE_REVIEW_COMPLETE' ||
+          c286.readOnlyProductStructureReviewStatus ===
+            'READ_ONLY_PRODUCT_STRUCTURE_REVIEW_WITH_MISSING_FIELD_NOTICE';
+        const borderColor = isReady
+          ? 'border-emerald-300 bg-emerald-50/20'
+          : 'border-orange-200 bg-orange-50/20';
+        const iconColor = isReady ? 'text-emerald-600' : 'text-orange-500';
+        const itemColor = (s: string) => {
+          if (
+            [
+              'STRUCTURE_REVIEW_CONFIRMED',
+              'APPROVAL_PACKET_CONFIRMED',
+              'SUMMARY_REVIEW_CONFIRMED',
+              'CAPTURE_RESULT_CONFIRMED',
+              'USER_APPROVAL_CONFIRMED_FOR_TASK_285',
+            ].includes(s)
+          ) {
+            return 'bg-slate-100 text-slate-700';
+          }
+          if (
+            [
+              'CAPTURED_DATA_ONLY_CONFIRMED',
+              'SUMMARY_REVIEW_ONLY_CONFIRMED',
+              'READ_ONLY_REVIEWED',
+            ].includes(s)
+          ) {
+            return 'bg-blue-50 text-blue-700';
+          }
+          if (s === 'PRESENCE_FLAG_ONLY') return 'bg-blue-50 text-blue-600';
+          if (s === 'NOT_INFERRED') return 'bg-amber-50 text-amber-700';
+          if (s === 'NOT_AVAILABLE_IN_CAPTURED_DATA') {
+            return 'bg-orange-50 text-orange-700';
+          }
+          if (s === 'NOT_INCLUDED') return 'bg-red-50 text-red-700';
+          if (s === 'NOT_STORED') return 'bg-orange-50 text-orange-700';
+          if (s === 'NOT_DISPLAYED' || s === 'NOT_EXECUTED') {
+            return 'bg-slate-100 text-slate-600';
+          }
+          if (s === 'LOCKED') return 'bg-orange-50 text-orange-700';
+          if (s === 'PENDING_SEPARATE_APPROVAL') return 'bg-yellow-50 text-yellow-700';
+          if (s === 'READ_ONLY_INFO') return 'bg-blue-50 text-blue-600';
+          return 'bg-gray-100 text-gray-600';
+        };
+        return (
+          <div className={`mb-6 rounded-lg border p-4 ${borderColor}`}>
+            <div className="mb-3 flex items-center gap-2">
+              <ShieldAlert className={`h-5 w-5 flex-shrink-0 ${iconColor}`} />
+              <h3 className="text-sm font-semibold text-slate-800">
+                {c286.panelTitle ??
+                  'Naver Read-Only Product Structure Review Safety Audit Seal (Task 286)'}
+              </h3>
+              <span className="ml-auto rounded bg-slate-100 px-2 py-0.5 text-xs font-mono text-slate-700">
+                {c286.status}
+              </span>
+            </div>
+            <p className="mb-3 text-xs text-slate-700">{c286.description}</p>
+
+            <div className="mb-3 rounded border border-slate-200 bg-white/60 p-3 text-xs space-y-1">
+              <div>
+                readOnlyProductStructureReviewStatus:{' '}
+                <span className="font-mono text-slate-700">
+                  {c286.readOnlyProductStructureReviewStatus}
+                </span>
+              </div>
+              <div>
+                isStructureReviewConfirmed:{' '}
+                <span className="font-bold text-emerald-700">
+                  {String(c286.isStructureReviewConfirmed)}
+                </span>
+              </div>
+              <div>
+                isUserApprovalConfirmedForTask285:{' '}
+                <span className="font-bold text-emerald-700">
+                  {String(c286.isUserApprovalConfirmedForTask285)}
+                </span>
+              </div>
+              <div>
+                isCapturedDataUsedOnly:{' '}
+                <span className="font-bold text-emerald-700">
+                  {String(c286.isCapturedDataUsedOnly)}
+                </span>
+              </div>
+              <div>
+                isSummaryReviewResultUsedOnly:{' '}
+                <span className="font-bold text-emerald-700">
+                  {String(c286.isSummaryReviewResultUsedOnly)}
+                </span>
+              </div>
+              <div>
+                isNewApiCallExecutedInThisTask:{' '}
+                <span className="font-bold text-emerald-700">
+                  {String(c286.isNewApiCallExecutedInThisTask)}
+                </span>
+              </div>
+            </div>
+
+            <div className="mb-3 rounded border border-blue-200 bg-blue-50/30 p-3 text-xs">
+              <div className="mb-2 font-semibold text-blue-800">
+                안전 감사 봉인 요약
+              </div>
+              <div className="flex flex-wrap gap-2 text-[11px]">
+                <span className="rounded bg-slate-100 px-1 py-0.5 text-slate-700">
+                  옵션구조미추정: {String(!c286.isOptionStructureInferred)}
+                </span>
+                <span className="rounded bg-slate-100 px-1 py-0.5 text-slate-700">
+                  추가상품구조미추정:{' '}
+                  {String(!c286.isAdditionalProductStructureInferred)}
+                </span>
+                <span className="rounded bg-blue-50 px-1 py-0.5 text-blue-700">
+                  가격presenceOnly: {String(c286.isSalePricePresenceFlagOnly)}
+                </span>
+                <span className="rounded bg-blue-50 px-1 py-0.5 text-blue-700">
+                  재고presenceOnly: {String(c286.isStockQuantityPresenceFlagOnly)}
+                </span>
+                <span className="rounded bg-slate-100 px-1 py-0.5 text-slate-700">
+                  raw응답미저장: {String(!c286.isRawProductApiResponseStored)}
+                </span>
+                <span className="rounded bg-slate-100 px-1 py-0.5 text-slate-700">
+                  sealed: {String(isSealed)}
+                </span>
+              </div>
+            </div>
+
+            <div className="mb-3">
+              <div className="mb-1 text-xs font-semibold text-slate-600">감사 항목</div>
+              <div className="space-y-1">
+                {Array.isArray(c286.auditItems) &&
+                  c286.auditItems.map((item: any, idx: number) => (
+                    <div key={idx} className="flex items-start gap-2 text-[11px]">
+                      <span
+                        className={`shrink-0 rounded px-1 py-0.5 font-mono text-[10px] ${itemColor(item.status)}`}
+                      >
+                        {item.status}
+                      </span>
+                      <span className="text-slate-600">
+                        {item.auditItem}: {item.meaning}
+                      </span>
+                    </div>
+                  ))}
+              </div>
+            </div>
+
+            <div className="mt-2 space-y-0.5 font-mono text-[10px] text-gray-400">
+              <div>
+                isReadOnlyProductStructureReviewReexecutedInThisTask:{' '}
+                {String(c286.isReadOnlyProductStructureReviewReexecutedInThisTask)} |
+                isProductLookupApiCalledInThisTask:{' '}
+                {String(c286.isProductLookupApiCalledInThisTask)} |
+                isNaverApiCalledInThisTask: {String(c286.isNaverApiCalledInThisTask)}
+              </div>
+              <div>
+                isRawProductApiResponseIncluded:{' '}
+                {String(c286.isRawProductApiResponseIncluded)} |
+                isSalePriceRawValueIncluded: {String(c286.isSalePriceRawValueIncluded)} |
+                isStockQuantityRawValueIncluded:{' '}
+                {String(c286.isStockQuantityRawValueIncluded)}
+              </div>
+              <div>
+                isProductUpdateApiCalled: {String(c286.isProductUpdateApiCalled)} |
+                isPriceOrStockChanged: {String(c286.isPriceOrStockChanged)} |
+                isDbWriteExecuted: {String(c286.isDbWriteExecuted)}
+              </div>
+              <div>
+                isNextStepSeparateApprovalRequired:{' '}
+                {String(c286.isNextStepSeparateApprovalRequired)} |
+                isNextStepSeparateApprovalGranted:{' '}
+                {String(c286.isNextStepSeparateApprovalGranted)} |
+                isExecutionAllowed: {String(c286.isExecutionAllowed)}
               </div>
             </div>
           </div>
