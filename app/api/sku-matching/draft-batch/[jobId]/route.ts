@@ -299,6 +299,7 @@ import { buildNaverReadOnlyFinalExecutionApprovalCandidateFinalSummaryView } fro
 import { buildNaverReadOnlyFinalExecutionApprovalCandidateFinalSummaryOutcomeCertificationView } from '@/src/services/sku-keyword-final-approval-execution-naver-read-only-final-execution-approval-candidate-final-summary-outcome-certification-view.service';
 import { buildNaverReadOnlyFinalExecutionApprovalCandidateFinalSummarySafetyAuditSealView } from '@/src/services/sku-keyword-final-approval-execution-naver-read-only-final-execution-approval-candidate-final-summary-safety-audit-seal-view.service';
 import { buildNaverReadOnlyFinalExecutionApprovalCandidateFinalSummarySafetyAuditSealOutcomeCertificationView } from '@/src/services/sku-keyword-final-approval-execution-naver-read-only-final-execution-approval-candidate-final-summary-safety-audit-seal-outcome-certification-view.service';
+import { buildNaverReadOnlyFinalExecutionApprovalCandidateFlowClosureSummaryView } from '@/src/services/sku-keyword-final-approval-execution-naver-read-only-final-execution-approval-candidate-flow-closure-summary-view.service';
 
 // Compute safe DB environment hint from DATABASE_URL without exposing the original value.
 // Returns a classification key, never the actual URL.
@@ -1133,6 +1134,24 @@ export async function GET(
     const _naverReadOnlyFinalExecutionApprovalCandidateFinalSummarySafetyAuditSealOutcomeCertificationView =
       buildNaverReadOnlyFinalExecutionApprovalCandidateFinalSummarySafetyAuditSealOutcomeCertificationView({
         safetyAuditSeal: _naverReadOnlyFinalExecutionApprovalCandidateFinalSummarySafetyAuditSealView,
+      });
+    const _naverReadOnlyFinalExecutionApprovalCandidateFlowClosureSummaryView =
+      buildNaverReadOnlyFinalExecutionApprovalCandidateFlowClosureSummaryView({
+        candidateList: _naverReadOnlyFinalExecutionApprovalCandidateListView,
+        candidateDetailReview: _naverReadOnlyFinalExecutionApprovalCandidateDetailReviewView,
+        outcomeCertification:
+          _naverReadOnlyFinalExecutionApprovalCandidateDetailReviewOutcomeCertificationView,
+        safetyAuditSeal:
+          _naverReadOnlyFinalExecutionApprovalCandidateDetailReviewSafetyAuditSealView,
+        safetyAuditSealOutcomeCertification:
+          _naverReadOnlyFinalExecutionApprovalCandidateDetailReviewSafetyAuditSealOutcomeCertificationView,
+        candidateFinalSummary: _naverReadOnlyFinalExecutionApprovalCandidateFinalSummaryView,
+        candidateFinalSummaryOutcomeCertification:
+          _naverReadOnlyFinalExecutionApprovalCandidateFinalSummaryOutcomeCertificationView,
+        candidateFinalSummarySafetyAuditSeal:
+          _naverReadOnlyFinalExecutionApprovalCandidateFinalSummarySafetyAuditSealView,
+        candidateFinalSummarySafetyAuditSealOutcomeCertification:
+          _naverReadOnlyFinalExecutionApprovalCandidateFinalSummarySafetyAuditSealOutcomeCertificationView,
       });
 
     const responseJob = {
@@ -2199,6 +2218,8 @@ export async function GET(
         _naverReadOnlyFinalExecutionApprovalCandidateFinalSummarySafetyAuditSealView,
       naverReadOnlyFinalExecutionApprovalCandidateFinalSummarySafetyAuditSealOutcomeCertificationView:
         _naverReadOnlyFinalExecutionApprovalCandidateFinalSummarySafetyAuditSealOutcomeCertificationView,
+      naverReadOnlyFinalExecutionApprovalCandidateFlowClosureSummaryView:
+        _naverReadOnlyFinalExecutionApprovalCandidateFlowClosureSummaryView,
     };
 
     return NextResponse.json({ ok: true, job: responseJob });
