@@ -307,6 +307,7 @@ import { buildTmsReadOnlyVpsDeploymentCandidateDetailReviewOutcomeCertificationV
 import { buildTmsReadOnlyVpsDeploymentCandidateSafetyAuditSealView } from '@/src/services/tms-read-only-vps-deployment-candidate-safety-audit-seal-view.service';
 import { buildTmsReadOnlyVpsDeploymentCandidateSafetyAuditSealOutcomeCertificationView } from '@/src/services/tms-read-only-vps-deployment-candidate-safety-audit-seal-outcome-certification-view.service';
 import { buildTmsReadOnlyVpsDeploymentCandidateReadinessReviewView } from '@/src/services/tms-read-only-vps-deployment-candidate-readiness-review-view.service';
+import { buildTmsReadOnlyVpsDeploymentCandidateReadinessReviewOutcomeCertificationView } from '@/src/services/tms-read-only-vps-deployment-candidate-readiness-review-outcome-certification-view.service';
 
 // Compute safe DB environment hint from DATABASE_URL without exposing the original value.
 // Returns a classification key, never the actual URL.
@@ -1192,6 +1193,11 @@ export async function GET(
       buildTmsReadOnlyVpsDeploymentCandidateReadinessReviewView({
         vpsDeploymentCandidateSafetyAuditSealOutcomeCertification:
           _tmsReadOnlyVpsDeploymentCandidateSafetyAuditSealOutcomeCertificationView,
+      });
+    const _tmsReadOnlyVpsDeploymentCandidateReadinessReviewOutcomeCertificationView =
+      buildTmsReadOnlyVpsDeploymentCandidateReadinessReviewOutcomeCertificationView({
+        vpsDeploymentCandidateReadinessReview:
+          _tmsReadOnlyVpsDeploymentCandidateReadinessReviewView,
       });
 
     const responseJob = {
@@ -2274,6 +2280,8 @@ export async function GET(
         _tmsReadOnlyVpsDeploymentCandidateSafetyAuditSealOutcomeCertificationView,
       tmsReadOnlyVpsDeploymentCandidateReadinessReviewView:
         _tmsReadOnlyVpsDeploymentCandidateReadinessReviewView,
+      tmsReadOnlyVpsDeploymentCandidateReadinessReviewOutcomeCertificationView:
+        _tmsReadOnlyVpsDeploymentCandidateReadinessReviewOutcomeCertificationView,
     };
 
     return NextResponse.json({ ok: true, job: responseJob });
