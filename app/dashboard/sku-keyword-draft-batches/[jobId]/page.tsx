@@ -3908,6 +3908,7 @@ type DraftBatchJob = {
   naverReadOnlyProductStructureReviewView?: any;
   naverReadOnlyProductStructureReviewSafetyAuditSealView?: any;
   naverReadOnlyProductStructureReviewOutcomeCertificationView?: any;
+  naverReadOnlyOptionAdditionalStructureExpansionPlanningCandidateView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -34990,6 +34991,223 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 isNextStepSeparateApprovalGranted:{' '}
                 {String(c287.isNextStepSeparateApprovalGranted)} |
                 isExecutionAllowed: {String(c287.isExecutionAllowed)}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 288: Option/Additional Structure Expansion Planning Candidate ─ */}
+      {(() => {
+        const c288 = (job as any)
+          .naverReadOnlyOptionAdditionalStructureExpansionPlanningCandidateView;
+        if (!c288) return null;
+        const isComplete = c288.isPlanningCandidateReadyForCompleteSummary;
+        const isPartial = c288.isPlanningCandidateReadyWithMissingFieldNotice;
+        const isBlocked =
+          c288.isNextReadOnlyOptionAdditionalStructureExpansionPlanningBlocked;
+        const borderColor = isComplete
+          ? 'border-emerald-300 bg-emerald-50/20'
+          : isPartial
+            ? 'border-amber-200 bg-amber-50/20'
+            : 'border-orange-200 bg-orange-50/20';
+        const iconColor = isComplete
+          ? 'text-emerald-600'
+          : isPartial
+            ? 'text-amber-500'
+            : 'text-orange-500';
+        const statusColor = isComplete
+          ? 'text-emerald-700 font-bold'
+          : isPartial
+            ? 'text-amber-700 font-bold'
+            : 'text-orange-700 font-bold';
+        const itemColor = (s: string) => {
+          if (
+            [
+              'OUTCOME_CERTIFICATION_CONFIRMED',
+              'SAFETY_AUDIT_SEAL_CONFIRMED',
+              'STRUCTURE_REVIEW_CONFIRMED',
+              'APPROVAL_PACKET_CONFIRMED',
+              'SUMMARY_REVIEW_CONFIRMED',
+              'CAPTURE_RESULT_CONFIRMED',
+            ].includes(s)
+          ) {
+            return 'bg-slate-100 text-slate-700';
+          }
+          if (s === 'PLANNING_CANDIDATE_STATUS_RECORDED') {
+            return isComplete
+              ? 'bg-emerald-100 text-emerald-800'
+              : isPartial
+                ? 'bg-amber-100 text-amber-800'
+                : 'bg-orange-100 text-orange-800';
+          }
+          if (s === 'READY_CANDIDATE') return 'bg-blue-50 text-blue-700';
+          if (s === 'BLOCKED_CANDIDATE') return 'bg-orange-100 text-orange-800';
+          if (
+            ['CAPTURED_DATA_ONLY_CONFIRMED', 'SUMMARY_REVIEW_ONLY_CONFIRMED'].includes(
+              s
+            )
+          ) {
+            return 'bg-blue-50 text-blue-700';
+          }
+          if (s === 'NOT_INFERRED') return 'bg-amber-50 text-amber-700';
+          if (s === 'NOT_AVAILABLE_IN_CAPTURED_DATA') {
+            return 'bg-orange-50 text-orange-700';
+          }
+          if (s === 'NOT_INCLUDED') return 'bg-red-50 text-red-700';
+          if (s === 'NOT_DISPLAYED' || s === 'NOT_EXECUTED') {
+            return 'bg-slate-100 text-slate-600';
+          }
+          if (s === 'LOCKED') return 'bg-orange-50 text-orange-700';
+          if (s === 'READ_ONLY_INFO') return 'bg-blue-50 text-blue-600';
+          return 'bg-gray-100 text-gray-600';
+        };
+        return (
+          <div className={`mb-6 rounded-lg border p-4 ${borderColor}`}>
+            <div className="mb-3 flex items-center gap-2">
+              <ShieldAlert className={`h-5 w-5 flex-shrink-0 ${iconColor}`} />
+              <h3 className="text-sm font-semibold text-slate-800">
+                {c288.panelTitle ??
+                  'Task 288 - Option/Additional Structure Expansion Planning Candidate'}
+              </h3>
+              <span className="ml-auto rounded bg-slate-100 px-2 py-0.5 text-xs font-mono text-slate-700">
+                {c288.status}
+              </span>
+            </div>
+            <p className="mb-3 text-xs text-slate-700">{c288.description}</p>
+
+            <div className="mb-3 rounded border border-slate-200 bg-white/60 p-3 text-xs space-y-1">
+              <div>
+                readOnlyProductStructureReviewOutcomeCertificationStatus:{' '}
+                <span className="font-mono text-slate-700">
+                  {c288.readOnlyProductStructureReviewOutcomeCertificationStatus}
+                </span>
+              </div>
+              <div>
+                optionAdditionalStructureExpansionPlanningCandidateStatus:{' '}
+                <span className={`font-mono ${statusColor}`}>
+                  {c288.optionAdditionalStructureExpansionPlanningCandidateStatus}
+                </span>
+              </div>
+              <div>
+                isNextReadOnlyOptionAdditionalStructureExpansionPlanningCandidate:{' '}
+                <span
+                  className={
+                    c288.isNextReadOnlyOptionAdditionalStructureExpansionPlanningCandidate
+                      ? 'text-emerald-700 font-bold'
+                      : 'text-orange-600 font-semibold'
+                  }
+                >
+                  {String(
+                    c288.isNextReadOnlyOptionAdditionalStructureExpansionPlanningCandidate
+                  )}
+                </span>
+              </div>
+              <div>
+                planningCandidateReason:{' '}
+                <span className="text-slate-700">{c288.planningCandidateReason}</span>
+              </div>
+              {c288.blockingReason && (
+                <div>
+                  blockingReason:{' '}
+                  <span className="font-semibold text-orange-700">
+                    {c288.blockingReason}
+                  </span>
+                </div>
+              )}
+              {isComplete && (
+                <div className="font-semibold text-emerald-700">
+                  COMPLETE 기반 다음 read-only 설계 후보 가능
+                </div>
+              )}
+              {isPartial && (
+                <div className="font-semibold text-amber-700">
+                  PARTIAL 기반 다음 read-only 설계 후보 가능
+                </div>
+              )}
+              {isBlocked && (
+                <div className="font-semibold text-orange-700">
+                  동일 원인으로 설계 후보 차단
+                </div>
+              )}
+            </div>
+
+            <div className="mb-3 rounded border border-blue-200 bg-blue-50/30 p-3 text-xs">
+              <div className="mb-2 font-semibold text-blue-800">참조 및 제한 요약</div>
+              <div className="mb-2 flex flex-wrap gap-2 text-[11px]">
+                <span className="rounded bg-slate-100 px-1 py-0.5 text-slate-700">
+                  refs: {c288.referenceTaskNumbers.join(', ')}
+                </span>
+                <span className="rounded bg-amber-50 px-1 py-0.5 text-amber-700">
+                  옵션구조미추정: {String(!c288.isOptionStructureInferred)}
+                </span>
+                <span className="rounded bg-amber-50 px-1 py-0.5 text-amber-700">
+                  추가상품구조미추정:{' '}
+                  {String(!c288.isAdditionalProductStructureInferred)}
+                </span>
+                <span className="rounded bg-slate-100 px-1 py-0.5 text-slate-700">
+                  raw응답미저장: {String(!c288.isRawProductApiResponseStored)}
+                </span>
+              </div>
+              <div className="space-y-1">
+                {Array.isArray(c288.safetyRestrictions) &&
+                  c288.safetyRestrictions.map((item: string, idx: number) => (
+                    <div key={idx} className="text-[11px] text-slate-700">
+                      제한: {item}
+                    </div>
+                  ))}
+              </div>
+            </div>
+
+            <div className="mb-3">
+              <div className="mb-1 text-xs font-semibold text-slate-600">후보 항목</div>
+              <div className="space-y-1">
+                {Array.isArray(c288.candidateItems) &&
+                  c288.candidateItems.map((item: any, idx: number) => (
+                    <div key={idx} className="flex items-start gap-2 text-[11px]">
+                      <span
+                        className={`shrink-0 rounded px-1 py-0.5 font-mono text-[10px] ${itemColor(item.status)}`}
+                      >
+                        {item.status}
+                      </span>
+                      <span className="text-slate-600">
+                        {item.item}: {item.meaning}
+                      </span>
+                    </div>
+                  ))}
+              </div>
+            </div>
+
+            <div className="mb-3">
+              <div className="mb-1 text-xs font-semibold text-slate-600">이번 Task 미실행 항목</div>
+              <div className="space-y-1">
+                {Array.isArray(c288.nonExecutedItems) &&
+                  c288.nonExecutedItems.map((item: string, idx: number) => (
+                    <div key={idx} className="text-[11px] text-slate-600">
+                      {item}
+                    </div>
+                  ))}
+              </div>
+            </div>
+
+            <div className="mt-2 space-y-0.5 font-mono text-[10px] text-gray-400">
+              <div>
+                isProductLookupApiCalledInThisTask:{' '}
+                {String(c288.isProductLookupApiCalledInThisTask)} |
+                isNaverApiCalledInThisTask: {String(c288.isNaverApiCalledInThisTask)} |
+                isTokenReissuedInThisTask: {String(c288.isTokenReissuedInThisTask)}
+              </div>
+              <div>
+                isRawProductApiResponseIncluded:{' '}
+                {String(c288.isRawProductApiResponseIncluded)} |
+                isSalePriceRawValueIncluded: {String(c288.isSalePriceRawValueIncluded)} |
+                isStockQuantityRawValueIncluded:{' '}
+                {String(c288.isStockQuantityRawValueIncluded)}
+              </div>
+              <div>
+                isProductUpdateApiCalled: {String(c288.isProductUpdateApiCalled)} |
+                isPriceOrStockChanged: {String(c288.isPriceOrStockChanged)} |
+                isDbWriteExecuted: {String(c288.isDbWriteExecuted)}
               </div>
             </div>
           </div>
