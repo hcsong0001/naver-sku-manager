@@ -3932,6 +3932,7 @@ type DraftBatchJob = {
   naverReadOnlyFinalExecutionApprovalSummaryDashboardView?: any;
   naverReadOnlyFinalExecutionApprovalCandidateListView?: any;
   naverReadOnlyFinalExecutionApprovalCandidateDetailReviewView?: any;
+  naverReadOnlyFinalExecutionApprovalCandidateDetailReviewOutcomeCertificationView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -39693,6 +39694,167 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             {c311.requiresSeparateTask312Approval && (
               <p className="text-xs text-amber-500 border-t border-amber-200 pt-2">
                 {c311.nextTaskApprovalPhrase}
+              </p>
+            )}
+          </div>
+        );
+      })()}
+
+      {/* ── Task 312: Read-Only Final Execution Approval Candidate Detail Review Outcome Certification ── */}
+      {job.naverReadOnlyFinalExecutionApprovalCandidateDetailReviewOutcomeCertificationView && (() => {
+        const c312 = job.naverReadOnlyFinalExecutionApprovalCandidateDetailReviewOutcomeCertificationView as {
+          taskId: number;
+          panelTitle: string;
+          description: string;
+          candidateDetailReviewOutcomeCertificationStatus: string;
+          certificationItems: Array<{
+            candidateId: string;
+            displayOrder: number;
+            displayName: string;
+            sourceDetailReviewStatus: string;
+            certificationStatus: string;
+            isReady: boolean;
+            isPartialReady: boolean;
+            isBlocked: boolean;
+            isLocked: boolean;
+            warningCount: number;
+            errorCount: number;
+            certificationMessage: string;
+            safeDisplayFields: string[];
+            excludedFields: string[];
+            isDisplayOnly: boolean;
+          }>;
+          outcomeSummaryCards: Array<{ label: string; count: number; cardType: string }>;
+          certifiedDetailCount: number;
+          partialCertifiedDetailCount: number;
+          blockedCertifiedDetailCount: number;
+          lockedCertifiedDetailCount: number;
+          totalCertifiedDetailCount: number;
+          outcomeCertifiedReady: boolean;
+          outcomeCertifiedPartialReady: boolean;
+          outcomeCertificationBlocked: boolean;
+          outcomeCertificationEmpty: boolean;
+          safeDisplayFieldsCertified: boolean;
+          excludedFieldsCertified: boolean;
+          isReadOnlyOutcomeCertification: boolean;
+          requiresSeparateTask313Approval: boolean;
+          nextTaskApprovalPhrase: string;
+        };
+        return (
+          <div className="mb-4 rounded-lg border border-teal-300 bg-teal-50 p-4 space-y-3">
+            <div className="flex items-center gap-2">
+              <FileCheck className="w-5 h-5 text-teal-600" />
+              <h3 className="font-semibold text-teal-800">
+                Task {c312.taskId}: {c312.panelTitle}
+              </h3>
+              <span className={`ml-auto text-xs px-2 py-0.5 rounded-full font-medium ${
+                c312.outcomeCertifiedReady
+                  ? 'bg-green-100 text-green-700'
+                  : c312.outcomeCertifiedPartialReady
+                    ? 'bg-yellow-100 text-yellow-700'
+                    : c312.outcomeCertificationBlocked
+                      ? 'bg-red-100 text-red-700'
+                      : 'bg-gray-100 text-gray-600'
+              }`}>
+                {c312.candidateDetailReviewOutcomeCertificationStatus.replace(
+                  'NAVER_READ_ONLY_FINAL_EXECUTION_APPROVAL_CANDIDATE_DETAIL_REVIEW_',
+                  '',
+                )}
+              </span>
+            </div>
+            <p className="text-sm text-teal-700">{c312.description}</p>
+            <div className="rounded border border-teal-200 bg-teal-100 px-3 py-2 text-xs text-teal-700 flex items-start gap-1">
+              <Lock className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+              <span>이 패널은 최종 실행 승인 후보 상세 검토 결과를 read-only로 인증하는 화면입니다. 이 화면은 실제 승인, 실제 실행, 상품 변경 승인이 아닙니다. 가격/재고 raw 값, 실행 payload, raw API response, Token/Auth/Signature/Authorization 값은 표시하지 않습니다.</span>
+            </div>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+              <div className="rounded p-2 text-center bg-teal-100 text-teal-800">
+                <div className="text-lg font-bold">{c312.totalCertifiedDetailCount}</div>
+                <div className="text-xs">인증 대상 총 후보</div>
+              </div>
+              {c312.outcomeSummaryCards.map((card) => (
+                <div
+                  key={card.cardType}
+                  className={`rounded p-2 text-center ${
+                    card.cardType === 'READY'
+                      ? 'bg-green-100 text-green-700'
+                      : card.cardType === 'PARTIAL_READY'
+                        ? 'bg-yellow-100 text-yellow-700'
+                        : card.cardType === 'BLOCKED'
+                          ? 'bg-red-100 text-red-700'
+                          : 'bg-gray-100 text-gray-600'
+                  }`}
+                >
+                  <div className="text-lg font-bold">{card.count}</div>
+                  <div className="text-xs">{card.label}</div>
+                </div>
+              ))}
+            </div>
+            <div className="flex gap-3 text-xs">
+              <span className={`flex items-center gap-1 ${c312.safeDisplayFieldsCertified ? 'text-green-600' : 'text-red-600'}`}>
+                <CheckCircle2 className="w-3.5 h-3.5" /> safeDisplayFields 인증 완료
+              </span>
+              <span className={`flex items-center gap-1 ${c312.excludedFieldsCertified ? 'text-green-600' : 'text-red-600'}`}>
+                <CheckCircle2 className="w-3.5 h-3.5" /> excludedFields 인증 완료
+              </span>
+            </div>
+            {c312.outcomeCertificationEmpty ? (
+              <p className="text-sm text-gray-500 text-center py-2">인증 대상 항목이 없습니다.</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs border-collapse">
+                  <thead>
+                    <tr className="bg-teal-100 text-teal-700">
+                      <th className="border border-teal-200 px-2 py-1 text-left">순번</th>
+                      <th className="border border-teal-200 px-2 py-1 text-left">인증 상태</th>
+                      <th className="border border-teal-200 px-2 py-1 text-left">표시명</th>
+                      <th className="border border-teal-200 px-2 py-1 text-left">검토 원본 상태</th>
+                      <th className="border border-teal-200 px-2 py-1 text-center">경고</th>
+                      <th className="border border-teal-200 px-2 py-1 text-center">오류</th>
+                      <th className="border border-teal-200 px-2 py-1 text-left">인증 메시지</th>
+                      <th className="border border-teal-200 px-2 py-1 text-center">실행 잠금</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {c312.certificationItems.map((item) => (
+                      <tr key={item.candidateId} className="hover:bg-teal-50">
+                        <td className="border border-teal-200 px-2 py-1 text-center text-gray-600">{item.displayOrder}</td>
+                        <td className="border border-teal-200 px-2 py-1">
+                          <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${
+                            item.certificationStatus === 'READY'
+                              ? 'bg-green-100 text-green-700'
+                              : item.certificationStatus === 'PARTIAL_READY'
+                                ? 'bg-yellow-100 text-yellow-700'
+                                : item.certificationStatus === 'BLOCKED'
+                                  ? 'bg-red-100 text-red-700'
+                                  : 'bg-gray-100 text-gray-600'
+                          }`}>
+                            {item.certificationStatus}
+                          </span>
+                        </td>
+                        <td className="border border-teal-200 px-2 py-1 text-gray-700">{item.displayName}</td>
+                        <td className="border border-teal-200 px-2 py-1 text-gray-600">{item.sourceDetailReviewStatus}</td>
+                        <td className="border border-teal-200 px-2 py-1 text-center text-yellow-700">{item.warningCount > 0 ? item.warningCount : '-'}</td>
+                        <td className="border border-teal-200 px-2 py-1 text-center text-red-700">{item.errorCount > 0 ? item.errorCount : '-'}</td>
+                        <td className="border border-teal-200 px-2 py-1 text-gray-600">{item.certificationMessage}</td>
+                        <td className="border border-teal-200 px-2 py-1 text-center">
+                          <Lock className="w-3.5 h-3.5 text-teal-500 mx-auto" />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+            {c312.certificationItems.length > 0 && (
+              <div className="text-xs text-teal-600 space-y-1">
+                <div><span className="font-medium">안전 표시 필드:</span> {c312.certificationItems[0]?.safeDisplayFields.join(', ')}</div>
+                <div><span className="font-medium">제외 필드:</span> {c312.certificationItems[0]?.excludedFields.join(', ')}</div>
+              </div>
+            )}
+            {c312.requiresSeparateTask313Approval && (
+              <p className="text-xs text-teal-500 border-t border-teal-200 pt-2">
+                {c312.nextTaskApprovalPhrase}
               </p>
             )}
           </div>
