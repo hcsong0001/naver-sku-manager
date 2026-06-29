@@ -3901,6 +3901,7 @@ type DraftBatchJob = {
   naverReadOnlyProductDataCaptureCompletenessReviewView?: any;
   naverReadOnlyProductDataCompletenessCertificationView?: any;
   naverBasicProductDataSummaryReviewApprovalPacketView?: any;
+  naverBasicProductDataSummaryReviewView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -33831,6 +33832,91 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div>isTokenReissuedInThisTask: {String(c280.isTokenReissuedInThisTask)} | isProductLookupApiCalledInThisTask: {String(c280.isProductLookupApiCalledInThisTask)} | isNaverApiCalledInThisTask: {String(c280.isNaverApiCalledInThisTask)}</div>
               <div>isRawProductApiResponseIncluded: {String(c280.isRawProductApiResponseIncluded)} | isSalePriceRawValueIncluded: {String(c280.isSalePriceRawValueIncluded)} | isDbWriteExecuted: {String(c280.isDbWriteExecuted)}</div>
               <div>isBasicProductDataSummaryReviewExecutedInThisTask: {String(c280.isBasicProductDataSummaryReviewExecutedInThisTask)} | isExecutionAllowed: {String(c280.isExecutionAllowed)} | hasSubmitAction: {String(c280.hasSubmitAction)}</div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 281: Basic Product Data Summary Review ──────────────────────── */}
+      {(() => {
+        const c281 = (job as any).naverBasicProductDataSummaryReviewView;
+        if (!c281) return null;
+        const isComplete = c281.isSummaryReviewComplete;
+        const isPartial = c281.isSummaryReviewWithMissingFieldNotice;
+        const isBlocked = !isComplete && !isPartial;
+        const borderColor = isComplete ? 'border-emerald-300 bg-emerald-50/20' : isPartial ? 'border-amber-200 bg-amber-50/20' : 'border-orange-200 bg-orange-50/20';
+        const iconColor = isComplete ? 'text-emerald-600' : isPartial ? 'text-amber-500' : 'text-orange-500';
+        const statusColor = isComplete ? 'text-emerald-700 font-bold' : isPartial ? 'text-amber-700 font-bold' : 'text-orange-700 font-bold';
+        const itemColor = (s: string) => {
+          if (['APPROVAL_PACKET_CONFIRMED', 'COMPLETENESS_CERTIFICATION_CONFIRMED', 'COMPLETENESS_REVIEW_CONFIRMED', 'SAFETY_AUDIT_SEAL_CONFIRMED', 'CAPTURE_RESULT_CONFIRMED'].includes(s)) return 'bg-slate-100 text-slate-700';
+          if (s === 'SUMMARY_REVIEW_STATUS_RECORDED') return isComplete ? 'bg-emerald-100 text-emerald-800' : isPartial ? 'bg-amber-100 text-amber-800' : 'bg-orange-100 text-orange-800';
+          if (s === 'CAPTURED_DATA_ONLY') return 'bg-blue-50 text-blue-700';
+          if (s === 'SUMMARY_FIELD_REVIEWED') return 'bg-blue-50 text-blue-700';
+          if (s === 'PRESENCE_FLAG_ONLY') return 'bg-blue-50 text-blue-600';
+          if (s === 'NOT_INCLUDED') return 'bg-red-50 text-red-700';
+          if (s === 'NOT_DISPLAYED' || s === 'NOT_EXECUTED') return 'bg-slate-100 text-slate-600';
+          if (s === 'LOCKED') return 'bg-orange-50 text-orange-700';
+          if (s === 'PENDING_SEPARATE_APPROVAL') return 'bg-yellow-50 text-yellow-700';
+          if (s === 'READ_ONLY_INFO') return 'bg-blue-50 text-blue-600';
+          return 'bg-gray-100 text-gray-600';
+        };
+        const pd = c281.basicProductDataSummary;
+        return (
+          <div className={`mb-6 rounded-lg border p-4 ${borderColor}`}>
+            <div className="mb-3 flex items-center gap-2">
+              <ShieldAlert className={`w-5 h-5 flex-shrink-0 ${iconColor}`} />
+              <h3 className="font-semibold text-slate-800 text-sm">
+                {c281.panelTitle ?? 'Basic Product Data Summary Review (Task 281)'}
+              </h3>
+              <span className="ml-auto text-xs px-2 py-0.5 rounded font-mono bg-slate-100 text-slate-700">
+                {c281.status}
+              </span>
+            </div>
+            <p className="mb-3 text-xs text-slate-700">{c281.description}</p>
+
+            {/* 요약 검토 상태 */}
+            <div className="mb-3 rounded border border-slate-200 bg-white/60 p-3 text-xs space-y-1">
+              <div>basicProductDataSummaryReviewStatus: <span className={`font-mono ${statusColor}`}>{c281.basicProductDataSummaryReviewStatus}</span></div>
+              <div>isBasicProductDataSummaryAvailable: <span className={c281.isBasicProductDataSummaryAvailable ? 'text-emerald-700 font-bold' : 'text-orange-600'}>{String(c281.isBasicProductDataSummaryAvailable)}</span></div>
+              <div>isCapturedDataUsedOnly: <span className="text-emerald-700 font-bold">{String(c281.isCapturedDataUsedOnly)}</span></div>
+              {isPartial && <div className="text-amber-700 font-semibold">일부 필드 누락 — 누락 안내 포함 검토</div>}
+              {isBlocked && <div className="text-orange-700 font-semibold">요약 데이터 없음 — 캡처 차단 상태</div>}
+            </div>
+
+            {/* 기본 상품 데이터 요약 */}
+            {pd && (
+              <div className="mb-3 rounded border border-blue-200 bg-blue-50/30 p-3 text-xs">
+                <div className="mb-2 font-semibold text-blue-800">기본 상품 데이터 요약 (read-only)</div>
+                <div className="grid grid-cols-2 gap-1">
+                  <div><span className="text-slate-500">channelProductNo:</span> <span className="font-mono text-slate-800">{pd.channelProductNo ?? '(없음)'}</span></div>
+                  <div><span className="text-slate-500">productName:</span> <span className="text-slate-800">{pd.productName ?? '(없음)'}</span></div>
+                  <div><span className="text-slate-500">productStatus:</span> <span className="font-mono text-slate-800">{pd.productStatus ?? '(없음)'}</span></div>
+                  <div><span className="text-slate-500">leafCategoryId:</span> <span className="font-mono text-slate-800">{pd.leafCategoryId ?? '(없음)'}</span></div>
+                  <div><span className="text-slate-500">salePricePresent:</span> <span className={pd.salePricePresent ? 'text-emerald-700' : 'text-orange-600'}>{String(pd.salePricePresent)}</span></div>
+                  <div><span className="text-slate-500">stockQuantityPresent:</span> <span className={pd.stockQuantityPresent ? 'text-emerald-700' : 'text-orange-600'}>{String(pd.stockQuantityPresent)}</span></div>
+                  <div><span className="text-slate-500">representativeImageUrlPresent:</span> <span className={pd.representativeImageUrlPresent ? 'text-emerald-700' : 'text-orange-600'}>{String(pd.representativeImageUrlPresent)}</span></div>
+                </div>
+              </div>
+            )}
+
+            {/* reviewItems */}
+            <div className="mb-3">
+              <div className="mb-1 text-xs font-semibold text-slate-600">검토 항목</div>
+              <div className="space-y-1">
+                {Array.isArray(c281.reviewItems) && c281.reviewItems.map((item: any, idx: number) => (
+                  <div key={idx} className="flex items-start gap-2 text-[11px]">
+                    <span className={`shrink-0 rounded px-1 py-0.5 font-mono text-[10px] ${itemColor(item.status)}`}>{item.status}</span>
+                    <span className="text-slate-600">{item.reviewItem}: {item.meaning}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* 안전 플래그 footer */}
+            <div className="mt-2 text-[10px] text-gray-400 font-mono space-y-0.5">
+              <div>isTokenReissuedInThisTask: {String(c281.isTokenReissuedInThisTask)} | isProductLookupApiCalledInThisTask: {String(c281.isProductLookupApiCalledInThisTask)} | isNewApiCallExecutedInThisTask: {String(c281.isNewApiCallExecutedInThisTask)}</div>
+              <div>isRawProductApiResponseIncluded: {String(c281.isRawProductApiResponseIncluded)} | isSalePriceRawValueIncluded: {String(c281.isSalePriceRawValueIncluded)} | isDbWriteExecuted: {String(c281.isDbWriteExecuted)}</div>
+              <div>isNextStepSeparateApprovalRequired: {String(c281.isNextStepSeparateApprovalRequired)} | isNextStepSeparateApprovalGranted: {String(c281.isNextStepSeparateApprovalGranted)} | isCapturedDataUsedOnly: {String(c281.isCapturedDataUsedOnly)}</div>
             </div>
           </div>
         );
