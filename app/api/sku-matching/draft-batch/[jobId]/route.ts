@@ -251,6 +251,7 @@ import { buildNaverProductLookupApiReadinessGateView } from '@/src/services/sku-
 import { buildNaverProductLookupApiOneTimeTestUserApprovalRequestPacketView } from '@/src/services/sku-keyword-final-approval-execution-naver-product-lookup-api-one-time-test-user-approval-request-packet-view.service';
 import { buildNaverProductLookupLiveTestHttp403TokenIssuanceFailureDiagnosisView } from '@/src/services/sku-keyword-final-approval-execution-naver-product-lookup-live-test-http-403-token-issuance-failure-diagnosis-view.service';
 import { buildNaverTokenIssuanceHttp403CredentialAuthReadOnlyChecklistView } from '@/src/services/sku-keyword-final-approval-execution-naver-token-issuance-http-403-credential-auth-read-only-checklist-view.service';
+import { buildNaverTokenIssuanceRetryOneTimeTestProductLookupResultView } from '@/src/services/sku-keyword-final-approval-execution-naver-token-issuance-retry-one-time-test-product-lookup-result-view.service';
 
 // Compute safe DB environment hint from DATABASE_URL without exposing the original value.
 // Returns a classification key, never the actual URL.
@@ -1534,6 +1535,7 @@ export async function GET(
       ),
       naverProductLookupLiveTestHttp403TokenIssuanceFailureDiagnosisView: buildNaverProductLookupLiveTestHttp403TokenIssuanceFailureDiagnosisView(null),
       naverTokenIssuanceHttp403CredentialAuthReadOnlyChecklistView: buildNaverTokenIssuanceHttp403CredentialAuthReadOnlyChecklistView(null),
+      naverTokenIssuanceRetryOneTimeTestProductLookupResultView: await buildNaverTokenIssuanceRetryOneTimeTestProductLookupResultView(job),
     };
 
     return NextResponse.json({ ok: true, job: responseJob });

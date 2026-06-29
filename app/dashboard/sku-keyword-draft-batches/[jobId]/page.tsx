@@ -3891,6 +3891,7 @@ type DraftBatchJob = {
   naverProductLookupApiOneTimeTestUserApprovalRequestPacketView?: any;
   naverProductLookupLiveTestHttp403TokenIssuanceFailureDiagnosisView?: any;
   naverTokenIssuanceHttp403CredentialAuthReadOnlyChecklistView?: any;
+  naverTokenIssuanceRetryOneTimeTestProductLookupResultView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -33073,6 +33074,103 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div>isTokenIssuanceExecutedInThisTask: {String(chk269.isTokenIssuanceExecutedInThisTask)} | isEnvFileDirectlyAccessed: {String(chk269.isEnvFileDirectlyAccessed)}</div>
               <div>isProductLookupApiCalled: {String(chk269.isProductLookupApiCalled)} | isDbWriteExecuted: {String(chk269.isDbWriteExecuted)}</div>
               <div>isProductLookupRetryApprovalRequired: {String(chk269.isProductLookupRetryApprovalRequired)} | isProductLookupRetryApprovalGranted: {String(chk269.isProductLookupRetryApprovalGranted)}</div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 271: Token 발급 재시도 & 상품 조회 GET 결과 ────────────────── */}
+      {(() => {
+        const r271 = (job as any).naverTokenIssuanceRetryOneTimeTestProductLookupResultView;
+        if (!r271) return null;
+        const issuanceColor = r271.issuanceRetryStatus === 'SUCCESS'
+          ? 'text-emerald-600' : r271.issuanceRetryStatus === 'ENV_MISSING'
+          ? 'text-gray-500' : 'text-red-600';
+        const lookupColor = r271.productLookupStatus === 'SUCCESS'
+          ? 'text-emerald-600' : r271.productLookupStatus === 'SKIPPED' || r271.productLookupStatus === 'NO_CHANNEL_PRODUCT_NO'
+          ? 'text-gray-500' : 'text-red-600';
+        const itemColor = (s: string) => {
+          if (s === 'SUCCESS' || s === 'PRESENT' || s === 'GW_IP_NOT_ALLOWED_RESOLVED') return 'bg-emerald-50 text-emerald-800';
+          if (s === 'FAILURE' || s === 'GW_IP_NOT_ALLOWED_STILL_BLOCKED') return 'bg-red-50 text-red-800';
+          if (s === 'FORBIDDEN') return 'bg-red-100 text-red-700';
+          if (s === 'NOT_STORED' || s === 'DISCARDED' || s === 'NOT_EXECUTED') return 'bg-slate-100 text-slate-700';
+          if (s === 'SKIPPED' || s === 'ENV_MISSING') return 'bg-gray-100 text-gray-600';
+          if (s === 'LOCKED') return 'bg-orange-50 text-orange-700';
+          if (s === 'READ_ONLY_INFO') return 'bg-blue-50 text-blue-700';
+          if (s === 'TEST_EXECUTED') return 'bg-emerald-50 text-emerald-700';
+          return 'bg-gray-100 text-gray-600';
+        };
+        return (
+          <div className="mb-6 rounded-lg border border-emerald-200 bg-emerald-50/30 p-4">
+            <div className="mb-3 flex items-center gap-2">
+              <ShieldAlert className="w-5 h-5 text-emerald-600 flex-shrink-0" />
+              <h3 className="font-semibold text-emerald-800 text-sm">
+                {r271.panelTitle ?? 'Token 발급 재시도 & 상품 조회 GET 결과 (Task 271)'}
+              </h3>
+              <span className="ml-auto text-xs px-2 py-0.5 rounded font-mono bg-emerald-100 text-emerald-800">
+                {r271.status}
+              </span>
+            </div>
+            <p className="mb-3 text-xs text-emerald-900/80">{r271.description}</p>
+
+            {/* Token 발급 재시도 결과 */}
+            <div className="mb-3 rounded border border-emerald-200 bg-white/60 p-3">
+              <div className="mb-1 text-xs font-semibold text-slate-600">Token 발급 재시도</div>
+              <div className="flex flex-wrap gap-3 text-xs">
+                <span>issuanceRetryStatus: <span className={`font-mono font-bold ${issuanceColor}`}>{r271.issuanceRetryStatus}</span></span>
+                <span>httpStatus: <span className="font-mono">{r271.tokenIssuanceHttpStatus ?? '—'}</span></span>
+                <span>isGwIpNotAllowedResolved: <span className={`font-mono font-bold ${r271.isGwIpNotAllowedResolved ? 'text-emerald-600' : 'text-red-600'}`}>{String(r271.isGwIpNotAllowedResolved)}</span></span>
+                {r271.sanitizedErrorCode && (
+                  <span>errorCode: <span className="font-mono text-red-700">{r271.sanitizedErrorCode}</span></span>
+                )}
+              </div>
+            </div>
+
+            {/* 상품 조회 결과 */}
+            <div className="mb-3 rounded border border-emerald-200 bg-white/60 p-3">
+              <div className="mb-1 text-xs font-semibold text-slate-600">상품 조회 GET</div>
+              <div className="flex flex-wrap gap-3 text-xs">
+                <span>productLookupStatus: <span className={`font-mono font-bold ${lookupColor}`}>{r271.productLookupStatus}</span></span>
+                <span>httpStatus: <span className="font-mono">{r271.productLookupHttpStatus ?? '—'}</span></span>
+                {r271.productLookupSanitizedErrorCode && (
+                  <span>errorCode: <span className="font-mono text-red-700">{r271.productLookupSanitizedErrorCode}</span></span>
+                )}
+              </div>
+              {r271.productLookupReadOnlyInfo && (
+                <div className="mt-2 rounded border border-emerald-100 bg-emerald-50 p-2 text-[11px] space-y-0.5">
+                  <div className="font-semibold text-emerald-700 mb-1">상품 정보 (read-only)</div>
+                  <div>channelProductNo: <span className="font-mono">{r271.productLookupReadOnlyInfo.channelProductNo}</span></div>
+                  <div>productName: <span className="font-mono">{r271.productLookupReadOnlyInfo.productName ?? '—'}</span></div>
+                  <div>statusType: <span className="font-mono">{r271.productLookupReadOnlyInfo.statusType ?? '—'}</span></div>
+                  <div>salePrice: <span className="font-mono">{r271.productLookupReadOnlyInfo.salePrice ?? '—'}</span></div>
+                  <div>stockQuantity: <span className="font-mono">{r271.productLookupReadOnlyInfo.stockQuantity ?? '—'}</span></div>
+                  <div>hasRepresentativeImage: <span className="font-mono">{String(r271.productLookupReadOnlyInfo.hasRepresentativeImage)}</span></div>
+                  <div className="text-emerald-600 mt-1">isProductModified: false | isPriceChanged: false | isStockChanged: false | isDbWriteExecuted: false</div>
+                </div>
+              )}
+            </div>
+
+            {/* testResultItems */}
+            <div className="mb-3">
+              <div className="mb-1 text-xs font-semibold text-slate-600">테스트 결과 항목</div>
+              <div className="space-y-1">
+                {Array.isArray(r271.testResultItems) && r271.testResultItems.map((item: any, idx: number) => (
+                  <div key={idx} className="flex items-start gap-2 text-[11px]">
+                    <span className={`shrink-0 rounded px-1 py-0.5 font-mono text-[10px] ${itemColor(item.status)}`}>{item.status}</span>
+                    <span className="text-slate-600">{item.testItem}: {item.meaning}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* finalNotice */}
+            <div className="rounded bg-emerald-100/50 p-2 text-[11px] text-emerald-800">{r271.finalNotice}</div>
+
+            <div className="mt-2 text-[10px] text-gray-400 font-mono space-y-0.5">
+              <div>isTokenValueDisplayed: {String(r271.isTokenValueDisplayed)} | isTokenStoredInDb: {String(r271.isTokenStoredInDb)} | isTokenReturnedToClient: {String(r271.isTokenReturnedToClient)}</div>
+              <div>isProductUpdateApiCalled: {String(r271.isProductUpdateApiCalled)} | isPriceOrStockChanged: {String(r271.isPriceOrStockChanged)} | isDbWriteExecuted: {String(r271.isDbWriteExecuted)}</div>
+              <div>hasWorkerTrigger: {String(r271.hasWorkerTrigger)} | hasQueueTrigger: {String(r271.hasQueueTrigger)} | hasAdapterTrigger: {String(r271.hasAdapterTrigger)}</div>
+              <div>isBatchJobResultDisplayOnly: {String(r271.isBatchJobResultDisplayOnly)} | isUserApprovalGrantedForRetry: {String(r271.isUserApprovalGrantedForRetry)}</div>
             </div>
           </div>
         );
