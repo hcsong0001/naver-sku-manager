@@ -287,6 +287,7 @@ import { buildNaverReadOnlyExecutionReadinessReviewOutcomeCertificationView } fr
 import { buildNaverReadOnlyFinalExecutionApprovalPacketView } from '@/src/services/sku-keyword-final-approval-execution-naver-read-only-final-execution-approval-packet-view.service';
 import { buildNaverReadOnlyFinalExecutionApprovalReviewView } from '@/src/services/sku-keyword-final-approval-execution-naver-read-only-final-execution-approval-review-view.service';
 import { buildNaverReadOnlyFinalExecutionApprovalReviewOutcomeCertificationView } from '@/src/services/sku-keyword-final-approval-execution-naver-read-only-final-execution-approval-review-outcome-certification-view.service';
+import { buildNaverReadOnlyFinalExecutionApprovalSafetyAuditSealView } from '@/src/services/sku-keyword-final-approval-execution-naver-read-only-final-execution-approval-safety-audit-seal-view.service';
 
 // Compute safe DB environment hint from DATABASE_URL without exposing the original value.
 // Returns a classification key, never the actual URL.
@@ -959,6 +960,11 @@ export async function GET(
       buildNaverReadOnlyFinalExecutionApprovalReviewOutcomeCertificationView({
         finalExecutionApprovalReview:
           _naverReadOnlyFinalExecutionApprovalReviewView,
+      });
+    const _naverReadOnlyFinalExecutionApprovalSafetyAuditSealView =
+      buildNaverReadOnlyFinalExecutionApprovalSafetyAuditSealView({
+        finalExecutionApprovalReviewOutcomeCertification:
+          _naverReadOnlyFinalExecutionApprovalReviewOutcomeCertificationView,
       });
 
     const responseJob = {
@@ -2001,6 +2007,8 @@ export async function GET(
         _naverReadOnlyFinalExecutionApprovalReviewView,
       naverReadOnlyFinalExecutionApprovalReviewOutcomeCertificationView:
         _naverReadOnlyFinalExecutionApprovalReviewOutcomeCertificationView,
+      naverReadOnlyFinalExecutionApprovalSafetyAuditSealView:
+        _naverReadOnlyFinalExecutionApprovalSafetyAuditSealView,
     };
 
     return NextResponse.json({ ok: true, job: responseJob });

@@ -3927,6 +3927,7 @@ type DraftBatchJob = {
   naverReadOnlyFinalExecutionApprovalPacketView?: any;
   naverReadOnlyFinalExecutionApprovalReviewView?: any;
   naverReadOnlyFinalExecutionApprovalReviewOutcomeCertificationView?: any;
+  naverReadOnlyFinalExecutionApprovalSafetyAuditSealView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -38921,6 +38922,197 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div>
                 naverApiCalled: {String(c306.naverApiCalled)} | dbWritePerformed:{' '}
                 {String(c306.dbWritePerformed)} | workerStarted: {String(c306.workerStarted)}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 307: Read-Only Final Execution Approval Safety Audit Seal ── */}
+      {(() => {
+        const c307 = (job as any).naverReadOnlyFinalExecutionApprovalSafetyAuditSealView;
+        if (!c307) return null;
+        const isReady = c307.safetyAuditSealReady;
+        const isPartial = c307.safetyAuditSealPartialReady;
+        const isBlocked = c307.safetyAuditSealBlocked;
+        const borderColor = isReady
+          ? 'border-teal-300 bg-teal-50/20'
+          : isPartial
+          ? 'border-amber-300 bg-amber-50/20'
+          : 'border-rose-300 bg-rose-50/20';
+        const iconColor = isReady
+          ? 'text-teal-600'
+          : isPartial
+          ? 'text-amber-600'
+          : 'text-rose-600';
+        const statusColor = isReady
+          ? 'text-teal-700'
+          : isPartial
+          ? 'text-amber-700'
+          : 'text-rose-700';
+        const itemColor = (s: string) => {
+          if (
+            s === 'FINAL_EXECUTION_APPROVAL_SAFETY_AUDIT_SEAL_READY' ||
+            s === 'FINAL_EXECUTION_APPROVAL_REVIEW_OUTCOME_CERTIFICATION_CONFIRMED' ||
+            s === 'FINAL_EXECUTION_APPROVAL_REVIEW_CONFIRMED' ||
+            s === 'FINAL_EXECUTION_APPROVAL_PACKET_CONFIRMED' ||
+            s === 'EXECUTION_READINESS_REVIEW_OUTCOME_CERTIFICATION_CONFIRMED' ||
+            s === 'EXECUTION_READINESS_REVIEW_SAFETY_AUDIT_SEAL_CONFIRMED' ||
+            s === 'EXECUTION_READINESS_REVIEW_CONFIRMED' ||
+            s === 'EXECUTION_READINESS_APPROVAL_PACKET_CONFIRMED' ||
+            s === 'EXECUTION_APPROVAL_REVIEW_OUTCOME_CERTIFICATION_CONFIRMED' ||
+            s === 'EXECUTION_APPROVAL_REVIEW_SAFETY_AUDIT_SEAL_CONFIRMED' ||
+            s === 'EXECUTION_APPROVAL_REVIEW_CONFIRMED' ||
+            s === 'EXECUTION_APPROVAL_PACKET_CONFIRMED' ||
+            s === 'FINALIZATION_CANDIDATE_CONFIRMED' ||
+            s === 'DESIGN_BLUEPRINT_CONFIRMED' ||
+            s === 'CAPTURE_RESULT_CONFIRMED' ||
+            s === 'SAFETY_AUDIT_SEAL_STATUS_RECORDED' ||
+            s === 'SEAL_READY_IF_COMPLETE' ||
+            s === 'SEAL_READY_WITH_MISSING_FIELD_NOTICE' ||
+            s === 'CAPTURED_DATA_ONLY_CONFIRMED' ||
+            s === 'SUMMARY_REVIEW_ONLY_CONFIRMED' ||
+            s === 'READ_ONLY_INFO'
+          )
+            return 'bg-teal-100 text-teal-800';
+          if (
+            s === 'SEAL_BLOCKED_RECHECK_REQUIRED' ||
+            s === 'SEAL_BLOCKED_RECHECK_IP_ALLOWLIST_REQUIRED' ||
+            s === 'SEAL_BLOCKED_RECHECK_AUTH_REQUIRED' ||
+            s === 'SEAL_BLOCKED_RECHECK_ENV_REQUIRED' ||
+            s === 'SEAL_BLOCKED_RECHECK_CHANNEL_PRODUCT_NO_REQUIRED' ||
+            s === 'SEAL_BLOCKED_RECHECK_PRODUCT_ACCESS_REQUIRED'
+          )
+            return 'bg-rose-100 text-rose-800';
+          if (
+            s === 'PENDING_TASK_308_APPROVAL' ||
+            s === 'NOT_APPROVED' ||
+            s === 'NOT_EXECUTED' ||
+            s === 'NOT_CONNECTED' ||
+            s === 'LOCKED' ||
+            s === 'NOT_APPROVED_FOR_PRODUCT_CHANGE' ||
+            s === 'NOT_STORED' ||
+            s === 'NOT_COPIED_FOR_EXECUTION' ||
+            s === 'NOT_INFERRED' ||
+            s === 'NOT_INCLUDED' ||
+            s === 'NOT_DISPLAYED'
+          )
+            return 'bg-slate-100 text-slate-600';
+          return 'bg-gray-100 text-gray-600';
+        };
+        return (
+          <div className={`mb-4 rounded-lg border p-4 ${borderColor}`}>
+            <div className="mb-3 flex items-center gap-2">
+              <ShieldCheck className={`h-5 w-5 flex-shrink-0 ${iconColor}`} />
+              <h3 className="text-sm font-semibold text-slate-800">
+                {c307.panelTitle ??
+                  'Task 307 - Read-Only Final Execution Approval Safety Audit Seal'}
+              </h3>
+              <span className="ml-auto rounded bg-slate-100 px-2 py-0.5 text-xs font-mono text-slate-700">
+                {c307.status}
+              </span>
+            </div>
+            <p className="mb-3 text-xs text-slate-700">{c307.description}</p>
+
+            <div className="mb-3 rounded border border-slate-200 bg-white/60 p-3 text-xs space-y-1">
+              <div>
+                sourceFinalExecutionApprovalReviewOutcomeCertificationStatus:{' '}
+                <span className="font-mono text-slate-700">
+                  {c307.sourceFinalExecutionApprovalReviewOutcomeCertificationStatus}
+                </span>
+              </div>
+              <div>
+                finalExecutionApprovalSafetyAuditSealStatus:{' '}
+                <span className={`font-mono ${statusColor}`}>
+                  {c307.finalExecutionApprovalSafetyAuditSealStatus}
+                </span>
+              </div>
+              <div>
+                requiresSeparateTask308Approval:{' '}
+                <span className="font-semibold text-teal-700">
+                  {String(c307.requiresSeparateTask308Approval)}
+                </span>
+              </div>
+              <div className="text-slate-700">{c307.sealSummary}</div>
+              {c307.blockingReason && (
+                <div>
+                  blockingReason:{' '}
+                  <span className="font-semibold text-rose-700">{c307.blockingReason}</span>
+                </div>
+              )}
+              {isReady && (
+                <div className="rounded bg-teal-100 px-2 py-1 text-teal-800">
+                  COMPLETE: 최종 실행 승인 전 안전 조건을 read-only로 봉인한 상태입니다.
+                </div>
+              )}
+              {isPartial && (
+                <div className="rounded bg-amber-100 px-2 py-1 text-amber-800">
+                  PARTIAL: 누락 필드 안내를 유지한 채 안전 조건을 read-only로 봉인한 상태입니다.
+                </div>
+              )}
+              {isBlocked && (
+                <div className="rounded bg-rose-100 px-2 py-1 text-rose-800">
+                  BLOCKED: 원인별 보정이 먼저 필요합니다.
+                </div>
+              )}
+            </div>
+
+            <div className="mb-3 rounded border border-blue-200 bg-blue-50/30 p-3 text-xs text-slate-700">
+              <div className="mb-1 font-semibold text-blue-800">봉인 안내</div>
+              <div>이 패널은 최종 실행 승인 전 안전 조건을 read-only로 봉인하는 단계입니다.</div>
+              <div>
+                이 패널은 실제 승인, 실제 실행, 상품 변경 승인이 아니며 실행 버튼이나 submit action도
+                추가하지 않습니다.
+              </div>
+              <div>Task 308은 사용자 별도 명시 승인 없이는 진행하지 않습니다.</div>
+            </div>
+
+            <div className="mb-3 rounded border border-violet-200 bg-violet-50/30 p-3 text-xs text-slate-700">
+              <div className="mb-1 font-semibold text-violet-800">Task 308 승인 문구 안내</div>
+              <div className="mb-1">
+                다음 단계는 아래 승인 문구를 받은 경우에만 진행할 수 있으며, 이번 Task에서는 안내만
+                표시합니다.
+              </div>
+              <div className="whitespace-pre-wrap break-words font-mono text-[11px] text-violet-900">
+                {c307.nextTaskApprovalPhrase}
+              </div>
+            </div>
+
+            <div className="mb-3">
+              <div className="mb-1 text-xs font-semibold text-slate-600">봉인 항목</div>
+              <div className="space-y-1">
+                {Array.isArray(c307.safetySealItems) &&
+                  c307.safetySealItems.map((item: any, idx: number) => (
+                    <div key={idx} className="flex items-start gap-2 text-[11px]">
+                      <span
+                        className={`shrink-0 rounded px-1 py-0.5 font-mono text-[10px] ${itemColor(
+                          item.status
+                        )}`}
+                      >
+                        {item.status}
+                      </span>
+                      <span className="text-slate-600">
+                        [{item.sealItem}] {item.meaning}
+                      </span>
+                    </div>
+                  ))}
+              </div>
+            </div>
+
+            <div className="mt-2 space-y-0.5 font-mono text-[10px] text-gray-400">
+              <div>
+                actualFinalExecutionApprovalGranted:{' '}
+                {String(c307.actualFinalExecutionApprovalGranted)} |
+                actualExecutionApprovalGranted: {String(c307.actualExecutionApprovalGranted)} |
+                actualExecutionStarted: {String(c307.actualExecutionStarted)}
+              </div>
+              <div>
+                executionButtonAdded: {String(c307.executionButtonAdded)} | submitActionAdded:{' '}
+                {String(c307.submitActionAdded)} | postApiAdded: {String(c307.postApiAdded)}
+              </div>
+              <div>
+                naverApiCalled: {String(c307.naverApiCalled)} | dbWritePerformed:{' '}
+                {String(c307.dbWritePerformed)} | workerStarted: {String(c307.workerStarted)}
               </div>
             </div>
           </div>
