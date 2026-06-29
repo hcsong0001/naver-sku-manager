@@ -3896,6 +3896,7 @@ type DraftBatchJob = {
   naverProductLookupLiveRetryOutcomeDecisionGateView?: any;
   naverProductLookupLiveRetryOutcomeCertificationView?: any;
   naverReadOnlyProductDataCaptureApprovalPacketView?: any;
+  naverReadOnlyProductDataCaptureResultView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -33445,6 +33446,91 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div>isTokenReissuedInThisTask: {String(c275.isTokenReissuedInThisTask)} | isProductLookupApiCalledInThisTask: {String(c275.isProductLookupApiCalledInThisTask)} | isNaverApiCalledInThisTask: {String(c275.isNaverApiCalledInThisTask)}</div>
               <div>isTokenValueDisplayed: {String(c275.isTokenValueDisplayed)} | isAuthKeyValueDisplayed: {String(c275.isAuthKeyValueDisplayed)} | isDbWriteExecuted: {String(c275.isDbWriteExecuted)}</div>
               <div>isReadOnlyProductDataCaptureApprovalRequired: {String(c275.isReadOnlyProductDataCaptureApprovalRequired)} | isReadOnlyProductDataCaptureApprovalGranted: {String(c275.isReadOnlyProductDataCaptureApprovalGranted)} | isExecutionAllowed: {String(c275.isExecutionAllowed)}</div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 276: Read-Only Product Data Capture Result ───────────────────── */}
+      {(() => {
+        const c276 = (job as any).naverReadOnlyProductDataCaptureResultView;
+        if (!c276) return null;
+        const isCaptured = c276.isReadOnlyProductDataCaptureExecuted;
+        const borderColor = isCaptured ? 'border-emerald-300 bg-emerald-50/20' : 'border-orange-200 bg-orange-50/20';
+        const iconColor = isCaptured ? 'text-emerald-600' : 'text-orange-500';
+        const captureColor = isCaptured ? 'text-emerald-700 font-bold' : 'text-orange-700 font-bold';
+        const itemColor = (s: string) => {
+          if (s === 'APPROVAL_PACKET_CONFIRMED' || s === 'OUTCOME_CERTIFICATION_CONFIRMED' || s === 'LIVE_RETRY_RESULT_CONFIRMED') return 'bg-slate-100 text-slate-700';
+          if (s === 'CAPTURE_STATUS_RECORDED') return isCaptured ? 'bg-emerald-100 text-emerald-800' : 'bg-orange-100 text-orange-800';
+          if (s === 'CAPTURE_ALLOWED_IF_APPROVAL_PACKET_READY' || s === 'CAPTURE_ALLOWED_IF_LOOKUP_SUCCESS') return isCaptured ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-100 text-gray-500';
+          if (s === 'READ_ONLY_DATA_CAPTURED') return isCaptured ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-500';
+          if (s === 'CAPTURE_BLOCKED_RECHECK_IP_ALLOWLIST_REQUIRED' || s === 'CAPTURE_BLOCKED_RECHECK_AUTH_REQUIRED' || s === 'CAPTURE_BLOCKED_RECHECK_ENV_REQUIRED' || s === 'CAPTURE_BLOCKED_RECHECK_CHANNEL_PRODUCT_NO_REQUIRED' || s === 'CAPTURE_BLOCKED_RECHECK_PRODUCT_ACCESS_REQUIRED') return 'bg-amber-50 text-amber-700';
+          if (s === 'NOT_EXECUTED' || s === 'NOT_DISPLAYED' || s === 'NOT_ACCESSED' || s === 'NOT_MODIFIED') return 'bg-slate-100 text-slate-600';
+          if (s === 'LOCKED') return 'bg-orange-50 text-orange-700';
+          if (s === 'READ_ONLY_INFO') return 'bg-blue-50 text-blue-600';
+          return 'bg-gray-100 text-gray-600';
+        };
+        const pd = c276.capturedProductData;
+        return (
+          <div className={`mb-6 rounded-lg border p-4 ${borderColor}`}>
+            <div className="mb-3 flex items-center gap-2">
+              <ShieldAlert className={`w-5 h-5 flex-shrink-0 ${iconColor}`} />
+              <h3 className="font-semibold text-slate-800 text-sm">
+                {c276.panelTitle ?? 'Read-Only Product Data Capture Result (Task 276)'}
+              </h3>
+              <span className="ml-auto text-xs px-2 py-0.5 rounded font-mono bg-slate-100 text-slate-700">
+                {c276.status}
+              </span>
+            </div>
+            <p className="mb-3 text-xs text-slate-700">{c276.description}</p>
+
+            {/* Capture 상태 요약 */}
+            <div className="mb-3 rounded border border-slate-200 bg-white/60 p-3">
+              <div className="mb-1 text-xs font-semibold text-slate-600">Capture 결과</div>
+              <div className="text-xs">
+                readOnlyProductDataCaptureStatus: <span className={`font-mono ${captureColor}`}>{c276.readOnlyProductDataCaptureStatus}</span>
+              </div>
+              <div className="mt-1 text-xs">
+                approvalPacketStatus: <span className="font-mono text-slate-600">{c276.readOnlyProductDataCaptureApprovalPacketStatus}</span>
+              </div>
+            </div>
+
+            {/* 캡처된 상품 데이터 (성공 시만) */}
+            {isCaptured && pd && (
+              <div className="mb-3 rounded border border-emerald-200 bg-emerald-50/40 p-3">
+                <div className="mb-2 text-xs font-semibold text-emerald-700">캡처된 read-only 상품 데이터 (허용 필드만 표시 · DB 저장 아님)</div>
+                <table className="w-full text-[11px] text-slate-700">
+                  <tbody>
+                    {pd.channelProductNo && <tr><td className="pr-3 text-slate-500 font-mono">channelProductNo</td><td>{pd.channelProductNo}</td></tr>}
+                    {pd.productName && <tr><td className="pr-3 text-slate-500 font-mono">productName</td><td>{pd.productName}</td></tr>}
+                    {pd.productStatus && <tr><td className="pr-3 text-slate-500 font-mono">productStatus</td><td>{pd.productStatus}</td></tr>}
+                    {pd.leafCategoryId && <tr><td className="pr-3 text-slate-500 font-mono">leafCategoryId</td><td>{pd.leafCategoryId}</td></tr>}
+                    <tr><td className="pr-3 text-slate-500 font-mono">salePricePresent</td><td>{String(pd.salePricePresent)}</td></tr>
+                    <tr><td className="pr-3 text-slate-500 font-mono">stockQuantityPresent</td><td>{String(pd.stockQuantityPresent)}</td></tr>
+                    <tr><td className="pr-3 text-slate-500 font-mono">representativeImageUrlPresent</td><td>{String(pd.representativeImageUrlPresent)}</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {/* captureItems */}
+            <div className="mb-3">
+              <div className="mb-1 text-xs font-semibold text-slate-600">캡처 항목</div>
+              <div className="space-y-1">
+                {Array.isArray(c276.captureItems) && c276.captureItems.map((item: any, idx: number) => (
+                  <div key={idx} className="flex items-start gap-2 text-[11px]">
+                    <span className={`shrink-0 rounded px-1 py-0.5 font-mono text-[10px] ${itemColor(item.status)}`}>{item.status}</span>
+                    <span className="text-slate-600">{item.captureItem}: {item.meaning}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* 안전 플래그 footer */}
+            <div className="mt-2 text-[10px] text-gray-400 font-mono space-y-0.5">
+              <div>isTokenReissuedInThisTask: {String(c276.isTokenReissuedInThisTask)} | isProductLookupApiCalledInThisTask: {String(c276.isProductLookupApiCalledInThisTask)} | isNaverApiCalledInThisTask: {String(c276.isNaverApiCalledInThisTask)}</div>
+              <div>isRawProductApiResponseDisplayed: {String(c276.isRawProductApiResponseDisplayed)} | isDbWriteExecuted: {String(c276.isDbWriteExecuted)} | isProductUpdateApiCalled: {String(c276.isProductUpdateApiCalled)}</div>
+              <div>isNextStepSeparateApprovalRequired: {String(c276.isNextStepSeparateApprovalRequired)} | isNextStepSeparateApprovalGranted: {String(c276.isNextStepSeparateApprovalGranted)} | isExecutionAllowed: {String(c276.isExecutionAllowed)}</div>
             </div>
           </div>
         );

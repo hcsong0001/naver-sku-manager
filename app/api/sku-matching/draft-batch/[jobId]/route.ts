@@ -256,6 +256,7 @@ import { buildNaverProductLookupLiveRetryResultNonMutationAuditSealView } from '
 import { buildNaverProductLookupLiveRetryOutcomeDecisionGateView } from '@/src/services/sku-keyword-final-approval-execution-naver-product-lookup-live-retry-outcome-decision-gate-view.service';
 import { buildNaverProductLookupLiveRetryOutcomeCertificationView } from '@/src/services/sku-keyword-final-approval-execution-naver-product-lookup-live-retry-outcome-certification-view.service';
 import { buildNaverReadOnlyProductDataCaptureApprovalPacketView } from '@/src/services/sku-keyword-final-approval-execution-naver-read-only-product-data-capture-approval-packet-view.service';
+import { buildNaverReadOnlyProductDataCaptureResultView } from '@/src/services/sku-keyword-final-approval-execution-naver-read-only-product-data-capture-result-view.service';
 
 // Compute safe DB environment hint from DATABASE_URL without exposing the original value.
 // Returns a classification key, never the actual URL.
@@ -567,6 +568,9 @@ export async function GET(
     );
     const _naverProductLookupLiveRetryOutcomeCertificationView = buildNaverProductLookupLiveRetryOutcomeCertificationView(
       _naverProductLookupLiveRetryOutcomeDecisionGateView
+    );
+    const _naverReadOnlyProductDataCaptureApprovalPacketView = buildNaverReadOnlyProductDataCaptureApprovalPacketView(
+      _naverProductLookupLiveRetryOutcomeCertificationView
     );
 
     const responseJob = {
@@ -1553,9 +1557,11 @@ export async function GET(
       ),
       naverProductLookupLiveRetryOutcomeDecisionGateView: _naverProductLookupLiveRetryOutcomeDecisionGateView,
       naverProductLookupLiveRetryOutcomeCertificationView: _naverProductLookupLiveRetryOutcomeCertificationView,
-      naverReadOnlyProductDataCaptureApprovalPacketView: buildNaverReadOnlyProductDataCaptureApprovalPacketView(
-        _naverProductLookupLiveRetryOutcomeCertificationView
-      ),
+      naverReadOnlyProductDataCaptureApprovalPacketView: _naverReadOnlyProductDataCaptureApprovalPacketView,
+      naverReadOnlyProductDataCaptureResultView: buildNaverReadOnlyProductDataCaptureResultView({
+        approvalPacketStatus: _naverReadOnlyProductDataCaptureApprovalPacketView.readOnlyProductDataCaptureApprovalPacketStatus,
+        liveRetryResult: _naverTokenIssuanceRetryOneTimeTestProductLookupResultView,
+      }),
     };
 
     return NextResponse.json({ ok: true, job: responseJob });
