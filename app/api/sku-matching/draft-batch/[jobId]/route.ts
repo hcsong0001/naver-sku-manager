@@ -259,6 +259,7 @@ import { buildNaverReadOnlyProductDataCaptureApprovalPacketView } from '@/src/se
 import { buildNaverReadOnlyProductDataCaptureResultView } from '@/src/services/sku-keyword-final-approval-execution-naver-read-only-product-data-capture-result-view.service';
 import { buildNaverReadOnlyProductDataCaptureSafetyAuditSealView } from '@/src/services/sku-keyword-final-approval-execution-naver-read-only-product-data-capture-safety-audit-seal-view.service';
 import { buildNaverReadOnlyProductDataCaptureCompletenessReviewView } from '@/src/services/sku-keyword-final-approval-execution-naver-read-only-product-data-capture-completeness-review-view.service';
+import { buildNaverReadOnlyProductDataCompletenessCertificationView } from '@/src/services/sku-keyword-final-approval-execution-naver-read-only-product-data-completeness-certification-view.service';
 
 // Compute safe DB environment hint from DATABASE_URL without exposing the original value.
 // Returns a classification key, never the actual URL.
@@ -580,6 +581,10 @@ export async function GET(
     });
     const _naverReadOnlyProductDataCaptureSafetyAuditSealView = buildNaverReadOnlyProductDataCaptureSafetyAuditSealView({
       captureResult: _naverReadOnlyProductDataCaptureResultView,
+    });
+    const _naverReadOnlyProductDataCaptureCompletenessReviewView = buildNaverReadOnlyProductDataCaptureCompletenessReviewView({
+      captureResult: _naverReadOnlyProductDataCaptureResultView,
+      safetyAuditSeal: _naverReadOnlyProductDataCaptureSafetyAuditSealView,
     });
 
     const responseJob = {
@@ -1569,9 +1574,11 @@ export async function GET(
       naverReadOnlyProductDataCaptureApprovalPacketView: _naverReadOnlyProductDataCaptureApprovalPacketView,
       naverReadOnlyProductDataCaptureResultView: _naverReadOnlyProductDataCaptureResultView,
       naverReadOnlyProductDataCaptureSafetyAuditSealView: _naverReadOnlyProductDataCaptureSafetyAuditSealView,
-      naverReadOnlyProductDataCaptureCompletenessReviewView: buildNaverReadOnlyProductDataCaptureCompletenessReviewView({
-        captureResult: _naverReadOnlyProductDataCaptureResultView,
+      naverReadOnlyProductDataCaptureCompletenessReviewView: _naverReadOnlyProductDataCaptureCompletenessReviewView,
+      naverReadOnlyProductDataCompletenessCertificationView: buildNaverReadOnlyProductDataCompletenessCertificationView({
+        completenessReview: _naverReadOnlyProductDataCaptureCompletenessReviewView,
         safetyAuditSeal: _naverReadOnlyProductDataCaptureSafetyAuditSealView,
+        captureResult: _naverReadOnlyProductDataCaptureResultView,
       }),
     };
 
