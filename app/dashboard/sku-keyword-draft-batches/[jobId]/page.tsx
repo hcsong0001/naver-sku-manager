@@ -3905,6 +3905,7 @@ type DraftBatchJob = {
   naverBasicProductDataSummaryReviewSafetyAuditSealView?: any;
   naverBasicProductDataSummaryReviewOutcomeCertificationView?: any;
   naverReadOnlyProductStructureReviewApprovalPacketView?: any;
+  naverReadOnlyProductStructureReviewView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -34334,6 +34335,235 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 isProductUpdateApiCalled: {String(c284.isProductUpdateApiCalled)} |
                 isPriceOrStockChanged: {String(c284.isPriceOrStockChanged)} |
                 isDbWriteExecuted: {String(c284.isDbWriteExecuted)}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 285: Read-Only Product Structure Review ─────────────────────── */}
+      {(() => {
+        const c285 = (job as any).naverReadOnlyProductStructureReviewView;
+        if (!c285) return null;
+        const isComplete = c285.isReadOnlyProductStructureReviewComplete;
+        const isPartial = c285.isReadOnlyProductStructureReviewWithMissingFieldNotice;
+        const isBlocked = !isComplete && !isPartial;
+        const borderColor = isComplete
+          ? 'border-emerald-300 bg-emerald-50/20'
+          : isPartial
+            ? 'border-amber-200 bg-amber-50/20'
+            : 'border-orange-200 bg-orange-50/20';
+        const iconColor = isComplete
+          ? 'text-emerald-600'
+          : isPartial
+            ? 'text-amber-500'
+            : 'text-orange-500';
+        const statusColor = isComplete
+          ? 'text-emerald-700 font-bold'
+          : isPartial
+            ? 'text-amber-700 font-bold'
+            : 'text-orange-700 font-bold';
+        const itemColor = (s: string) => {
+          if (
+            [
+              'APPROVAL_PACKET_CONFIRMED',
+              'OUTCOME_CERTIFICATION_CONFIRMED',
+              'SUMMARY_REVIEW_CONFIRMED',
+              'CAPTURE_RESULT_CONFIRMED',
+            ].includes(s)
+          ) {
+            return 'bg-slate-100 text-slate-700';
+          }
+          if (
+            [
+              'STRUCTURE_REVIEW_STATUS_RECORDED',
+              'CAPTURED_DATA_ONLY_CONFIRMED',
+              'SUMMARY_DATA_ONLY_CONFIRMED',
+              'STRUCTURE_FIELD_REVIEWED',
+            ].includes(s)
+          ) {
+            return 'bg-blue-50 text-blue-700';
+          }
+          if (s === 'PRESENCE_FLAG_ONLY') return 'bg-blue-50 text-blue-600';
+          if (s === 'NOT_INCLUDED') return 'bg-red-50 text-red-700';
+          if (s === 'NOT_DISPLAYED' || s === 'NOT_EXECUTED') {
+            return 'bg-slate-100 text-slate-600';
+          }
+          if (s === 'LOCKED') return 'bg-orange-50 text-orange-700';
+          if (s === 'PENDING_SEPARATE_APPROVAL') return 'bg-yellow-50 text-yellow-700';
+          if (s === 'READ_ONLY_INFO') return 'bg-blue-50 text-blue-600';
+          return 'bg-gray-100 text-gray-600';
+        };
+        const ps = c285.readOnlyProductStructureSummary;
+        return (
+          <div className={`mb-6 rounded-lg border p-4 ${borderColor}`}>
+            <div className="mb-3 flex items-center gap-2">
+              <ShieldAlert className={`h-5 w-5 flex-shrink-0 ${iconColor}`} />
+              <h3 className="text-sm font-semibold text-slate-800">
+                {c285.panelTitle ?? 'Naver Read-Only Product Structure Review (Task 285)'}
+              </h3>
+              <span className="ml-auto rounded bg-slate-100 px-2 py-0.5 text-xs font-mono text-slate-700">
+                {c285.status}
+              </span>
+            </div>
+            <p className="mb-3 text-xs text-slate-700">{c285.description}</p>
+
+            <div className="mb-3 rounded border border-slate-200 bg-white/60 p-3 text-xs space-y-1">
+              <div>
+                readOnlyProductStructureReviewStatus:{' '}
+                <span className={`font-mono ${statusColor}`}>
+                  {c285.readOnlyProductStructureReviewStatus}
+                </span>
+              </div>
+              <div>
+                isReadOnlyProductStructureReviewExecutedInThisTask:{' '}
+                <span
+                  className={
+                    c285.isReadOnlyProductStructureReviewExecutedInThisTask
+                      ? 'text-emerald-700 font-bold'
+                      : 'text-orange-600 font-semibold'
+                  }
+                >
+                  {String(c285.isReadOnlyProductStructureReviewExecutedInThisTask)}
+                </span>
+              </div>
+              <div>
+                isCapturedDataUsedOnly:{' '}
+                <span className="text-emerald-700 font-bold">
+                  {String(c285.isCapturedDataUsedOnly)}
+                </span>
+              </div>
+              <div>
+                isSummaryReviewResultUsedOnly:{' '}
+                <span className="text-emerald-700 font-bold">
+                  {String(c285.isSummaryReviewResultUsedOnly)}
+                </span>
+              </div>
+              {isComplete && (
+                <div className="font-semibold text-emerald-700">
+                  COMPLETE 구조 검토 완료
+                </div>
+              )}
+              {isPartial && (
+                <div className="font-semibold text-amber-700">
+                  PARTIAL 구조 검토 완료 — 누락 필드 안내 필요
+                </div>
+              )}
+              {isBlocked && (
+                <div className="font-semibold text-orange-700">
+                  BLOCKED 상태로 구조 검토를 진행할 수 없습니다.
+                </div>
+              )}
+            </div>
+
+            {ps && (
+              <div className="mb-3 rounded border border-blue-200 bg-blue-50/30 p-3 text-xs">
+                <div className="mb-2 font-semibold text-blue-800">
+                  read-only 상품 구조 요약
+                </div>
+                <div className="grid grid-cols-2 gap-1">
+                  <div>
+                    <span className="text-slate-500">channelProductNo:</span>{' '}
+                    <span className="font-mono text-slate-800">
+                      {ps.channelProductNo ?? '(없음)'}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-slate-500">productName:</span>{' '}
+                    <span className="text-slate-800">{ps.productName ?? '(없음)'}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-500">productStatus:</span>{' '}
+                    <span className="font-mono text-slate-800">
+                      {ps.productStatus ?? '(없음)'}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-slate-500">leafCategoryId:</span>{' '}
+                    <span className="font-mono text-slate-800">
+                      {ps.leafCategoryId ?? '(없음)'}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-slate-500">salePricePresent:</span>{' '}
+                    <span className={ps.salePricePresent ? 'text-emerald-700' : 'text-orange-600'}>
+                      {String(ps.salePricePresent)}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-slate-500">stockQuantityPresent:</span>{' '}
+                    <span className={ps.stockQuantityPresent ? 'text-emerald-700' : 'text-orange-600'}>
+                      {String(ps.stockQuantityPresent)}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-slate-500">representativeImageUrlPresent:</span>{' '}
+                    <span
+                      className={
+                        ps.representativeImageUrlPresent
+                          ? 'text-emerald-700'
+                          : 'text-orange-600'
+                      }
+                    >
+                      {String(ps.representativeImageUrlPresent)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="mb-3">
+              <div className="mb-1 text-xs font-semibold text-slate-600">필드 검토</div>
+              <div className="space-y-1">
+                {Array.isArray(c285.fieldReviewItems) &&
+                  c285.fieldReviewItems.map((item: any, idx: number) => (
+                    <div key={idx} className="flex items-start gap-2 text-[11px]">
+                      <span className="shrink-0 rounded bg-slate-100 px-1 py-0.5 font-mono text-[10px] text-slate-700">
+                        {item.fieldPresenceStatus}
+                      </span>
+                      <span className="text-slate-600">{item.fieldName}</span>
+                    </div>
+                  ))}
+              </div>
+            </div>
+
+            <div className="mb-3">
+              <div className="mb-1 text-xs font-semibold text-slate-600">검토 항목</div>
+              <div className="space-y-1">
+                {Array.isArray(c285.reviewItems) &&
+                  c285.reviewItems.map((item: any, idx: number) => (
+                    <div key={idx} className="flex items-start gap-2 text-[11px]">
+                      <span
+                        className={`shrink-0 rounded px-1 py-0.5 font-mono text-[10px] ${itemColor(item.status)}`}
+                      >
+                        {item.status}
+                      </span>
+                      <span className="text-slate-600">
+                        {item.reviewItem}: {item.meaning}
+                      </span>
+                    </div>
+                  ))}
+              </div>
+            </div>
+
+            <div className="mt-2 space-y-0.5 font-mono text-[10px] text-gray-400">
+              <div>
+                isProductLookupApiCalledInThisTask:{' '}
+                {String(c285.isProductLookupApiCalledInThisTask)} |
+                isNaverApiCalledInThisTask: {String(c285.isNaverApiCalledInThisTask)} |
+                isTokenReissuedInThisTask: {String(c285.isTokenReissuedInThisTask)}
+              </div>
+              <div>
+                isSalePriceRawValueIncluded: {String(c285.isSalePriceRawValueIncluded)} |
+                isStockQuantityRawValueIncluded:{' '}
+                {String(c285.isStockQuantityRawValueIncluded)} |
+                isRawProductApiResponseIncluded:{' '}
+                {String(c285.isRawProductApiResponseIncluded)}
+              </div>
+              <div>
+                isProductUpdateApiCalled: {String(c285.isProductUpdateApiCalled)} |
+                isPriceOrStockChanged: {String(c285.isPriceOrStockChanged)} |
+                isDbWriteExecuted: {String(c285.isDbWriteExecuted)}
               </div>
             </div>
           </div>
