@@ -352,6 +352,7 @@ import { buildTmsReadOnlyOperatingDeploymentFinalApprovalSubmissionFinalReviewOu
 import { buildTmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestPacketView } from '@/src/services/tms-read-only-operating-deployment-final-approval-submission-approval-request-packet-view.service';
 import { buildTmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestPacketReviewView } from '@/src/services/tms-read-only-operating-deployment-final-approval-submission-approval-request-packet-review-view.service';
 import { buildTmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestPacketReviewOutcomeCertificationView } from '@/src/services/tms-read-only-operating-deployment-final-approval-submission-approval-request-packet-review-outcome-certification-view.service';
+import { buildTmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestPacketSealReviewView } from '@/src/services/tms-read-only-operating-deployment-final-approval-submission-approval-request-packet-seal-review-view.service';
 
 
 
@@ -1533,6 +1534,11 @@ export async function GET(
         _tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestPacketReviewView
       );
 
+    const _tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestPacketSealReviewView =
+      buildTmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestPacketSealReviewView(
+        _tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestPacketReviewOutcomeCertificationView
+      );
+
     const responseJob = {
       id: job.id,
       status: job.status,
@@ -2703,6 +2709,8 @@ export async function GET(
         _tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestPacketReviewView,
       tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestPacketReviewOutcomeCertificationView:
         _tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestPacketReviewOutcomeCertificationView,
+      tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestPacketSealReviewView:
+        _tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestPacketSealReviewView,
     };
     return NextResponse.json({ ok: true, job: responseJob });
   } catch (error: unknown) {
