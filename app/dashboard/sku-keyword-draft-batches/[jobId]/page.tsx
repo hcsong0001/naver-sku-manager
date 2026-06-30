@@ -3961,6 +3961,7 @@ type DraftBatchJob = {
   tmsReadOnlyVpsDeploymentCandidateFinalClosureSummaryView?: any;
   tmsReadOnlyVpsDeploymentCandidateFinalClosureSummaryOutcomeCertificationView?: any;
   tmsReadOnlyVpsDeploymentCandidateFinalClosureSummarySafetyAuditSealView?: any;
+  tmsReadOnlyVpsDeploymentCandidateFinalClosureSummarySafetyAuditSealOutcomeCertificationView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -44546,6 +44547,447 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             {c340.requiresSeparateTask341Approval && (
               <p className="rounded border border-fuchsia-200 bg-white/80 px-3 py-2 text-xs text-fuchsia-900">
                 {c340.nextTaskApprovalPhrase}
+              </p>
+            )}
+          </div>
+        );
+      })()}
+
+      {/* ── Task 341: Read-Only VPS Deployment Candidate Final Closure Summary Safety Audit Seal Outcome Certification ── */}
+      {job.tmsReadOnlyVpsDeploymentCandidateFinalClosureSummarySafetyAuditSealOutcomeCertificationView && (() => {
+        const c341 = job.tmsReadOnlyVpsDeploymentCandidateFinalClosureSummarySafetyAuditSealOutcomeCertificationView as {
+          taskId: number;
+          panelTitle: string;
+          description: string;
+          sourceVpsDeploymentCandidateFinalClosureSummarySafetyAuditSealStatus: string;
+          vpsDeploymentCandidateFinalClosureSummarySafetyAuditSealOutcomeCertificationStatus: string;
+          finalClosureSummarySafetySealOutcomeCertified: boolean;
+          finalClosureSummarySafetySealItemsCertified: boolean;
+          primaryClosureItemsSafetySealOutcomeCertified: boolean;
+          subsequentClosureItemsSafetySealOutcomeCertified: boolean;
+          outcomeCertificationItems: Array<{
+            certificationId: string;
+            sourceSealId: string;
+            sourceClosureItemId: string;
+            taskId: number;
+            taskName: string;
+            sourceStatus: string;
+            sourceSealStatus: 'READY' | 'PARTIAL_READY' | 'BLOCKED' | 'NOT_STARTED';
+            outcomeCertificationStatus: 'READY' | 'PARTIAL_READY' | 'BLOCKED' | 'NOT_STARTED';
+            closureGroup:
+              | 'PRIMARY_CLOSURE'
+              | 'SUBSEQUENT_CLOSURE'
+              | 'SAFETY_LOCK'
+              | 'NEXT_PHASE_GUIDE';
+            message: string;
+          }>;
+          primaryClosureOutcomeCertificationItems: Array<{
+            certificationId: string;
+            taskId: number;
+            taskName: string;
+            outcomeCertificationStatus: 'READY' | 'PARTIAL_READY' | 'BLOCKED' | 'NOT_STARTED';
+            message: string;
+          }>;
+          subsequentClosureOutcomeCertificationItems: Array<{
+            certificationId: string;
+            taskId: number;
+            taskName: string;
+            outcomeCertificationStatus: 'READY' | 'PARTIAL_READY' | 'BLOCKED' | 'NOT_STARTED';
+            message: string;
+          }>;
+          deploymentOutcomeCertificationItems: Array<{
+            certificationId: string;
+            taskName: string;
+            message: string;
+          }>;
+          runtimeOutcomeCertificationItems: Array<{
+            certificationId: string;
+            taskName: string;
+            message: string;
+          }>;
+          apiDbWorkerOutcomeCertificationItems: Array<{
+            certificationId: string;
+            taskName: string;
+            message: string;
+          }>;
+          envSecretOutcomeCertificationItems: Array<{
+            certificationId: string;
+            taskName: string;
+            message: string;
+          }>;
+          outcomeCertificationSummaryCards: Array<{
+            label: string;
+            value: string;
+            tone: 'positive' | 'neutral' | 'warning';
+          }>;
+          outcomeCertifiedReady: boolean;
+          outcomeCertifiedPartialReady: boolean;
+          outcomeCertificationBlocked: boolean;
+          outcomeCertificationNotStarted: boolean;
+          primaryClosureItemCount: number;
+          subsequentClosureItemCount: number;
+          readyItemCount: number;
+          partialReadyItemCount: number;
+          blockedItemCount: number;
+          notStartedItemCount: number;
+          totalOutcomeCertificationItemCount: number;
+          finalClosureSummaryCompleted: boolean;
+          vpsCandidateFlowClosureCompleted: boolean;
+          vpsCandidateFlowReadOnlyCompleted: boolean;
+          vpsCandidateFlowStillDisplayOnly: boolean;
+          vpsCandidateFlowSafeForNextReview: boolean;
+          vpsCandidateFlowClosedWithoutActualDeployment: boolean;
+          actualVpsServerCreated: boolean;
+          actualVpsConfigChanged: boolean;
+          actualProductionTransitionStarted: boolean;
+          actualDeploymentStarted: boolean;
+          actualDomainConnected: boolean;
+          dnsChanged: boolean;
+          sslCertificateIssued: boolean;
+          portForwardingChanged: boolean;
+          serverConfigChanged: boolean;
+          operatingDbConnectionChanged: boolean;
+          runtimeConfigured: boolean;
+          workerStarted: boolean;
+          queueEnqueued: boolean;
+          adapterConnected: boolean;
+          naverApiCalled: boolean;
+          productLookupApiRecalled: boolean;
+          productUpdateApiCalled: boolean;
+          dbWritePerformed: boolean;
+          envFileReadOrModified: boolean;
+          deploymentPreparationStillReadOnly: boolean;
+          domainConnectionStillReadOnly: boolean;
+          apiCallStillBlocked: boolean;
+          dbWriteStillBlocked: boolean;
+          workerQueueAdapterStillBlocked: boolean;
+          tokenOrAuthStillHidden: boolean;
+          rawApiResponseStillHidden: boolean;
+          requiresSeparateTask342Approval: boolean;
+          nextTaskApprovalPhrase: string;
+          actualFinalExecutionApprovalGranted: boolean;
+          actualExecutionApprovalGranted: boolean;
+          actualExecutionStarted: boolean;
+          executionButtonAdded: boolean;
+          submitActionAdded: boolean;
+          postApiAdded: boolean;
+          priceChanged: boolean;
+          stockChanged: boolean;
+          tokenOrAuthValueExposed: boolean;
+          rawApiResponseExposedOrStored: boolean;
+          nextPhaseRecommendation: string;
+        };
+
+        const getOutcomeTone341 = (
+          status: 'READY' | 'PARTIAL_READY' | 'BLOCKED' | 'NOT_STARTED',
+        ) =>
+          status === 'READY'
+            ? 'bg-green-100 text-green-700 border-green-200'
+            : status === 'PARTIAL_READY'
+              ? 'bg-amber-100 text-amber-700 border-amber-200'
+              : status === 'BLOCKED'
+                ? 'bg-red-100 text-red-700 border-red-200'
+                : 'bg-slate-100 text-slate-600 border-slate-200';
+
+        const getCardTone341 = (tone: 'positive' | 'neutral' | 'warning') =>
+          tone === 'positive'
+            ? 'bg-green-100 text-green-700 border-green-200'
+            : tone === 'warning'
+              ? 'bg-amber-100 text-amber-700 border-amber-200'
+              : 'bg-slate-100 text-slate-700 border-slate-200';
+
+        const renderCertificationGroup341 = (
+          title: string,
+          items: Array<{
+            certificationId: string;
+            taskId: number;
+            taskName: string;
+            outcomeCertificationStatus: 'READY' | 'PARTIAL_READY' | 'BLOCKED' | 'NOT_STARTED';
+            message: string;
+          }>,
+        ) => (
+          <div className="rounded border border-slate-200 bg-white/70 p-3">
+            <p className="mb-2 text-xs font-semibold text-slate-700">{title}</p>
+            <ul className="space-y-1">
+              {items.map((item) => (
+                <li
+                  key={item.certificationId}
+                  className={`rounded border px-2 py-1 text-xs ${getOutcomeTone341(item.outcomeCertificationStatus)}`}
+                >
+                  <span className="font-medium">Task {item.taskId} {item.taskName}</span>
+                  <span className="ml-2 opacity-70">[{item.outcomeCertificationStatus}]</span>
+                  <span className="ml-1 opacity-80">— {item.message}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        );
+
+        const renderLockGroup341 = (
+          title: string,
+          items: Array<{ certificationId: string; taskName: string; message: string }>,
+        ) => (
+          <div className="rounded border border-slate-200 bg-white/70 p-3">
+            <p className="mb-2 text-xs font-semibold text-slate-700">{title}</p>
+            <ul className="space-y-1">
+              {items.map((item) => (
+                <li
+                  key={item.certificationId}
+                  className="rounded border border-green-200 bg-green-50 px-2 py-1 text-xs text-green-700"
+                >
+                  <span className="font-medium">{item.taskName}</span>
+                  <span className="ml-1 opacity-80">— {item.message}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        );
+
+        return (
+          <div className="mb-6 rounded-lg border border-cyan-300 bg-cyan-50/60 p-4 text-sm">
+            <div className="mb-3 flex items-center gap-2">
+              <ShieldCheck className="h-5 w-5 text-cyan-700" />
+              <h2 className="text-base font-semibold text-cyan-950">
+                Task {c341.taskId}: {c341.panelTitle}
+              </h2>
+              <span className="ml-auto rounded-full border border-cyan-300 bg-cyan-100 px-2 py-0.5 text-xs text-cyan-800">
+                {c341.vpsDeploymentCandidateFinalClosureSummarySafetyAuditSealOutcomeCertificationStatus}
+              </span>
+            </div>
+
+            <p className="mb-3 text-xs text-slate-600">{c341.description}</p>
+
+            <div className="mb-3 rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+              <span className="font-semibold">⚠ 오해 방지:</span>{' '}
+              이 패널은 VPS 배포 후보 Final Closure Summary Safety Audit Seal 결과를 read-only로 인증하는 화면입니다.
+              이 화면은 실제 VPS 생성, 실제 배포 실행, 실제 도메인 연결 작업이 아닙니다.
+              Runtime, Worker, Queue, Adapter, 운영 DB, DNS, SSL, 포트포워딩, 서버/VPS 설정을 변경하지 않습니다.
+              Task 342는 사용자 별도 명시 승인 없이는 진행하지 않으며, 다음 단계부터는 운영 배포 설계 검토 화면으로 전환합니다.
+            </div>
+
+            <div className="mb-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {c341.outcomeCertificationSummaryCards.map((card) => (
+                <div
+                  key={card.label}
+                  className={`rounded border p-2 text-center ${getCardTone341(card.tone)}`}
+                >
+                  <div className="text-sm font-bold">{card.value}</div>
+                  <div className="text-xs">{card.label}</div>
+                </div>
+              ))}
+            </div>
+
+            <div className="mb-3 grid grid-cols-1 gap-3 lg:grid-cols-2">
+              {renderCertificationGroup341(
+                'Task 322~333 Primary Closure 봉인 결과 인증 목록',
+                c341.primaryClosureOutcomeCertificationItems,
+              )}
+              {renderCertificationGroup341(
+                'Task 334~337 Subsequent Closure 봉인 결과 인증 목록',
+                c341.subsequentClosureOutcomeCertificationItems,
+              )}
+              {renderLockGroup341(
+                '실제 VPS 생성/설정/배포/도메인 연결 미수행 인증',
+                c341.deploymentOutcomeCertificationItems,
+              )}
+              {renderLockGroup341(
+                'Runtime / Worker / Queue / Adapter 미연결 인증',
+                c341.runtimeOutcomeCertificationItems,
+              )}
+              {renderLockGroup341(
+                'Naver API 호출 / DB write 차단 유지 인증',
+                c341.apiDbWorkerOutcomeCertificationItems,
+              )}
+              {renderLockGroup341(
+                '.env / 승인 / 다음 단계 안내 인증',
+                c341.envSecretOutcomeCertificationItems,
+              )}
+            </div>
+
+            <div className="mb-3 rounded border border-slate-200 bg-white/70 p-3">
+              <p className="mb-2 text-xs font-semibold text-slate-700">Outcome Certification 요약</p>
+              <ul className="space-y-1 text-xs text-slate-700">
+                <li className="rounded border border-cyan-200 bg-cyan-50 px-2 py-1">
+                  Primary Closure 인증 {c341.primaryClosureItemCount}개, Subsequent Closure 인증 {c341.subsequentClosureItemCount}개입니다.
+                </li>
+                <li className="rounded border border-cyan-200 bg-cyan-50 px-2 py-1">
+                  READY / PARTIAL / BLOCKED / NOT_STARTED 인증 개수는 {c341.readyItemCount} / {c341.partialReadyItemCount} / {c341.blockedItemCount} / {c341.notStartedItemCount}입니다.
+                </li>
+                <li className="rounded border border-cyan-200 bg-cyan-50 px-2 py-1">
+                  Task 340 Final Closure Summary Safety Audit Seal 결과, VPS 후보 흐름 read-only 종료, 실제 VPS 생성/설정/배포/도메인 연결 미수행 상태를 인증합니다.
+                </li>
+                <li className="rounded border border-cyan-200 bg-cyan-50 px-2 py-1">
+                  Runtime / Worker / Queue / Adapter 연결 없음, Naver API 호출 없음, DB write 없음, .env / .env.local 변경 없음 상태를 인증합니다.
+                </li>
+                <li className="rounded border border-fuchsia-200 bg-fuchsia-50 px-2 py-1 text-fuchsia-900">
+                  {c341.nextPhaseRecommendation}
+                </li>
+              </ul>
+            </div>
+
+            <div className="mb-3 flex flex-wrap gap-3 text-xs">
+              <span className={`flex items-center gap-1 ${c341.finalClosureSummarySafetySealOutcomeCertified ? 'text-green-700' : 'text-red-600'}`}>
+                <CheckCircle2 className="h-3.5 w-3.5" /> Final Closure Summary Safety Audit Seal 결과 인증 완료
+              </span>
+              <span className={`flex items-center gap-1 ${c341.finalClosureSummarySafetySealItemsCertified ? 'text-green-700' : 'text-red-600'}`}>
+                <CheckCircle2 className="h-3.5 w-3.5" /> 최종 16개 인증 완료
+              </span>
+              <span className={`flex items-center gap-1 ${c341.primaryClosureItemsSafetySealOutcomeCertified ? 'text-green-700' : 'text-red-600'}`}>
+                <CheckCircle2 className="h-3.5 w-3.5" /> Primary Closure 인증 완료
+              </span>
+              <span className={`flex items-center gap-1 ${c341.subsequentClosureItemsSafetySealOutcomeCertified ? 'text-green-700' : 'text-red-600'}`}>
+                <CheckCircle2 className="h-3.5 w-3.5" /> Subsequent Closure 인증 완료
+              </span>
+              <span className={`flex items-center gap-1 ${c341.finalClosureSummaryCompleted ? 'text-green-700' : 'text-red-600'}`}>
+                <CheckCircle2 className="h-3.5 w-3.5" /> Final Closure Summary 완료 유지
+              </span>
+              <span className={`flex items-center gap-1 ${c341.vpsCandidateFlowClosureCompleted ? 'text-green-700' : 'text-red-600'}`}>
+                <CheckCircle2 className="h-3.5 w-3.5" /> VPS 후보 흐름 Closure 완료
+              </span>
+              <span className={`flex items-center gap-1 ${c341.vpsCandidateFlowReadOnlyCompleted ? 'text-green-700' : 'text-red-600'}`}>
+                <CheckCircle2 className="h-3.5 w-3.5" /> VPS 후보 흐름 read-only 종료
+              </span>
+              <span className={`flex items-center gap-1 ${c341.vpsCandidateFlowStillDisplayOnly ? 'text-green-700' : 'text-red-600'}`}>
+                <CheckCircle2 className="h-3.5 w-3.5" /> 표시 전용 상태 유지
+              </span>
+              <span className={`flex items-center gap-1 ${c341.vpsCandidateFlowSafeForNextReview ? 'text-green-700' : 'text-red-600'}`}>
+                <CheckCircle2 className="h-3.5 w-3.5" /> 다음 검토 전 안전 상태 유지
+              </span>
+              <span className={`flex items-center gap-1 ${c341.vpsCandidateFlowClosedWithoutActualDeployment ? 'text-green-700' : 'text-red-600'}`}>
+                <CheckCircle2 className="h-3.5 w-3.5" /> 실제 배포 없이 닫힘 유지
+              </span>
+              <span className={`flex items-center gap-1 ${c341.actualVpsServerCreated ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> 실제 VPS 생성 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c341.actualVpsConfigChanged ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> 실제 VPS 설정 변경 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c341.actualProductionTransitionStarted ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> 실제 운영 전환 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c341.actualDeploymentStarted ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> 실제 배포 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c341.actualDomainConnected ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> 실제 도메인 연결 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c341.dnsChanged ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> DNS 변경 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c341.sslCertificateIssued ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> SSL 발급 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c341.portForwardingChanged ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> 포트포워딩 변경 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c341.serverConfigChanged ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> 서버 설정 변경 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c341.operatingDbConnectionChanged ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> 운영 DB 연결 변경 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c341.runtimeConfigured ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> Runtime 구성 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c341.workerStarted ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> Worker 실행 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c341.queueEnqueued ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> Queue enqueue 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c341.adapterConnected ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> Adapter 연결 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c341.naverApiCalled ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> Naver API 호출 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c341.productLookupApiRecalled ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> 상품 조회 API 재호출 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c341.productUpdateApiCalled ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> 상품 수정 API 호출 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c341.dbWritePerformed ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> DB write 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c341.envFileReadOrModified ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> .env / .env.local 열람·수정 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c341.deploymentPreparationStillReadOnly ? 'text-green-700' : 'text-red-600'}`}>
+                <ShieldCheck className="h-3.5 w-3.5" /> 배포 준비는 계속 read-only
+              </span>
+              <span className={`flex items-center gap-1 ${c341.domainConnectionStillReadOnly ? 'text-green-700' : 'text-red-600'}`}>
+                <ShieldCheck className="h-3.5 w-3.5" /> 도메인 연결 검토도 read-only
+              </span>
+              <span className={`flex items-center gap-1 ${c341.apiCallStillBlocked ? 'text-green-700' : 'text-red-600'}`}>
+                <ShieldCheck className="h-3.5 w-3.5" /> API 호출 계속 차단
+              </span>
+              <span className={`flex items-center gap-1 ${c341.dbWriteStillBlocked ? 'text-green-700' : 'text-red-600'}`}>
+                <ShieldCheck className="h-3.5 w-3.5" /> DB write 계속 차단
+              </span>
+              <span className={`flex items-center gap-1 ${c341.workerQueueAdapterStillBlocked ? 'text-green-700' : 'text-red-600'}`}>
+                <ShieldCheck className="h-3.5 w-3.5" /> Worker / Queue / Adapter 계속 차단
+              </span>
+              <span className={`flex items-center gap-1 ${c341.tokenOrAuthStillHidden ? 'text-green-700' : 'text-red-600'}`}>
+                <ShieldCheck className="h-3.5 w-3.5" /> Token/Auth 값 계속 비노출
+              </span>
+              <span className={`flex items-center gap-1 ${c341.rawApiResponseStillHidden ? 'text-green-700' : 'text-red-600'}`}>
+                <ShieldCheck className="h-3.5 w-3.5" /> raw API response 계속 비표시
+              </span>
+              <span className={`flex items-center gap-1 ${c341.actualFinalExecutionApprovalGranted ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> 실제 최종 실행 승인 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c341.actualExecutionApprovalGranted ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> 실제 실행 승인 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c341.actualExecutionStarted ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> 실제 실행 시작 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c341.executionButtonAdded ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> 실행 버튼 추가 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c341.submitActionAdded ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> submit action 추가 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c341.postApiAdded ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> POST API 추가 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c341.priceChanged ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> 가격 변경 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c341.stockChanged ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> 재고 변경 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c341.tokenOrAuthValueExposed ? 'text-red-600' : 'text-green-700'}`}>
+                <ShieldCheck className="h-3.5 w-3.5" /> Token/Auth/Signature/Authorization 비노출 유지
+              </span>
+              <span className={`flex items-center gap-1 ${c341.rawApiResponseExposedOrStored ? 'text-red-600' : 'text-green-700'}`}>
+                <ShieldCheck className="h-3.5 w-3.5" /> raw API response 비저장 유지
+              </span>
+            </div>
+
+            <div className="mb-2 text-xs text-slate-500">
+              <span className="font-medium">원본 Task 340 상태:</span>{' '}
+              {c341.sourceVpsDeploymentCandidateFinalClosureSummarySafetyAuditSealStatus}
+              {' | '}
+              <span className="font-medium">Primary:</span> {c341.primaryClosureItemCount}개
+              {' | '}
+              <span className="font-medium">Subsequent:</span> {c341.subsequentClosureItemCount}개
+              {' | '}
+              <span className="font-medium">총 인증 대상:</span> {c341.totalOutcomeCertificationItemCount}개
+              {' | '}
+              <span className="font-medium">READY:</span> {c341.readyItemCount}개
+              {' | '}
+              <span className="font-medium">PARTIAL:</span> {c341.partialReadyItemCount}개
+              {' | '}
+              <span className="font-medium">BLOCKED:</span> {c341.blockedItemCount}개
+              {' | '}
+              <span className="font-medium">N/S:</span> {c341.notStartedItemCount}개
+            </div>
+
+            {c341.requiresSeparateTask342Approval && (
+              <p className="rounded border border-fuchsia-200 bg-white/80 px-3 py-2 text-xs text-fuchsia-900">
+                {c341.nextTaskApprovalPhrase}
               </p>
             )}
           </div>
