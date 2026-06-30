@@ -312,6 +312,7 @@ import { buildTmsReadOnlyVpsDeploymentCandidateReadinessReviewSafetyAuditSealVie
 import { buildTmsReadOnlyVpsDeploymentCandidateReadinessReviewSafetyAuditSealOutcomeCertificationView } from '@/src/services/tms-read-only-vps-deployment-candidate-readiness-review-safety-audit-seal-outcome-certification-view.service';
 import { buildTmsReadOnlyVpsDeploymentCandidateFinalSummaryView } from '@/src/services/tms-read-only-vps-deployment-candidate-final-summary-view.service';
 import { buildTmsReadOnlyVpsDeploymentCandidateFinalSummaryOutcomeCertificationView } from '@/src/services/tms-read-only-vps-deployment-candidate-final-summary-outcome-certification-view.service';
+import { buildTmsReadOnlyVpsDeploymentCandidateFinalSummarySafetyAuditSealView } from '@/src/services/tms-read-only-vps-deployment-candidate-final-summary-safety-audit-seal-view.service';
 
 // Compute safe DB environment hint from DATABASE_URL without exposing the original value.
 // Returns a classification key, never the actual URL.
@@ -1228,6 +1229,15 @@ export async function GET(
           _tmsReadOnlyVpsDeploymentCandidateReadinessReviewSafetyAuditSealView,
         vpsDeploymentCandidateReadinessReviewSafetyAuditSealOutcomeCertification:
           _tmsReadOnlyVpsDeploymentCandidateReadinessReviewSafetyAuditSealOutcomeCertificationView,
+      });
+    const _tmsReadOnlyVpsDeploymentCandidateFinalSummaryOutcomeCertificationView =
+      buildTmsReadOnlyVpsDeploymentCandidateFinalSummaryOutcomeCertificationView({
+        vpsDeploymentCandidateFinalSummary: _tmsReadOnlyVpsDeploymentCandidateFinalSummaryView,
+      });
+    const _tmsReadOnlyVpsDeploymentCandidateFinalSummarySafetyAuditSealView =
+      buildTmsReadOnlyVpsDeploymentCandidateFinalSummarySafetyAuditSealView({
+        vpsDeploymentCandidateFinalSummaryOutcomeCertification:
+          _tmsReadOnlyVpsDeploymentCandidateFinalSummaryOutcomeCertificationView,
       });
 
     const responseJob = {
@@ -2319,9 +2329,9 @@ export async function GET(
       tmsReadOnlyVpsDeploymentCandidateFinalSummaryView:
         _tmsReadOnlyVpsDeploymentCandidateFinalSummaryView,
       tmsReadOnlyVpsDeploymentCandidateFinalSummaryOutcomeCertificationView:
-        buildTmsReadOnlyVpsDeploymentCandidateFinalSummaryOutcomeCertificationView({
-          vpsDeploymentCandidateFinalSummary: _tmsReadOnlyVpsDeploymentCandidateFinalSummaryView,
-        }),
+        _tmsReadOnlyVpsDeploymentCandidateFinalSummaryOutcomeCertificationView,
+      tmsReadOnlyVpsDeploymentCandidateFinalSummarySafetyAuditSealView:
+        _tmsReadOnlyVpsDeploymentCandidateFinalSummarySafetyAuditSealView,
     };
 
     return NextResponse.json({ ok: true, job: responseJob });
