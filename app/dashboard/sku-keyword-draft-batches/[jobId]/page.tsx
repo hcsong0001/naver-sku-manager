@@ -480,6 +480,7 @@ type DraftBatchJob = {
   naverAuthTokenTestOnlySkeletonStatus?: NaverAuthTokenTestOnlySkeleton | null;
   naverAuthTokenTestApprovalAudit?: NaverAuthTokenTestApprovalAuditField | null;
   tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionBoundaryReviewView?: any;
+  tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionBoundaryOutcomeCertificationView?: any;
   naverAuthTokenFirstTestSafetyBoundary?: {
     ok: boolean;
     readyForExplicitTokenTestApproval: boolean;
@@ -50647,6 +50648,237 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             {c361.nextTaskApprovalPhrase && (
               <p className="rounded border border-fuchsia-200 bg-white/80 px-3 py-2 text-xs text-fuchsia-900">
                 {c361.nextTaskApprovalPhrase}
+              </p>
+            )}
+          </div>
+        );
+      })()}
+
+      {/* ── Task 362: Read-Only Operating Deployment Final Approval Submission Boundary Outcome Certification ── */}
+      {job.tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionBoundaryOutcomeCertificationView && (() => {
+        const c362 = job.tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionBoundaryOutcomeCertificationView as {
+          taskId: number;
+          taskName: string;
+          operatingDeploymentFinalApprovalSubmissionBoundaryOutcomeCertificationStatus: string;
+          outcomeCertifiedGoNoGoDecisionLabel: string;
+          outcomeCertifiedFinalApprovalCandidateDecisionLabel: string;
+          outcomeCertifiedFinalApprovalSubmissionDecisionLabel: string;
+          outcomeCertificationSummaryCards: Array<{
+            label: string;
+            value: string;
+            tone: 'positive' | 'neutral' | 'warning';
+          }>;
+          submissionReadinessBoundaryOutcomeCertificationItems: any[];
+          candidateCertificationBoundaryOutcomeCertificationItems: any[];
+          finalApprovalSubmissionLockOutcomeCertificationItems: any[];
+          finalApprovalGrantBoundaryOutcomeCertificationItems: any[];
+          approvalPacketSubmissionBoundaryOutcomeCertificationItems: any[];
+          deploymentApprovalBoundaryOutcomeCertificationItems: any[];
+          deploymentExecutionBoundaryOutcomeCertificationItems: any[];
+          infrastructureSubmissionBoundaryOutcomeCertificationItems: any[];
+          domainDnsHttpsSubmissionBoundaryOutcomeCertificationItems: any[];
+          operatingDbSubmissionBoundaryOutcomeCertificationItems: any[];
+          runtimeWorkerQueueAdapterSubmissionBoundaryOutcomeCertificationItems: any[];
+          apiAndSecretSubmissionBoundaryOutcomeCertificationItems: any[];
+          uiActionSubmissionBoundaryOutcomeCertificationItems: any[];
+          finalSubmissionRequirementOutcomeCertificationItems: any[];
+          readyItemCount: number;
+          partialReadyItemCount: number;
+          blockedItemCount: number;
+          notStartedItemCount: number;
+          finalApprovalSubmissionBoundaryOutcomeStillReadOnly: boolean;
+          isReadOnlyOperatingDeploymentFinalApprovalSubmissionBoundaryOutcomeCertification: boolean;
+          actualFinalApprovalGranted: boolean;
+          actualFinalApprovalCandidateSaved: boolean;
+          actualFinalApprovalSubmissionPerformed: boolean;
+          actualGoNoGoDecisionSaved: boolean;
+          actualDeploymentApprovalGranted: boolean;
+          actualDeploymentStarted: boolean;
+          requiresSeparateTask363Approval: boolean;
+          recommendedNextStep: string;
+          recommendedDeploymentMode: string;
+          nextTaskApprovalPhrase: string;
+        };
+
+        const statusColor362 =
+          c362.operatingDeploymentFinalApprovalSubmissionBoundaryOutcomeCertificationStatus === 'TMS_READ_ONLY_OPERATING_DEPLOYMENT_FINAL_APPROVAL_SUBMISSION_BOUNDARY_OUTCOME_CERTIFIED_READY'
+            ? 'text-cyan-700'
+            : c362.operatingDeploymentFinalApprovalSubmissionBoundaryOutcomeCertificationStatus === 'TMS_READ_ONLY_OPERATING_DEPLOYMENT_FINAL_APPROVAL_SUBMISSION_BOUNDARY_OUTCOME_CERTIFIED_PARTIAL_READY'
+              ? 'text-amber-600'
+              : c362.operatingDeploymentFinalApprovalSubmissionBoundaryOutcomeCertificationStatus === 'TMS_READ_ONLY_OPERATING_DEPLOYMENT_FINAL_APPROVAL_SUBMISSION_BOUNDARY_OUTCOME_BLOCKED'
+                ? 'text-red-600'
+                : 'text-slate-500';
+
+        const groupedItems362: Record<string, any[]> = {
+          FINAL_APPROVAL_SUBMISSION_READINESS_BOUNDARY_OUTCOME: c362.submissionReadinessBoundaryOutcomeCertificationItems,
+          FINAL_APPROVAL_CANDIDATE_CERTIFICATION_BOUNDARY_OUTCOME: c362.candidateCertificationBoundaryOutcomeCertificationItems,
+          FINAL_APPROVAL_SUBMISSION_LOCK_OUTCOME: c362.finalApprovalSubmissionLockOutcomeCertificationItems,
+          FINAL_APPROVAL_GRANT_BOUNDARY_OUTCOME: c362.finalApprovalGrantBoundaryOutcomeCertificationItems,
+          FINAL_APPROVAL_PACKET_SUBMISSION_BOUNDARY_OUTCOME: c362.approvalPacketSubmissionBoundaryOutcomeCertificationItems,
+          DEPLOYMENT_APPROVAL_BOUNDARY_OUTCOME: c362.deploymentApprovalBoundaryOutcomeCertificationItems,
+          DEPLOYMENT_EXECUTION_BOUNDARY_OUTCOME: c362.deploymentExecutionBoundaryOutcomeCertificationItems,
+          INFRASTRUCTURE_SUBMISSION_BOUNDARY_OUTCOME: c362.infrastructureSubmissionBoundaryOutcomeCertificationItems,
+          DOMAIN_DNS_HTTPS_SUBMISSION_BOUNDARY_OUTCOME: c362.domainDnsHttpsSubmissionBoundaryOutcomeCertificationItems,
+          OPERATING_DB_SUBMISSION_BOUNDARY_OUTCOME: c362.operatingDbSubmissionBoundaryOutcomeCertificationItems,
+          RUNTIME_WORKER_QUEUE_ADAPTER_SUBMISSION_BOUNDARY_OUTCOME: c362.runtimeWorkerQueueAdapterSubmissionBoundaryOutcomeCertificationItems,
+          API_AND_SECRET_SUBMISSION_BOUNDARY_OUTCOME: c362.apiAndSecretSubmissionBoundaryOutcomeCertificationItems,
+          UI_ACTION_SUBMISSION_BOUNDARY_OUTCOME: c362.uiActionSubmissionBoundaryOutcomeCertificationItems,
+          FINAL_SUBMISSION_REQUIREMENT_OUTCOME: c362.finalSubmissionRequirementOutcomeCertificationItems,
+        };
+
+        const groupMeta362 = [
+          { category: 'FINAL_APPROVAL_SUBMISSION_READINESS_BOUNDARY_OUTCOME', label: 'Submission Readiness Boundary 결과 인증', count: c362.submissionReadinessBoundaryOutcomeCertificationItems.length },
+          { category: 'FINAL_APPROVAL_CANDIDATE_CERTIFICATION_BOUNDARY_OUTCOME', label: 'Candidate Certification Boundary 결과 인증', count: c362.candidateCertificationBoundaryOutcomeCertificationItems.length },
+          { category: 'FINAL_APPROVAL_SUBMISSION_LOCK_OUTCOME', label: 'Final Approval Submission Lock 결과 인증', count: c362.finalApprovalSubmissionLockOutcomeCertificationItems.length },
+          { category: 'FINAL_APPROVAL_GRANT_BOUNDARY_OUTCOME', label: 'Final Approval Grant Boundary 결과 인증', count: c362.finalApprovalGrantBoundaryOutcomeCertificationItems.length },
+          { category: 'FINAL_APPROVAL_PACKET_SUBMISSION_BOUNDARY_OUTCOME', label: 'Approval Packet Submission Boundary 결과 인증', count: c362.approvalPacketSubmissionBoundaryOutcomeCertificationItems.length },
+          { category: 'DEPLOYMENT_APPROVAL_BOUNDARY_OUTCOME', label: 'Deployment Approval Boundary 결과 인증', count: c362.deploymentApprovalBoundaryOutcomeCertificationItems.length },
+          { category: 'DEPLOYMENT_EXECUTION_BOUNDARY_OUTCOME', label: 'Deployment Execution Boundary 결과 인증', count: c362.deploymentExecutionBoundaryOutcomeCertificationItems.length },
+          { category: 'INFRASTRUCTURE_SUBMISSION_BOUNDARY_OUTCOME', label: 'Infrastructure Submission Boundary 결과 인증', count: c362.infrastructureSubmissionBoundaryOutcomeCertificationItems.length },
+          { category: 'DOMAIN_DNS_HTTPS_SUBMISSION_BOUNDARY_OUTCOME', label: 'Domain / DNS / HTTPS Submission Boundary 결과 인증', count: c362.domainDnsHttpsSubmissionBoundaryOutcomeCertificationItems.length },
+          { category: 'OPERATING_DB_SUBMISSION_BOUNDARY_OUTCOME', label: 'Operating DB Submission Boundary 결과 인증', count: c362.operatingDbSubmissionBoundaryOutcomeCertificationItems.length },
+          { category: 'RUNTIME_WORKER_QUEUE_ADAPTER_SUBMISSION_BOUNDARY_OUTCOME', label: 'Runtime / Worker / Queue / Adapter Submission Boundary 결과 인증', count: c362.runtimeWorkerQueueAdapterSubmissionBoundaryOutcomeCertificationItems.length },
+          { category: 'API_AND_SECRET_SUBMISSION_BOUNDARY_OUTCOME', label: 'API / Secret Submission Boundary 결과 인증', count: c362.apiAndSecretSubmissionBoundaryOutcomeCertificationItems.length },
+          { category: 'UI_ACTION_SUBMISSION_BOUNDARY_OUTCOME', label: 'UI Action Submission Boundary 결과 인증', count: c362.uiActionSubmissionBoundaryOutcomeCertificationItems.length },
+          { category: 'FINAL_SUBMISSION_REQUIREMENT_OUTCOME', label: 'Final Submission Requirement 결과 인증', count: c362.finalSubmissionRequirementOutcomeCertificationItems.length },
+        ];
+
+        return (
+          <div className="mb-6 rounded-xl border border-cyan-300 bg-cyan-50/60 p-5 shadow-sm">
+            <div className="mb-3 flex items-center gap-2">
+              <span className="rounded bg-cyan-100 px-2 py-0.5 text-xs font-bold text-cyan-700">Task {c362.taskId}</span>
+              <h3 className="text-sm font-bold text-cyan-900">{c362.taskName}</h3>
+            </div>
+            <p className="mb-3 text-xs text-slate-600">이 패널은 운영 배포 최종 승인 제출 경계 검토 결과를 read-only로 인증하는 화면입니다.
+            이 화면은 실제 최종 승인, 실제 승인 제출, 실제 배포 승인, 실제 배포 실행 작업이 아닙니다.
+            Task 363은 사용자 별도 명시 승인 없이는 진행하지 않습니다.</p>
+
+            <div className="mb-3 flex flex-wrap gap-3">
+              <div className="rounded border border-cyan-200 bg-white/80 px-3 py-2">
+                <p className="text-[10px] text-slate-500">Final Approval Submission Boundary Outcome Certification 상태</p>
+                <p className={`text-xs font-bold ${statusColor362}`}>
+                  {c362.operatingDeploymentFinalApprovalSubmissionBoundaryOutcomeCertificationStatus.replace('TMS_READ_ONLY_OPERATING_DEPLOYMENT_FINAL_APPROVAL_SUBMISSION_BOUNDARY_OUTCOME_', '')}
+                </p>
+              </div>
+              <div className="rounded border border-cyan-200 bg-white/80 px-3 py-2">
+                <p className="text-[10px] text-slate-500">인증된 Go/No-Go 후보</p>
+                <p className="text-xs font-bold text-cyan-700">{c362.outcomeCertifiedGoNoGoDecisionLabel}</p>
+              </div>
+              <div className="rounded border border-cyan-200 bg-white/80 px-3 py-2">
+                <p className="text-[10px] text-slate-500">인증된 최종 승인 후보 결정</p>
+                <p className="text-xs font-bold text-cyan-700">{c362.outcomeCertifiedFinalApprovalCandidateDecisionLabel}</p>
+              </div>
+              <div className="rounded border border-cyan-200 bg-white/80 px-3 py-2">
+                <p className="text-[10px] text-slate-500">인증된 최종 승인 제출 결정</p>
+                <p className="text-xs font-bold text-cyan-700">{c362.outcomeCertifiedFinalApprovalSubmissionDecisionLabel}</p>
+              </div>
+            </div>
+
+            {c362.outcomeCertificationSummaryCards.length > 0 && (
+              <div className="mb-3 flex flex-wrap gap-2">
+                {c362.outcomeCertificationSummaryCards.map((card) => (
+                  <div
+                    key={card.label}
+                    className={`rounded border px-3 py-1.5 text-xs ${
+                      card.tone === 'positive'
+                        ? 'border-cyan-200 bg-cyan-50 text-cyan-800'
+                        : card.tone === 'warning'
+                          ? 'border-amber-200 bg-amber-50 text-amber-800'
+                          : 'border-slate-200 bg-white text-slate-700'
+                    }`}
+                  >
+                    <span className="font-medium">{card.label}:</span> {card.value}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="mb-3 space-y-1">
+              {groupMeta362.map((group) => {
+                const items = groupedItems362[group.category] ?? [];
+                if (items.length === 0) return null;
+                return (
+                  <div key={group.category} className="mb-3">
+                    <p className="mb-1 text-xs font-semibold text-cyan-800">
+                      {group.label} ({group.count}개)
+                    </p>
+                    <ul className="space-y-1">
+                      {items.map((item) => (
+                        <li key={item.certificationItemId} className="flex items-start gap-2 text-xs text-slate-700">
+                          <span
+                            className={
+                              item.isReady
+                                ? 'mt-0.5 h-2 w-2 shrink-0 rounded-full bg-cyan-500'
+                                : item.isPartialReady
+                                  ? 'mt-0.5 h-2 w-2 shrink-0 rounded-full bg-amber-400'
+                                  : item.isBlocked
+                                    ? 'mt-0.5 h-2 w-2 shrink-0 rounded-full bg-red-500'
+                                    : 'mt-0.5 h-2 w-2 shrink-0 rounded-full bg-slate-300'
+                            }
+                          />
+                          <span>
+                            <span className="font-medium">{item.label}</span>
+                            {item.requiresSeparateApproval && (
+                              <span className="ml-1 rounded bg-fuchsia-100 px-1 py-0.5 text-[10px] text-fuchsia-700">별도승인필요</span>
+                            )}
+                            <span className="ml-1 text-slate-500">- {item.description}</span>
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="mb-3 flex flex-wrap gap-2 text-xs">
+              <span className="rounded bg-cyan-100 px-2 py-0.5 text-cyan-700">Ready: {c362.readyItemCount}개</span>
+              <span className="rounded bg-amber-100 px-2 py-0.5 text-amber-700">Partial: {c362.partialReadyItemCount}개</span>
+              <span className="rounded bg-red-100 px-2 py-0.5 text-red-700">Blocked: {c362.blockedItemCount}개</span>
+              <span className="rounded bg-slate-100 px-2 py-0.5 text-slate-600">Not Started: {c362.notStartedItemCount}개</span>
+            </div>
+
+            <div className="mb-3 flex flex-wrap gap-2 text-xs">
+              {c362.finalApprovalSubmissionBoundaryOutcomeStillReadOnly && (
+                <span className="rounded bg-cyan-100 px-2 py-0.5 text-cyan-700">최종 승인 제출 경계 결과 Read-Only</span>
+              )}
+              {c362.isReadOnlyOperatingDeploymentFinalApprovalSubmissionBoundaryOutcomeCertification && (
+                <span className="rounded bg-slate-100 px-2 py-0.5 text-slate-600">실제 승인/제출/배포 없음</span>
+              )}
+              {!c362.actualFinalApprovalGranted && (
+                <span className="rounded bg-slate-100 px-2 py-0.5 text-slate-500">실제 최종 승인 없음</span>
+              )}
+              {!c362.actualFinalApprovalCandidateSaved && (
+                <span className="rounded bg-slate-100 px-2 py-0.5 text-slate-500">실제 최종 승인 후보 저장 없음</span>
+              )}
+              {!c362.actualFinalApprovalSubmissionPerformed && (
+                <span className="rounded bg-slate-100 px-2 py-0.5 text-slate-500">실제 최종 승인 제출 없음</span>
+              )}
+              {!c362.actualGoNoGoDecisionSaved && (
+                <span className="rounded bg-slate-100 px-2 py-0.5 text-slate-500">실제 Go/No-Go 결정 저장 없음</span>
+              )}
+              {!c362.actualDeploymentApprovalGranted && (
+                <span className="rounded bg-slate-100 px-2 py-0.5 text-slate-500">실제 배포 승인 없음</span>
+              )}
+              {!c362.actualDeploymentStarted && (
+                <span className="rounded bg-slate-100 px-2 py-0.5 text-slate-500">실제 배포 실행 없음</span>
+              )}
+              {c362.requiresSeparateTask363Approval && (
+                <span className="rounded bg-fuchsia-100 px-2 py-0.5 text-fuchsia-700">Task 363 별도 승인 필요</span>
+              )}
+            </div>
+
+            <div className="mb-3 text-xs text-slate-600">
+              <span className="font-medium">권장 다음 단계:</span>{' '}
+              <span className="text-cyan-700">{c362.recommendedNextStep}</span>
+              {' | '}
+              <span className="font-medium">배포 모드:</span>{' '}
+              <span className="text-cyan-700">{c362.recommendedDeploymentMode}</span>
+            </div>
+
+            {c362.nextTaskApprovalPhrase && (
+              <p className="rounded border border-fuchsia-200 bg-white/80 px-3 py-2 text-xs text-fuchsia-900">
+                {c362.nextTaskApprovalPhrase}
               </p>
             )}
           </div>

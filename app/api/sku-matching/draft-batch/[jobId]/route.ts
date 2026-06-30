@@ -342,6 +342,7 @@ import { buildTmsReadOnlyOperatingDeploymentFinalApprovalSealOutcomeCertificatio
 import { buildTmsReadOnlyOperatingDeploymentFinalApprovalCandidateReviewView } from '@/src/services/tms-read-only-operating-deployment-final-approval-candidate-review-view.service';
 import { buildTmsReadOnlyOperatingDeploymentFinalApprovalCandidateOutcomeCertificationView } from '@/src/services/tms-read-only-operating-deployment-final-approval-candidate-outcome-certification-view.service';
 import { buildTmsReadOnlyOperatingDeploymentFinalApprovalSubmissionBoundaryReviewView } from '@/src/services/tms-read-only-operating-deployment-final-approval-submission-boundary-review-view.service';
+import { buildTmsReadOnlyOperatingDeploymentFinalApprovalSubmissionBoundaryOutcomeCertificationView } from '@/src/services/tms-read-only-operating-deployment-final-approval-submission-boundary-outcome-certification-view.service';
 
 // Compute safe DB environment hint from DATABASE_URL without exposing the original value.
 // Returns a classification key, never the actual URL.
@@ -1463,6 +1464,13 @@ export async function GET(
         {
           operatingDeploymentFinalApprovalCandidateOutcomeCertification:
             _tmsReadOnlyOperatingDeploymentFinalApprovalCandidateOutcomeCertificationView,
+        },
+      );
+    const _tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionBoundaryOutcomeCertificationView =
+      buildTmsReadOnlyOperatingDeploymentFinalApprovalSubmissionBoundaryOutcomeCertificationView(
+        {
+          operatingDeploymentFinalApprovalSubmissionBoundaryReview:
+            _tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionBoundaryReviewView,
         },
       );
 
@@ -2616,6 +2624,8 @@ export async function GET(
         _tmsReadOnlyOperatingDeploymentFinalApprovalCandidateOutcomeCertificationView,
       tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionBoundaryReviewView:
         _tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionBoundaryReviewView,
+      tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionBoundaryOutcomeCertificationView:
+        _tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionBoundaryOutcomeCertificationView,
     };
 
     return NextResponse.json({ ok: true, job: responseJob });
