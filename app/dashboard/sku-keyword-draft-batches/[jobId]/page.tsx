@@ -3950,6 +3950,7 @@ type DraftBatchJob = {
   tmsReadOnlyVpsDeploymentCandidateReadinessReviewOutcomeCertificationView?: any;
   tmsReadOnlyVpsDeploymentCandidateReadinessReviewSafetyAuditSealView?: any;
   tmsReadOnlyVpsDeploymentCandidateReadinessReviewSafetyAuditSealOutcomeCertificationView?: any;
+  tmsReadOnlyVpsDeploymentCandidateFinalSummaryView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -42373,6 +42374,178 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             {c325.requiresSeparateTask326Approval && (
               <p className="rounded border border-fuchsia-200 bg-white/80 px-3 py-2 text-xs text-fuchsia-900">
                 {c325.nextTaskApprovalPhrase}
+              </p>
+            )}
+          </div>
+        );
+      })()}
+
+      {/* ── Task 330: Read-Only VPS Deployment Candidate Final Summary ── */}
+      {job.tmsReadOnlyVpsDeploymentCandidateFinalSummaryView && (() => {
+        const c330 = job.tmsReadOnlyVpsDeploymentCandidateFinalSummaryView as {
+          taskId: number;
+          panelTitle: string;
+          description: string;
+          vpsDeploymentCandidateFinalSummaryStatus: string;
+          sourceTaskStatuses: Record<string, string>;
+          finalSummaryItems: Array<{
+            summaryItemId: string;
+            taskId: number;
+            taskName: string;
+            sourceStatus: string;
+            summaryStatus: 'READY' | 'PARTIAL_READY' | 'BLOCKED' | 'NOT_STARTED';
+            isReady: boolean;
+            isPartialReady: boolean;
+            isBlocked: boolean;
+            isNotStarted: boolean;
+            message: string;
+          }>;
+          finalSummaryCards: Array<{ label: string; value: string; tone: 'positive' | 'neutral' | 'warning' }>;
+          readyItemCount: number;
+          partialReadyItemCount: number;
+          blockedItemCount: number;
+          notStartedItemCount: number;
+          totalSummaryItemCount: number;
+          vpsCandidateFlowReadOnlyCompleted: boolean;
+          vpsCandidateFlowStillDisplayOnly: boolean;
+          deploymentPreparationStillReadOnly: boolean;
+          domainConnectionStillReadOnly: boolean;
+          apiCallStillBlocked: boolean;
+          dbWriteStillBlocked: boolean;
+          workerQueueAdapterStillBlocked: boolean;
+          tokenOrAuthStillHidden: boolean;
+          rawApiResponseStillHidden: boolean;
+          actualVpsServerCreated: boolean;
+          actualVpsConfigChanged: boolean;
+          actualProductionTransitionStarted: boolean;
+          actualDeploymentStarted: boolean;
+          actualDomainConnected: boolean;
+          requiresSeparateTask331Approval: boolean;
+          nextTaskApprovalPhrase: string;
+        };
+
+        const getSummaryItemTone = (status: 'READY' | 'PARTIAL_READY' | 'BLOCKED' | 'NOT_STARTED') =>
+          status === 'READY'
+            ? 'bg-green-100 text-green-700 border-green-200'
+            : status === 'PARTIAL_READY'
+              ? 'bg-amber-100 text-amber-700 border-amber-200'
+              : status === 'BLOCKED'
+                ? 'bg-red-100 text-red-700 border-red-200'
+                : 'bg-slate-100 text-slate-600 border-slate-200';
+
+        const getCardTone = (tone: 'positive' | 'neutral' | 'warning') =>
+          tone === 'positive'
+            ? 'bg-green-100 text-green-700 border-green-200'
+            : tone === 'warning'
+              ? 'bg-amber-100 text-amber-700 border-amber-200'
+              : 'bg-slate-100 text-slate-700 border-slate-200';
+
+        return (
+          <div className="mb-6 rounded-lg border border-indigo-300 bg-indigo-50/60 p-4 text-sm">
+            <div className="mb-3 flex items-center gap-2">
+              <ClipboardList className="h-5 w-5 text-indigo-600" />
+              <h2 className="text-base font-semibold text-indigo-900">
+                Task {c330.taskId}: {c330.panelTitle}
+              </h2>
+              <span className="ml-auto rounded-full border border-indigo-300 bg-indigo-100 px-2 py-0.5 text-xs text-indigo-700">
+                {c330.vpsDeploymentCandidateFinalSummaryStatus}
+              </span>
+            </div>
+
+            <p className="mb-3 text-xs text-slate-600">{c330.description}</p>
+
+            <div className="mb-3 rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+              <span className="font-semibold">⚠ 오해 방지:</span>{' '}
+              이 패널은 Task 322~329 VPS 배포 후보 검토 흐름을 read-only로 최종 요약하는 화면입니다.
+              이 화면은 실제 VPS 생성, 실제 배포 실행, 실제 도메인 연결 작업이 아닙니다.
+              Task 331은 사용자 별도 명시 승인 없이는 진행하지 않습니다.
+            </div>
+
+            <div className="mb-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {c330.finalSummaryCards.map((card) => (
+                <div
+                  key={card.label}
+                  className={`rounded border p-2 text-center ${getCardTone(card.tone)}`}
+                >
+                  <div className="text-sm font-bold">{card.value}</div>
+                  <div className="text-xs">{card.label}</div>
+                </div>
+              ))}
+            </div>
+
+            <div className="mb-3 rounded border border-slate-200 bg-white/60 p-3">
+              <p className="mb-2 text-xs font-semibold text-slate-700">Task 322~329 최종 요약 항목</p>
+              <ul className="space-y-1">
+                {c330.finalSummaryItems.map((item) => (
+                  <li
+                    key={item.summaryItemId}
+                    className={`rounded border px-2 py-1 text-xs ${getSummaryItemTone(item.summaryStatus)}`}
+                  >
+                    <span className="font-medium">Task {item.taskId}: {item.taskName}</span>
+                    <span className="ml-2 opacity-70">[{item.summaryStatus}]</span>
+                    <span className="ml-1 opacity-80">— {item.message}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="mb-3 flex flex-wrap gap-3 text-xs">
+              <span className={`flex items-center gap-1 ${c330.vpsCandidateFlowReadOnlyCompleted ? 'text-green-700' : 'text-red-600'}`}>
+                <CheckCircle2 className="w-3.5 h-3.5" /> VPS 후보 검토 흐름 read-only 완료
+              </span>
+              <span className={`flex items-center gap-1 ${c330.vpsCandidateFlowStillDisplayOnly ? 'text-green-700' : 'text-red-600'}`}>
+                <CheckCircle2 className="w-3.5 h-3.5" /> 표시 전용 유지
+              </span>
+              <span className={`flex items-center gap-1 ${c330.actualVpsServerCreated ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="w-3.5 h-3.5" /> 실제 VPS 생성 미수행
+              </span>
+              <span className={`flex items-center gap-1 ${c330.actualVpsConfigChanged ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="w-3.5 h-3.5" /> 실제 VPS 설정 변경 미수행
+              </span>
+              <span className={`flex items-center gap-1 ${c330.actualProductionTransitionStarted ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="w-3.5 h-3.5" /> 실제 운영 전환 미시작
+              </span>
+              <span className={`flex items-center gap-1 ${c330.actualDeploymentStarted ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="w-3.5 h-3.5" /> 실제 배포 미시작
+              </span>
+              <span className={`flex items-center gap-1 ${c330.actualDomainConnected ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="w-3.5 h-3.5" /> 실제 도메인 연결 미수행
+              </span>
+              <span className={`flex items-center gap-1 ${c330.deploymentPreparationStillReadOnly ? 'text-green-700' : 'text-red-600'}`}>
+                <CheckCircle2 className="w-3.5 h-3.5" /> 배포 준비 read-only 유지
+              </span>
+              <span className={`flex items-center gap-1 ${c330.apiCallStillBlocked ? 'text-green-700' : 'text-red-600'}`}>
+                <Lock className="w-3.5 h-3.5" /> API 호출 차단 유지
+              </span>
+              <span className={`flex items-center gap-1 ${c330.dbWriteStillBlocked ? 'text-green-700' : 'text-red-600'}`}>
+                <Lock className="w-3.5 h-3.5" /> DB write 차단 유지
+              </span>
+              <span className={`flex items-center gap-1 ${c330.workerQueueAdapterStillBlocked ? 'text-green-700' : 'text-red-600'}`}>
+                <Lock className="w-3.5 h-3.5" /> Worker / Queue / Adapter 차단 유지
+              </span>
+              <span className={`flex items-center gap-1 ${c330.tokenOrAuthStillHidden ? 'text-green-700' : 'text-red-600'}`}>
+                <ShieldCheck className="w-3.5 h-3.5" /> Token/Auth 비노출 유지
+              </span>
+              <span className={`flex items-center gap-1 ${c330.rawApiResponseStillHidden ? 'text-green-700' : 'text-red-600'}`}>
+                <ShieldCheck className="w-3.5 h-3.5" /> raw API response 비노출 유지
+              </span>
+            </div>
+
+            <div className="mb-2 text-xs text-slate-500">
+              <span className="font-medium">READY 항목:</span> {c330.readyItemCount}개
+              {' | '}
+              <span className="font-medium">PARTIAL:</span> {c330.partialReadyItemCount}개
+              {' | '}
+              <span className="font-medium">BLOCKED:</span> {c330.blockedItemCount}개
+              {' | '}
+              <span className="font-medium">N/S:</span> {c330.notStartedItemCount}개
+              {' | '}
+              <span className="font-medium">전체:</span> {c330.totalSummaryItemCount}개
+            </div>
+
+            {c330.requiresSeparateTask331Approval && (
+              <p className="rounded border border-fuchsia-200 bg-white/80 px-3 py-2 text-xs text-fuchsia-900">
+                {c330.nextTaskApprovalPhrase}
               </p>
             )}
           </div>
