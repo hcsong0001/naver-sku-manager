@@ -3964,6 +3964,7 @@ type DraftBatchJob = {
   tmsReadOnlyVpsDeploymentCandidateFinalClosureSummarySafetyAuditSealOutcomeCertificationView?: any;
   tmsReadOnlyOperatingDeploymentDesignReviewView?: any;
   tmsReadOnlyDomainDnsHttpsConnectionPlanReviewView?: any;
+  tmsReadOnlyOperatingDbBackupRollbackPlanReviewView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -45799,6 +45800,456 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             {c343.requiresSeparateTask344Approval && (
               <p className="rounded border border-fuchsia-200 bg-white/80 px-3 py-2 text-xs text-fuchsia-900">
                 {c343.nextTaskApprovalPhrase}
+              </p>
+            )}
+          </div>
+        );
+      })()}
+
+      {/* ── Task 344: Read-Only Operating DB Backup Rollback Plan Review ── */}
+      {job.tmsReadOnlyOperatingDbBackupRollbackPlanReviewView && (() => {
+        const c344 = job.tmsReadOnlyOperatingDbBackupRollbackPlanReviewView as {
+          taskId: number;
+          panelTitle: string;
+          description: string;
+          sourceDomainDnsHttpsConnectionPlanReviewStatus: string;
+          operatingDbBackupRollbackPlanReviewStatus: string;
+          operatingDbBackupRollbackPlanReviewReady: boolean;
+          operatingDbBackupRollbackPlanReviewPartialReady: boolean;
+          operatingDbBackupRollbackPlanReviewBlocked: boolean;
+          operatingDbBackupRollbackPlanReviewNotStarted: boolean;
+          operatingDbBackupRollbackPlanReviewStarted: boolean;
+          operatingDbBackupRollbackPlanStillReadOnly: boolean;
+          operatingDbSeparationPlanItems: Array<{
+            planItemId: string;
+            label: string;
+            description: string;
+            reviewStatus: 'READY' | 'PARTIAL_READY' | 'BLOCKED' | 'NOT_STARTED';
+            requiresSeparateApproval: boolean;
+          }>;
+          operatingDbConnectionPlanItems: Array<{
+            planItemId: string;
+            label: string;
+            description: string;
+            reviewStatus: 'READY' | 'PARTIAL_READY' | 'BLOCKED' | 'NOT_STARTED';
+            requiresSeparateApproval: boolean;
+          }>;
+          dbBackupPlanItems: Array<{
+            planItemId: string;
+            label: string;
+            description: string;
+            reviewStatus: 'READY' | 'PARTIAL_READY' | 'BLOCKED' | 'NOT_STARTED';
+            requiresSeparateApproval: boolean;
+          }>;
+          dbRestorePlanItems: Array<{
+            planItemId: string;
+            label: string;
+            description: string;
+            reviewStatus: 'READY' | 'PARTIAL_READY' | 'BLOCKED' | 'NOT_STARTED';
+            requiresSeparateApproval: boolean;
+          }>;
+          codeRollbackPlanItems: Array<{
+            planItemId: string;
+            label: string;
+            description: string;
+            reviewStatus: 'READY' | 'PARTIAL_READY' | 'BLOCKED' | 'NOT_STARTED';
+            requiresSeparateApproval: boolean;
+          }>;
+          deploymentFailureRecoveryPlanItems: Array<{
+            planItemId: string;
+            label: string;
+            description: string;
+            reviewStatus: 'READY' | 'PARTIAL_READY' | 'BLOCKED' | 'NOT_STARTED';
+            requiresSeparateApproval: boolean;
+          }>;
+          dbApprovalRequirementItems: Array<{
+            planItemId: string;
+            label: string;
+            description: string;
+            reviewStatus: 'READY' | 'PARTIAL_READY' | 'BLOCKED' | 'NOT_STARTED';
+            requiresSeparateApproval: boolean;
+          }>;
+          operatingDbBackupRollbackSummaryCards: Array<{
+            label: string;
+            value: string;
+            tone: 'positive' | 'neutral' | 'warning';
+          }>;
+          recommendedOperatingDbMode: string;
+          recommendedDatabaseUrlHandlingMode: string;
+          recommendedDbBackupMode: string;
+          recommendedDbRestoreMode: string;
+          recommendedCodeRollbackMode: string;
+          recommendedDeploymentFailureRecoveryMode: string;
+          recommendedEnvSecretHandlingMode: string;
+          operatingDbSeparationPlanItemCount: number;
+          operatingDbConnectionPlanItemCount: number;
+          dbBackupPlanItemCount: number;
+          dbRestorePlanItemCount: number;
+          codeRollbackPlanItemCount: number;
+          deploymentFailureRecoveryPlanItemCount: number;
+          dbApprovalRequirementItemCount: number;
+          operatingDbConnectionChanged: boolean;
+          databaseUrlChanged: boolean;
+          envFileReadOrModified: boolean;
+          dbWritePerformed: boolean;
+          dbBackupExecuted: boolean;
+          dbRestoreExecuted: boolean;
+          rollbackExecuted: boolean;
+          migrationExecuted: boolean;
+          actualDomainConnected: boolean;
+          dnsChanged: boolean;
+          dnsRecordCreatedOrModified: boolean;
+          sslCertificateIssued: boolean;
+          httpsEnabled: boolean;
+          actualVpsServerCreated: boolean;
+          actualVpsConfigChanged: boolean;
+          actualProductionTransitionStarted: boolean;
+          actualDeploymentStarted: boolean;
+          runtimeConfigured: boolean;
+          workerStarted: boolean;
+          queueEnqueued: boolean;
+          adapterConnected: boolean;
+          naverApiCalled: boolean;
+          productLookupApiRecalled: boolean;
+          productUpdateApiCalled: boolean;
+          operatingDbConnectionStillReadOnly: boolean;
+          databaseUrlChangeStillBlocked: boolean;
+          dbBackupStillReadOnly: boolean;
+          dbRestoreStillReadOnly: boolean;
+          rollbackStillReadOnly: boolean;
+          migrationStillBlocked: boolean;
+          deploymentPreparationStillReadOnly: boolean;
+          domainConnectionStillReadOnly: boolean;
+          apiCallStillBlocked: boolean;
+          dbWriteStillBlocked: boolean;
+          workerQueueAdapterStillBlocked: boolean;
+          tokenOrAuthStillHidden: boolean;
+          rawApiResponseStillHidden: boolean;
+          requiresSeparateTask345Approval: boolean;
+          nextTaskApprovalPhrase: string;
+          actualFinalExecutionApprovalGranted: boolean;
+          actualExecutionApprovalGranted: boolean;
+          actualExecutionStarted: boolean;
+          executionButtonAdded: boolean;
+          submitActionAdded: boolean;
+          postApiAdded: boolean;
+          priceChanged: boolean;
+          stockChanged: boolean;
+          tokenOrAuthValueExposed: boolean;
+          rawApiResponseExposedOrStored: boolean;
+        };
+
+        const getPlanTone344 = (
+          status: 'READY' | 'PARTIAL_READY' | 'BLOCKED' | 'NOT_STARTED',
+        ) =>
+          status === 'READY'
+            ? 'bg-green-100 text-green-700 border-green-200'
+            : status === 'PARTIAL_READY'
+              ? 'bg-amber-100 text-amber-700 border-amber-200'
+              : status === 'BLOCKED'
+                ? 'bg-red-100 text-red-700 border-red-200'
+                : 'bg-slate-100 text-slate-600 border-slate-200';
+
+        const getCardTone344 = (tone: 'positive' | 'neutral' | 'warning') =>
+          tone === 'positive'
+            ? 'bg-green-100 text-green-700 border-green-200'
+            : tone === 'warning'
+              ? 'bg-amber-100 text-amber-700 border-amber-200'
+              : 'bg-slate-100 text-slate-700 border-slate-200';
+
+        const renderPlanGroup344 = (
+          title: string,
+          items: Array<{
+            planItemId: string;
+            label: string;
+            description: string;
+            reviewStatus: 'READY' | 'PARTIAL_READY' | 'BLOCKED' | 'NOT_STARTED';
+            requiresSeparateApproval: boolean;
+          }>,
+        ) => (
+          <div className="rounded border border-slate-200 bg-white/70 p-3">
+            <p className="mb-2 text-xs font-semibold text-slate-700">{title}</p>
+            <ul className="space-y-1">
+              {items.map((item) => (
+                <li
+                  key={item.planItemId}
+                  className={`rounded border px-2 py-1 text-xs ${getPlanTone344(item.reviewStatus)}`}
+                >
+                  <span className="font-medium">{item.label}</span>
+                  <span className="ml-2 opacity-70">[{item.reviewStatus}]</span>
+                  {item.requiresSeparateApproval && (
+                    <span className="ml-2 rounded-full border border-fuchsia-200 bg-fuchsia-50 px-1.5 py-0.5 text-[10px] text-fuchsia-800">
+                      별도 승인 필요
+                    </span>
+                  )}
+                  <div className="mt-1 opacity-80">{item.description}</div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        );
+
+        return (
+          <div className="mb-6 rounded-lg border border-cyan-300 bg-cyan-50/60 p-4 text-sm">
+            <div className="mb-3 flex items-center gap-2">
+              <FileCheck className="h-5 w-5 text-cyan-700" />
+              <h2 className="text-base font-semibold text-cyan-950">
+                Task {c344.taskId}: {c344.panelTitle}
+              </h2>
+              <span className="ml-auto rounded-full border border-cyan-300 bg-cyan-100 px-2 py-0.5 text-xs text-cyan-800">
+                {c344.operatingDbBackupRollbackPlanReviewStatus}
+              </span>
+            </div>
+
+            <p className="mb-3 text-xs text-slate-600">{c344.description}</p>
+
+            <div className="mb-3 rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+              <span className="font-semibold">⚠ 오해 방지:</span>{' '}
+              이 패널은 운영 DB / 백업 / 롤백 계획을 read-only로 검토하는 화면입니다.
+              이 화면은 실제 운영 DB 연결 변경, DB write, DB 백업, DB 복구, rollback 실행 작업이 아닙니다.
+              .env / .env.local을 열람하거나 수정하지 않습니다.
+              Task 345는 사용자 별도 명시 승인 없이는 진행하지 않습니다.
+            </div>
+
+            <div className="mb-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {c344.operatingDbBackupRollbackSummaryCards.map((card) => (
+                <div
+                  key={card.label}
+                  className={`rounded border p-2 text-center ${getCardTone344(card.tone)}`}
+                >
+                  <div className="text-sm font-bold">{card.value}</div>
+                  <div className="text-xs">{card.label}</div>
+                </div>
+              ))}
+            </div>
+
+            <div className="mb-3 rounded border border-slate-200 bg-white/70 p-3">
+              <p className="mb-2 text-xs font-semibold text-slate-700">권장 운영 DB / 백업 / 롤백 계획 값</p>
+              <ul className="space-y-1 text-xs text-slate-700">
+                <li className="rounded border border-cyan-200 bg-cyan-50 px-2 py-1">
+                  운영 DB 분리 모드: {c344.recommendedOperatingDbMode}
+                </li>
+                <li className="rounded border border-cyan-200 bg-cyan-50 px-2 py-1">
+                  DATABASE_URL 처리 모드: {c344.recommendedDatabaseUrlHandlingMode}
+                </li>
+                <li className="rounded border border-cyan-200 bg-cyan-50 px-2 py-1">
+                  DB 백업 계획 모드: {c344.recommendedDbBackupMode}
+                </li>
+                <li className="rounded border border-cyan-200 bg-cyan-50 px-2 py-1">
+                  DB 복구 계획 모드: {c344.recommendedDbRestoreMode}
+                </li>
+                <li className="rounded border border-cyan-200 bg-cyan-50 px-2 py-1">
+                  코드 롤백 계획 모드: {c344.recommendedCodeRollbackMode}
+                </li>
+                <li className="rounded border border-cyan-200 bg-cyan-50 px-2 py-1">
+                  배포 실패 복구 계획 모드: {c344.recommendedDeploymentFailureRecoveryMode}
+                </li>
+                <li className="rounded border border-cyan-200 bg-cyan-50 px-2 py-1">
+                  환경변수/Secret 처리 모드: {c344.recommendedEnvSecretHandlingMode}
+                </li>
+              </ul>
+            </div>
+
+            <div className="mb-3 grid grid-cols-1 gap-3 lg:grid-cols-2">
+              {renderPlanGroup344('운영 DB 분리 계획', c344.operatingDbSeparationPlanItems)}
+              {renderPlanGroup344('운영 DB 연결 / DATABASE_URL 처리 계획', c344.operatingDbConnectionPlanItems)}
+              {renderPlanGroup344('DB 백업 계획', c344.dbBackupPlanItems)}
+              {renderPlanGroup344('DB 복구 계획', c344.dbRestorePlanItems)}
+              {renderPlanGroup344('코드 롤백 계획', c344.codeRollbackPlanItems)}
+              {renderPlanGroup344('배포 실패 복구 계획', c344.deploymentFailureRecoveryPlanItems)}
+              {renderPlanGroup344('실제 실행 전 승인 필요 항목', c344.dbApprovalRequirementItems)}
+            </div>
+
+            <div className="mb-3 rounded border border-slate-200 bg-white/70 p-3">
+              <p className="mb-2 text-xs font-semibold text-slate-700">계획 검토 요약</p>
+              <ul className="space-y-1 text-xs text-slate-700">
+                <li className="rounded border border-cyan-200 bg-cyan-50 px-2 py-1">
+                  운영 DB 분리 {c344.operatingDbSeparationPlanItemCount}개, 운영 DB 연결 {c344.operatingDbConnectionPlanItemCount}개를 검토합니다.
+                </li>
+                <li className="rounded border border-cyan-200 bg-cyan-50 px-2 py-1">
+                  DB 백업 {c344.dbBackupPlanItemCount}개, DB 복구 {c344.dbRestorePlanItemCount}개, 코드 롤백 {c344.codeRollbackPlanItemCount}개를 검토합니다.
+                </li>
+                <li className="rounded border border-cyan-200 bg-cyan-50 px-2 py-1">
+                  배포 실패 복구 {c344.deploymentFailureRecoveryPlanItemCount}개, 승인 항목 {c344.dbApprovalRequirementItemCount}개를 검토합니다.
+                </li>
+                <li className="rounded border border-cyan-200 bg-cyan-50 px-2 py-1">
+                  실제 운영 DB 연결 변경, DB write, DB 백업, DB 복구, rollback 실행은 수행하지 않습니다.
+                </li>
+                <li className="rounded border border-cyan-200 bg-cyan-50 px-2 py-1">
+                  .env / .env.local 열람/수정 없이 운영 DB / 백업 / 롤백 계획만 read-only로 검토합니다. Task 345에서 Runtime / Worker / Queue / Adapter 운영 연결 계획 검토 화면으로 넘어갑니다.
+                </li>
+              </ul>
+            </div>
+
+            <div className="mb-3 flex flex-wrap gap-3 text-xs">
+              <span className={`flex items-center gap-1 ${c344.operatingDbBackupRollbackPlanReviewStarted ? 'text-green-700' : 'text-red-600'}`}>
+                <CheckCircle2 className="h-3.5 w-3.5" /> 운영 DB/백업/롤백 계획 검토 시작
+              </span>
+              <span className={`flex items-center gap-1 ${c344.operatingDbBackupRollbackPlanStillReadOnly ? 'text-green-700' : 'text-red-600'}`}>
+                <CheckCircle2 className="h-3.5 w-3.5" /> 계획 검토는 계속 read-only
+              </span>
+              <span className={`flex items-center gap-1 ${c344.operatingDbConnectionChanged ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> 실제 운영 DB 연결 변경 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c344.databaseUrlChanged ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> DATABASE_URL 변경 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c344.envFileReadOrModified ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> .env / .env.local 열람/수정 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c344.dbWritePerformed ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> DB write 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c344.dbBackupExecuted ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> 실제 DB 백업 실행 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c344.dbRestoreExecuted ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> 실제 DB 복구 실행 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c344.rollbackExecuted ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> 실제 rollback 실행 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c344.migrationExecuted ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> migration 실행 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c344.actualDomainConnected ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> 실제 도메인 연결 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c344.dnsChanged ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> 실제 DNS 변경 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c344.sslCertificateIssued ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> SSL 인증서 발급 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c344.httpsEnabled ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> HTTPS 실제 적용 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c344.actualVpsServerCreated ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> 실제 VPS 생성 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c344.actualVpsConfigChanged ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> 실제 VPS 설정 변경 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c344.actualProductionTransitionStarted ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> 실제 운영 전환 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c344.actualDeploymentStarted ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> 실제 배포 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c344.runtimeConfigured ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> Runtime 구성 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c344.workerStarted ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> Worker 실행 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c344.queueEnqueued ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> Queue enqueue 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c344.adapterConnected ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> Adapter 연결 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c344.naverApiCalled ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> Naver API 호출 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c344.productLookupApiRecalled ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> 상품 조회 API 재호출 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c344.productUpdateApiCalled ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> 상품 수정 API 호출 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c344.operatingDbConnectionStillReadOnly ? 'text-green-700' : 'text-red-600'}`}>
+                <ShieldCheck className="h-3.5 w-3.5" /> 운영 DB 연결은 계속 read-only
+              </span>
+              <span className={`flex items-center gap-1 ${c344.databaseUrlChangeStillBlocked ? 'text-green-700' : 'text-red-600'}`}>
+                <ShieldCheck className="h-3.5 w-3.5" /> DATABASE_URL 변경 계속 차단
+              </span>
+              <span className={`flex items-center gap-1 ${c344.dbBackupStillReadOnly ? 'text-green-700' : 'text-red-600'}`}>
+                <ShieldCheck className="h-3.5 w-3.5" /> DB 백업은 계속 read-only
+              </span>
+              <span className={`flex items-center gap-1 ${c344.dbRestoreStillReadOnly ? 'text-green-700' : 'text-red-600'}`}>
+                <ShieldCheck className="h-3.5 w-3.5" /> DB 복구는 계속 read-only
+              </span>
+              <span className={`flex items-center gap-1 ${c344.rollbackStillReadOnly ? 'text-green-700' : 'text-red-600'}`}>
+                <ShieldCheck className="h-3.5 w-3.5" /> rollback은 계속 read-only
+              </span>
+              <span className={`flex items-center gap-1 ${c344.migrationStillBlocked ? 'text-green-700' : 'text-red-600'}`}>
+                <ShieldCheck className="h-3.5 w-3.5" /> migration 계속 차단
+              </span>
+              <span className={`flex items-center gap-1 ${c344.deploymentPreparationStillReadOnly ? 'text-green-700' : 'text-red-600'}`}>
+                <ShieldCheck className="h-3.5 w-3.5" /> 배포 준비는 계속 read-only
+              </span>
+              <span className={`flex items-center gap-1 ${c344.domainConnectionStillReadOnly ? 'text-green-700' : 'text-red-600'}`}>
+                <ShieldCheck className="h-3.5 w-3.5" /> 도메인 연결은 계속 read-only
+              </span>
+              <span className={`flex items-center gap-1 ${c344.apiCallStillBlocked ? 'text-green-700' : 'text-red-600'}`}>
+                <ShieldCheck className="h-3.5 w-3.5" /> API 호출 계속 차단
+              </span>
+              <span className={`flex items-center gap-1 ${c344.dbWriteStillBlocked ? 'text-green-700' : 'text-red-600'}`}>
+                <ShieldCheck className="h-3.5 w-3.5" /> DB write 계속 차단
+              </span>
+              <span className={`flex items-center gap-1 ${c344.workerQueueAdapterStillBlocked ? 'text-green-700' : 'text-red-600'}`}>
+                <ShieldCheck className="h-3.5 w-3.5" /> Worker / Queue / Adapter 계속 차단
+              </span>
+              <span className={`flex items-center gap-1 ${c344.tokenOrAuthStillHidden ? 'text-green-700' : 'text-red-600'}`}>
+                <ShieldCheck className="h-3.5 w-3.5" /> Token/Auth 값 계속 비노출
+              </span>
+              <span className={`flex items-center gap-1 ${c344.rawApiResponseStillHidden ? 'text-green-700' : 'text-red-600'}`}>
+                <ShieldCheck className="h-3.5 w-3.5" /> raw API response 계속 비표시
+              </span>
+              <span className={`flex items-center gap-1 ${c344.actualFinalExecutionApprovalGranted ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> 실제 최종 실행 승인 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c344.actualExecutionApprovalGranted ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> 실제 실행 승인 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c344.actualExecutionStarted ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> 실제 실행 시작 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c344.executionButtonAdded ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> 실행 버튼 추가 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c344.submitActionAdded ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> submit action 추가 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c344.postApiAdded ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> POST API 추가 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c344.priceChanged ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> 가격 변경 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c344.stockChanged ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> 재고 변경 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c344.tokenOrAuthValueExposed ? 'text-red-600' : 'text-green-700'}`}>
+                <ShieldCheck className="h-3.5 w-3.5" /> Token/Auth/Signature/Authorization 비노출 유지
+              </span>
+              <span className={`flex items-center gap-1 ${c344.rawApiResponseExposedOrStored ? 'text-red-600' : 'text-green-700'}`}>
+                <ShieldCheck className="h-3.5 w-3.5" /> raw API response 비저장 유지
+              </span>
+            </div>
+
+            <div className="mb-2 text-xs text-slate-500">
+              <span className="font-medium">원본 Task 343 상태:</span>{' '}
+              {c344.sourceDomainDnsHttpsConnectionPlanReviewStatus}
+              {' | '}
+              <span className="font-medium">운영 DB 분리:</span> {c344.operatingDbSeparationPlanItemCount}개
+              {' | '}
+              <span className="font-medium">운영 DB 연결:</span> {c344.operatingDbConnectionPlanItemCount}개
+              {' | '}
+              <span className="font-medium">DB 백업:</span> {c344.dbBackupPlanItemCount}개
+              {' | '}
+              <span className="font-medium">DB 복구:</span> {c344.dbRestorePlanItemCount}개
+              {' | '}
+              <span className="font-medium">코드 롤백:</span> {c344.codeRollbackPlanItemCount}개
+              {' | '}
+              <span className="font-medium">배포 실패 복구:</span> {c344.deploymentFailureRecoveryPlanItemCount}개
+              {' | '}
+              <span className="font-medium">승인 항목:</span> {c344.dbApprovalRequirementItemCount}개
+            </div>
+
+            {c344.requiresSeparateTask345Approval && (
+              <p className="rounded border border-fuchsia-200 bg-white/80 px-3 py-2 text-xs text-fuchsia-900">
+                {c344.nextTaskApprovalPhrase}
               </p>
             )}
           </div>
