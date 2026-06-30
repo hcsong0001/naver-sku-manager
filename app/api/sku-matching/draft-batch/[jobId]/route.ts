@@ -309,6 +309,7 @@ import { buildTmsReadOnlyVpsDeploymentCandidateSafetyAuditSealOutcomeCertificati
 import { buildTmsReadOnlyVpsDeploymentCandidateReadinessReviewView } from '@/src/services/tms-read-only-vps-deployment-candidate-readiness-review-view.service';
 import { buildTmsReadOnlyVpsDeploymentCandidateReadinessReviewOutcomeCertificationView } from '@/src/services/tms-read-only-vps-deployment-candidate-readiness-review-outcome-certification-view.service';
 import { buildTmsReadOnlyVpsDeploymentCandidateReadinessReviewSafetyAuditSealView } from '@/src/services/tms-read-only-vps-deployment-candidate-readiness-review-safety-audit-seal-view.service';
+import { buildTmsReadOnlyVpsDeploymentCandidateReadinessReviewSafetyAuditSealOutcomeCertificationView } from '@/src/services/tms-read-only-vps-deployment-candidate-readiness-review-safety-audit-seal-outcome-certification-view.service';
 
 // Compute safe DB environment hint from DATABASE_URL without exposing the original value.
 // Returns a classification key, never the actual URL.
@@ -1204,6 +1205,11 @@ export async function GET(
       buildTmsReadOnlyVpsDeploymentCandidateReadinessReviewSafetyAuditSealView({
         vpsDeploymentCandidateReadinessReviewOutcomeCertification:
           _tmsReadOnlyVpsDeploymentCandidateReadinessReviewOutcomeCertificationView,
+      });
+    const _tmsReadOnlyVpsDeploymentCandidateReadinessReviewSafetyAuditSealOutcomeCertificationView =
+      buildTmsReadOnlyVpsDeploymentCandidateReadinessReviewSafetyAuditSealOutcomeCertificationView({
+        vpsDeploymentCandidateReadinessReviewSafetyAuditSeal:
+          _tmsReadOnlyVpsDeploymentCandidateReadinessReviewSafetyAuditSealView,
       });
 
     const responseJob = {
@@ -2290,6 +2296,8 @@ export async function GET(
         _tmsReadOnlyVpsDeploymentCandidateReadinessReviewOutcomeCertificationView,
       tmsReadOnlyVpsDeploymentCandidateReadinessReviewSafetyAuditSealView:
         _tmsReadOnlyVpsDeploymentCandidateReadinessReviewSafetyAuditSealView,
+      tmsReadOnlyVpsDeploymentCandidateReadinessReviewSafetyAuditSealOutcomeCertificationView:
+        _tmsReadOnlyVpsDeploymentCandidateReadinessReviewSafetyAuditSealOutcomeCertificationView,
     };
 
     return NextResponse.json({ ok: true, job: responseJob });
