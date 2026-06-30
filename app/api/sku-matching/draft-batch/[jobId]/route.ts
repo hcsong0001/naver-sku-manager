@@ -328,6 +328,7 @@ import { buildTmsReadOnlyOperatingDbBackupRollbackPlanReviewView } from '@/src/s
 import { buildTmsReadOnlyRuntimeWorkerQueueAdapterOperatingConnectionPlanReviewView } from '@/src/services/tms-read-only-runtime-worker-queue-adapter-operating-connection-plan-review-view.service';
 import { buildTmsReadOnlyOperatingDeploymentPreExecutionFinalReadinessReviewView } from '@/src/services/tms-read-only-operating-deployment-pre-execution-final-readiness-review-view.service';
 import { buildTmsReadOnlyOperatingDeploymentApprovalPacketReviewView } from '@/src/services/tms-read-only-operating-deployment-approval-packet-review-view.service';
+import { buildTmsReadOnlyOperatingDeploymentApprovalPacketOutcomeCertificationView } from '@/src/services/tms-read-only-operating-deployment-approval-packet-outcome-certification-view.service';
 
 // Compute safe DB environment hint from DATABASE_URL without exposing the original value.
 // Returns a classification key, never the actual URL.
@@ -1354,6 +1355,11 @@ export async function GET(
       buildTmsReadOnlyOperatingDeploymentApprovalPacketReviewView({
         operatingDeploymentPreExecutionFinalReadinessReview:
           _tmsReadOnlyOperatingDeploymentPreExecutionFinalReadinessReviewView,
+      });
+    const _tmsReadOnlyOperatingDeploymentApprovalPacketOutcomeCertificationView =
+      buildTmsReadOnlyOperatingDeploymentApprovalPacketOutcomeCertificationView({
+        operatingDeploymentApprovalPacketReview:
+          _tmsReadOnlyOperatingDeploymentApprovalPacketReviewView,
       });
 
     const responseJob = {
@@ -2478,6 +2484,8 @@ export async function GET(
         _tmsReadOnlyOperatingDeploymentPreExecutionFinalReadinessReviewView,
       tmsReadOnlyOperatingDeploymentApprovalPacketReviewView:
         _tmsReadOnlyOperatingDeploymentApprovalPacketReviewView,
+      tmsReadOnlyOperatingDeploymentApprovalPacketOutcomeCertificationView:
+        _tmsReadOnlyOperatingDeploymentApprovalPacketOutcomeCertificationView,
     };
 
     return NextResponse.json({ ok: true, job: responseJob });
