@@ -316,6 +316,7 @@ import { buildTmsReadOnlyVpsDeploymentCandidateFinalSummarySafetyAuditSealView }
 import { buildTmsReadOnlyVpsDeploymentCandidateFinalSummarySafetyAuditSealOutcomeCertificationView } from '@/src/services/tms-read-only-vps-deployment-candidate-final-summary-safety-audit-seal-outcome-certification-view.service';
 import { buildTmsReadOnlyVpsDeploymentCandidateClosureSummaryView } from '@/src/services/tms-read-only-vps-deployment-candidate-closure-summary-view.service';
 import { buildTmsReadOnlyVpsDeploymentCandidateClosureSummaryOutcomeCertificationView } from '@/src/services/tms-read-only-vps-deployment-candidate-closure-summary-outcome-certification-view.service';
+import { buildTmsReadOnlyVpsDeploymentCandidateClosureSummarySafetyAuditSealView } from '@/src/services/tms-read-only-vps-deployment-candidate-closure-summary-safety-audit-seal-view.service';
 
 // Compute safe DB environment hint from DATABASE_URL without exposing the original value.
 // Returns a classification key, never the actual URL.
@@ -1274,6 +1275,11 @@ export async function GET(
       buildTmsReadOnlyVpsDeploymentCandidateClosureSummaryOutcomeCertificationView({
         vpsDeploymentCandidateClosureSummary:
           _tmsReadOnlyVpsDeploymentCandidateClosureSummaryView,
+      });
+    const _tmsReadOnlyVpsDeploymentCandidateClosureSummarySafetyAuditSealView =
+      buildTmsReadOnlyVpsDeploymentCandidateClosureSummarySafetyAuditSealView({
+        vpsDeploymentCandidateClosureSummaryOutcomeCertification:
+          _tmsReadOnlyVpsDeploymentCandidateClosureSummaryOutcomeCertificationView,
       });
 
     const responseJob = {
@@ -2374,6 +2380,8 @@ export async function GET(
         _tmsReadOnlyVpsDeploymentCandidateClosureSummaryView,
       tmsReadOnlyVpsDeploymentCandidateClosureSummaryOutcomeCertificationView:
         _tmsReadOnlyVpsDeploymentCandidateClosureSummaryOutcomeCertificationView,
+      tmsReadOnlyVpsDeploymentCandidateClosureSummarySafetyAuditSealView:
+        _tmsReadOnlyVpsDeploymentCandidateClosureSummarySafetyAuditSealView,
     };
 
     return NextResponse.json({ ok: true, job: responseJob });
