@@ -486,6 +486,7 @@ type DraftBatchJob = {
   tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionSealReviewView?: any;
   tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionSealOutcomeCertificationView?: any;
   tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionFinalReviewView?: any;
+  tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionFinalReviewOutcomeCertificationView?: any;
   naverAuthTokenFirstTestSafetyBoundary?: {
     ok: boolean;
     readyForExplicitTokenTestApproval: boolean;
@@ -51699,6 +51700,159 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             {c367.nextTaskApprovalPhrase && (
               <p className="rounded border border-purple-200 bg-white/80 px-3 py-2 text-xs text-purple-900">
                 {c367.nextTaskApprovalPhrase}
+              </p>
+            )}
+          </div>
+        );
+      })()}
+
+
+      {/* ── Task 368: TMS Read-Only Operating Deployment Final Approval Submission Final Review Outcome Certification ── */}
+      {job.tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionFinalReviewOutcomeCertificationView && (() => {
+        const c368 = job.tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionFinalReviewOutcomeCertificationView;
+        const Badge = ({ condition, text, okClass = "bg-green-100 text-green-800", failClass = "bg-red-100 text-red-800" }: any) => (
+          <span className={`inline-block px-2 py-0.5 rounded text-xs font-semibold ${condition ? okClass : failClass}`}>
+            {text} {condition ? "OK" : "NO"}
+          </span>
+        );
+        return (
+          <div className="mt-8 rounded-lg border border-indigo-300 bg-indigo-50/50 p-6 shadow-sm">
+            <div className="mb-4 flex items-center justify-between border-b border-indigo-200 pb-3">
+              <h3 className="text-lg font-bold text-indigo-900">
+                Task 368 - 운영 배포 최종 승인 제출 Final Review 결과 인증
+              </h3>
+              <span className="rounded bg-indigo-200 px-2 py-1 text-xs font-bold text-indigo-900">
+                {c368.operatingDeploymentFinalApprovalSubmissionFinalReviewOutcomeCertificationStatus}
+              </span>
+            </div>
+
+            <p className="mb-6 rounded border border-indigo-200 bg-white/60 p-3 text-sm text-indigo-800">
+              이 패널은 운영 배포 최종 승인 제출 Final Review 결과를 read-only로 인증하는 화면입니다.
+              이 화면은 실제 최종 승인, 실제 승인 제출, 실제 배포 승인, 실제 배포 실행 작업이 아닙니다.
+              Task 369는 사용자 별도 명시 승인 없이는 진행하지 않습니다.
+            </p>
+
+            <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div className="rounded bg-white p-4 shadow-sm border border-indigo-100">
+                <h4 className="mb-2 text-sm font-bold text-indigo-700">Source Decisions (Task 367 Final Review)</h4>
+                <ul className="space-y-1 text-sm text-indigo-800">
+                  <li><span className="font-semibold">Final Review 상태:</span> {c368.sourceFinalReviewStatus}</li>
+                  <li><span className="font-semibold">Final Review 결정:</span> {c368.sourceRecommendedFinalReviewDecisionLabel}</li>
+                  <li><span className="font-semibold">인증된 Go/No-Go:</span> {c368.sourceOutcomeCertifiedGoNoGoDecisionLabel}</li>
+                  <li><span className="font-semibold">인증된 최종 승인 후보:</span> {c368.sourceOutcomeCertifiedFinalApprovalCandidateDecisionLabel}</li>
+                  <li><span className="font-semibold">인증된 제출 경계:</span> {c368.sourceOutcomeCertifiedFinalApprovalSubmissionDecisionLabel}</li>
+                  <li><span className="font-semibold">인증된 패킷:</span> {c368.sourceOutcomeCertifiedFinalApprovalSubmissionPacketDecisionLabel}</li>
+                  <li><span className="font-semibold">인증된 Seal:</span> {c368.sourceOutcomeCertifiedFinalApprovalSubmissionSealDecisionLabel}</li>
+                </ul>
+              </div>
+              <div className="rounded bg-white p-4 shadow-sm border border-indigo-100">
+                <h4 className="mb-2 text-sm font-bold text-indigo-700">Outcome Certification Decision (Task 368)</h4>
+                <ul className="space-y-1 text-sm text-indigo-800">
+                  <li><span className="font-semibold">인증 결정:</span> {c368.recommendedOutcomeCertificationDecisionLabel}</li>
+                </ul>
+              </div>
+            </div>
+
+            <div className="mb-6">
+              <h4 className="mb-3 text-sm font-bold text-indigo-800">Outcome Certification Summary</h4>
+              <div className="flex flex-wrap gap-2">
+                {c368.outcomeCertificationSummaryCards.map((card: any, idx: number) => (
+                  <div key={idx} className="flex-1 min-w-[120px] rounded bg-white p-3 text-center border border-indigo-200">
+                    <div className="text-2xl font-black text-indigo-700">{card.value}</div>
+                    <div className="text-xs text-indigo-600">{card.label}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="mb-6 space-y-4">
+              <h4 className="text-sm font-bold text-indigo-800">Outcome Certification Groups (12)</h4>
+
+              {[
+                { title: '1. Readiness', items: c368.finalReviewOutcomeCertificationReadinessItems },
+                { title: '2. Final Review Readiness OC', items: c368.finalReviewReadinessOutcomeCertificationItems },
+                { title: '3. Seal OC Review OC', items: c368.sealOutcomeCertificationReviewOutcomeCertificationItems },
+                { title: '4. Submission Review OC', items: c368.finalApprovalSubmissionReviewOutcomeCertificationItems },
+                { title: '5. Grant Review OC', items: c368.finalApprovalGrantReviewOutcomeCertificationItems },
+                { title: '6. Deployment Approval OC', items: c368.deploymentApprovalReviewOutcomeCertificationItems },
+                { title: '7. Deployment Execution OC', items: c368.deploymentExecutionReviewOutcomeCertificationItems },
+                { title: '8. Infrastructure OC', items: c368.infrastructureReviewOutcomeCertificationItems },
+                { title: '9. Domain/DNS/HTTPS OC', items: c368.domainDnsHttpsReviewOutcomeCertificationItems },
+                { title: '10. Operating DB OC', items: c368.operatingDbReviewOutcomeCertificationItems },
+                { title: '11. Runtime/Worker/Queue/Adapter OC', items: c368.runtimeWorkerQueueAdapterReviewOutcomeCertificationItems },
+                { title: '12. API/Secret/UI Action OC', items: c368.apiSecretUiActionReviewOutcomeCertificationItems }
+              ].map((group, gIdx) => (
+                <div key={gIdx} className="rounded border border-indigo-200 bg-white p-3">
+                  <h5 className="mb-2 text-xs font-bold text-indigo-800 border-b border-indigo-100 pb-1">{group.title} ({group.items.length})</h5>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    {group.items.map((item: any, iIdx: number) => (
+                      <div key={iIdx} className="flex items-center justify-between bg-indigo-50/50 px-2 py-1 rounded border border-indigo-100">
+                        <div className="text-xs text-indigo-700 font-medium truncate pr-2" title={item.description}>
+                          {item.label}
+                        </div>
+                        <div className="shrink-0">
+                          <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-bold ${
+                            item.outcomeCertificationStatus === 'OUTCOME_CERTIFIED' ? 'bg-indigo-200 text-indigo-900' :
+                            item.outcomeCertificationStatus === 'OUTCOME_CERTIFICATION_FAILED' ? 'bg-red-200 text-red-900' :
+                            'bg-gray-200 text-gray-700'
+                          }`}>
+                            {item.outcomeCertificationStatus}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="mb-6 rounded bg-white p-4 shadow-sm border border-indigo-100">
+              <h4 className="mb-3 text-sm font-bold text-indigo-700">Safety Check (Execution Flags)</h4>
+              <div className="grid grid-cols-2 gap-2 text-xs md:grid-cols-3 lg:grid-cols-4">
+                <Badge condition={!c368.actualNaverApiCall} text="Naver API 없음" />
+                <Badge condition={!c368.actualProductLookupApiCall} text="상품조회 없음" />
+                <Badge condition={!c368.actualProductUpdateApiCall} text="상품수정 없음" />
+                <Badge condition={!c368.actualTokenReissue} text="Token 재발급 없음" />
+                <Badge condition={!c368.actualPriceChange} text="가격 변경 없음" />
+                <Badge condition={!c368.actualStockChange} text="재고 변경 없음" />
+                <Badge condition={!c368.actualDbWrite} text="DB Write 없음" />
+                <Badge condition={!c368.actualOperatingDbConnectionChange} text="운영 DB 변경 없음" />
+                <Badge condition={!c368.actualEnvReadOrWrite} text="ENV 없음" />
+                <Badge condition={!c368.actualSecretExposure} text="Secret 노출 없음" />
+                <Badge condition={!c368.actualRawApiResponseExposure} text="Raw API 없음" />
+                <Badge condition={!c368.actualWorkerRun} text="Worker 없음" />
+                <Badge condition={!c368.actualQueueEnqueue} text="Queue 없음" />
+                <Badge condition={!c368.actualAdapterConnection} text="Adapter 없음" />
+                <Badge condition={!c368.actualRuntimeConfiguration} text="Runtime 없음" />
+                <Badge condition={!c368.actualFinalApprovalGrant} text="최종 승인 없음" />
+                <Badge condition={!c368.actualFinalApprovalSubmission} text="승인 제출 없음" />
+                <Badge condition={!c368.actualDeploymentApproval} text="배포 승인 없음" />
+                <Badge condition={!c368.actualDeploymentExecution} text="배포 실행 없음" />
+                <Badge condition={!c368.actualOperatingTransition} text="운영 전환 없음" />
+                <Badge condition={!c368.actualVpsCreation} text="VPS 생성 없음" />
+                <Badge condition={!c368.actualDomainConnection} text="도메인 연결 없음" />
+                <Badge condition={!c368.actualDnsChange} text="DNS 변경 없음" />
+                <Badge condition={!c368.actualSslCertificateIssue} text="SSL 발급 없음" />
+                <Badge condition={!c368.actualExecutionButtonAdded} text="실행 버튼 없음" />
+                <Badge condition={!c368.actualSubmitActionAdded} text="Submit 없음" />
+                <Badge condition={!c368.actualPostApiAdded} text="POST API 없음" />
+              </div>
+            </div>
+
+            <div className="mb-6 rounded bg-indigo-100/50 p-4 shadow-sm border border-indigo-200">
+              <h4 className="mb-3 text-sm font-bold text-indigo-800">Recommendation Status</h4>
+              <ul className="space-y-1 text-sm text-indigo-800">
+                <li><span className="font-semibold">Next Step:</span> {c368.recommendedNextStep}</li>
+                <li><span className="font-semibold">Approval Mode:</span> {c368.recommendedApprovalMode}</li>
+                <li><span className="font-semibold">Execution Mode:</span> {c368.recommendedExecutionMode}</li>
+                <li><span className="font-semibold">Deployment Mode:</span> {c368.recommendedDeploymentMode}</li>
+                <li><span className="font-semibold">Safety Mode:</span> {c368.recommendedSafetyMode}</li>
+              </ul>
+            </div>
+
+            {c368.nextTaskApprovalPhrase && (
+              <p className="rounded border border-indigo-200 bg-white/80 px-3 py-2 text-xs text-indigo-900">
+                {c368.nextTaskApprovalPhrase}
               </p>
             )}
           </div>
