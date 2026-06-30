@@ -334,6 +334,7 @@ import { buildTmsReadOnlyOperatingDeploymentSafetyLockOutcomeCertificationView }
 import { buildTmsReadOnlyOperatingDeploymentGoNoGoReviewView } from '@/src/services/tms-read-only-operating-deployment-go-no-go-review-view.service';
 import { buildTmsReadOnlyOperatingDeploymentGoNoGoOutcomeCertificationView } from '@/src/services/tms-read-only-operating-deployment-go-no-go-outcome-certification-view.service';
 import { buildTmsReadOnlyOperatingDeploymentFinalApprovalBoundaryReviewView } from '@/src/services/tms-read-only-operating-deployment-final-approval-boundary-review-view.service';
+import { buildTmsReadOnlyOperatingDeploymentFinalApprovalBoundaryOutcomeCertificationView } from '@/src/services/tms-read-only-operating-deployment-final-approval-boundary-outcome-certification-view.service';
 
 // Compute safe DB environment hint from DATABASE_URL without exposing the original value.
 // Returns a classification key, never the actual URL.
@@ -1407,6 +1408,13 @@ export async function GET(
         operatingDeploymentGoNoGoOutcomeCertification:
           _tmsReadOnlyOperatingDeploymentGoNoGoOutcomeCertificationView,
       });
+    const _tmsReadOnlyOperatingDeploymentFinalApprovalBoundaryOutcomeCertificationView =
+      buildTmsReadOnlyOperatingDeploymentFinalApprovalBoundaryOutcomeCertificationView(
+        {
+          operatingDeploymentFinalApprovalBoundaryReview:
+            _tmsReadOnlyOperatingDeploymentFinalApprovalBoundaryReviewView,
+        },
+      );
 
     const responseJob = {
       id: job.id,
@@ -2542,6 +2550,8 @@ export async function GET(
         _tmsReadOnlyOperatingDeploymentGoNoGoOutcomeCertificationView,
       tmsReadOnlyOperatingDeploymentFinalApprovalBoundaryReviewView:
         _tmsReadOnlyOperatingDeploymentFinalApprovalBoundaryReviewView,
+      tmsReadOnlyOperatingDeploymentFinalApprovalBoundaryOutcomeCertificationView:
+        _tmsReadOnlyOperatingDeploymentFinalApprovalBoundaryOutcomeCertificationView,
     };
 
     return NextResponse.json({ ok: true, job: responseJob });
