@@ -326,6 +326,7 @@ import { buildTmsReadOnlyOperatingDeploymentDesignReviewView } from '@/src/servi
 import { buildTmsReadOnlyDomainDnsHttpsConnectionPlanReviewView } from '@/src/services/tms-read-only-domain-dns-https-connection-plan-review-view.service';
 import { buildTmsReadOnlyOperatingDbBackupRollbackPlanReviewView } from '@/src/services/tms-read-only-operating-db-backup-rollback-plan-review-view.service';
 import { buildTmsReadOnlyRuntimeWorkerQueueAdapterOperatingConnectionPlanReviewView } from '@/src/services/tms-read-only-runtime-worker-queue-adapter-operating-connection-plan-review-view.service';
+import { buildTmsReadOnlyOperatingDeploymentPreExecutionFinalReadinessReviewView } from '@/src/services/tms-read-only-operating-deployment-pre-execution-final-readiness-review-view.service';
 
 // Compute safe DB environment hint from DATABASE_URL without exposing the original value.
 // Returns a classification key, never the actual URL.
@@ -1339,6 +1340,14 @@ export async function GET(
     const _tmsReadOnlyRuntimeWorkerQueueAdapterOperatingConnectionPlanReviewView =
       buildTmsReadOnlyRuntimeWorkerQueueAdapterOperatingConnectionPlanReviewView({
         operatingDbBackupRollbackPlanReview: _tmsReadOnlyOperatingDbBackupRollbackPlanReviewView,
+      });
+    const _tmsReadOnlyOperatingDeploymentPreExecutionFinalReadinessReviewView =
+      buildTmsReadOnlyOperatingDeploymentPreExecutionFinalReadinessReviewView({
+        operatingDeploymentDesignReview: _tmsReadOnlyOperatingDeploymentDesignReviewView,
+        domainDnsHttpsConnectionPlanReview: _tmsReadOnlyDomainDnsHttpsConnectionPlanReviewView,
+        operatingDbBackupRollbackPlanReview: _tmsReadOnlyOperatingDbBackupRollbackPlanReviewView,
+        runtimeWorkerQueueAdapterOperatingConnectionPlanReview:
+          _tmsReadOnlyRuntimeWorkerQueueAdapterOperatingConnectionPlanReviewView,
       });
 
     const responseJob = {
@@ -2459,6 +2468,8 @@ export async function GET(
         _tmsReadOnlyOperatingDbBackupRollbackPlanReviewView,
       tmsReadOnlyRuntimeWorkerQueueAdapterOperatingConnectionPlanReviewView:
         _tmsReadOnlyRuntimeWorkerQueueAdapterOperatingConnectionPlanReviewView,
+      tmsReadOnlyOperatingDeploymentPreExecutionFinalReadinessReviewView:
+        _tmsReadOnlyOperatingDeploymentPreExecutionFinalReadinessReviewView,
     };
 
     return NextResponse.json({ ok: true, job: responseJob });
