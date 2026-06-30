@@ -322,6 +322,7 @@ import { buildTmsReadOnlyVpsDeploymentCandidateFinalClosureSummaryView } from '@
 import { buildTmsReadOnlyVpsDeploymentCandidateFinalClosureSummaryOutcomeCertificationView } from '@/src/services/tms-read-only-vps-deployment-candidate-final-closure-summary-outcome-certification-view.service';
 import { buildTmsReadOnlyVpsDeploymentCandidateFinalClosureSummarySafetyAuditSealView } from '@/src/services/tms-read-only-vps-deployment-candidate-final-closure-summary-safety-audit-seal-view.service';
 import { buildTmsReadOnlyVpsDeploymentCandidateFinalClosureSummarySafetyAuditSealOutcomeCertificationView } from '@/src/services/tms-read-only-vps-deployment-candidate-final-closure-summary-safety-audit-seal-outcome-certification-view.service';
+import { buildTmsReadOnlyOperatingDeploymentDesignReviewView } from '@/src/services/tms-read-only-operating-deployment-design-review-view.service';
 
 // Compute safe DB environment hint from DATABASE_URL without exposing the original value.
 // Returns a classification key, never the actual URL.
@@ -1319,6 +1320,11 @@ export async function GET(
             _tmsReadOnlyVpsDeploymentCandidateFinalClosureSummarySafetyAuditSealView,
         },
       );
+    const _tmsReadOnlyOperatingDeploymentDesignReviewView =
+      buildTmsReadOnlyOperatingDeploymentDesignReviewView({
+        finalClosureSummarySafetyAuditSealOutcomeCertification:
+          _tmsReadOnlyVpsDeploymentCandidateFinalClosureSummarySafetyAuditSealOutcomeCertificationView,
+      });
 
     const responseJob = {
       id: job.id,
@@ -2430,6 +2436,8 @@ export async function GET(
         _tmsReadOnlyVpsDeploymentCandidateFinalClosureSummarySafetyAuditSealView,
       tmsReadOnlyVpsDeploymentCandidateFinalClosureSummarySafetyAuditSealOutcomeCertificationView:
         _tmsReadOnlyVpsDeploymentCandidateFinalClosureSummarySafetyAuditSealOutcomeCertificationView,
+      tmsReadOnlyOperatingDeploymentDesignReviewView:
+        _tmsReadOnlyOperatingDeploymentDesignReviewView,
     };
 
     return NextResponse.json({ ok: true, job: responseJob });

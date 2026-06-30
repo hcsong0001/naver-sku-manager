@@ -3962,6 +3962,7 @@ type DraftBatchJob = {
   tmsReadOnlyVpsDeploymentCandidateFinalClosureSummaryOutcomeCertificationView?: any;
   tmsReadOnlyVpsDeploymentCandidateFinalClosureSummarySafetyAuditSealView?: any;
   tmsReadOnlyVpsDeploymentCandidateFinalClosureSummarySafetyAuditSealOutcomeCertificationView?: any;
+  tmsReadOnlyOperatingDeploymentDesignReviewView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -44988,6 +44989,405 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             {c341.requiresSeparateTask342Approval && (
               <p className="rounded border border-fuchsia-200 bg-white/80 px-3 py-2 text-xs text-fuchsia-900">
                 {c341.nextTaskApprovalPhrase}
+              </p>
+            )}
+          </div>
+        );
+      })()}
+
+      {/* ── Task 342: Read-Only Operating Deployment Design Review ── */}
+      {job.tmsReadOnlyOperatingDeploymentDesignReviewView && (() => {
+        const c342 = job.tmsReadOnlyOperatingDeploymentDesignReviewView as {
+          taskId: number;
+          panelTitle: string;
+          description: string;
+          sourceFinalClosureSummarySafetyAuditSealOutcomeCertificationStatus: string;
+          operatingDeploymentDesignReviewStatus: string;
+          operatingDeploymentDesignReviewReady: boolean;
+          operatingDeploymentDesignReviewPartialReady: boolean;
+          operatingDeploymentDesignReviewBlocked: boolean;
+          operatingDeploymentDesignReviewNotStarted: boolean;
+          deploymentDesignReviewStarted: boolean;
+          deploymentDesignStillReadOnly: boolean;
+          vpsOperatingDesignItems: Array<{
+            designItemId: string;
+            category:
+              | 'VPS_OPERATING_TARGET'
+              | 'DOMAIN_DNS_HTTPS'
+              | 'OPERATING_DB'
+              | 'BACKUP_ROLLBACK'
+              | 'SECURITY_ACCESS'
+              | 'APPROVAL_REQUIREMENT'
+              | 'SAFETY_LOCK';
+            label: string;
+            description: string;
+            reviewStatus: 'READY' | 'PARTIAL_READY' | 'BLOCKED' | 'NOT_STARTED';
+            requiresSeparateApproval: boolean;
+          }>;
+          domainDnsHttpsDesignItems: Array<{
+            designItemId: string;
+            label: string;
+            description: string;
+            reviewStatus: 'READY' | 'PARTIAL_READY' | 'BLOCKED' | 'NOT_STARTED';
+            requiresSeparateApproval: boolean;
+          }>;
+          operatingDbDesignItems: Array<{
+            designItemId: string;
+            label: string;
+            description: string;
+            reviewStatus: 'READY' | 'PARTIAL_READY' | 'BLOCKED' | 'NOT_STARTED';
+            requiresSeparateApproval: boolean;
+          }>;
+          backupRollbackDesignItems: Array<{
+            designItemId: string;
+            label: string;
+            description: string;
+            reviewStatus: 'READY' | 'PARTIAL_READY' | 'BLOCKED' | 'NOT_STARTED';
+            requiresSeparateApproval: boolean;
+          }>;
+          securityAccessDesignItems: Array<{
+            designItemId: string;
+            label: string;
+            description: string;
+            reviewStatus: 'READY' | 'PARTIAL_READY' | 'BLOCKED' | 'NOT_STARTED';
+            requiresSeparateApproval: boolean;
+          }>;
+          deploymentApprovalRequirementItems: Array<{
+            designItemId: string;
+            label: string;
+            description: string;
+            reviewStatus: 'READY' | 'PARTIAL_READY' | 'BLOCKED' | 'NOT_STARTED';
+            requiresSeparateApproval: boolean;
+          }>;
+          operatingDeploymentDesignSummaryCards: Array<{
+            label: string;
+            value: string;
+            tone: 'positive' | 'neutral' | 'warning';
+          }>;
+          recommendedDeploymentTarget: string;
+          recommendedDeploymentTargetLabel: string;
+          recommendedDomainConnectionMode: string;
+          recommendedHttpsMode: string;
+          recommendedOperatingDbMode: string;
+          recommendedBackupMode: string;
+          recommendedRollbackMode: string;
+          designReviewItemCount: number;
+          vpsDesignItemCount: number;
+          domainDnsHttpsDesignItemCount: number;
+          operatingDbDesignItemCount: number;
+          backupRollbackDesignItemCount: number;
+          securityAccessDesignItemCount: number;
+          approvalRequirementItemCount: number;
+          actualVpsServerCreated: boolean;
+          actualVpsConfigChanged: boolean;
+          actualProductionTransitionStarted: boolean;
+          actualDeploymentStarted: boolean;
+          actualDomainConnected: boolean;
+          dnsChanged: boolean;
+          sslCertificateIssued: boolean;
+          portForwardingChanged: boolean;
+          operatingDbConnectionChanged: boolean;
+          runtimeConfigured: boolean;
+          workerStarted: boolean;
+          queueEnqueued: boolean;
+          adapterConnected: boolean;
+          naverApiCalled: boolean;
+          productLookupApiRecalled: boolean;
+          productUpdateApiCalled: boolean;
+          dbWritePerformed: boolean;
+          envFileReadOrModified: boolean;
+          deploymentPreparationStillReadOnly: boolean;
+          domainConnectionStillReadOnly: boolean;
+          apiCallStillBlocked: boolean;
+          dbWriteStillBlocked: boolean;
+          workerQueueAdapterStillBlocked: boolean;
+          tokenOrAuthStillHidden: boolean;
+          rawApiResponseStillHidden: boolean;
+          requiresSeparateTask343Approval: boolean;
+          nextTaskApprovalPhrase: string;
+          actualFinalExecutionApprovalGranted: boolean;
+          actualExecutionApprovalGranted: boolean;
+          actualExecutionStarted: boolean;
+          executionButtonAdded: boolean;
+          submitActionAdded: boolean;
+          postApiAdded: boolean;
+          priceChanged: boolean;
+          stockChanged: boolean;
+          tokenOrAuthValueExposed: boolean;
+          rawApiResponseExposedOrStored: boolean;
+        };
+
+        const getReviewTone342 = (
+          status: 'READY' | 'PARTIAL_READY' | 'BLOCKED' | 'NOT_STARTED',
+        ) =>
+          status === 'READY'
+            ? 'bg-green-100 text-green-700 border-green-200'
+            : status === 'PARTIAL_READY'
+              ? 'bg-amber-100 text-amber-700 border-amber-200'
+              : status === 'BLOCKED'
+                ? 'bg-red-100 text-red-700 border-red-200'
+                : 'bg-slate-100 text-slate-600 border-slate-200';
+
+        const getCardTone342 = (tone: 'positive' | 'neutral' | 'warning') =>
+          tone === 'positive'
+            ? 'bg-green-100 text-green-700 border-green-200'
+            : tone === 'warning'
+              ? 'bg-amber-100 text-amber-700 border-amber-200'
+              : 'bg-slate-100 text-slate-700 border-slate-200';
+
+        const renderDesignGroup342 = (
+          title: string,
+          items: Array<{
+            designItemId: string;
+            label: string;
+            description: string;
+            reviewStatus: 'READY' | 'PARTIAL_READY' | 'BLOCKED' | 'NOT_STARTED';
+            requiresSeparateApproval: boolean;
+          }>,
+        ) => (
+          <div className="rounded border border-slate-200 bg-white/70 p-3">
+            <p className="mb-2 text-xs font-semibold text-slate-700">{title}</p>
+            <ul className="space-y-1">
+              {items.map((item) => (
+                <li
+                  key={item.designItemId}
+                  className={`rounded border px-2 py-1 text-xs ${getReviewTone342(item.reviewStatus)}`}
+                >
+                  <span className="font-medium">{item.label}</span>
+                  <span className="ml-2 opacity-70">[{item.reviewStatus}]</span>
+                  {item.requiresSeparateApproval && (
+                    <span className="ml-2 rounded-full border border-fuchsia-200 bg-fuchsia-50 px-1.5 py-0.5 text-[10px] text-fuchsia-800">
+                      별도 승인 필요
+                    </span>
+                  )}
+                  <div className="mt-1 opacity-80">{item.description}</div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        );
+
+        return (
+          <div className="mb-6 rounded-lg border border-sky-300 bg-sky-50/60 p-4 text-sm">
+            <div className="mb-3 flex items-center gap-2">
+              <ClipboardList className="h-5 w-5 text-sky-700" />
+              <h2 className="text-base font-semibold text-sky-950">
+                Task {c342.taskId}: {c342.panelTitle}
+              </h2>
+              <span className="ml-auto rounded-full border border-sky-300 bg-sky-100 px-2 py-0.5 text-xs text-sky-800">
+                {c342.operatingDeploymentDesignReviewStatus}
+              </span>
+            </div>
+
+            <p className="mb-3 text-xs text-slate-600">{c342.description}</p>
+
+            <div className="mb-3 rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+              <span className="font-semibold">⚠ 오해 방지:</span>{' '}
+              이 패널은 Task 341까지 종료된 VPS 후보 Closure 흐름 이후, TMS 운영 배포 설계를 read-only로 검토하는 화면입니다.
+              이 화면은 실제 VPS 생성, 실제 배포 실행, 실제 도메인 연결 작업이 아닙니다.
+              Runtime, Worker, Queue, Adapter, 운영 DB, DNS, SSL, 포트포워딩, 서버/VPS 설정을 변경하지 않습니다.
+              Task 343은 사용자 별도 명시 승인 없이는 진행하지 않습니다.
+            </div>
+
+            <div className="mb-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {c342.operatingDeploymentDesignSummaryCards.map((card) => (
+                <div
+                  key={card.label}
+                  className={`rounded border p-2 text-center ${getCardTone342(card.tone)}`}
+                >
+                  <div className="text-sm font-bold">{card.value}</div>
+                  <div className="text-xs">{card.label}</div>
+                </div>
+              ))}
+            </div>
+
+            <div className="mb-3 rounded border border-slate-200 bg-white/70 p-3">
+              <p className="mb-2 text-xs font-semibold text-slate-700">권장 운영 설계 값</p>
+              <ul className="space-y-1 text-xs text-slate-700">
+                <li className="rounded border border-sky-200 bg-sky-50 px-2 py-1">
+                  권장 배포 대상: {c342.recommendedDeploymentTarget} ({c342.recommendedDeploymentTargetLabel})
+                </li>
+                <li className="rounded border border-sky-200 bg-sky-50 px-2 py-1">
+                  도메인 연결 방식: {c342.recommendedDomainConnectionMode}
+                </li>
+                <li className="rounded border border-sky-200 bg-sky-50 px-2 py-1">
+                  HTTPS/SSL 적용 방식: {c342.recommendedHttpsMode}
+                </li>
+                <li className="rounded border border-sky-200 bg-sky-50 px-2 py-1">
+                  운영 DB 모드: {c342.recommendedOperatingDbMode}
+                </li>
+                <li className="rounded border border-sky-200 bg-sky-50 px-2 py-1">
+                  백업 모드: {c342.recommendedBackupMode}
+                </li>
+                <li className="rounded border border-sky-200 bg-sky-50 px-2 py-1">
+                  롤백 모드: {c342.recommendedRollbackMode}
+                </li>
+              </ul>
+            </div>
+
+            <div className="mb-3 grid grid-cols-1 gap-3 lg:grid-cols-2">
+              {renderDesignGroup342('VPS 운영 구성안', c342.vpsOperatingDesignItems)}
+              {renderDesignGroup342('도메인 / DNS / HTTPS 연결 계획', c342.domainDnsHttpsDesignItems)}
+              {renderDesignGroup342('운영 DB 계획', c342.operatingDbDesignItems)}
+              {renderDesignGroup342('백업 / 롤백 계획', c342.backupRollbackDesignItems)}
+              {renderDesignGroup342('보안 / 접근 제어 계획', c342.securityAccessDesignItems)}
+              {renderDesignGroup342('별도 승인 필요 항목', c342.deploymentApprovalRequirementItems)}
+            </div>
+
+            <div className="mb-3 rounded border border-slate-200 bg-white/70 p-3">
+              <p className="mb-2 text-xs font-semibold text-slate-700">설계 검토 요약</p>
+              <ul className="space-y-1 text-xs text-slate-700">
+                <li className="rounded border border-sky-200 bg-sky-50 px-2 py-1">
+                  전체 설계 검토 항목은 {c342.designReviewItemCount}개이며 VPS / 도메인·DNS·HTTPS / 운영 DB / 백업·롤백 / 보안·접근 제어 / 승인 항목으로 구성됩니다.
+                </li>
+                <li className="rounded border border-sky-200 bg-sky-50 px-2 py-1">
+                  카테고리별 항목 수는 VPS {c342.vpsDesignItemCount}개, 도메인/DNS/HTTPS {c342.domainDnsHttpsDesignItemCount}개, 운영 DB {c342.operatingDbDesignItemCount}개, 백업/롤백 {c342.backupRollbackDesignItemCount}개, 보안/접근 제어 {c342.securityAccessDesignItemCount}개, 승인 항목 {c342.approvalRequirementItemCount}개입니다.
+                </li>
+                <li className="rounded border border-sky-200 bg-sky-50 px-2 py-1">
+                  실제 VPS 생성/설정/배포/도메인 연결, Runtime / Worker / Queue / Adapter 연결, API 호출 / DB write는 여전히 수행하지 않습니다.
+                </li>
+                <li className="rounded border border-sky-200 bg-sky-50 px-2 py-1">
+                  .env / .env.local 변경 없이 운영 배포 설계만 read-only로 검토하며, Task 343에서 도메인/DNS/HTTPS 계획 검토 화면으로 넘어갑니다.
+                </li>
+              </ul>
+            </div>
+
+            <div className="mb-3 flex flex-wrap gap-3 text-xs">
+              <span className={`flex items-center gap-1 ${c342.deploymentDesignReviewStarted ? 'text-green-700' : 'text-red-600'}`}>
+                <CheckCircle2 className="h-3.5 w-3.5" /> 운영 배포 설계 검토 시작
+              </span>
+              <span className={`flex items-center gap-1 ${c342.deploymentDesignStillReadOnly ? 'text-green-700' : 'text-red-600'}`}>
+                <CheckCircle2 className="h-3.5 w-3.5" /> 설계 검토는 계속 read-only
+              </span>
+              <span className={`flex items-center gap-1 ${c342.actualVpsServerCreated ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> 실제 VPS 생성 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c342.actualVpsConfigChanged ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> 실제 서버/VPS 설정 변경 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c342.actualProductionTransitionStarted ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> 실제 운영 전환 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c342.actualDeploymentStarted ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> 실제 배포 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c342.actualDomainConnected ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> 실제 도메인 연결 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c342.dnsChanged ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> DNS 변경 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c342.sslCertificateIssued ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> HTTPS/SSL 발급 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c342.portForwardingChanged ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> 포트포워딩 변경 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c342.operatingDbConnectionChanged ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> 운영 DB 연결 변경 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c342.runtimeConfigured ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> Runtime 구성 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c342.workerStarted ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> Worker 실행 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c342.queueEnqueued ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> Queue enqueue 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c342.adapterConnected ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> Adapter 연결 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c342.naverApiCalled ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> Naver API 호출 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c342.productLookupApiRecalled ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> 상품 조회 API 재호출 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c342.productUpdateApiCalled ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> 상품 수정 API 호출 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c342.dbWritePerformed ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> DB write 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c342.envFileReadOrModified ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> .env / .env.local 변경 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c342.deploymentPreparationStillReadOnly ? 'text-green-700' : 'text-red-600'}`}>
+                <ShieldCheck className="h-3.5 w-3.5" /> 배포 준비는 계속 read-only
+              </span>
+              <span className={`flex items-center gap-1 ${c342.domainConnectionStillReadOnly ? 'text-green-700' : 'text-red-600'}`}>
+                <ShieldCheck className="h-3.5 w-3.5" /> 도메인 연결 계획도 read-only
+              </span>
+              <span className={`flex items-center gap-1 ${c342.apiCallStillBlocked ? 'text-green-700' : 'text-red-600'}`}>
+                <ShieldCheck className="h-3.5 w-3.5" /> API 호출 계속 차단
+              </span>
+              <span className={`flex items-center gap-1 ${c342.dbWriteStillBlocked ? 'text-green-700' : 'text-red-600'}`}>
+                <ShieldCheck className="h-3.5 w-3.5" /> DB write 계속 차단
+              </span>
+              <span className={`flex items-center gap-1 ${c342.workerQueueAdapterStillBlocked ? 'text-green-700' : 'text-red-600'}`}>
+                <ShieldCheck className="h-3.5 w-3.5" /> Worker / Queue / Adapter 계속 차단
+              </span>
+              <span className={`flex items-center gap-1 ${c342.tokenOrAuthStillHidden ? 'text-green-700' : 'text-red-600'}`}>
+                <ShieldCheck className="h-3.5 w-3.5" /> Token/Auth 값 계속 비노출
+              </span>
+              <span className={`flex items-center gap-1 ${c342.rawApiResponseStillHidden ? 'text-green-700' : 'text-red-600'}`}>
+                <ShieldCheck className="h-3.5 w-3.5" /> raw API response 계속 비표시
+              </span>
+              <span className={`flex items-center gap-1 ${c342.actualFinalExecutionApprovalGranted ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> 실제 최종 실행 승인 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c342.actualExecutionApprovalGranted ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> 실제 실행 승인 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c342.actualExecutionStarted ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> 실제 실행 시작 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c342.executionButtonAdded ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> 실행 버튼 추가 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c342.submitActionAdded ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> submit action 추가 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c342.postApiAdded ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> POST API 추가 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c342.priceChanged ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> 가격 변경 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c342.stockChanged ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> 재고 변경 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c342.tokenOrAuthValueExposed ? 'text-red-600' : 'text-green-700'}`}>
+                <ShieldCheck className="h-3.5 w-3.5" /> Token/Auth/Signature/Authorization 비노출 유지
+              </span>
+              <span className={`flex items-center gap-1 ${c342.rawApiResponseExposedOrStored ? 'text-red-600' : 'text-green-700'}`}>
+                <ShieldCheck className="h-3.5 w-3.5" /> raw API response 비저장 유지
+              </span>
+            </div>
+
+            <div className="mb-2 text-xs text-slate-500">
+              <span className="font-medium">원본 Task 341 상태:</span>{' '}
+              {c342.sourceFinalClosureSummarySafetyAuditSealOutcomeCertificationStatus}
+              {' | '}
+              <span className="font-medium">총 설계 항목:</span> {c342.designReviewItemCount}개
+              {' | '}
+              <span className="font-medium">VPS:</span> {c342.vpsDesignItemCount}개
+              {' | '}
+              <span className="font-medium">도메인/DNS/HTTPS:</span> {c342.domainDnsHttpsDesignItemCount}개
+              {' | '}
+              <span className="font-medium">운영 DB:</span> {c342.operatingDbDesignItemCount}개
+              {' | '}
+              <span className="font-medium">백업/롤백:</span> {c342.backupRollbackDesignItemCount}개
+              {' | '}
+              <span className="font-medium">보안:</span> {c342.securityAccessDesignItemCount}개
+              {' | '}
+              <span className="font-medium">승인 항목:</span> {c342.approvalRequirementItemCount}개
+            </div>
+
+            {c342.requiresSeparateTask343Approval && (
+              <p className="rounded border border-fuchsia-200 bg-white/80 px-3 py-2 text-xs text-fuchsia-900">
+                {c342.nextTaskApprovalPhrase}
               </p>
             )}
           </div>
