@@ -340,6 +340,7 @@ import { buildTmsReadOnlyOperatingDeploymentFinalApprovalPacketOutcomeCertificat
 import { buildTmsReadOnlyOperatingDeploymentFinalApprovalSealReviewView } from '@/src/services/tms-read-only-operating-deployment-final-approval-seal-review-view.service';
 import { buildTmsReadOnlyOperatingDeploymentFinalApprovalSealOutcomeCertificationView } from '@/src/services/tms-read-only-operating-deployment-final-approval-seal-outcome-certification-view.service';
 import { buildTmsReadOnlyOperatingDeploymentFinalApprovalCandidateReviewView } from '@/src/services/tms-read-only-operating-deployment-final-approval-candidate-review-view.service';
+import { buildTmsReadOnlyOperatingDeploymentFinalApprovalCandidateOutcomeCertificationView } from '@/src/services/tms-read-only-operating-deployment-final-approval-candidate-outcome-certification-view.service';
 
 // Compute safe DB environment hint from DATABASE_URL without exposing the original value.
 // Returns a classification key, never the actual URL.
@@ -1449,6 +1450,13 @@ export async function GET(
         operatingDeploymentFinalApprovalSealOutcomeCertification:
           _tmsReadOnlyOperatingDeploymentFinalApprovalSealOutcomeCertificationView,
       });
+    const _tmsReadOnlyOperatingDeploymentFinalApprovalCandidateOutcomeCertificationView =
+      buildTmsReadOnlyOperatingDeploymentFinalApprovalCandidateOutcomeCertificationView(
+        {
+          operatingDeploymentFinalApprovalCandidateReview:
+            _tmsReadOnlyOperatingDeploymentFinalApprovalCandidateReviewView,
+        },
+      );
 
     const responseJob = {
       id: job.id,
@@ -2596,6 +2604,8 @@ export async function GET(
         _tmsReadOnlyOperatingDeploymentFinalApprovalSealOutcomeCertificationView,
       tmsReadOnlyOperatingDeploymentFinalApprovalCandidateReviewView:
         _tmsReadOnlyOperatingDeploymentFinalApprovalCandidateReviewView,
+      tmsReadOnlyOperatingDeploymentFinalApprovalCandidateOutcomeCertificationView:
+        _tmsReadOnlyOperatingDeploymentFinalApprovalCandidateOutcomeCertificationView,
     };
 
     return NextResponse.json({ ok: true, job: responseJob });
