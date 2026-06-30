@@ -483,6 +483,7 @@ type DraftBatchJob = {
   tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionBoundaryOutcomeCertificationView?: any;
     tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionPacketReviewView?: any;
   tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionPacketOutcomeCertificationView?: any;
+  tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionSealReviewView?: any;
   naverAuthTokenFirstTestSafetyBoundary?: {
     ok: boolean;
     readyForExplicitTokenTestApproval: boolean;
@@ -51231,6 +51232,161 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             {c364.nextTaskApprovalPhrase && (
               <p className="rounded border border-cyan-200 bg-white/80 px-3 py-2 text-xs text-cyan-900">
                 {c364.nextTaskApprovalPhrase}
+              </p>
+            )}
+          </div>
+        );
+      })()}
+
+
+      {/* ── Task 365: TMS Read-Only Operating Deployment Final Approval Submission Seal Review Screen Flow ── */}
+      {job.tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionSealReviewView && (() => {
+        const c365 = job.tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionSealReviewView;
+        const Badge = ({ condition, text, okClass = "bg-green-100 text-green-800", failClass = "bg-red-100 text-red-800" }: any) => (
+          <span className={`inline-block px-2 py-0.5 rounded text-xs font-semibold ${condition ? okClass : failClass}`}>
+            {text} {condition ? "OK" : "NO"}
+          </span>
+        );
+        return (
+          <div className="mt-8 rounded-lg border border-teal-300 bg-teal-50/50 p-6 shadow-sm">
+            <div className="mb-4 flex items-center justify-between border-b border-teal-200 pb-3">
+              <h3 className="text-lg font-bold text-teal-900">
+                Task 365: {c365.taskName}
+              </h3>
+              <span className="rounded bg-teal-200 px-2 py-1 text-xs font-bold text-teal-900">
+                {c365.operatingDeploymentFinalApprovalSubmissionSealReviewStatus}
+              </span>
+            </div>
+
+            <p className="mb-6 rounded border border-teal-200 bg-white/60 p-3 text-sm text-teal-800">
+              이 패널은 운영 배포 최종 승인 제출 Seal 상태를 read-only로 검토하는 화면입니다.
+              이 화면은 실제 최종 승인, 실제 승인 제출, 실제 배포 승인, 실제 배포 실행 작업이 아닙니다.
+              Task 366은 사용자 별도 명시 승인 없이는 진행하지 않습니다.
+            </p>
+
+            <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div className="rounded bg-white p-4 shadow-sm border border-teal-100">
+                <h4 className="mb-2 text-sm font-bold text-teal-700">Source Decisions (Task 364 Outcome)</h4>
+                <ul className="space-y-1 text-sm text-teal-800">
+                  <li><span className="font-semibold">인증된 Go/No-Go 후보:</span> {c365.sourceOutcomeCertifiedGoNoGoDecisionLabel}</li>
+                  <li><span className="font-semibold">인증된 최종 승인 후보:</span> {c365.sourceOutcomeCertifiedFinalApprovalCandidateDecisionLabel}</li>
+                  <li><span className="font-semibold">인증된 최종 승인 제출 경계:</span> {c365.sourceOutcomeCertifiedFinalApprovalSubmissionDecisionLabel}</li>
+                  <li><span className="font-semibold">인증된 최종 승인 제출 패킷:</span> {c365.sourceOutcomeCertifiedFinalApprovalSubmissionPacketDecisionLabel}</li>
+                  <li><span className="font-semibold">인증 결과 상태:</span> {c365.sourceFinalApprovalSubmissionPacketOutcomeCertificationStatus}</li>
+                </ul>
+              </div>
+              <div className="rounded bg-white p-4 shadow-sm border border-teal-100">
+                <h4 className="mb-2 text-sm font-bold text-teal-700">Recommended Decision (Task 365)</h4>
+                <ul className="space-y-1 text-sm text-teal-800">
+                  <li><span className="font-semibold">추천된 최종 승인 제출 Seal 결정:</span> {c365.recommendedFinalApprovalSubmissionSealDecisionLabel}</li>
+                </ul>
+              </div>
+            </div>
+
+            <div className="mb-6">
+              <h4 className="mb-3 text-sm font-bold text-teal-800">Seal Review Summary</h4>
+              <div className="flex flex-wrap gap-2">
+                {c365.sealReviewSummaryCards.map((card: any, idx: number) => (
+                  <div key={idx} className="flex-1 min-w-[120px] rounded bg-white p-3 text-center border border-teal-200">
+                    <div className="text-2xl font-black text-teal-700">{card.value}</div>
+                    <div className="text-xs text-teal-600">{card.label}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="mb-6 space-y-4">
+              <h4 className="text-sm font-bold text-teal-800">Final Approval Submission Seal Groups (14)</h4>
+              
+              {[
+                { title: '1. Readiness', items: c365.submissionSealReadinessReviewItems },
+                { title: '2. Certification Seal', items: c365.submissionPacketCertificationSealReviewItems },
+                { title: '3. Seal Lock', items: c365.finalApprovalSubmissionSealLockReviewItems },
+                { title: '4. Grant Seal', items: c365.finalApprovalGrantSealReviewItems },
+                { title: '5. Submission Seal', items: c365.approvalPacketSubmissionSealReviewItems },
+                { title: '6. Deployment Approval', items: c365.deploymentApprovalSealReviewItems },
+                { title: '7. Deployment Execution', items: c365.deploymentExecutionSealReviewItems },
+                { title: '8. Infrastructure', items: c365.infrastructureSubmissionSealReviewItems },
+                { title: '9. Domain / DNS / HTTPS', items: c365.domainDnsHttpsSubmissionSealReviewItems },
+                { title: '10. Operating DB', items: c365.operatingDbSubmissionSealReviewItems },
+                { title: '11. Runtime / Worker / Queue / Adapter', items: c365.runtimeWorkerQueueAdapterSubmissionSealReviewItems },
+                { title: '12. API / Secret', items: c365.apiAndSecretSubmissionSealReviewItems },
+                { title: '13. UI Action', items: c365.uiActionSubmissionSealReviewItems },
+                { title: '14. Requirement', items: c365.finalSubmissionSealRequirementReviewItems }
+              ].map((group, gIdx) => (
+                <div key={gIdx} className="rounded border border-teal-200 bg-white p-3">
+                  <h5 className="mb-2 text-xs font-bold text-teal-800 border-b border-teal-100 pb-1">{group.title} Seal ({group.items.length})</h5>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    {group.items.map((item: any, iIdx: number) => (
+                      <div key={iIdx} className="flex items-center justify-between bg-teal-50/50 px-2 py-1 rounded border border-teal-100">
+                        <div className="text-xs text-teal-700 font-medium truncate pr-2" title={item.description}>
+                          {item.label}
+                        </div>
+                        <div className="shrink-0">
+                          <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-bold ${
+                            item.sealReviewStatus === 'SEAL_INTACT' ? 'bg-teal-200 text-teal-900' :
+                            item.sealReviewStatus === 'SEAL_BROKEN' ? 'bg-red-200 text-red-900' :
+                            'bg-gray-200 text-gray-700'
+                          }`}>
+                            {item.sealReviewStatus}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="mb-6 rounded bg-white p-4 shadow-sm border border-teal-100">
+              <h4 className="mb-3 text-sm font-bold text-teal-700">Safety Check (Execution Flags)</h4>
+              <div className="grid grid-cols-2 gap-2 text-xs md:grid-cols-3 lg:grid-cols-4">
+                <Badge condition={!c365.actualFinalApprovalGranted} text="실제 최종 승인 없음" />
+                <Badge condition={!c365.actualFinalApprovalCandidateSaved} text="실제 승인 후보 저장 없음" />
+                <Badge condition={!c365.actualFinalApprovalSubmissionPerformed} text="실제 승인 제출 없음" />
+                <Badge condition={!c365.actualFinalApprovalPacketSubmitted} text="실제 승인 패킷 제출 없음" />
+                <Badge condition={!c365.actualDeploymentApprovalGranted} text="실제 배포 승인 없음" />
+                <Badge condition={!c365.actualDeploymentStarted} text="실제 배포 실행 없음" />
+                <Badge condition={!c365.actualGoDecisionGranted} text="실제 Go 없음" />
+                <Badge condition={!c365.actualNoGoDecisionGranted} text="실제 NoGo 없음" />
+                <Badge condition={!c365.actualGoNoGoDecisionSaved} text="실제 GoNoGo 저장 없음" />
+                <Badge condition={!c365.actualVpsServerCreated} text="실제 VPS 생성 없음" />
+                <Badge condition={!c365.actualDomainConnected} text="실제 도메인 연결 없음" />
+                <Badge condition={!c365.dnsChanged} text="DNS 변경 없음" />
+                <Badge condition={!c365.sslCertificateIssued} text="SSL 발급 없음" />
+                <Badge condition={!c365.runtimeConfigured} text="Runtime 구성 없음" />
+                <Badge condition={!c365.workerStarted} text="Worker 실행 없음" />
+                <Badge condition={!c365.queueEnqueued} text="Queue 실행 없음" />
+                <Badge condition={!c365.adapterConnected} text="Adapter 연결 없음" />
+                <Badge condition={!c365.operatingDbConnectionChanged} text="운영 DB 연결 변경 없음" />
+                <Badge condition={!c365.databaseUrlChanged} text="DB URL 변경 없음" />
+                <Badge condition={!c365.envFileReadOrModified} text="ENV 수정 없음" />
+                <Badge condition={!c365.dbWritePerformed} text="DB Write 없음" />
+                <Badge condition={!c365.naverApiCalled} text="Naver API 호출 없음" />
+                <Badge condition={!c365.productLookupApiRecalled} text="상품조회 API 호출 없음" />
+                <Badge condition={!c365.productUpdateApiCalled} text="상품수정 API 호출 없음" />
+                <Badge condition={!c365.executionButtonAdded} text="실행 버튼 없음" />
+                <Badge condition={!c365.submitActionAdded} text="Submit 액션 없음" />
+                <Badge condition={!c365.postApiAdded} text="POST API 없음" />
+                <Badge condition={!c365.priceChanged} text="가격 변경 없음" />
+                <Badge condition={!c365.stockChanged} text="재고 변경 없음" />
+              </div>
+            </div>
+
+            <div className="mb-6 rounded bg-teal-100/50 p-4 shadow-sm border border-teal-200">
+              <h4 className="mb-3 text-sm font-bold text-teal-800">Recommendation Status</h4>
+              <ul className="space-y-1 text-sm text-teal-800">
+                <li><span className="font-semibold">Next Step:</span> {c365.recommendedNextStep}</li>
+                <li><span className="font-semibold">Approval Mode:</span> {c365.recommendedApprovalMode}</li>
+                <li><span className="font-semibold">Execution Mode:</span> {c365.recommendedExecutionMode}</li>
+                <li><span className="font-semibold">Deployment Mode:</span> {c365.recommendedDeploymentMode}</li>
+                <li><span className="font-semibold">Safety Mode:</span> {c365.recommendedSafetyMode}</li>
+              </ul>
+            </div>
+
+            {c365.nextTaskApprovalPhrase && (
+              <p className="rounded border border-teal-200 bg-white/80 px-3 py-2 text-xs text-teal-900">
+                {c365.nextTaskApprovalPhrase}
               </p>
             )}
           </div>

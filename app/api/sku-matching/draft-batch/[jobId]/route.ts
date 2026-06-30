@@ -344,6 +344,9 @@ import { buildTmsReadOnlyOperatingDeploymentFinalApprovalCandidateOutcomeCertifi
 import { buildTmsReadOnlyOperatingDeploymentFinalApprovalSubmissionBoundaryReviewView } from '@/src/services/tms-read-only-operating-deployment-final-approval-submission-boundary-review-view.service';
 import { buildTmsReadOnlyOperatingDeploymentFinalApprovalSubmissionBoundaryOutcomeCertificationView } from '@/src/services/tms-read-only-operating-deployment-final-approval-submission-boundary-outcome-certification-view.service';
 import { buildTmsReadOnlyOperatingDeploymentFinalApprovalSubmissionPacketReviewView } from '@/src/services/tms-read-only-operating-deployment-final-approval-submission-packet-review-view.service';
+import { buildTmsReadOnlyOperatingDeploymentFinalApprovalSubmissionPacketOutcomeCertificationView } from '@/src/services/tms-read-only-operating-deployment-final-approval-submission-packet-outcome-certification-view.service';
+import { buildTmsReadOnlyOperatingDeploymentFinalApprovalSubmissionSealReviewView } from '@/src/services/tms-read-only-operating-deployment-final-approval-submission-seal-review-view.service';
+
 
 // Compute safe DB environment hint from DATABASE_URL without exposing the original value.
 // Returns a classification key, never the actual URL.
@@ -1479,6 +1482,15 @@ export async function GET(
         operatingDeploymentFinalApprovalSubmissionBoundaryOutcomeCertification:
           _tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionBoundaryOutcomeCertificationView,
       });
+    const _tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionPacketOutcomeCertificationView =
+      buildTmsReadOnlyOperatingDeploymentFinalApprovalSubmissionPacketOutcomeCertificationView(
+        _tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionPacketReviewView
+      );
+
+    const _tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionSealReviewView =
+      buildTmsReadOnlyOperatingDeploymentFinalApprovalSubmissionSealReviewView(
+        _tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionPacketOutcomeCertificationView
+      );
 
     const responseJob = {
       id: job.id,
@@ -2634,6 +2646,10 @@ export async function GET(
         _tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionBoundaryOutcomeCertificationView,
       tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionPacketReviewView:
         _tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionPacketReviewView,
+      tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionPacketOutcomeCertificationView:
+        _tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionPacketOutcomeCertificationView,
+      tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionSealReviewView:
+        _tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionSealReviewView,
     };
     return NextResponse.json({ ok: true, job: responseJob });
   } catch (error: unknown) {
