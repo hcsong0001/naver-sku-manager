@@ -3967,6 +3967,7 @@ type DraftBatchJob = {
   tmsReadOnlyOperatingDbBackupRollbackPlanReviewView?: any;
   tmsReadOnlyRuntimeWorkerQueueAdapterOperatingConnectionPlanReviewView?: any;
   tmsReadOnlyOperatingDeploymentPreExecutionFinalReadinessReviewView?: any;
+  tmsReadOnlyOperatingDeploymentApprovalPacketReviewView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -47154,6 +47155,270 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             {c346.requiresSeparateTask347Approval && (
               <p className="rounded border border-fuchsia-200 bg-white/80 px-3 py-2 text-xs text-fuchsia-900">
                 {c346.nextTaskApprovalPhrase}
+              </p>
+            )}
+          </div>
+        );
+      })()}
+
+      {/* ── Task 347: Read-Only Operating Deployment Approval Packet Review ── */}
+      {job.tmsReadOnlyOperatingDeploymentApprovalPacketReviewView && (() => {
+        const c347 = job.tmsReadOnlyOperatingDeploymentApprovalPacketReviewView as {
+          taskId: number;
+          panelTitle: string;
+          description: string;
+          operatingDeploymentApprovalPacketReviewStatus: string;
+          approvalPacketReviewReady: boolean;
+          approvalPacketReviewPartialReady: boolean;
+          approvalPacketReviewBlocked: boolean;
+          approvalPacketReviewNotStarted: boolean;
+          sourceOperatingDeploymentPreExecutionFinalReadinessReviewStatus: string;
+          approvalPacketSummaryCards: Array<{ label: string; value: string; tone: string }>;
+          vpsCreationApprovalItems: Array<{ approvalItemId: string; label: string; description: string; approvalReviewStatus: string; requiresSeparateApproval: boolean; isReady: boolean; isPartialReady: boolean; isBlocked: boolean; isNotStarted: boolean; isReadOnly: boolean; actualApprovalGranted: boolean; actualChangePerformed: boolean }>;
+          runtimeConfigurationApprovalItems: Array<{ approvalItemId: string; label: string; description: string; approvalReviewStatus: string; requiresSeparateApproval: boolean; isReady: boolean; isPartialReady: boolean; isBlocked: boolean; isNotStarted: boolean; isReadOnly: boolean; actualApprovalGranted: boolean; actualChangePerformed: boolean }>;
+          operatingDbApprovalItems: Array<{ approvalItemId: string; label: string; description: string; approvalReviewStatus: string; requiresSeparateApproval: boolean; isReady: boolean; isPartialReady: boolean; isBlocked: boolean; isNotStarted: boolean; isReadOnly: boolean; actualApprovalGranted: boolean; actualChangePerformed: boolean }>;
+          domainDnsHttpsApprovalItems: Array<{ approvalItemId: string; label: string; description: string; approvalReviewStatus: string; requiresSeparateApproval: boolean; isReady: boolean; isPartialReady: boolean; isBlocked: boolean; isNotStarted: boolean; isReadOnly: boolean; actualApprovalGranted: boolean; actualChangePerformed: boolean }>;
+          workerQueueAdapterApprovalItems: Array<{ approvalItemId: string; label: string; description: string; approvalReviewStatus: string; requiresSeparateApproval: boolean; isReady: boolean; isPartialReady: boolean; isBlocked: boolean; isNotStarted: boolean; isReadOnly: boolean; actualApprovalGranted: boolean; actualChangePerformed: boolean }>;
+          naverApiApprovalItems: Array<{ approvalItemId: string; label: string; description: string; approvalReviewStatus: string; requiresSeparateApproval: boolean; isReady: boolean; isPartialReady: boolean; isBlocked: boolean; isNotStarted: boolean; isReadOnly: boolean; actualApprovalGranted: boolean; actualChangePerformed: boolean }>;
+          deploymentExecutionApprovalItems: Array<{ approvalItemId: string; label: string; description: string; approvalReviewStatus: string; requiresSeparateApproval: boolean; isReady: boolean; isPartialReady: boolean; isBlocked: boolean; isNotStarted: boolean; isReadOnly: boolean; actualApprovalGranted: boolean; actualChangePerformed: boolean }>;
+          preExecutionSafetyLockItems: Array<{ approvalItemId: string; label: string; description: string; approvalReviewStatus: string; requiresSeparateApproval: boolean; isReady: boolean; isPartialReady: boolean; isBlocked: boolean; isNotStarted: boolean; isReadOnly: boolean; actualApprovalGranted: boolean; actualChangePerformed: boolean }>;
+          totalApprovalPacketItemCount: number;
+          readyItemCount: number;
+          partialReadyItemCount: number;
+          blockedItemCount: number;
+          notStartedItemCount: number;
+          recommendedNextStep: string;
+          recommendedApprovalMode: string;
+          recommendedExecutionMode: string;
+          recommendedDeploymentMode: string;
+          recommendedSafetyMode: string;
+          actualApprovalPacketSubmitted: boolean;
+          actualDeploymentApprovalGranted: boolean;
+          actualDeploymentStarted: boolean;
+          actualVpsServerCreated: boolean;
+          actualDomainConnected: boolean;
+          dnsChanged: boolean;
+          sslCertificateIssued: boolean;
+          runtimeConfigured: boolean;
+          workerStarted: boolean;
+          queueEnqueued: boolean;
+          redisOperatingConnectionChanged: boolean;
+          adapterConnected: boolean;
+          operatingDbConnectionChanged: boolean;
+          databaseUrlChanged: boolean;
+          envFileReadOrModified: boolean;
+          naverApiCalled: boolean;
+          dbWritePerformed: boolean;
+          executionButtonAdded: boolean;
+          submitActionAdded: boolean;
+          postApiAdded: boolean;
+          approvalPacketStillDisplayOnly: boolean;
+          approvalSubmissionStillBlocked: boolean;
+          deploymentExecutionStillBlocked: boolean;
+          runtimeConfigurationStillReadOnly: boolean;
+          workerExecutionStillBlocked: boolean;
+          queueEnqueueStillBlocked: boolean;
+          adapterConnectionStillBlocked: boolean;
+          domainConnectionStillReadOnly: boolean;
+          dnsChangeStillBlocked: boolean;
+          sslIssueStillBlocked: boolean;
+          operatingDbConnectionStillReadOnly: boolean;
+          databaseUrlChangeStillBlocked: boolean;
+          apiCallStillBlocked: boolean;
+          dbWriteStillBlocked: boolean;
+          tokenOrAuthStillHidden: boolean;
+          rawApiResponseStillHidden: boolean;
+          requiresSeparateTask348Approval: boolean;
+          nextTaskApprovalPhrase: string;
+        };
+        const statusColor =
+          c347.approvalPacketReviewReady
+            ? 'text-emerald-700 bg-emerald-100 border-emerald-300'
+            : c347.approvalPacketReviewBlocked
+              ? 'text-red-700 bg-red-100 border-red-300'
+              : c347.approvalPacketReviewPartialReady
+                ? 'text-yellow-700 bg-yellow-100 border-yellow-300'
+                : 'text-slate-600 bg-slate-100 border-slate-300';
+        const renderApprovalItemStatus = (item: { approvalReviewStatus: string }) => {
+          if (item.approvalReviewStatus === 'READY') return <span className="text-emerald-600 font-semibold">READY</span>;
+          if (item.approvalReviewStatus === 'PARTIAL_READY') return <span className="text-yellow-600 font-semibold">PARTIAL_READY</span>;
+          if (item.approvalReviewStatus === 'BLOCKED') return <span className="text-red-600 font-semibold">BLOCKED</span>;
+          return <span className="text-slate-500 font-semibold">NOT_STARTED</span>;
+        };
+        const renderApprovalGroup = (
+          title: string,
+          items: typeof c347.vpsCreationApprovalItems,
+          borderColor: string,
+        ) => (
+          <div className={`rounded border ${borderColor} bg-white/70 p-3 mb-3`}>
+            <div className="font-semibold text-xs text-slate-700 mb-2">{title}</div>
+            <ul className="space-y-1">
+              {items.map((item) => (
+                <li key={item.approvalItemId} className="flex flex-col gap-0.5 text-xs border-b border-slate-100 pb-1 last:border-0 last:pb-0">
+                  <div className="flex items-center gap-2">
+                    {renderApprovalItemStatus(item)}
+                    <span className="text-slate-800">{item.label}</span>
+                    {item.requiresSeparateApproval && (
+                      <span className="ml-1 rounded bg-amber-100 px-1 text-[10px] text-amber-700 border border-amber-300">별도승인필요</span>
+                    )}
+                    {item.isReadOnly && (
+                      <span className="ml-auto rounded bg-slate-100 px-1 text-[10px] text-slate-500 border border-slate-200">read-only</span>
+                    )}
+                  </div>
+                  <span className="text-slate-500 pl-1">{item.description}</span>
+                  <div className="flex gap-3 pl-1 text-[10px] text-slate-400">
+                    <span>actualApprovalGranted: <span className={item.actualApprovalGranted ? 'text-red-500' : 'text-slate-400'}>{String(item.actualApprovalGranted)}</span></span>
+                    <span>actualChangePerformed: <span className={item.actualChangePerformed ? 'text-red-500' : 'text-slate-400'}>{String(item.actualChangePerformed)}</span></span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        );
+        return (
+          <div className="mt-6 rounded-xl border border-sky-300 bg-sky-50/60 p-5 shadow-sm">
+            <div className="mb-3 flex items-center gap-3">
+              <span className="rounded bg-sky-700 px-2 py-0.5 text-xs font-bold text-white">Task {c347.taskId}</span>
+              <span className="text-base font-bold text-sky-900">{c347.panelTitle}</span>
+              <span className={`ml-auto rounded border px-2 py-0.5 text-xs font-bold ${statusColor}`}>
+                {c347.operatingDeploymentApprovalPacketReviewStatus}
+              </span>
+            </div>
+
+            <p className="mb-4 text-xs text-slate-600">{c347.description}</p>
+
+            {/* Summary cards */}
+            <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {c347.approvalPacketSummaryCards.map((card) => (
+                <div
+                  key={card.label}
+                  className={`rounded border p-2 text-center text-xs ${
+                    card.tone === 'positive'
+                      ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
+                      : card.tone === 'warning'
+                        ? 'border-amber-200 bg-amber-50 text-amber-800'
+                        : 'border-slate-200 bg-slate-50 text-slate-700'
+                  }`}
+                >
+                  <div className="font-semibold">{card.value}</div>
+                  <div className="text-[10px] text-slate-500">{card.label}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Recommended values */}
+            <div className="mb-4 rounded border border-sky-200 bg-white/80 p-3">
+              <div className="mb-1 text-xs font-semibold text-sky-800">Recommended Values</div>
+              <ul className="space-y-1 text-xs text-slate-700">
+                <li><span className="font-medium text-slate-500">recommendedNextStep:</span> {c347.recommendedNextStep}</li>
+                <li><span className="font-medium text-slate-500">recommendedApprovalMode:</span> {c347.recommendedApprovalMode}</li>
+                <li><span className="font-medium text-slate-500">recommendedExecutionMode:</span> {c347.recommendedExecutionMode}</li>
+                <li><span className="font-medium text-slate-500">recommendedDeploymentMode:</span> {c347.recommendedDeploymentMode}</li>
+                <li><span className="font-medium text-slate-500">recommendedSafetyMode:</span> {c347.recommendedSafetyMode}</li>
+              </ul>
+            </div>
+
+            {/* Approval category groups */}
+            {renderApprovalGroup('VPS 생성 승인 항목', c347.vpsCreationApprovalItems, 'border-sky-200')}
+            {renderApprovalGroup('Runtime 구성 승인 항목', c347.runtimeConfigurationApprovalItems, 'border-violet-200')}
+            {renderApprovalGroup('운영 DB 승인 항목', c347.operatingDbApprovalItems, 'border-teal-200')}
+            {renderApprovalGroup('도메인/DNS/HTTPS 승인 항목', c347.domainDnsHttpsApprovalItems, 'border-indigo-200')}
+            {renderApprovalGroup('Worker/Queue/Adapter 승인 항목', c347.workerQueueAdapterApprovalItems, 'border-purple-200')}
+            {renderApprovalGroup('Naver API 승인 항목', c347.naverApiApprovalItems, 'border-orange-200')}
+            {renderApprovalGroup('배포 실행 승인 항목', c347.deploymentExecutionApprovalItems, 'border-rose-200')}
+            {renderApprovalGroup('사전 실행 Safety Lock 항목', c347.preExecutionSafetyLockItems, 'border-emerald-200')}
+
+            {/* Source status */}
+            <div className="mb-3 rounded border border-slate-200 bg-white/70 p-3">
+              <div className="mb-1 text-xs font-semibold text-slate-600">소스 상태 (Task 346)</div>
+              <div className="text-xs text-slate-700">
+                <span className="font-medium">Task 346 Final Readiness Review Status:</span>{' '}
+                {c347.sourceOperatingDeploymentPreExecutionFinalReadinessReviewStatus}
+              </div>
+            </div>
+
+            {/* Safety flags */}
+            <div className="mb-4 rounded border border-slate-200 bg-white/70 p-3">
+              <div className="mb-2 text-xs font-semibold text-slate-600">Safety 플래그 (모두 false여야 안전)</div>
+              <div className="grid grid-cols-2 gap-1 text-[11px]">
+                {[
+                  ['actualApprovalPacketSubmitted', c347.actualApprovalPacketSubmitted],
+                  ['actualDeploymentApprovalGranted', c347.actualDeploymentApprovalGranted],
+                  ['actualDeploymentStarted', c347.actualDeploymentStarted],
+                  ['actualVpsServerCreated', c347.actualVpsServerCreated],
+                  ['actualDomainConnected', c347.actualDomainConnected],
+                  ['dnsChanged', c347.dnsChanged],
+                  ['sslCertificateIssued', c347.sslCertificateIssued],
+                  ['runtimeConfigured', c347.runtimeConfigured],
+                  ['workerStarted', c347.workerStarted],
+                  ['queueEnqueued', c347.queueEnqueued],
+                  ['redisOperatingConnectionChanged', c347.redisOperatingConnectionChanged],
+                  ['adapterConnected', c347.adapterConnected],
+                  ['operatingDbConnectionChanged', c347.operatingDbConnectionChanged],
+                  ['databaseUrlChanged', c347.databaseUrlChanged],
+                  ['envFileReadOrModified', c347.envFileReadOrModified],
+                  ['naverApiCalled', c347.naverApiCalled],
+                  ['dbWritePerformed', c347.dbWritePerformed],
+                  ['executionButtonAdded', c347.executionButtonAdded],
+                  ['submitActionAdded', c347.submitActionAdded],
+                  ['postApiAdded', c347.postApiAdded],
+                ].map(([label, val]) => (
+                  <div key={String(label)} className="flex justify-between gap-1 rounded bg-slate-50 px-2 py-0.5">
+                    <span className="text-slate-500">{String(label)}</span>
+                    <span className={val ? 'font-bold text-red-600' : 'text-emerald-600'}>{String(val)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Still-blocked flags */}
+            <div className="mb-4 rounded border border-slate-200 bg-white/70 p-3">
+              <div className="mb-2 text-xs font-semibold text-slate-600">Still-Blocked 플래그 (모두 true여야 안전)</div>
+              <div className="grid grid-cols-2 gap-1 text-[11px]">
+                {[
+                  ['approvalPacketStillDisplayOnly', c347.approvalPacketStillDisplayOnly],
+                  ['approvalSubmissionStillBlocked', c347.approvalSubmissionStillBlocked],
+                  ['deploymentExecutionStillBlocked', c347.deploymentExecutionStillBlocked],
+                  ['runtimeConfigurationStillReadOnly', c347.runtimeConfigurationStillReadOnly],
+                  ['workerExecutionStillBlocked', c347.workerExecutionStillBlocked],
+                  ['queueEnqueueStillBlocked', c347.queueEnqueueStillBlocked],
+                  ['adapterConnectionStillBlocked', c347.adapterConnectionStillBlocked],
+                  ['domainConnectionStillReadOnly', c347.domainConnectionStillReadOnly],
+                  ['dnsChangeStillBlocked', c347.dnsChangeStillBlocked],
+                  ['sslIssueStillBlocked', c347.sslIssueStillBlocked],
+                  ['operatingDbConnectionStillReadOnly', c347.operatingDbConnectionStillReadOnly],
+                  ['databaseUrlChangeStillBlocked', c347.databaseUrlChangeStillBlocked],
+                  ['apiCallStillBlocked', c347.apiCallStillBlocked],
+                  ['dbWriteStillBlocked', c347.dbWriteStillBlocked],
+                  ['tokenOrAuthStillHidden', c347.tokenOrAuthStillHidden],
+                  ['rawApiResponseStillHidden', c347.rawApiResponseStillHidden],
+                ].map(([label, val]) => (
+                  <div key={String(label)} className="flex justify-between gap-1 rounded bg-slate-50 px-2 py-0.5">
+                    <span className="text-slate-500">{String(label)}</span>
+                    <span className={val ? 'text-emerald-600' : 'font-bold text-red-600'}>{String(val)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Description */}
+            <div className="mb-4 rounded border border-sky-100 bg-white/80 p-3 text-xs text-slate-600">
+              이 패널은 운영 배포 승인 패킷을 read-only로 검토하는 화면입니다.
+              이 화면은 실제 승인 제출, 실제 배포 승인, 실제 배포 실행, VPS 생성, Runtime 구성, Worker 실행, Queue enqueue, Redis 연결, Adapter 연결, DNS 변경, SSL 발급, 운영 DB 연결 변경, Naver API 호출 작업이 아닙니다.
+              Task 348은 사용자 별도 명시 승인 없이는 진행하지 않습니다.
+            </div>
+
+            {/* requiresSeparateTask348Approval */}
+            {c347.requiresSeparateTask348Approval && (
+              <div className="mb-3 rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-800">
+                Task 348은 사용자 별도 명시 승인 없이는 자동으로 진행하지 않습니다.
+              </div>
+            )}
+
+            {/* nextTaskApprovalPhrase */}
+            {c347.nextTaskApprovalPhrase && (
+              <p className="rounded border border-fuchsia-200 bg-white/80 px-3 py-2 text-xs text-fuchsia-900">
+                {c347.nextTaskApprovalPhrase}
               </p>
             )}
           </div>
