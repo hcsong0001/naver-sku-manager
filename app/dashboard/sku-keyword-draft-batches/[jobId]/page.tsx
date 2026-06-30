@@ -481,6 +481,7 @@ type DraftBatchJob = {
   naverAuthTokenTestApprovalAudit?: NaverAuthTokenTestApprovalAuditField | null;
   tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionBoundaryReviewView?: any;
   tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionBoundaryOutcomeCertificationView?: any;
+    tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionPacketReviewView?: any;
   naverAuthTokenFirstTestSafetyBoundary?: {
     ok: boolean;
     readyForExplicitTokenTestApproval: boolean;
@@ -50879,6 +50880,198 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             {c362.nextTaskApprovalPhrase && (
               <p className="rounded border border-fuchsia-200 bg-white/80 px-3 py-2 text-xs text-fuchsia-900">
                 {c362.nextTaskApprovalPhrase}
+              </p>
+            )}
+          </div>
+        );
+      })()}
+
+      
+      {job.tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionPacketReviewView && (() => {
+        const c363 = job.tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionPacketReviewView;
+        const statusColor363 = c363.operatingDeploymentFinalApprovalSubmissionPacketReviewStatus.includes('READY')
+          ? 'text-indigo-700'
+          : c363.operatingDeploymentFinalApprovalSubmissionPacketReviewStatus.includes('PARTIAL')
+            ? 'text-amber-600'
+            : c363.operatingDeploymentFinalApprovalSubmissionPacketReviewStatus.includes('BLOCKED')
+              ? 'text-rose-600'
+              : 'text-slate-500';
+
+        const groupedItems363 = {
+          FINAL_APPROVAL_SUBMISSION_PACKET_READINESS: c363.submissionPacketReadinessItems,
+          FINAL_APPROVAL_SUBMISSION_BOUNDARY_CERTIFICATION_PACKET: c363.submissionBoundaryCertificationPacketItems,
+          FINAL_APPROVAL_SUBMISSION_PACKET_LOCK: c363.finalApprovalSubmissionPacketLockItems,
+          FINAL_APPROVAL_GRANT_PACKET: c363.finalApprovalGrantPacketItems,
+          FINAL_APPROVAL_PACKET_SUBMISSION_PACKET: c363.approvalPacketSubmissionPacketItems,
+          DEPLOYMENT_APPROVAL_PACKET: c363.deploymentApprovalPacketItems,
+          DEPLOYMENT_EXECUTION_PACKET: c363.deploymentExecutionPacketItems,
+          INFRASTRUCTURE_SUBMISSION_PACKET: c363.infrastructureSubmissionPacketItems,
+          DOMAIN_DNS_HTTPS_SUBMISSION_PACKET: c363.domainDnsHttpsSubmissionPacketItems,
+          OPERATING_DB_SUBMISSION_PACKET: c363.operatingDbSubmissionPacketItems,
+          RUNTIME_WORKER_QUEUE_ADAPTER_SUBMISSION_PACKET: c363.runtimeWorkerQueueAdapterSubmissionPacketItems,
+          API_AND_SECRET_SUBMISSION_PACKET: c363.apiAndSecretSubmissionPacketItems,
+          UI_ACTION_SUBMISSION_PACKET: c363.uiActionSubmissionPacketItems,
+          FINAL_SUBMISSION_PACKET_REQUIREMENT: c363.finalSubmissionPacketRequirementItems,
+        };
+
+        const groupMeta363 = [
+          { category: 'FINAL_APPROVAL_SUBMISSION_PACKET_READINESS', label: '1. Submission Packet Readiness', count: c363.submissionPacketReadinessItemCount },
+          { category: 'FINAL_APPROVAL_SUBMISSION_BOUNDARY_CERTIFICATION_PACKET', label: '2. Submission Boundary Certification Packet', count: c363.submissionBoundaryCertificationPacketItemCount },
+          { category: 'FINAL_APPROVAL_SUBMISSION_PACKET_LOCK', label: '3. Final Approval Submission Packet Lock', count: c363.finalApprovalSubmissionPacketLockItemCount },
+          { category: 'FINAL_APPROVAL_GRANT_PACKET', label: '4. Final Approval Grant Packet', count: c363.finalApprovalGrantPacketItemCount },
+          { category: 'FINAL_APPROVAL_PACKET_SUBMISSION_PACKET', label: '5. Approval Packet Submission Packet', count: c363.approvalPacketSubmissionPacketItemCount },
+          { category: 'DEPLOYMENT_APPROVAL_PACKET', label: '6. Deployment Approval Packet', count: c363.deploymentApprovalPacketItemCount },
+          { category: 'DEPLOYMENT_EXECUTION_PACKET', label: '7. Deployment Execution Packet', count: c363.deploymentExecutionPacketItemCount },
+          { category: 'INFRASTRUCTURE_SUBMISSION_PACKET', label: '8. Infrastructure Submission Packet', count: c363.infrastructureSubmissionPacketItemCount },
+          { category: 'DOMAIN_DNS_HTTPS_SUBMISSION_PACKET', label: '9. Domain / DNS / HTTPS Submission Packet', count: c363.domainDnsHttpsSubmissionPacketItemCount },
+          { category: 'OPERATING_DB_SUBMISSION_PACKET', label: '10. Operating DB Submission Packet', count: c363.operatingDbSubmissionPacketItemCount },
+          { category: 'RUNTIME_WORKER_QUEUE_ADAPTER_SUBMISSION_PACKET', label: '11. Runtime / Worker / Queue / Adapter Submission Packet', count: c363.runtimeWorkerQueueAdapterSubmissionPacketItemCount },
+          { category: 'API_AND_SECRET_SUBMISSION_PACKET', label: '12. API / Secret Submission Packet', count: c363.apiAndSecretSubmissionPacketItemCount },
+          { category: 'UI_ACTION_SUBMISSION_PACKET', label: '13. UI Action Submission Packet', count: c363.uiActionSubmissionPacketItemCount },
+          { category: 'FINAL_SUBMISSION_PACKET_REQUIREMENT', label: '14. Final Submission Packet Requirement', count: c363.finalSubmissionPacketRequirementItemCount },
+        ];
+
+        return (
+          <div className="mb-6 rounded-lg border-2 border-indigo-300 bg-indigo-50/30 p-5 shadow-sm">
+            <h3 className="mb-2 text-lg font-bold text-indigo-800">
+              Task 363 - TMS Read-Only Operating Deployment Final Approval Submission Packet Review Screen Flow
+            </h3>
+            <p className="mb-4 text-sm text-indigo-700">
+              이 패널은 운영 배포 최종 승인 제출 전에 필요한 제출 패킷을 read-only로 검토하는 화면입니다.<br/>
+              이 화면은 실제 최종 승인, 실제 승인 제출, 실제 배포 승인, 실제 배포 실행 작업이 아닙니다.<br/>
+              Task 364는 사용자 별도 명시 승인 없이는 진행하지 않습니다.
+            </p>
+
+            <div className="mb-3 flex flex-wrap gap-3">
+              <div className="rounded border border-indigo-200 bg-white/80 px-3 py-2">
+                <p className="text-[10px] text-slate-500">Final Approval Submission Packet Review 상태</p>
+                <p className={`text-xs font-bold ${statusColor363}`}>
+                  {c363.operatingDeploymentFinalApprovalSubmissionPacketReviewStatus.replace('TMS_READ_ONLY_OPERATING_DEPLOYMENT_FINAL_APPROVAL_SUBMISSION_PACKET_REVIEW_', '')}
+                </p>
+              </div>
+              <div className="rounded border border-indigo-200 bg-white/80 px-3 py-2">
+                <p className="text-[10px] text-slate-500">인증된 Go/No-Go 후보</p>
+                <p className="text-xs font-bold text-indigo-700">{c363.submissionPacketCertifiedGoNoGoDecisionLabel}</p>
+              </div>
+              <div className="rounded border border-indigo-200 bg-white/80 px-3 py-2">
+                <p className="text-[10px] text-slate-500">인증된 최종 승인 후보 결정</p>
+                <p className="text-xs font-bold text-indigo-700">{c363.submissionPacketCertifiedFinalApprovalCandidateDecisionLabel}</p>
+              </div>
+              <div className="rounded border border-indigo-200 bg-white/80 px-3 py-2">
+                <p className="text-[10px] text-slate-500">인증된 최종 승인 제출 경계 결정</p>
+                <p className="text-xs font-bold text-indigo-700">{c363.submissionPacketCertifiedFinalApprovalSubmissionDecisionLabel}</p>
+              </div>
+              <div className="rounded border border-indigo-200 bg-white/80 px-3 py-2">
+                <p className="text-[10px] text-slate-500">추천 최종 승인 제출 패킷 결정</p>
+                <p className="text-xs font-bold text-indigo-700">{c363.recommendedFinalApprovalSubmissionPacketDecisionLabel}</p>
+              </div>
+            </div>
+
+            {c363.submissionPacketSummaryCards && c363.submissionPacketSummaryCards.length > 0 && (
+              <div className="mb-3 flex flex-wrap gap-2">
+                {c363.submissionPacketSummaryCards.map((card: any) => (
+                  <div
+                    key={card.label}
+                    className={`rounded border px-3 py-1.5 text-xs ${
+                      card.tone === 'positive'
+                        ? 'border-indigo-200 bg-indigo-50 text-indigo-800'
+                        : card.tone === 'warning'
+                          ? 'border-amber-200 bg-amber-50 text-amber-800'
+                          : 'border-slate-200 bg-white text-slate-700'
+                    }`}
+                  >
+                    <span className="font-medium">{card.label}:</span> {card.value}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="mb-3 space-y-1">
+              {groupMeta363.map((group) => {
+                const items = groupedItems363[group.category as keyof typeof groupedItems363] ?? [];
+                if (items.length === 0) return null;
+                return (
+                  <div key={group.category} className="mb-3">
+                    <p className="mb-1 text-xs font-semibold text-indigo-800">
+                      {group.label} ({group.count}개)
+                    </p>
+                    <ul className="space-y-1">
+                      {items.map((item: any) => (
+                        <li key={item.submissionPacketItemId} className="flex items-start gap-2 text-xs text-slate-700">
+                          <span
+                            className={
+                              item.isReady
+                                ? 'mt-0.5 h-2 w-2 shrink-0 rounded-full bg-indigo-500'
+                                : item.isPartialReady
+                                  ? 'mt-0.5 h-2 w-2 shrink-0 rounded-full bg-amber-400'
+                                  : item.isBlocked
+                                    ? 'mt-0.5 h-2 w-2 shrink-0 rounded-full bg-red-500'
+                                    : 'mt-0.5 h-2 w-2 shrink-0 rounded-full bg-slate-300'
+                            }
+                          />
+                          <span>
+                            <span className="font-medium">{item.label}</span>
+                            {item.requiresSeparateApproval && (
+                              <span className="ml-1 rounded bg-fuchsia-100 px-1 py-0.5 text-[10px] text-fuchsia-700">별도승인필요</span>
+                            )}
+                            <span className="ml-1 text-slate-500">- {item.description}</span>
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="mb-3 flex flex-wrap gap-2 text-xs">
+              <span className="rounded bg-indigo-100 px-2 py-0.5 text-indigo-700">Ready: {c363.readyItemCount}개</span>
+              <span className="rounded bg-amber-100 px-2 py-0.5 text-amber-700">Partial: {c363.partialReadyItemCount}개</span>
+              <span className="rounded bg-red-100 px-2 py-0.5 text-red-700">Blocked: {c363.blockedItemCount}개</span>
+              <span className="rounded bg-slate-100 px-2 py-0.5 text-slate-600">Not Started: {c363.notStartedItemCount}개</span>
+            </div>
+
+            <div className="mb-3 flex flex-wrap gap-2 text-xs">
+              {c363.finalApprovalSubmissionPacketStillReadOnly && (
+                <span className="rounded bg-indigo-100 px-2 py-0.5 text-indigo-700">제출 패킷 Read-Only 검토</span>
+              )}
+              {c363.isReadOnlyOperatingDeploymentFinalApprovalSubmissionPacketReview && (
+                <span className="rounded bg-slate-100 px-2 py-0.5 text-slate-600">실제 승인/제출/배포 없음</span>
+              )}
+              {!c363.actualFinalApprovalGranted && (
+                <span className="rounded bg-slate-100 px-2 py-0.5 text-slate-500">실제 최종 승인 없음</span>
+              )}
+              {!c363.actualFinalApprovalCandidateSaved && (
+                <span className="rounded bg-slate-100 px-2 py-0.5 text-slate-500">실제 최종 승인 후보 저장 없음</span>
+              )}
+              {!c363.actualFinalApprovalSubmissionPerformed && (
+                <span className="rounded bg-slate-100 px-2 py-0.5 text-slate-500">실제 승인 제출 없음</span>
+              )}
+              {!c363.actualFinalApprovalPacketSubmitted && (
+                <span className="rounded bg-slate-100 px-2 py-0.5 text-slate-500">실제 최종 승인 패킷 제출 없음</span>
+              )}
+              {!c363.actualDeploymentApprovalGranted && (
+                <span className="rounded bg-slate-100 px-2 py-0.5 text-slate-500">실제 배포 승인 없음</span>
+              )}
+              {!c363.actualDeploymentStarted && (
+                <span className="rounded bg-slate-100 px-2 py-0.5 text-slate-500">실제 배포 실행 없음</span>
+              )}
+              {c363.requiresSeparateTask364Approval && (
+                <span className="rounded bg-fuchsia-100 px-2 py-0.5 text-fuchsia-700">Task 364 별도 승인 필요</span>
+              )}
+            </div>
+
+            <div className="mb-3 text-xs text-slate-600">
+              <span className="font-medium">권장 다음 단계:</span>{' '}
+              <span className="text-indigo-700">{c363.recommendedNextStep}</span>
+              {' | '}
+              <span className="font-medium">배포 모드:</span>{' '}
+              <span className="text-indigo-700">{c363.recommendedDeploymentMode}</span>
+            </div>
+
+            {c363.nextTaskApprovalPhrase && (
+              <p className="rounded border border-fuchsia-200 bg-white/80 px-3 py-2 text-xs text-fuchsia-900">
+                {c363.nextTaskApprovalPhrase}
               </p>
             )}
           </div>

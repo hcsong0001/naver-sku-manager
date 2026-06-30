@@ -343,6 +343,7 @@ import { buildTmsReadOnlyOperatingDeploymentFinalApprovalCandidateReviewView } f
 import { buildTmsReadOnlyOperatingDeploymentFinalApprovalCandidateOutcomeCertificationView } from '@/src/services/tms-read-only-operating-deployment-final-approval-candidate-outcome-certification-view.service';
 import { buildTmsReadOnlyOperatingDeploymentFinalApprovalSubmissionBoundaryReviewView } from '@/src/services/tms-read-only-operating-deployment-final-approval-submission-boundary-review-view.service';
 import { buildTmsReadOnlyOperatingDeploymentFinalApprovalSubmissionBoundaryOutcomeCertificationView } from '@/src/services/tms-read-only-operating-deployment-final-approval-submission-boundary-outcome-certification-view.service';
+import { buildTmsReadOnlyOperatingDeploymentFinalApprovalSubmissionPacketReviewView } from '@/src/services/tms-read-only-operating-deployment-final-approval-submission-packet-review-view.service';
 
 // Compute safe DB environment hint from DATABASE_URL without exposing the original value.
 // Returns a classification key, never the actual URL.
@@ -1473,6 +1474,11 @@ export async function GET(
             _tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionBoundaryReviewView,
         },
       );
+    const _tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionPacketReviewView =
+      buildTmsReadOnlyOperatingDeploymentFinalApprovalSubmissionPacketReviewView({
+        operatingDeploymentFinalApprovalSubmissionBoundaryOutcomeCertification:
+          _tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionBoundaryOutcomeCertificationView,
+      });
 
     const responseJob = {
       id: job.id,
@@ -2626,8 +2632,9 @@ export async function GET(
         _tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionBoundaryReviewView,
       tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionBoundaryOutcomeCertificationView:
         _tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionBoundaryOutcomeCertificationView,
+      tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionPacketReviewView:
+        _tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionPacketReviewView,
     };
-
     return NextResponse.json({ ok: true, job: responseJob });
   } catch (error: unknown) {
     return NextResponse.json(
