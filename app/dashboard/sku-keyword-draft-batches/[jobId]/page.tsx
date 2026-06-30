@@ -3970,6 +3970,7 @@ type DraftBatchJob = {
   tmsReadOnlyOperatingDeploymentApprovalPacketReviewView?: any;
   tmsReadOnlyOperatingDeploymentApprovalPacketOutcomeCertificationView?: any;
   tmsReadOnlyOperatingDeploymentSafetyLockReviewView?: any;
+  tmsReadOnlyOperatingDeploymentSafetyLockOutcomeCertificationView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -47970,6 +47971,295 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             {c349.nextTaskApprovalPhrase && (
               <p className="rounded border border-fuchsia-200 bg-white/80 px-3 py-2 text-xs text-fuchsia-900">
                 {c349.nextTaskApprovalPhrase}
+              </p>
+            )}
+          </div>
+        );
+      })()}
+
+      {/* ── Task 350: Read-Only Operating Deployment Safety Lock Outcome Certification ── */}
+      {job.tmsReadOnlyOperatingDeploymentSafetyLockOutcomeCertificationView && (() => {
+        const c350 = job.tmsReadOnlyOperatingDeploymentSafetyLockOutcomeCertificationView as {
+          taskId: number;
+          panelTitle: string;
+          description: string;
+          operatingDeploymentSafetyLockOutcomeCertificationStatus: string;
+          outcomeCertificationCertifiedReady: boolean;
+          outcomeCertificationCertifiedPartialReady: boolean;
+          outcomeCertificationBlocked: boolean;
+          outcomeCertificationNotStarted: boolean;
+          safetyLockOutcomeCertified: boolean;
+          safetyLockItemsCertified: boolean;
+          safetyLockOutcomeCertificationStarted: boolean;
+          safetyLockOutcomeCertificationStillReadOnly: boolean;
+          sourceOperatingDeploymentSafetyLockReviewStatus: string;
+          outcomeCertificationSummaryCards: Array<{ label: string; value: string; tone: string }>;
+          deploymentExecutionLockOutcomeCertificationItems: Array<{ certificationItemId: string; label: string; description: string; outcomeCertificationStatus: string; requiresSeparateApproval: boolean; isReadOnly: boolean; actualChangePerformed: boolean }>;
+          vpsServerLockOutcomeCertificationItems: Array<{ certificationItemId: string; label: string; description: string; outcomeCertificationStatus: string; requiresSeparateApproval: boolean; isReadOnly: boolean; actualChangePerformed: boolean }>;
+          domainDnsHttpsLockOutcomeCertificationItems: Array<{ certificationItemId: string; label: string; description: string; outcomeCertificationStatus: string; requiresSeparateApproval: boolean; isReadOnly: boolean; actualChangePerformed: boolean }>;
+          operatingDbLockOutcomeCertificationItems: Array<{ certificationItemId: string; label: string; description: string; outcomeCertificationStatus: string; requiresSeparateApproval: boolean; isReadOnly: boolean; actualChangePerformed: boolean }>;
+          runtimeWorkerQueueAdapterLockOutcomeCertificationItems: Array<{ certificationItemId: string; label: string; description: string; outcomeCertificationStatus: string; requiresSeparateApproval: boolean; isReadOnly: boolean; actualChangePerformed: boolean }>;
+          naverApiLockOutcomeCertificationItems: Array<{ certificationItemId: string; label: string; description: string; outcomeCertificationStatus: string; requiresSeparateApproval: boolean; isReadOnly: boolean; actualChangePerformed: boolean }>;
+          uiActionLockOutcomeCertificationItems: Array<{ certificationItemId: string; label: string; description: string; outcomeCertificationStatus: string; requiresSeparateApproval: boolean; isReadOnly: boolean; actualChangePerformed: boolean }>;
+          secretExposureLockOutcomeCertificationItems: Array<{ certificationItemId: string; label: string; description: string; outcomeCertificationStatus: string; requiresSeparateApproval: boolean; isReadOnly: boolean; actualChangePerformed: boolean }>;
+          totalOutcomeCertificationItemCount: number;
+          readyItemCount: number;
+          partialReadyItemCount: number;
+          blockedItemCount: number;
+          notStartedItemCount: number;
+          recommendedNextStep: string;
+          recommendedApprovalMode: string;
+          recommendedExecutionMode: string;
+          recommendedDeploymentMode: string;
+          recommendedSafetyMode: string;
+          actualApprovalPacketSubmitted: boolean;
+          actualDeploymentApprovalGranted: boolean;
+          actualDeploymentStarted: boolean;
+          actualVpsServerCreated: boolean;
+          actualDomainConnected: boolean;
+          dnsChanged: boolean;
+          sslCertificateIssued: boolean;
+          runtimeConfigured: boolean;
+          workerStarted: boolean;
+          queueEnqueued: boolean;
+          adapterConnected: boolean;
+          operatingDbConnectionChanged: boolean;
+          databaseUrlChanged: boolean;
+          envFileReadOrModified: boolean;
+          dbWritePerformed: boolean;
+          naverApiCalled: boolean;
+          executionButtonAdded: boolean;
+          submitActionAdded: boolean;
+          postApiAdded: boolean;
+          approvalSubmissionStillBlocked: boolean;
+          deploymentApprovalStillBlocked: boolean;
+          deploymentExecutionStillBlocked: boolean;
+          vpsServerCreationStillBlocked: boolean;
+          vpsConfigChangeStillBlocked: boolean;
+          runtimeConfigurationStillReadOnly: boolean;
+          workerExecutionStillBlocked: boolean;
+          queueEnqueueStillBlocked: boolean;
+          adapterConnectionStillBlocked: boolean;
+          domainConnectionStillReadOnly: boolean;
+          dnsChangeStillBlocked: boolean;
+          sslIssueStillBlocked: boolean;
+          operatingDbConnectionStillReadOnly: boolean;
+          databaseUrlChangeStillBlocked: boolean;
+          apiCallStillBlocked: boolean;
+          dbWriteStillBlocked: boolean;
+          uiExecutionActionStillBlocked: boolean;
+          tokenOrAuthStillHidden: boolean;
+          rawApiResponseStillHidden: boolean;
+          requiresSeparateTask351Approval: boolean;
+          nextTaskApprovalPhrase: string;
+        };
+        const statusColor =
+          c350.outcomeCertificationCertifiedReady
+            ? 'text-emerald-700 bg-emerald-100 border-emerald-300'
+            : c350.outcomeCertificationBlocked
+              ? 'text-red-700 bg-red-100 border-red-300'
+              : c350.outcomeCertificationCertifiedPartialReady
+                ? 'text-yellow-700 bg-yellow-100 border-yellow-300'
+                : 'text-slate-600 bg-slate-100 border-slate-300';
+        const renderCertItemStatus = (item: { outcomeCertificationStatus: string }) => {
+          if (item.outcomeCertificationStatus === 'CERTIFIED_READY') return <span className="text-emerald-600 font-semibold">CERTIFIED_READY</span>;
+          if (item.outcomeCertificationStatus === 'CERTIFIED_PARTIAL_READY') return <span className="text-yellow-600 font-semibold">CERTIFIED_PARTIAL_READY</span>;
+          if (item.outcomeCertificationStatus === 'OUTCOME_BLOCKED') return <span className="text-red-600 font-semibold">OUTCOME_BLOCKED</span>;
+          return <span className="text-slate-500 font-semibold">OUTCOME_NOT_STARTED</span>;
+        };
+        const renderCertGroup = (
+          title: string,
+          items: typeof c350.deploymentExecutionLockOutcomeCertificationItems,
+          borderColor: string,
+        ) => (
+          <div className={`rounded border ${borderColor} bg-white/70 p-3 mb-3`}>
+            <div className="font-semibold text-xs text-slate-700 mb-2">{title}</div>
+            <ul className="space-y-1">
+              {items.map((item) => (
+                <li key={item.certificationItemId} className="flex flex-col gap-0.5 text-xs border-b border-slate-100 pb-1 last:border-0 last:pb-0">
+                  <div className="flex items-center gap-2">
+                    {renderCertItemStatus(item)}
+                    <span className="text-slate-800">{item.label}</span>
+                    {item.requiresSeparateApproval && (
+                      <span className="ml-1 rounded bg-amber-100 px-1 text-[10px] text-amber-700 border border-amber-300">별도승인필요</span>
+                    )}
+                    {item.isReadOnly && (
+                      <span className="ml-auto rounded bg-slate-100 px-1 text-[10px] text-slate-500 border border-slate-200">read-only</span>
+                    )}
+                  </div>
+                  <span className="text-slate-500 pl-1">{item.description}</span>
+                  <div className="flex gap-3 pl-1 text-[10px] text-slate-400">
+                    <span>actualChangePerformed: <span className={item.actualChangePerformed ? 'text-red-500' : 'text-slate-400'}>{String(item.actualChangePerformed)}</span></span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        );
+        return (
+          <div className="mt-6 rounded-xl border border-violet-300 bg-violet-50/60 p-5 shadow-sm">
+            <div className="mb-3 flex items-center gap-3">
+              <span className="rounded bg-violet-700 px-2 py-0.5 text-xs font-bold text-white">Task {c350.taskId}</span>
+              <span className="text-base font-bold text-violet-900">{c350.panelTitle}</span>
+              <span className={`ml-auto rounded border px-2 py-0.5 text-xs font-bold ${statusColor}`}>
+                {c350.operatingDeploymentSafetyLockOutcomeCertificationStatus}
+              </span>
+            </div>
+
+            <p className="mb-4 text-xs text-slate-600">{c350.description}</p>
+
+            {/* Summary cards */}
+            <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {c350.outcomeCertificationSummaryCards.map((card) => (
+                <div
+                  key={card.label}
+                  className={`rounded border p-2 text-center text-xs ${
+                    card.tone === 'positive'
+                      ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
+                      : card.tone === 'warning'
+                        ? 'border-amber-200 bg-amber-50 text-amber-800'
+                        : 'border-slate-200 bg-slate-50 text-slate-700'
+                  }`}
+                >
+                  <div className="font-semibold">{card.value}</div>
+                  <div className="text-[10px] text-slate-500">{card.label}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Certification fixed true flags */}
+            <div className="mb-4 rounded border border-violet-100 bg-white/80 p-3">
+              <div className="mb-1 text-xs font-semibold text-violet-800">인증 고정 플래그 (모두 true여야 유효)</div>
+              <div className="grid grid-cols-2 gap-1 text-[11px]">
+                {[
+                  ['safetyLockOutcomeCertified', c350.safetyLockOutcomeCertified],
+                  ['safetyLockItemsCertified', c350.safetyLockItemsCertified],
+                  ['safetyLockOutcomeCertificationStarted', c350.safetyLockOutcomeCertificationStarted],
+                  ['safetyLockOutcomeCertificationStillReadOnly', c350.safetyLockOutcomeCertificationStillReadOnly],
+                ].map(([label, val]) => (
+                  <div key={String(label)} className="flex justify-between gap-1 rounded bg-slate-50 px-2 py-0.5">
+                    <span className="text-slate-500">{String(label)}</span>
+                    <span className={val ? 'text-emerald-600' : 'font-bold text-red-600'}>{String(val)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Recommended values */}
+            <div className="mb-4 rounded border border-violet-200 bg-white/80 p-3">
+              <div className="mb-1 text-xs font-semibold text-violet-800">Recommended Values</div>
+              <ul className="space-y-1 text-xs text-slate-700">
+                <li><span className="font-medium text-slate-500">recommendedNextStep:</span> {c350.recommendedNextStep}</li>
+                <li><span className="font-medium text-slate-500">recommendedApprovalMode:</span> {c350.recommendedApprovalMode}</li>
+                <li><span className="font-medium text-slate-500">recommendedExecutionMode:</span> {c350.recommendedExecutionMode}</li>
+                <li><span className="font-medium text-slate-500">recommendedDeploymentMode:</span> {c350.recommendedDeploymentMode}</li>
+                <li><span className="font-medium text-slate-500">recommendedSafetyMode:</span> {c350.recommendedSafetyMode}</li>
+              </ul>
+            </div>
+
+            {/* Certification groups */}
+            {renderCertGroup('배포 실행 Lock 결과 인증', c350.deploymentExecutionLockOutcomeCertificationItems, 'border-rose-200')}
+            {renderCertGroup('VPS 서버 Lock 결과 인증', c350.vpsServerLockOutcomeCertificationItems, 'border-sky-200')}
+            {renderCertGroup('도메인 / DNS / HTTPS Lock 결과 인증', c350.domainDnsHttpsLockOutcomeCertificationItems, 'border-indigo-200')}
+            {renderCertGroup('운영 DB Lock 결과 인증', c350.operatingDbLockOutcomeCertificationItems, 'border-teal-200')}
+            {renderCertGroup('Runtime / Worker / Queue / Adapter Lock 결과 인증', c350.runtimeWorkerQueueAdapterLockOutcomeCertificationItems, 'border-violet-200')}
+            {renderCertGroup('Naver API Lock 결과 인증', c350.naverApiLockOutcomeCertificationItems, 'border-orange-200')}
+            {renderCertGroup('UI Action Lock 결과 인증', c350.uiActionLockOutcomeCertificationItems, 'border-amber-200')}
+            {renderCertGroup('Secret / Raw Response Lock 결과 인증', c350.secretExposureLockOutcomeCertificationItems, 'border-emerald-200')}
+
+            {/* Source status */}
+            <div className="mb-3 rounded border border-slate-200 bg-white/70 p-3">
+              <div className="mb-1 text-xs font-semibold text-slate-600">소스 상태 (Task 349)</div>
+              <div className="text-xs text-slate-700">
+                <span className="font-medium">Task 349 Safety Lock Review Status:</span>{' '}
+                {c350.sourceOperatingDeploymentSafetyLockReviewStatus}
+              </div>
+            </div>
+
+            {/* Safety flags */}
+            <div className="mb-4 rounded border border-slate-200 bg-white/70 p-3">
+              <div className="mb-2 text-xs font-semibold text-slate-600">Safety 플래그 (모두 false여야 안전)</div>
+              <div className="grid grid-cols-2 gap-1 text-[11px]">
+                {[
+                  ['actualApprovalPacketSubmitted', c350.actualApprovalPacketSubmitted],
+                  ['actualDeploymentApprovalGranted', c350.actualDeploymentApprovalGranted],
+                  ['actualDeploymentStarted', c350.actualDeploymentStarted],
+                  ['actualVpsServerCreated', c350.actualVpsServerCreated],
+                  ['actualDomainConnected', c350.actualDomainConnected],
+                  ['dnsChanged', c350.dnsChanged],
+                  ['sslCertificateIssued', c350.sslCertificateIssued],
+                  ['runtimeConfigured', c350.runtimeConfigured],
+                  ['workerStarted', c350.workerStarted],
+                  ['queueEnqueued', c350.queueEnqueued],
+                  ['adapterConnected', c350.adapterConnected],
+                  ['operatingDbConnectionChanged', c350.operatingDbConnectionChanged],
+                  ['databaseUrlChanged', c350.databaseUrlChanged],
+                  ['envFileReadOrModified', c350.envFileReadOrModified],
+                  ['dbWritePerformed', c350.dbWritePerformed],
+                  ['naverApiCalled', c350.naverApiCalled],
+                  ['executionButtonAdded', c350.executionButtonAdded],
+                  ['submitActionAdded', c350.submitActionAdded],
+                  ['postApiAdded', c350.postApiAdded],
+                ].map(([label, val]) => (
+                  <div key={String(label)} className="flex justify-between gap-1 rounded bg-slate-50 px-2 py-0.5">
+                    <span className="text-slate-500">{String(label)}</span>
+                    <span className={val ? 'font-bold text-red-600' : 'text-emerald-600'}>{String(val)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Still-blocked flags */}
+            <div className="mb-4 rounded border border-slate-200 bg-white/70 p-3">
+              <div className="mb-2 text-xs font-semibold text-slate-600">Still-Blocked 플래그 (모두 true여야 안전)</div>
+              <div className="grid grid-cols-2 gap-1 text-[11px]">
+                {[
+                  ['approvalSubmissionStillBlocked', c350.approvalSubmissionStillBlocked],
+                  ['deploymentApprovalStillBlocked', c350.deploymentApprovalStillBlocked],
+                  ['deploymentExecutionStillBlocked', c350.deploymentExecutionStillBlocked],
+                  ['vpsServerCreationStillBlocked', c350.vpsServerCreationStillBlocked],
+                  ['vpsConfigChangeStillBlocked', c350.vpsConfigChangeStillBlocked],
+                  ['runtimeConfigurationStillReadOnly', c350.runtimeConfigurationStillReadOnly],
+                  ['workerExecutionStillBlocked', c350.workerExecutionStillBlocked],
+                  ['queueEnqueueStillBlocked', c350.queueEnqueueStillBlocked],
+                  ['adapterConnectionStillBlocked', c350.adapterConnectionStillBlocked],
+                  ['domainConnectionStillReadOnly', c350.domainConnectionStillReadOnly],
+                  ['dnsChangeStillBlocked', c350.dnsChangeStillBlocked],
+                  ['sslIssueStillBlocked', c350.sslIssueStillBlocked],
+                  ['operatingDbConnectionStillReadOnly', c350.operatingDbConnectionStillReadOnly],
+                  ['databaseUrlChangeStillBlocked', c350.databaseUrlChangeStillBlocked],
+                  ['apiCallStillBlocked', c350.apiCallStillBlocked],
+                  ['dbWriteStillBlocked', c350.dbWriteStillBlocked],
+                  ['uiExecutionActionStillBlocked', c350.uiExecutionActionStillBlocked],
+                  ['tokenOrAuthStillHidden', c350.tokenOrAuthStillHidden],
+                  ['rawApiResponseStillHidden', c350.rawApiResponseStillHidden],
+                ].map(([label, val]) => (
+                  <div key={String(label)} className="flex justify-between gap-1 rounded bg-slate-50 px-2 py-0.5">
+                    <span className="text-slate-500">{String(label)}</span>
+                    <span className={val ? 'text-emerald-600' : 'font-bold text-red-600'}>{String(val)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Description */}
+            <div className="mb-4 rounded border border-violet-100 bg-white/80 p-3 text-xs text-slate-600">
+              이 패널은 운영 배포 Safety Lock 검토 결과를 read-only로 인증하는 화면입니다.
+              이 화면은 실제 승인 제출, 실제 배포 승인, 실제 배포 실행 작업이 아닙니다.
+              Task 351은 사용자 별도 명시 승인 없이는 진행하지 않습니다.
+            </div>
+
+            {/* requiresSeparateTask351Approval */}
+            {c350.requiresSeparateTask351Approval && (
+              <div className="mb-3 rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-800">
+                Task 351은 사용자 별도 명시 승인 없이는 자동으로 진행하지 않습니다.
+              </div>
+            )}
+
+            {/* nextTaskApprovalPhrase */}
+            {c350.nextTaskApprovalPhrase && (
+              <p className="rounded border border-fuchsia-200 bg-white/80 px-3 py-2 text-xs text-fuchsia-900">
+                {c350.nextTaskApprovalPhrase}
               </p>
             )}
           </div>
