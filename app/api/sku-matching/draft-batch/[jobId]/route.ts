@@ -346,6 +346,8 @@ import { buildTmsReadOnlyOperatingDeploymentFinalApprovalSubmissionBoundaryOutco
 import { buildTmsReadOnlyOperatingDeploymentFinalApprovalSubmissionPacketReviewView } from '@/src/services/tms-read-only-operating-deployment-final-approval-submission-packet-review-view.service';
 import { buildTmsReadOnlyOperatingDeploymentFinalApprovalSubmissionPacketOutcomeCertificationView } from '@/src/services/tms-read-only-operating-deployment-final-approval-submission-packet-outcome-certification-view.service';
 import { buildTmsReadOnlyOperatingDeploymentFinalApprovalSubmissionSealReviewView } from '@/src/services/tms-read-only-operating-deployment-final-approval-submission-seal-review-view.service';
+import { buildTmsReadOnlyOperatingDeploymentFinalApprovalSubmissionSealOutcomeCertificationView } from '@/src/services/tms-read-only-operating-deployment-final-approval-submission-seal-outcome-certification-view.service';
+
 
 
 // Compute safe DB environment hint from DATABASE_URL without exposing the original value.
@@ -1490,6 +1492,11 @@ export async function GET(
     const _tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionSealReviewView =
       buildTmsReadOnlyOperatingDeploymentFinalApprovalSubmissionSealReviewView(
         _tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionPacketOutcomeCertificationView
+      );
+
+    const _tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionSealOutcomeCertificationView =
+      buildTmsReadOnlyOperatingDeploymentFinalApprovalSubmissionSealOutcomeCertificationView(
+        _tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionSealReviewView
       );
 
     const responseJob = {
@@ -2650,6 +2657,8 @@ export async function GET(
         _tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionPacketOutcomeCertificationView,
       tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionSealReviewView:
         _tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionSealReviewView,
+      tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionSealOutcomeCertificationView:
+        _tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionSealOutcomeCertificationView,
     };
     return NextResponse.json({ ok: true, job: responseJob });
   } catch (error: unknown) {
