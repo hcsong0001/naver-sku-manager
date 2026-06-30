@@ -3976,6 +3976,7 @@ type DraftBatchJob = {
   tmsReadOnlyOperatingDeploymentFinalApprovalBoundaryReviewView?: any;
   tmsReadOnlyOperatingDeploymentFinalApprovalBoundaryOutcomeCertificationView?: any;
   tmsReadOnlyOperatingDeploymentFinalApprovalPacketReviewView?: any;
+  tmsReadOnlyOperatingDeploymentFinalApprovalPacketOutcomeCertificationView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -49334,6 +49335,219 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             {c355.nextTaskApprovalPhrase && (
               <p className="rounded border border-fuchsia-200 bg-white/80 px-3 py-2 text-xs text-fuchsia-900">
                 {c355.nextTaskApprovalPhrase}
+              </p>
+            )}
+          </div>
+        );
+      })()}
+
+      {/* ── Task 356: Read-Only Operating Deployment Final Approval Packet Outcome Certification ── */}
+      {job.tmsReadOnlyOperatingDeploymentFinalApprovalPacketOutcomeCertificationView && (() => {
+        const c356 = job.tmsReadOnlyOperatingDeploymentFinalApprovalPacketOutcomeCertificationView as {
+          taskId: number;
+          panelTitle: string;
+          description: string;
+          operatingDeploymentFinalApprovalPacketOutcomeCertificationStatus: string;
+          outcomeCertifiedGoNoGoDecisionLabel: string;
+          totalFinalApprovalPacketOutcomeCertificationItemCount: number;
+          readyItemCount: number;
+          partialReadyItemCount: number;
+          blockedItemCount: number;
+          notStartedItemCount: number;
+          goNoGoDecisionPacketCertificationItemCount: number;
+          finalApprovalGrantPacketCertificationItemCount: number;
+          deploymentApprovalPacketCertificationItemCount: number;
+          deploymentExecutionPacketCertificationItemCount: number;
+          infrastructureApprovalPacketCertificationItemCount: number;
+          domainDnsHttpsApprovalPacketCertificationItemCount: number;
+          operatingDbApprovalPacketCertificationItemCount: number;
+          runtimeWorkerQueueAdapterApprovalPacketCertificationItemCount: number;
+          apiAndSecretApprovalPacketCertificationItemCount: number;
+          uiActionSafetyPacketCertificationItemCount: number;
+          finalPacketRequirementCertificationItemCount: number;
+          outcomeCertificationItems: {
+            certificationItemId: string;
+            category: string;
+            label: string;
+            description: string;
+            outcomeCertificationStatus: string;
+            isReady: boolean;
+            requiresSeparateApproval: boolean;
+          }[];
+          outcomeCertificationSummaryCards: {
+            label: string;
+            value: string;
+            tone: string;
+          }[];
+          finalApprovalPacketOutcomeStillReadOnly: boolean;
+          isReadOnlyOperatingDeploymentFinalApprovalPacketOutcomeCertification: boolean;
+          requiresSeparateTask357Approval: boolean;
+          nextTaskApprovalPhrase: string;
+          actualFinalApprovalGranted: boolean;
+          actualFinalApprovalPacketSubmitted: boolean;
+          actualGoNoGoDecisionSaved: boolean;
+          actualDeploymentApprovalGranted: boolean;
+          actualDeploymentStarted: boolean;
+          recommendedNextStep: string;
+          recommendedDeploymentMode: string;
+        };
+
+        const statusColor356 =
+          c356.operatingDeploymentFinalApprovalPacketOutcomeCertificationStatus.includes('CERTIFIED_READY')
+            ? 'text-teal-700'
+            : c356.operatingDeploymentFinalApprovalPacketOutcomeCertificationStatus.includes('PARTIAL_READY')
+              ? 'text-amber-700'
+              : c356.operatingDeploymentFinalApprovalPacketOutcomeCertificationStatus.includes('BLOCKED')
+                ? 'text-red-700'
+                : 'text-slate-500';
+
+        const groupedItems356 = c356.outcomeCertificationItems.reduce<Record<string, typeof c356.outcomeCertificationItems>>((acc, item) => {
+          if (!acc[item.category]) acc[item.category] = [];
+          acc[item.category].push(item);
+          return acc;
+        }, {});
+
+        const groupMeta356: { category: string; label: string; count: number }[] = [
+          { category: 'GO_NO_GO_DECISION_PACKET_OUTCOME', label: 'Go/No-Go Decision Packet 결과 인증', count: c356.goNoGoDecisionPacketCertificationItemCount },
+          { category: 'FINAL_APPROVAL_GRANT_PACKET_OUTCOME', label: 'Final Approval Grant Packet 결과 인증', count: c356.finalApprovalGrantPacketCertificationItemCount },
+          { category: 'DEPLOYMENT_APPROVAL_PACKET_OUTCOME', label: 'Deployment Approval Packet 결과 인증', count: c356.deploymentApprovalPacketCertificationItemCount },
+          { category: 'DEPLOYMENT_EXECUTION_PACKET_OUTCOME', label: 'Deployment Execution Packet 결과 인증', count: c356.deploymentExecutionPacketCertificationItemCount },
+          { category: 'INFRASTRUCTURE_APPROVAL_PACKET_OUTCOME', label: 'Infrastructure Approval Packet 결과 인증', count: c356.infrastructureApprovalPacketCertificationItemCount },
+          { category: 'DOMAIN_DNS_HTTPS_APPROVAL_PACKET_OUTCOME', label: 'Domain / DNS / HTTPS Approval Packet 결과 인증', count: c356.domainDnsHttpsApprovalPacketCertificationItemCount },
+          { category: 'OPERATING_DB_APPROVAL_PACKET_OUTCOME', label: 'Operating DB Approval Packet 결과 인증', count: c356.operatingDbApprovalPacketCertificationItemCount },
+          { category: 'RUNTIME_WORKER_QUEUE_ADAPTER_APPROVAL_PACKET_OUTCOME', label: 'Runtime / Worker / Queue / Adapter Approval Packet 결과 인증', count: c356.runtimeWorkerQueueAdapterApprovalPacketCertificationItemCount },
+          { category: 'API_AND_SECRET_APPROVAL_PACKET_OUTCOME', label: 'API / Secret Approval Packet 결과 인증', count: c356.apiAndSecretApprovalPacketCertificationItemCount },
+          { category: 'UI_ACTION_SAFETY_PACKET_OUTCOME', label: 'UI Action Safety Packet 결과 인증', count: c356.uiActionSafetyPacketCertificationItemCount },
+          { category: 'FINAL_PACKET_REQUIREMENT_OUTCOME', label: 'Final Packet Requirement 결과 인증', count: c356.finalPacketRequirementCertificationItemCount },
+        ];
+
+        return (
+          <div className="mb-6 rounded-xl border border-teal-300 bg-teal-50/60 p-5 shadow-sm">
+            <div className="mb-3 flex items-center gap-2">
+              <span className="rounded bg-teal-100 px-2 py-0.5 text-xs font-bold text-teal-700">Task {c356.taskId}</span>
+              <h3 className="text-sm font-bold text-teal-900">{c356.panelTitle}</h3>
+            </div>
+            <p className="mb-3 text-xs text-slate-600">{c356.description}</p>
+
+            <div className="mb-3 flex flex-wrap gap-3">
+              <div className="rounded border border-teal-200 bg-white/80 px-3 py-2">
+                <p className="text-[10px] text-slate-500">Final Approval Packet Outcome Certification 상태</p>
+                <p className={`text-xs font-bold ${statusColor356}`}>
+                  {c356.operatingDeploymentFinalApprovalPacketOutcomeCertificationStatus.replace('TMS_READ_ONLY_OPERATING_DEPLOYMENT_FINAL_APPROVAL_PACKET_OUTCOME_', '')}
+                </p>
+              </div>
+              <div className="rounded border border-teal-200 bg-white/80 px-3 py-2">
+                <p className="text-[10px] text-slate-500">인증된 Go/No-Go 후보</p>
+                <p className="text-xs font-bold text-teal-700">{c356.outcomeCertifiedGoNoGoDecisionLabel}</p>
+              </div>
+              <div className="rounded border border-teal-200 bg-white/80 px-3 py-2">
+                <p className="text-[10px] text-slate-500">총 결과 인증 항목</p>
+                <p className="text-xs font-bold text-teal-700">{c356.totalFinalApprovalPacketOutcomeCertificationItemCount}개</p>
+              </div>
+            </div>
+
+            {c356.outcomeCertificationSummaryCards.length > 0 && (
+              <div className="mb-3 flex flex-wrap gap-2">
+                {c356.outcomeCertificationSummaryCards.map((card) => (
+                  <div
+                    key={card.label}
+                    className={`rounded border px-3 py-1.5 text-xs ${
+                      card.tone === 'positive'
+                        ? 'border-teal-200 bg-teal-50 text-teal-800'
+                        : card.tone === 'warning'
+                          ? 'border-amber-200 bg-amber-50 text-amber-800'
+                          : 'border-slate-200 bg-white text-slate-700'
+                    }`}
+                  >
+                    <span className="font-medium">{card.label}:</span> {card.value}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="mb-3 space-y-1">
+              {groupMeta356.map((group) => {
+                const items = groupedItems356[group.category] ?? [];
+                if (items.length === 0) return null;
+                return (
+                  <div key={group.category} className="mb-3">
+                    <p className="mb-1 text-xs font-semibold text-teal-800">
+                      {group.label} ({group.count}개)
+                    </p>
+                    <ul className="space-y-1">
+                      {items.map((item) => (
+                        <li key={item.certificationItemId} className="flex items-start gap-2 text-xs text-slate-700">
+                          <span
+                            className={
+                              item.isReady
+                                ? 'mt-0.5 h-2 w-2 shrink-0 rounded-full bg-teal-500'
+                                : item.outcomeCertificationStatus === 'CERTIFIED_PARTIAL_READY'
+                                  ? 'mt-0.5 h-2 w-2 shrink-0 rounded-full bg-amber-400'
+                                  : item.outcomeCertificationStatus === 'OUTCOME_BLOCKED'
+                                    ? 'mt-0.5 h-2 w-2 shrink-0 rounded-full bg-red-500'
+                                    : 'mt-0.5 h-2 w-2 shrink-0 rounded-full bg-slate-300'
+                            }
+                          />
+                          <span>
+                            <span className="font-medium">{item.label}</span>
+                            {item.requiresSeparateApproval && (
+                              <span className="ml-1 rounded bg-fuchsia-100 px-1 py-0.5 text-[10px] text-fuchsia-700">별도승인필요</span>
+                            )}
+                            <span className="ml-1 text-slate-500">- {item.description}</span>
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="mb-3 flex flex-wrap gap-2 text-xs">
+              <span className="rounded bg-teal-100 px-2 py-0.5 text-teal-700">Ready: {c356.readyItemCount}개</span>
+              <span className="rounded bg-amber-100 px-2 py-0.5 text-amber-700">Partial: {c356.partialReadyItemCount}개</span>
+              <span className="rounded bg-red-100 px-2 py-0.5 text-red-700">Blocked: {c356.blockedItemCount}개</span>
+              <span className="rounded bg-slate-100 px-2 py-0.5 text-slate-600">Not Started: {c356.notStartedItemCount}개</span>
+            </div>
+
+            <div className="mb-3 flex flex-wrap gap-2 text-xs">
+              {c356.finalApprovalPacketOutcomeStillReadOnly && (
+                <span className="rounded bg-teal-100 px-2 py-0.5 text-teal-700">최종 승인 패킷 결과 Read-Only</span>
+              )}
+              {c356.isReadOnlyOperatingDeploymentFinalApprovalPacketOutcomeCertification && (
+                <span className="rounded bg-slate-100 px-2 py-0.5 text-slate-600">실제 승인/배포 없음</span>
+              )}
+              {!c356.actualFinalApprovalGranted && (
+                <span className="rounded bg-slate-100 px-2 py-0.5 text-slate-500">실제 최종 승인 없음</span>
+              )}
+              {!c356.actualFinalApprovalPacketSubmitted && (
+                <span className="rounded bg-slate-100 px-2 py-0.5 text-slate-500">실제 최종 승인 제출 없음</span>
+              )}
+              {!c356.actualGoNoGoDecisionSaved && (
+                <span className="rounded bg-slate-100 px-2 py-0.5 text-slate-500">실제 Go/No-Go 결정 저장 없음</span>
+              )}
+              {!c356.actualDeploymentApprovalGranted && (
+                <span className="rounded bg-slate-100 px-2 py-0.5 text-slate-500">실제 배포 승인 없음</span>
+              )}
+              {!c356.actualDeploymentStarted && (
+                <span className="rounded bg-slate-100 px-2 py-0.5 text-slate-500">실제 배포 실행 없음</span>
+              )}
+              {c356.requiresSeparateTask357Approval && (
+                <span className="rounded bg-fuchsia-100 px-2 py-0.5 text-fuchsia-700">Task 357 별도 승인 필요</span>
+              )}
+            </div>
+
+            <div className="mb-3 text-xs text-slate-600">
+              <span className="font-medium">권장 다음 단계:</span>{' '}
+              <span className="text-teal-700">{c356.recommendedNextStep}</span>
+              {' | '}
+              <span className="font-medium">배포 모드:</span>{' '}
+              <span className="text-teal-700">{c356.recommendedDeploymentMode}</span>
+            </div>
+
+            {c356.nextTaskApprovalPhrase && (
+              <p className="rounded border border-fuchsia-200 bg-white/80 px-3 py-2 text-xs text-fuchsia-900">
+                {c356.nextTaskApprovalPhrase}
               </p>
             )}
           </div>
