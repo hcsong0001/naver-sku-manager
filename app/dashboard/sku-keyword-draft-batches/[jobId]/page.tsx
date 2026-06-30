@@ -3965,6 +3965,7 @@ type DraftBatchJob = {
   tmsReadOnlyOperatingDeploymentDesignReviewView?: any;
   tmsReadOnlyDomainDnsHttpsConnectionPlanReviewView?: any;
   tmsReadOnlyOperatingDbBackupRollbackPlanReviewView?: any;
+  tmsReadOnlyRuntimeWorkerQueueAdapterOperatingConnectionPlanReviewView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -46250,6 +46251,450 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             {c344.requiresSeparateTask345Approval && (
               <p className="rounded border border-fuchsia-200 bg-white/80 px-3 py-2 text-xs text-fuchsia-900">
                 {c344.nextTaskApprovalPhrase}
+              </p>
+            )}
+          </div>
+        );
+      })()}
+
+      {/* ── Task 345: Read-Only Runtime Worker Queue Adapter Operating Connection Plan Review ── */}
+      {job.tmsReadOnlyRuntimeWorkerQueueAdapterOperatingConnectionPlanReviewView && (() => {
+        const c345 = job.tmsReadOnlyRuntimeWorkerQueueAdapterOperatingConnectionPlanReviewView as {
+          taskId: number;
+          panelTitle: string;
+          description: string;
+          sourceOperatingDbBackupRollbackPlanReviewStatus: string;
+          runtimeWorkerQueueAdapterOperatingConnectionPlanReviewStatus: string;
+          runtimeWorkerQueueAdapterPlanReviewReady: boolean;
+          runtimeWorkerQueueAdapterPlanReviewPartialReady: boolean;
+          runtimeWorkerQueueAdapterPlanReviewBlocked: boolean;
+          runtimeWorkerQueueAdapterPlanReviewNotStarted: boolean;
+          runtimeWorkerQueueAdapterPlanReviewStarted: boolean;
+          runtimeWorkerQueueAdapterPlanStillReadOnly: boolean;
+          runtimeOperatingPlanItems: Array<{
+            planItemId: string;
+            label: string;
+            description: string;
+            reviewStatus: 'READY' | 'PARTIAL_READY' | 'BLOCKED' | 'NOT_STARTED';
+            requiresSeparateApproval: boolean;
+          }>;
+          workerOperatingPlanItems: Array<{
+            planItemId: string;
+            label: string;
+            description: string;
+            reviewStatus: 'READY' | 'PARTIAL_READY' | 'BLOCKED' | 'NOT_STARTED';
+            requiresSeparateApproval: boolean;
+          }>;
+          queueRedisOperatingPlanItems: Array<{
+            planItemId: string;
+            label: string;
+            description: string;
+            reviewStatus: 'READY' | 'PARTIAL_READY' | 'BLOCKED' | 'NOT_STARTED';
+            requiresSeparateApproval: boolean;
+          }>;
+          adapterOperatingPlanItems: Array<{
+            planItemId: string;
+            label: string;
+            description: string;
+            reviewStatus: 'READY' | 'PARTIAL_READY' | 'BLOCKED' | 'NOT_STARTED';
+            requiresSeparateApproval: boolean;
+          }>;
+          naverApiOperatingCallPlanItems: Array<{
+            planItemId: string;
+            label: string;
+            description: string;
+            reviewStatus: 'READY' | 'PARTIAL_READY' | 'BLOCKED' | 'NOT_STARTED';
+            requiresSeparateApproval: boolean;
+          }>;
+          runtimeFailureRecoveryPlanItems: Array<{
+            planItemId: string;
+            label: string;
+            description: string;
+            reviewStatus: 'READY' | 'PARTIAL_READY' | 'BLOCKED' | 'NOT_STARTED';
+            requiresSeparateApproval: boolean;
+          }>;
+          runtimeApprovalRequirementItems: Array<{
+            planItemId: string;
+            label: string;
+            description: string;
+            reviewStatus: 'READY' | 'PARTIAL_READY' | 'BLOCKED' | 'NOT_STARTED';
+            requiresSeparateApproval: boolean;
+          }>;
+          runtimeWorkerQueueAdapterSummaryCards: Array<{
+            label: string;
+            value: string;
+            tone: 'positive' | 'neutral' | 'warning';
+          }>;
+          recommendedRuntimeMode: string;
+          recommendedWorkerMode: string;
+          recommendedQueueMode: string;
+          recommendedRedisMode: string;
+          recommendedAdapterMode: string;
+          recommendedNaverApiOperatingMode: string;
+          recommendedFailureRecoveryMode: string;
+          runtimeOperatingPlanItemCount: number;
+          workerOperatingPlanItemCount: number;
+          queueRedisOperatingPlanItemCount: number;
+          adapterOperatingPlanItemCount: number;
+          naverApiOperatingCallPlanItemCount: number;
+          runtimeFailureRecoveryPlanItemCount: number;
+          runtimeApprovalRequirementItemCount: number;
+          runtimeConfigured: boolean;
+          workerStarted: boolean;
+          queueEnqueued: boolean;
+          redisOperatingConnectionChanged: boolean;
+          adapterConnected: boolean;
+          naverApiCalled: boolean;
+          productLookupApiRecalled: boolean;
+          productUpdateApiCalled: boolean;
+          operatingDbConnectionChanged: boolean;
+          databaseUrlChanged: boolean;
+          envFileReadOrModified: boolean;
+          dbWritePerformed: boolean;
+          actualDomainConnected: boolean;
+          dnsChanged: boolean;
+          sslCertificateIssued: boolean;
+          httpsEnabled: boolean;
+          actualVpsServerCreated: boolean;
+          actualVpsConfigChanged: boolean;
+          actualProductionTransitionStarted: boolean;
+          actualDeploymentStarted: boolean;
+          runtimeConfigurationStillReadOnly: boolean;
+          workerExecutionStillBlocked: boolean;
+          queueEnqueueStillBlocked: boolean;
+          redisConnectionStillReadOnly: boolean;
+          adapterConnectionStillBlocked: boolean;
+          naverApiCallStillBlocked: boolean;
+          operatingDbConnectionStillReadOnly: boolean;
+          databaseUrlChangeStillBlocked: boolean;
+          deploymentPreparationStillReadOnly: boolean;
+          domainConnectionStillReadOnly: boolean;
+          apiCallStillBlocked: boolean;
+          dbWriteStillBlocked: boolean;
+          workerQueueAdapterStillBlocked: boolean;
+          tokenOrAuthStillHidden: boolean;
+          rawApiResponseStillHidden: boolean;
+          requiresSeparateTask346Approval: boolean;
+          nextTaskApprovalPhrase: string;
+          actualFinalExecutionApprovalGranted: boolean;
+          actualExecutionApprovalGranted: boolean;
+          actualExecutionStarted: boolean;
+          executionButtonAdded: boolean;
+          submitActionAdded: boolean;
+          postApiAdded: boolean;
+          priceChanged: boolean;
+          stockChanged: boolean;
+          tokenOrAuthValueExposed: boolean;
+          rawApiResponseExposedOrStored: boolean;
+        };
+
+        const getPlanTone345 = (
+          status: 'READY' | 'PARTIAL_READY' | 'BLOCKED' | 'NOT_STARTED',
+        ) =>
+          status === 'READY'
+            ? 'bg-green-100 text-green-700 border-green-200'
+            : status === 'PARTIAL_READY'
+              ? 'bg-amber-100 text-amber-700 border-amber-200'
+              : status === 'BLOCKED'
+                ? 'bg-red-100 text-red-700 border-red-200'
+                : 'bg-slate-100 text-slate-600 border-slate-200';
+
+        const getCardTone345 = (tone: 'positive' | 'neutral' | 'warning') =>
+          tone === 'positive'
+            ? 'bg-green-100 text-green-700 border-green-200'
+            : tone === 'warning'
+              ? 'bg-amber-100 text-amber-700 border-amber-200'
+              : 'bg-slate-100 text-slate-700 border-slate-200';
+
+        const renderPlanGroup345 = (
+          title: string,
+          items: Array<{
+            planItemId: string;
+            label: string;
+            description: string;
+            reviewStatus: 'READY' | 'PARTIAL_READY' | 'BLOCKED' | 'NOT_STARTED';
+            requiresSeparateApproval: boolean;
+          }>,
+        ) => (
+          <div className="rounded border border-slate-200 bg-white/70 p-3">
+            <p className="mb-2 text-xs font-semibold text-slate-700">{title}</p>
+            <ul className="space-y-1">
+              {items.map((item) => (
+                <li
+                  key={item.planItemId}
+                  className={`rounded border px-2 py-1 text-xs ${getPlanTone345(item.reviewStatus)}`}
+                >
+                  <span className="font-medium">{item.label}</span>
+                  <span className="ml-2 opacity-70">[{item.reviewStatus}]</span>
+                  {item.requiresSeparateApproval && (
+                    <span className="ml-2 rounded-full border border-fuchsia-200 bg-fuchsia-50 px-1.5 py-0.5 text-[10px] text-fuchsia-800">
+                      별도 승인 필요
+                    </span>
+                  )}
+                  <div className="mt-1 opacity-80">{item.description}</div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        );
+
+        return (
+          <div className="mb-6 rounded-lg border border-violet-300 bg-violet-50/60 p-4 text-sm">
+            <div className="mb-3 flex items-center gap-2">
+              <FileCheck className="h-5 w-5 text-violet-700" />
+              <h2 className="text-base font-semibold text-violet-950">
+                Task {c345.taskId}: {c345.panelTitle}
+              </h2>
+              <span className="ml-auto rounded-full border border-violet-300 bg-violet-100 px-2 py-0.5 text-xs text-violet-800">
+                {c345.runtimeWorkerQueueAdapterOperatingConnectionPlanReviewStatus}
+              </span>
+            </div>
+
+            <p className="mb-3 text-xs text-slate-600">{c345.description}</p>
+
+            <div className="mb-3 rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+              <span className="font-semibold">⚠ 오해 방지:</span>{' '}
+              이 패널은 Runtime / Worker / Queue / Adapter 운영 연결 계획을 read-only로 검토하는 화면입니다.
+              이 화면은 실제 Runtime 구성, Worker 실행, Queue enqueue, Redis 운영 연결, Adapter 연결, Naver API 호출 작업이 아닙니다.
+              Task 346은 사용자 별도 명시 승인 없이는 진행하지 않습니다.
+            </div>
+
+            <div className="mb-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {c345.runtimeWorkerQueueAdapterSummaryCards.map((card) => (
+                <div
+                  key={card.label}
+                  className={`rounded border p-2 text-center ${getCardTone345(card.tone)}`}
+                >
+                  <div className="text-sm font-bold">{card.value}</div>
+                  <div className="text-xs">{card.label}</div>
+                </div>
+              ))}
+            </div>
+
+            <div className="mb-3 rounded border border-slate-200 bg-white/70 p-3">
+              <p className="mb-2 text-xs font-semibold text-slate-700">권장 Runtime / Worker / Queue / Adapter 계획 값</p>
+              <ul className="space-y-1 text-xs text-slate-700">
+                <li className="rounded border border-violet-200 bg-violet-50 px-2 py-1">
+                  Runtime 운영 모드: {c345.recommendedRuntimeMode}
+                </li>
+                <li className="rounded border border-violet-200 bg-violet-50 px-2 py-1">
+                  Worker 운영 모드: {c345.recommendedWorkerMode}
+                </li>
+                <li className="rounded border border-violet-200 bg-violet-50 px-2 py-1">
+                  Queue 운영 모드: {c345.recommendedQueueMode}
+                </li>
+                <li className="rounded border border-violet-200 bg-violet-50 px-2 py-1">
+                  Redis 운영 연결 모드: {c345.recommendedRedisMode}
+                </li>
+                <li className="rounded border border-violet-200 bg-violet-50 px-2 py-1">
+                  Adapter 운영 모드: {c345.recommendedAdapterMode}
+                </li>
+                <li className="rounded border border-violet-200 bg-violet-50 px-2 py-1">
+                  Naver API 운영 호출 모드: {c345.recommendedNaverApiOperatingMode}
+                </li>
+                <li className="rounded border border-violet-200 bg-violet-50 px-2 py-1">
+                  장애 복구 계획 모드: {c345.recommendedFailureRecoveryMode}
+                </li>
+              </ul>
+            </div>
+
+            <div className="mb-3 grid grid-cols-1 gap-3 lg:grid-cols-2">
+              {renderPlanGroup345('Runtime 운영 구성 계획', c345.runtimeOperatingPlanItems)}
+              {renderPlanGroup345('Worker 운영 실행 계획', c345.workerOperatingPlanItems)}
+              {renderPlanGroup345('Queue / Redis 운영 연결 계획', c345.queueRedisOperatingPlanItems)}
+              {renderPlanGroup345('Adapter 운영 연결 계획', c345.adapterOperatingPlanItems)}
+              {renderPlanGroup345('Naver API 운영 호출 계획', c345.naverApiOperatingCallPlanItems)}
+              {renderPlanGroup345('장애 / 복구 계획', c345.runtimeFailureRecoveryPlanItems)}
+              {renderPlanGroup345('실제 실행 전 승인 필요 항목', c345.runtimeApprovalRequirementItems)}
+            </div>
+
+            <div className="mb-3 rounded border border-slate-200 bg-white/70 p-3">
+              <p className="mb-2 text-xs font-semibold text-slate-700">계획 검토 요약</p>
+              <ul className="space-y-1 text-xs text-slate-700">
+                <li className="rounded border border-violet-200 bg-violet-50 px-2 py-1">
+                  Runtime {c345.runtimeOperatingPlanItemCount}개, Worker {c345.workerOperatingPlanItemCount}개를 검토합니다.
+                </li>
+                <li className="rounded border border-violet-200 bg-violet-50 px-2 py-1">
+                  Queue/Redis {c345.queueRedisOperatingPlanItemCount}개, Adapter {c345.adapterOperatingPlanItemCount}개를 검토합니다.
+                </li>
+                <li className="rounded border border-violet-200 bg-violet-50 px-2 py-1">
+                  Naver API 호출 {c345.naverApiOperatingCallPlanItemCount}개, 장애/복구 {c345.runtimeFailureRecoveryPlanItemCount}개, 승인 항목 {c345.runtimeApprovalRequirementItemCount}개를 검토합니다.
+                </li>
+                <li className="rounded border border-violet-200 bg-violet-50 px-2 py-1">
+                  실제 Runtime 구성, Worker 실행, Queue enqueue, Redis 운영 연결, Adapter 연결, Naver API 호출은 수행하지 않습니다.
+                </li>
+                <li className="rounded border border-violet-200 bg-violet-50 px-2 py-1">
+                  실제 운영 DB 연결 변경, DB write, .env/.env.local 수정 없이 read-only 계획만 검토하며, Task 346에서 운영 배포 실행 전 최종 Readiness 검토 화면으로 넘어갑니다.
+                </li>
+              </ul>
+            </div>
+
+            <div className="mb-3 flex flex-wrap gap-3 text-xs">
+              <span className={`flex items-center gap-1 ${c345.runtimeWorkerQueueAdapterPlanReviewStarted ? 'text-green-700' : 'text-red-600'}`}>
+                <CheckCircle2 className="h-3.5 w-3.5" /> Runtime/Worker/Queue/Adapter 계획 검토 시작
+              </span>
+              <span className={`flex items-center gap-1 ${c345.runtimeWorkerQueueAdapterPlanStillReadOnly ? 'text-green-700' : 'text-red-600'}`}>
+                <CheckCircle2 className="h-3.5 w-3.5" /> 계획 검토는 계속 read-only
+              </span>
+              <span className={`flex items-center gap-1 ${c345.runtimeConfigured ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> 실제 Runtime 구성 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c345.workerStarted ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> 실제 Worker 실행 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c345.queueEnqueued ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> 실제 Queue enqueue 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c345.redisOperatingConnectionChanged ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> Redis 운영 연결 변경 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c345.adapterConnected ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> 실제 Adapter 연결 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c345.naverApiCalled ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> Naver API 호출 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c345.productLookupApiRecalled ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> 상품 조회 API 재호출 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c345.productUpdateApiCalled ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> 상품 수정 API 호출 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c345.operatingDbConnectionChanged ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> 운영 DB 연결 변경 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c345.databaseUrlChanged ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> DATABASE_URL 변경 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c345.envFileReadOrModified ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> .env / .env.local 열람/수정 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c345.dbWritePerformed ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> DB write 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c345.actualDomainConnected ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> 실제 도메인 연결 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c345.dnsChanged ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> 실제 DNS 변경 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c345.sslCertificateIssued ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> SSL 인증서 발급 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c345.httpsEnabled ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> HTTPS 실제 적용 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c345.actualVpsServerCreated ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> 실제 VPS 생성 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c345.actualVpsConfigChanged ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> 실제 VPS 설정 변경 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c345.actualProductionTransitionStarted ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> 실제 운영 전환 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c345.actualDeploymentStarted ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> 실제 배포 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c345.runtimeConfigurationStillReadOnly ? 'text-green-700' : 'text-red-600'}`}>
+                <ShieldCheck className="h-3.5 w-3.5" /> Runtime 구성은 계속 read-only
+              </span>
+              <span className={`flex items-center gap-1 ${c345.workerExecutionStillBlocked ? 'text-green-700' : 'text-red-600'}`}>
+                <ShieldCheck className="h-3.5 w-3.5" /> Worker 실행 계속 차단
+              </span>
+              <span className={`flex items-center gap-1 ${c345.queueEnqueueStillBlocked ? 'text-green-700' : 'text-red-600'}`}>
+                <ShieldCheck className="h-3.5 w-3.5" /> Queue enqueue 계속 차단
+              </span>
+              <span className={`flex items-center gap-1 ${c345.redisConnectionStillReadOnly ? 'text-green-700' : 'text-red-600'}`}>
+                <ShieldCheck className="h-3.5 w-3.5" /> Redis 연결은 계속 read-only
+              </span>
+              <span className={`flex items-center gap-1 ${c345.adapterConnectionStillBlocked ? 'text-green-700' : 'text-red-600'}`}>
+                <ShieldCheck className="h-3.5 w-3.5" /> Adapter 연결 계속 차단
+              </span>
+              <span className={`flex items-center gap-1 ${c345.naverApiCallStillBlocked ? 'text-green-700' : 'text-red-600'}`}>
+                <ShieldCheck className="h-3.5 w-3.5" /> Naver API 호출 계속 차단
+              </span>
+              <span className={`flex items-center gap-1 ${c345.operatingDbConnectionStillReadOnly ? 'text-green-700' : 'text-red-600'}`}>
+                <ShieldCheck className="h-3.5 w-3.5" /> 운영 DB 연결은 계속 read-only
+              </span>
+              <span className={`flex items-center gap-1 ${c345.databaseUrlChangeStillBlocked ? 'text-green-700' : 'text-red-600'}`}>
+                <ShieldCheck className="h-3.5 w-3.5" /> DATABASE_URL 변경 계속 차단
+              </span>
+              <span className={`flex items-center gap-1 ${c345.deploymentPreparationStillReadOnly ? 'text-green-700' : 'text-red-600'}`}>
+                <ShieldCheck className="h-3.5 w-3.5" /> 배포 준비는 계속 read-only
+              </span>
+              <span className={`flex items-center gap-1 ${c345.domainConnectionStillReadOnly ? 'text-green-700' : 'text-red-600'}`}>
+                <ShieldCheck className="h-3.5 w-3.5" /> 도메인 연결은 계속 read-only
+              </span>
+              <span className={`flex items-center gap-1 ${c345.apiCallStillBlocked ? 'text-green-700' : 'text-red-600'}`}>
+                <ShieldCheck className="h-3.5 w-3.5" /> API 호출 계속 차단
+              </span>
+              <span className={`flex items-center gap-1 ${c345.dbWriteStillBlocked ? 'text-green-700' : 'text-red-600'}`}>
+                <ShieldCheck className="h-3.5 w-3.5" /> DB write 계속 차단
+              </span>
+              <span className={`flex items-center gap-1 ${c345.workerQueueAdapterStillBlocked ? 'text-green-700' : 'text-red-600'}`}>
+                <ShieldCheck className="h-3.5 w-3.5" /> Worker / Queue / Adapter 계속 차단
+              </span>
+              <span className={`flex items-center gap-1 ${c345.tokenOrAuthStillHidden ? 'text-green-700' : 'text-red-600'}`}>
+                <ShieldCheck className="h-3.5 w-3.5" /> Token/Auth 값 계속 비노출
+              </span>
+              <span className={`flex items-center gap-1 ${c345.rawApiResponseStillHidden ? 'text-green-700' : 'text-red-600'}`}>
+                <ShieldCheck className="h-3.5 w-3.5" /> raw API response 계속 비표시
+              </span>
+              <span className={`flex items-center gap-1 ${c345.actualFinalExecutionApprovalGranted ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> 실제 최종 실행 승인 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c345.actualExecutionApprovalGranted ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> 실제 실행 승인 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c345.actualExecutionStarted ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> 실제 실행 시작 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c345.executionButtonAdded ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> 실행 버튼 추가 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c345.submitActionAdded ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> submit action 추가 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c345.postApiAdded ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> POST API 추가 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c345.priceChanged ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> 가격 변경 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c345.stockChanged ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> 재고 변경 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c345.tokenOrAuthValueExposed ? 'text-red-600' : 'text-green-700'}`}>
+                <ShieldCheck className="h-3.5 w-3.5" /> Token/Auth/Signature/Authorization 비노출 유지
+              </span>
+              <span className={`flex items-center gap-1 ${c345.rawApiResponseExposedOrStored ? 'text-red-600' : 'text-green-700'}`}>
+                <ShieldCheck className="h-3.5 w-3.5" /> raw API response 비저장 유지
+              </span>
+            </div>
+
+            <div className="mb-2 text-xs text-slate-500">
+              <span className="font-medium">원본 Task 344 상태:</span>{' '}
+              {c345.sourceOperatingDbBackupRollbackPlanReviewStatus}
+              {' | '}
+              <span className="font-medium">Runtime:</span> {c345.runtimeOperatingPlanItemCount}개
+              {' | '}
+              <span className="font-medium">Worker:</span> {c345.workerOperatingPlanItemCount}개
+              {' | '}
+              <span className="font-medium">Queue/Redis:</span> {c345.queueRedisOperatingPlanItemCount}개
+              {' | '}
+              <span className="font-medium">Adapter:</span> {c345.adapterOperatingPlanItemCount}개
+              {' | '}
+              <span className="font-medium">Naver API:</span> {c345.naverApiOperatingCallPlanItemCount}개
+              {' | '}
+              <span className="font-medium">장애/복구:</span> {c345.runtimeFailureRecoveryPlanItemCount}개
+              {' | '}
+              <span className="font-medium">승인 항목:</span> {c345.runtimeApprovalRequirementItemCount}개
+            </div>
+
+            {c345.requiresSeparateTask346Approval && (
+              <p className="rounded border border-fuchsia-200 bg-white/80 px-3 py-2 text-xs text-fuchsia-900">
+                {c345.nextTaskApprovalPhrase}
               </p>
             )}
           </div>

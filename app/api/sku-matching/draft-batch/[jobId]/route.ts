@@ -325,6 +325,7 @@ import { buildTmsReadOnlyVpsDeploymentCandidateFinalClosureSummarySafetyAuditSea
 import { buildTmsReadOnlyOperatingDeploymentDesignReviewView } from '@/src/services/tms-read-only-operating-deployment-design-review-view.service';
 import { buildTmsReadOnlyDomainDnsHttpsConnectionPlanReviewView } from '@/src/services/tms-read-only-domain-dns-https-connection-plan-review-view.service';
 import { buildTmsReadOnlyOperatingDbBackupRollbackPlanReviewView } from '@/src/services/tms-read-only-operating-db-backup-rollback-plan-review-view.service';
+import { buildTmsReadOnlyRuntimeWorkerQueueAdapterOperatingConnectionPlanReviewView } from '@/src/services/tms-read-only-runtime-worker-queue-adapter-operating-connection-plan-review-view.service';
 
 // Compute safe DB environment hint from DATABASE_URL without exposing the original value.
 // Returns a classification key, never the actual URL.
@@ -1334,6 +1335,10 @@ export async function GET(
     const _tmsReadOnlyOperatingDbBackupRollbackPlanReviewView =
       buildTmsReadOnlyOperatingDbBackupRollbackPlanReviewView({
         domainDnsHttpsConnectionPlanReview: _tmsReadOnlyDomainDnsHttpsConnectionPlanReviewView,
+      });
+    const _tmsReadOnlyRuntimeWorkerQueueAdapterOperatingConnectionPlanReviewView =
+      buildTmsReadOnlyRuntimeWorkerQueueAdapterOperatingConnectionPlanReviewView({
+        operatingDbBackupRollbackPlanReview: _tmsReadOnlyOperatingDbBackupRollbackPlanReviewView,
       });
 
     const responseJob = {
@@ -2452,6 +2457,8 @@ export async function GET(
         _tmsReadOnlyDomainDnsHttpsConnectionPlanReviewView,
       tmsReadOnlyOperatingDbBackupRollbackPlanReviewView:
         _tmsReadOnlyOperatingDbBackupRollbackPlanReviewView,
+      tmsReadOnlyRuntimeWorkerQueueAdapterOperatingConnectionPlanReviewView:
+        _tmsReadOnlyRuntimeWorkerQueueAdapterOperatingConnectionPlanReviewView,
     };
 
     return NextResponse.json({ ok: true, job: responseJob });
