@@ -331,6 +331,7 @@ import { buildTmsReadOnlyOperatingDeploymentApprovalPacketReviewView } from '@/s
 import { buildTmsReadOnlyOperatingDeploymentApprovalPacketOutcomeCertificationView } from '@/src/services/tms-read-only-operating-deployment-approval-packet-outcome-certification-view.service';
 import { buildTmsReadOnlyOperatingDeploymentSafetyLockReviewView } from '@/src/services/tms-read-only-operating-deployment-safety-lock-review-view.service';
 import { buildTmsReadOnlyOperatingDeploymentSafetyLockOutcomeCertificationView } from '@/src/services/tms-read-only-operating-deployment-safety-lock-outcome-certification-view.service';
+import { buildTmsReadOnlyOperatingDeploymentGoNoGoReviewView } from '@/src/services/tms-read-only-operating-deployment-go-no-go-review-view.service';
 
 // Compute safe DB environment hint from DATABASE_URL without exposing the original value.
 // Returns a classification key, never the actual URL.
@@ -1372,6 +1373,27 @@ export async function GET(
       buildTmsReadOnlyOperatingDeploymentSafetyLockOutcomeCertificationView({
         operatingDeploymentSafetyLockReview:
           _tmsReadOnlyOperatingDeploymentSafetyLockReviewView,
+      });
+    const _tmsReadOnlyOperatingDeploymentGoNoGoReviewView =
+      buildTmsReadOnlyOperatingDeploymentGoNoGoReviewView({
+        operatingDeploymentDesignReview:
+          _tmsReadOnlyOperatingDeploymentDesignReviewView,
+        domainDnsHttpsConnectionPlanReview:
+          _tmsReadOnlyDomainDnsHttpsConnectionPlanReviewView,
+        operatingDbBackupRollbackPlanReview:
+          _tmsReadOnlyOperatingDbBackupRollbackPlanReviewView,
+        runtimeWorkerQueueAdapterOperatingConnectionPlanReview:
+          _tmsReadOnlyRuntimeWorkerQueueAdapterOperatingConnectionPlanReviewView,
+        operatingDeploymentPreExecutionFinalReadinessReview:
+          _tmsReadOnlyOperatingDeploymentPreExecutionFinalReadinessReviewView,
+        operatingDeploymentApprovalPacketReview:
+          _tmsReadOnlyOperatingDeploymentApprovalPacketReviewView,
+        operatingDeploymentApprovalPacketOutcomeCertification:
+          _tmsReadOnlyOperatingDeploymentApprovalPacketOutcomeCertificationView,
+        operatingDeploymentSafetyLockReview:
+          _tmsReadOnlyOperatingDeploymentSafetyLockReviewView,
+        operatingDeploymentSafetyLockOutcomeCertification:
+          _tmsReadOnlyOperatingDeploymentSafetyLockOutcomeCertificationView,
       });
 
     const responseJob = {
@@ -2502,6 +2524,8 @@ export async function GET(
         _tmsReadOnlyOperatingDeploymentSafetyLockReviewView,
       tmsReadOnlyOperatingDeploymentSafetyLockOutcomeCertificationView:
         _tmsReadOnlyOperatingDeploymentSafetyLockOutcomeCertificationView,
+      tmsReadOnlyOperatingDeploymentGoNoGoReviewView:
+        _tmsReadOnlyOperatingDeploymentGoNoGoReviewView,
     };
 
     return NextResponse.json({ ok: true, job: responseJob });

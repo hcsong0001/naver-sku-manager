@@ -3971,6 +3971,7 @@ type DraftBatchJob = {
   tmsReadOnlyOperatingDeploymentApprovalPacketOutcomeCertificationView?: any;
   tmsReadOnlyOperatingDeploymentSafetyLockReviewView?: any;
   tmsReadOnlyOperatingDeploymentSafetyLockOutcomeCertificationView?: any;
+  tmsReadOnlyOperatingDeploymentGoNoGoReviewView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -48260,6 +48261,217 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             {c350.nextTaskApprovalPhrase && (
               <p className="rounded border border-fuchsia-200 bg-white/80 px-3 py-2 text-xs text-fuchsia-900">
                 {c350.nextTaskApprovalPhrase}
+              </p>
+            )}
+          </div>
+        );
+      })()}
+
+      {/* ── Task 351: Read-Only Operating Deployment Go/No-Go Review ── */}
+      {job.tmsReadOnlyOperatingDeploymentGoNoGoReviewView && (() => {
+        const c351 = job.tmsReadOnlyOperatingDeploymentGoNoGoReviewView as {
+          taskId: number;
+          panelTitle: string;
+          description: string;
+          operatingDeploymentGoNoGoReviewStatus: string;
+          goNoGoReviewReady: boolean;
+          goNoGoReviewPartialReady: boolean;
+          goNoGoReviewBlocked: boolean;
+          goNoGoReviewNotStarted: boolean;
+          goNoGoReviewStarted: boolean;
+          goNoGoReviewStillReadOnly: boolean;
+          recommendedGoNoGoDecision: string;
+          recommendedGoNoGoDecisionLabel: string;
+          recommendedNextStep: string;
+          recommendedDeploymentMode: string;
+          totalGoNoGoItemCount: number;
+          readyItemCount: number;
+          partialReadyItemCount: number;
+          blockedItemCount: number;
+          notStartedItemCount: number;
+          operatingDesignGoNoGoItemCount: number;
+          domainDnsHttpsGoNoGoItemCount: number;
+          operatingDbBackupRollbackGoNoGoItemCount: number;
+          runtimeWorkerQueueAdapterGoNoGoItemCount: number;
+          readinessGoNoGoItemCount: number;
+          approvalPacketGoNoGoItemCount: number;
+          safetyLockGoNoGoItemCount: number;
+          finalDecisionRequirementItemCount: number;
+          operatingDesignGoNoGoItems: { goNoGoItemId: string; label: string; description: string; goNoGoReviewStatus: string; requiresSeparateApproval: boolean }[];
+          domainDnsHttpsGoNoGoItems: { goNoGoItemId: string; label: string; description: string; goNoGoReviewStatus: string; requiresSeparateApproval: boolean }[];
+          operatingDbBackupRollbackGoNoGoItems: { goNoGoItemId: string; label: string; description: string; goNoGoReviewStatus: string; requiresSeparateApproval: boolean }[];
+          runtimeWorkerQueueAdapterGoNoGoItems: { goNoGoItemId: string; label: string; description: string; goNoGoReviewStatus: string; requiresSeparateApproval: boolean }[];
+          readinessGoNoGoItems: { goNoGoItemId: string; label: string; description: string; goNoGoReviewStatus: string; requiresSeparateApproval: boolean }[];
+          approvalPacketGoNoGoItems: { goNoGoItemId: string; label: string; description: string; goNoGoReviewStatus: string; requiresSeparateApproval: boolean }[];
+          safetyLockGoNoGoItems: { goNoGoItemId: string; label: string; description: string; goNoGoReviewStatus: string; requiresSeparateApproval: boolean }[];
+          finalDecisionRequirementItems: { goNoGoItemId: string; label: string; description: string; goNoGoReviewStatus: string; requiresSeparateApproval: boolean }[];
+          goNoGoSummaryCards: { label: string; value: string; tone: string }[];
+          sourceOperatingDeploymentDesignReviewStatus: string;
+          sourceDomainDnsHttpsConnectionPlanReviewStatus: string;
+          sourceOperatingDbBackupRollbackPlanReviewStatus: string;
+          sourceRuntimeWorkerQueueAdapterOperatingConnectionPlanReviewStatus: string;
+          sourcePreExecutionFinalReadinessReviewStatus: string;
+          sourceApprovalPacketReviewStatus: string;
+          sourceApprovalPacketOutcomeCertificationStatus: string;
+          sourceSafetyLockReviewStatus: string;
+          sourceSafetyLockOutcomeCertificationStatus: string;
+          actualGoDecisionGranted: boolean;
+          actualNoGoDecisionGranted: boolean;
+          actualGoNoGoDecisionSaved: boolean;
+          actualDeploymentStarted: boolean;
+          goNoGoDecisionStillReadOnly: boolean;
+          goDecisionStillBlocked: boolean;
+          noGoDecisionStillBlocked: boolean;
+          deploymentExecutionStillBlocked: boolean;
+          uiExecutionActionStillBlocked: boolean;
+          tokenOrAuthStillHidden: boolean;
+          rawApiResponseStillHidden: boolean;
+          isReadOnlyOperatingDeploymentGoNoGoReview: boolean;
+          requiresSeparateTask352Approval: boolean;
+          nextTaskApprovalPhrase: string;
+        };
+        const statusColor351 = c351.goNoGoReviewReady
+          ? 'text-emerald-700'
+          : c351.goNoGoReviewPartialReady
+            ? 'text-amber-600'
+            : c351.goNoGoReviewBlocked
+              ? 'text-red-700'
+              : 'text-slate-400';
+        const renderGoNoGoGroup351 = (
+          title: string,
+          items: { goNoGoItemId: string; label: string; description: string; goNoGoReviewStatus: string; requiresSeparateApproval: boolean }[],
+          count: number,
+        ) => (
+          <div key={title} className="mb-3">
+            <p className="mb-1 text-xs font-semibold text-emerald-800">
+              {title} ({count}개)
+            </p>
+            <ul className="space-y-1">
+              {items.map((item) => (
+                <li key={item.goNoGoItemId} className="rounded border border-emerald-100 bg-white/70 px-2 py-1 text-xs">
+                  <span
+                    className={
+                      item.goNoGoReviewStatus === 'READY'
+                        ? 'font-medium text-emerald-700'
+                        : item.goNoGoReviewStatus === 'PARTIAL_READY'
+                          ? 'font-medium text-amber-600'
+                          : item.goNoGoReviewStatus === 'BLOCKED'
+                            ? 'font-medium text-red-600'
+                            : 'font-medium text-slate-400'
+                    }
+                  >
+                    [{item.goNoGoReviewStatus}]
+                  </span>{' '}
+                  {item.label}
+                  {item.requiresSeparateApproval && (
+                    <span className="ml-1 text-fuchsia-600">[별도승인필요]</span>
+                  )}
+                  <span className="ml-1 text-slate-400">— {item.description}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        );
+        return (
+          <div key="task-351-panel" className="mb-4 rounded-xl border border-emerald-300 bg-emerald-50/60 p-4 shadow-sm">
+            <div className="mb-2 flex items-center gap-2">
+              <span className="rounded bg-emerald-100 px-2 py-0.5 text-xs font-bold text-emerald-800">
+                Task {c351.taskId}
+              </span>
+              <span className="text-sm font-semibold text-emerald-900">{c351.panelTitle}</span>
+              <span className={`ml-auto text-xs font-bold ${statusColor351}`}>
+                {c351.operatingDeploymentGoNoGoReviewStatus}
+              </span>
+            </div>
+            <p className="mb-3 text-xs text-emerald-700">{c351.description}</p>
+
+            {/* Summary Cards */}
+            <div className="mb-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {c351.goNoGoSummaryCards.map((card) => (
+                <div
+                  key={card.label}
+                  className={`rounded border px-2 py-1 text-center text-xs ${
+                    card.tone === 'positive'
+                      ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
+                      : card.tone === 'warning'
+                        ? 'border-red-200 bg-red-50 text-red-800'
+                        : 'border-slate-200 bg-slate-50 text-slate-700'
+                  }`}
+                >
+                  <p className="font-semibold">{card.label}</p>
+                  <p>{card.value}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Go/No-Go Item Groups */}
+            <div className="mb-3 rounded border border-emerald-200 bg-white/50 p-3">
+              {renderGoNoGoGroup351('운영 배포 설계 Go/No-Go (Task 342)', c351.operatingDesignGoNoGoItems, c351.operatingDesignGoNoGoItemCount)}
+              {renderGoNoGoGroup351('도메인/DNS/HTTPS Go/No-Go (Task 343)', c351.domainDnsHttpsGoNoGoItems, c351.domainDnsHttpsGoNoGoItemCount)}
+              {renderGoNoGoGroup351('운영 DB 백업/롤백 Go/No-Go (Task 344)', c351.operatingDbBackupRollbackGoNoGoItems, c351.operatingDbBackupRollbackGoNoGoItemCount)}
+              {renderGoNoGoGroup351('Runtime/Worker/Queue/Adapter Go/No-Go (Task 345)', c351.runtimeWorkerQueueAdapterGoNoGoItems, c351.runtimeWorkerQueueAdapterGoNoGoItemCount)}
+              {renderGoNoGoGroup351('최종 Readiness Go/No-Go (Task 346)', c351.readinessGoNoGoItems, c351.readinessGoNoGoItemCount)}
+              {renderGoNoGoGroup351('승인 패킷 Go/No-Go (Task 347~348)', c351.approvalPacketGoNoGoItems, c351.approvalPacketGoNoGoItemCount)}
+              {renderGoNoGoGroup351('Safety Lock Go/No-Go (Task 349~350)', c351.safetyLockGoNoGoItems, c351.safetyLockGoNoGoItemCount)}
+              {renderGoNoGoGroup351('최종 결정 필요 항목', c351.finalDecisionRequirementItems, c351.finalDecisionRequirementItemCount)}
+            </div>
+
+            {/* Source Statuses */}
+            <div className="mb-3 rounded border border-emerald-200 bg-white/50 p-2 text-xs text-slate-600">
+              <p className="mb-1 font-semibold text-emerald-800">소스 상태 (9개)</p>
+              <p>Task 342 설계: <span className="font-mono">{c351.sourceOperatingDeploymentDesignReviewStatus}</span></p>
+              <p>Task 343 도메인: <span className="font-mono">{c351.sourceDomainDnsHttpsConnectionPlanReviewStatus}</span></p>
+              <p>Task 344 DB: <span className="font-mono">{c351.sourceOperatingDbBackupRollbackPlanReviewStatus}</span></p>
+              <p>Task 345 Runtime: <span className="font-mono">{c351.sourceRuntimeWorkerQueueAdapterOperatingConnectionPlanReviewStatus}</span></p>
+              <p>Task 346 Readiness: <span className="font-mono">{c351.sourcePreExecutionFinalReadinessReviewStatus}</span></p>
+              <p>Task 347 승인패킷: <span className="font-mono">{c351.sourceApprovalPacketReviewStatus}</span></p>
+              <p>Task 348 패킷인증: <span className="font-mono">{c351.sourceApprovalPacketOutcomeCertificationStatus}</span></p>
+              <p>Task 349 SafetyLock: <span className="font-mono">{c351.sourceSafetyLockReviewStatus}</span></p>
+              <p>Task 350 LockOutcome: <span className="font-mono">{c351.sourceSafetyLockOutcomeCertificationStatus}</span></p>
+            </div>
+
+            {/* Safety Flags */}
+            <div className="mb-3 rounded border border-emerald-200 bg-white/50 p-2 text-xs text-slate-600">
+              <p className="mb-1 font-semibold text-emerald-800">Safety 플래그</p>
+              <p>goNoGoReviewStarted: <span className="font-mono text-emerald-700">{String(c351.goNoGoReviewStarted)}</span></p>
+              <p>goNoGoReviewStillReadOnly: <span className="font-mono text-emerald-700">{String(c351.goNoGoReviewStillReadOnly)}</span></p>
+              <p>goNoGoDecisionStillReadOnly: <span className="font-mono text-emerald-700">{String(c351.goNoGoDecisionStillReadOnly)}</span></p>
+              <p>goDecisionStillBlocked: <span className="font-mono text-emerald-700">{String(c351.goDecisionStillBlocked)}</span></p>
+              <p>noGoDecisionStillBlocked: <span className="font-mono text-emerald-700">{String(c351.noGoDecisionStillBlocked)}</span></p>
+              <p>deploymentExecutionStillBlocked: <span className="font-mono text-emerald-700">{String(c351.deploymentExecutionStillBlocked)}</span></p>
+              <p>uiExecutionActionStillBlocked: <span className="font-mono text-emerald-700">{String(c351.uiExecutionActionStillBlocked)}</span></p>
+              <p>tokenOrAuthStillHidden: <span className="font-mono text-emerald-700">{String(c351.tokenOrAuthStillHidden)}</span></p>
+              <p>rawApiResponseStillHidden: <span className="font-mono text-emerald-700">{String(c351.rawApiResponseStillHidden)}</span></p>
+              <p>actualGoDecisionGranted: <span className="font-mono text-red-600">{String(c351.actualGoDecisionGranted)}</span></p>
+              <p>actualNoGoDecisionGranted: <span className="font-mono text-red-600">{String(c351.actualNoGoDecisionGranted)}</span></p>
+              <p>actualGoNoGoDecisionSaved: <span className="font-mono text-red-600">{String(c351.actualGoNoGoDecisionSaved)}</span></p>
+              <p>actualDeploymentStarted: <span className="font-mono text-red-600">{String(c351.actualDeploymentStarted)}</span></p>
+              <p>isReadOnlyOperatingDeploymentGoNoGoReview: <span className="font-mono text-emerald-700">{String(c351.isReadOnlyOperatingDeploymentGoNoGoReview)}</span></p>
+            </div>
+
+            {/* Recommended */}
+            <div className="mb-3 rounded border border-emerald-200 bg-white/50 p-2 text-xs text-slate-600">
+              <p className="mb-1 font-semibold text-emerald-800">추천 결정 후보</p>
+              <p>recommendedGoNoGoDecision: <span className="font-mono font-semibold text-emerald-800">{c351.recommendedGoNoGoDecision}</span></p>
+              <p>recommendedGoNoGoDecisionLabel: <span className="font-mono">{c351.recommendedGoNoGoDecisionLabel}</span></p>
+              <p>recommendedNextStep: <span className="font-mono">{c351.recommendedNextStep}</span></p>
+              <p>recommendedDeploymentMode: <span className="font-mono">{c351.recommendedDeploymentMode}</span></p>
+            </div>
+
+            <p className="mb-2 text-xs text-emerald-700">
+              이 화면은 실제 Go 결정, 실제 No-Go 결정, 실제 배포 승인, 실제 배포 실행이 아닙니다.
+              Task 352는 사용자 별도 명시 승인 없이는 진행하지 않습니다.
+            </p>
+            {c351.requiresSeparateTask352Approval && (
+              <p className="mb-2 rounded border border-emerald-200 bg-white/80 px-2 py-1 text-xs text-emerald-800">
+                Task 352 별도 승인이 필요합니다.
+              </p>
+            )}
+
+            {/* nextTaskApprovalPhrase */}
+            {c351.nextTaskApprovalPhrase && (
+              <p className="rounded border border-fuchsia-200 bg-white/80 px-3 py-2 text-xs text-fuchsia-900">
+                {c351.nextTaskApprovalPhrase}
               </p>
             )}
           </div>
