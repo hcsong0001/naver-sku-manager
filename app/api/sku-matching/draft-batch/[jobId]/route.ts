@@ -329,6 +329,7 @@ import { buildTmsReadOnlyRuntimeWorkerQueueAdapterOperatingConnectionPlanReviewV
 import { buildTmsReadOnlyOperatingDeploymentPreExecutionFinalReadinessReviewView } from '@/src/services/tms-read-only-operating-deployment-pre-execution-final-readiness-review-view.service';
 import { buildTmsReadOnlyOperatingDeploymentApprovalPacketReviewView } from '@/src/services/tms-read-only-operating-deployment-approval-packet-review-view.service';
 import { buildTmsReadOnlyOperatingDeploymentApprovalPacketOutcomeCertificationView } from '@/src/services/tms-read-only-operating-deployment-approval-packet-outcome-certification-view.service';
+import { buildTmsReadOnlyOperatingDeploymentSafetyLockReviewView } from '@/src/services/tms-read-only-operating-deployment-safety-lock-review-view.service';
 
 // Compute safe DB environment hint from DATABASE_URL without exposing the original value.
 // Returns a classification key, never the actual URL.
@@ -1360,6 +1361,11 @@ export async function GET(
       buildTmsReadOnlyOperatingDeploymentApprovalPacketOutcomeCertificationView({
         operatingDeploymentApprovalPacketReview:
           _tmsReadOnlyOperatingDeploymentApprovalPacketReviewView,
+      });
+    const _tmsReadOnlyOperatingDeploymentSafetyLockReviewView =
+      buildTmsReadOnlyOperatingDeploymentSafetyLockReviewView({
+        operatingDeploymentApprovalPacketOutcomeCertification:
+          _tmsReadOnlyOperatingDeploymentApprovalPacketOutcomeCertificationView,
       });
 
     const responseJob = {
@@ -2486,6 +2492,8 @@ export async function GET(
         _tmsReadOnlyOperatingDeploymentApprovalPacketReviewView,
       tmsReadOnlyOperatingDeploymentApprovalPacketOutcomeCertificationView:
         _tmsReadOnlyOperatingDeploymentApprovalPacketOutcomeCertificationView,
+      tmsReadOnlyOperatingDeploymentSafetyLockReviewView:
+        _tmsReadOnlyOperatingDeploymentSafetyLockReviewView,
     };
 
     return NextResponse.json({ ok: true, job: responseJob });
