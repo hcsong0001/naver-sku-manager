@@ -3957,6 +3957,7 @@ type DraftBatchJob = {
   tmsReadOnlyVpsDeploymentCandidateClosureSummaryView?: any;
   tmsReadOnlyVpsDeploymentCandidateClosureSummaryOutcomeCertificationView?: any;
   tmsReadOnlyVpsDeploymentCandidateClosureSummarySafetyAuditSealView?: any;
+  tmsReadOnlyVpsDeploymentCandidateClosureSummarySafetyAuditSealOutcomeCertificationView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -43328,6 +43329,271 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             {c336.requiresSeparateTask337Approval && (
               <p className="rounded border border-fuchsia-200 bg-white/80 px-3 py-2 text-xs text-fuchsia-900">
                 {c336.nextTaskApprovalPhrase}
+              </p>
+            )}
+          </div>
+        );
+      })()}
+
+      {/* ── Task 337: Read-Only VPS Deployment Candidate Closure Summary Safety Audit Seal Outcome Certification ── */}
+      {job.tmsReadOnlyVpsDeploymentCandidateClosureSummarySafetyAuditSealOutcomeCertificationView && (() => {
+        const c337 = job.tmsReadOnlyVpsDeploymentCandidateClosureSummarySafetyAuditSealOutcomeCertificationView as {
+          taskId: number;
+          panelTitle: string;
+          description: string;
+          sourceVpsDeploymentCandidateClosureSummarySafetyAuditSealStatus: string;
+          vpsDeploymentCandidateClosureSummarySafetyAuditSealOutcomeCertificationStatus: string;
+          closureSummaryItems: Array<{
+            closureItemId: string;
+            taskId: number;
+            taskName: string;
+            sourceStatus: string;
+            closureStatus: 'READY' | 'PARTIAL_READY' | 'BLOCKED' | 'NOT_STARTED';
+            message: string;
+          }>;
+          outcomeCertificationItems: Array<{
+            certificationId: string;
+            sourceTaskId: number;
+            sourceTaskName: string;
+            sourceStatus: string;
+            outcomeCertificationStatus: 'READY' | 'PARTIAL_READY' | 'BLOCKED' | 'NOT_STARTED';
+            category:
+              | 'VPS_CANDIDATE_FLOW'
+              | 'CLOSURE_SUMMARY'
+              | 'DEPLOYMENT_SAFETY'
+              | 'RUNTIME_SAFETY'
+              | 'API_DB_SAFETY'
+              | 'SECRET_EXPOSURE'
+              | 'NEXT_REVIEW_LOCK';
+            label: string;
+            message: string;
+          }>;
+          flowOutcomeCertificationItems: Array<{
+            certificationId: string;
+            label: string;
+            message: string;
+            outcomeCertificationStatus: 'READY' | 'PARTIAL_READY' | 'BLOCKED' | 'NOT_STARTED';
+          }>;
+          closureSummaryOutcomeCertificationItems: Array<{ certificationId: string; label: string; message: string }>;
+          deploymentOutcomeCertificationItems: Array<{ certificationId: string; label: string; message: string }>;
+          runtimeOutcomeCertificationItems: Array<{ certificationId: string; label: string; message: string }>;
+          apiDbOutcomeCertificationItems: Array<{ certificationId: string; label: string; message: string }>;
+          secretExposureOutcomeCertificationItems: Array<{ certificationId: string; label: string; message: string }>;
+          nextReviewLockOutcomeCertificationItems: Array<{ certificationId: string; label: string; message: string }>;
+          outcomeCertificationSummaryCards: Array<{
+            label: string;
+            value: string;
+            tone: 'positive' | 'neutral' | 'warning';
+          }>;
+          readyCount: number;
+          partialReadyCount: number;
+          blockedCount: number;
+          notStartedCount: number;
+          totalClosureTargetCount: number;
+          closureSummarySafetySealOutcomeCertified: boolean;
+          vpsCandidateFlowClosureCompleted: boolean;
+          vpsCandidateFlowReadOnlyCompleted: boolean;
+          vpsCandidateFlowStillDisplayOnly: boolean;
+          vpsCandidateFlowSafeForNextReview: boolean;
+          vpsCandidateFlowClosedWithoutActualDeployment: boolean;
+          actualVpsServerCreated: boolean;
+          actualVpsConfigChanged: boolean;
+          actualProductionTransitionStarted: boolean;
+          actualDeploymentStarted: boolean;
+          actualDomainConnected: boolean;
+          runtimeConfigured: boolean;
+          workerStarted: boolean;
+          queueEnqueued: boolean;
+          adapterConnected: boolean;
+          naverApiCalled: boolean;
+          productLookupApiRecalled: boolean;
+          productUpdateApiCalled: boolean;
+          dbWritePerformed: boolean;
+          tokenOrAuthValueExposed: boolean;
+          rawApiResponseExposedOrStored: boolean;
+          requiresSeparateTask338Approval: boolean;
+          nextTaskApprovalPhrase: string;
+        };
+
+        const getOutcomeTone337 = (status: 'READY' | 'PARTIAL_READY' | 'BLOCKED' | 'NOT_STARTED') =>
+          status === 'READY'
+            ? 'bg-green-100 text-green-700 border-green-200'
+            : status === 'PARTIAL_READY'
+              ? 'bg-amber-100 text-amber-700 border-amber-200'
+              : status === 'BLOCKED'
+                ? 'bg-red-100 text-red-700 border-red-200'
+                : 'bg-slate-100 text-slate-600 border-slate-200';
+
+        const getCardTone337 = (tone: 'positive' | 'neutral' | 'warning') =>
+          tone === 'positive'
+            ? 'bg-green-100 text-green-700 border-green-200'
+            : tone === 'warning'
+              ? 'bg-amber-100 text-amber-700 border-amber-200'
+              : 'bg-slate-100 text-slate-700 border-slate-200';
+
+        const renderOutcomeGroup337 = (
+          title: string,
+          items: Array<{ certificationId: string; label: string; message: string }>,
+        ) => (
+          <div className="rounded border border-slate-200 bg-white/70 p-3">
+            <p className="mb-2 text-xs font-semibold text-slate-700">{title}</p>
+            <ul className="space-y-1">
+              {items.map((item) => (
+                <li
+                  key={item.certificationId}
+                  className="rounded border border-green-200 bg-green-50 px-2 py-1 text-xs text-green-700"
+                >
+                  <span className="font-medium">{item.label}</span>
+                  <span className="ml-1 opacity-80">— {item.message}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        );
+
+        return (
+          <div className="mb-6 rounded-lg border border-sky-300 bg-sky-50/60 p-4 text-sm">
+            <div className="mb-3 flex items-center gap-2">
+              <ClipboardCheck className="h-5 w-5 text-sky-700" />
+              <h2 className="text-base font-semibold text-sky-950">
+                Task {c337.taskId}: {c337.panelTitle}
+              </h2>
+              <span className="ml-auto rounded-full border border-sky-300 bg-sky-100 px-2 py-0.5 text-xs text-sky-800">
+                {c337.vpsDeploymentCandidateClosureSummarySafetyAuditSealOutcomeCertificationStatus}
+              </span>
+            </div>
+
+            <p className="mb-3 text-xs text-slate-600">{c337.description}</p>
+
+            <div className="mb-3 rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+              <span className="font-semibold">⚠ 오해 방지:</span>{' '}
+              이 패널은 Task 336 VPS 후보 Closure Summary Safety Audit Seal 결과를 read-only로 인증하는 화면입니다.
+              이 화면은 실제 VPS 생성, 실제 배포 실행, 실제 도메인 연결 작업이 아닙니다.
+              Runtime, Worker, Queue, Adapter, Naver API, DB write를 실행하지 않습니다.
+              Task 338은 사용자 별도 명시 승인 없이는 진행하지 않습니다.
+            </div>
+
+            <div className="mb-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {c337.outcomeCertificationSummaryCards.map((card) => (
+                <div
+                  key={card.label}
+                  className={`rounded border p-2 text-center ${getCardTone337(card.tone)}`}
+                >
+                  <div className="text-sm font-bold">{card.value}</div>
+                  <div className="text-xs">{card.label}</div>
+                </div>
+              ))}
+            </div>
+
+            <div className="mb-3 rounded border border-slate-200 bg-white/70 p-3">
+              <p className="mb-2 text-xs font-semibold text-slate-700">Task 322~333 Closure 대상 Safety Audit Seal 결과 인증</p>
+              <ul className="space-y-1">
+                {c337.flowOutcomeCertificationItems.map((item) => (
+                  <li
+                    key={item.certificationId}
+                    className={`rounded border px-2 py-1 text-xs ${getOutcomeTone337(item.outcomeCertificationStatus)}`}
+                  >
+                    <span className="font-medium">{item.label}</span>
+                    <span className="ml-2 opacity-70">[{item.outcomeCertificationStatus}]</span>
+                    <span className="ml-1 opacity-80">— {item.message}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="mb-3 grid grid-cols-1 gap-3 lg:grid-cols-2">
+              {renderOutcomeGroup337('Closure Summary Safety Audit Seal 결과 인증', c337.closureSummaryOutcomeCertificationItems)}
+              {renderOutcomeGroup337('실제 배포 없이 닫히고 봉인된 상태 인증', c337.deploymentOutcomeCertificationItems)}
+              {renderOutcomeGroup337('Runtime / Worker / Queue / Adapter 미연결 인증', c337.runtimeOutcomeCertificationItems)}
+              {renderOutcomeGroup337('API 호출 / DB write 없음 인증', c337.apiDbOutcomeCertificationItems)}
+              {renderOutcomeGroup337('Token/Auth/raw API response 비노출 인증', c337.secretExposureOutcomeCertificationItems)}
+              {renderOutcomeGroup337('Task 338 별도 승인 잠금', c337.nextReviewLockOutcomeCertificationItems)}
+            </div>
+
+            <div className="mb-3 flex flex-wrap gap-3 text-xs">
+              <span className={`flex items-center gap-1 ${c337.closureSummarySafetySealOutcomeCertified ? 'text-green-700' : 'text-red-600'}`}>
+                <CheckCircle2 className="h-3.5 w-3.5" /> Safety Audit Seal 결과 인증 완료
+              </span>
+              <span className={`flex items-center gap-1 ${c337.vpsCandidateFlowClosureCompleted ? 'text-green-700' : 'text-red-600'}`}>
+                <CheckCircle2 className="h-3.5 w-3.5" /> VPS 후보 흐름 Closure 완료
+              </span>
+              <span className={`flex items-center gap-1 ${c337.vpsCandidateFlowReadOnlyCompleted ? 'text-green-700' : 'text-red-600'}`}>
+                <CheckCircle2 className="h-3.5 w-3.5" /> VPS 후보 흐름 read-only 완료
+              </span>
+              <span className={`flex items-center gap-1 ${c337.vpsCandidateFlowStillDisplayOnly ? 'text-green-700' : 'text-red-600'}`}>
+                <CheckCircle2 className="h-3.5 w-3.5" /> 표시 전용 상태 유지
+              </span>
+              <span className={`flex items-center gap-1 ${c337.vpsCandidateFlowSafeForNextReview ? 'text-green-700' : 'text-red-600'}`}>
+                <CheckCircle2 className="h-3.5 w-3.5" /> 다음 검토 전 안전 상태 유지
+              </span>
+              <span className={`flex items-center gap-1 ${c337.vpsCandidateFlowClosedWithoutActualDeployment ? 'text-green-700' : 'text-red-600'}`}>
+                <CheckCircle2 className="h-3.5 w-3.5" /> 실제 배포 없이 종료 및 봉인 유지
+              </span>
+              <span className={`flex items-center gap-1 ${c337.actualVpsServerCreated ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> 실제 VPS 생성 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c337.actualVpsConfigChanged ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> 실제 VPS 설정 변경 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c337.actualProductionTransitionStarted ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> 실제 운영 전환 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c337.actualDeploymentStarted ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> 실제 배포 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c337.actualDomainConnected ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> 실제 도메인 연결 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c337.runtimeConfigured ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> Runtime 구성 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c337.workerStarted ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> Worker 실행 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c337.queueEnqueued ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> Queue enqueue 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c337.adapterConnected ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> Adapter 연결 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c337.naverApiCalled ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> Naver API 호출 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c337.productLookupApiRecalled ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> 상품 조회 API 재호출 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c337.productUpdateApiCalled ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> 상품 수정 API 호출 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c337.dbWritePerformed ? 'text-red-600' : 'text-green-700'}`}>
+                <Lock className="h-3.5 w-3.5" /> DB write 없음
+              </span>
+              <span className={`flex items-center gap-1 ${c337.tokenOrAuthValueExposed ? 'text-red-600' : 'text-green-700'}`}>
+                <ShieldCheck className="h-3.5 w-3.5" /> Token/Auth 비노출 유지
+              </span>
+              <span className={`flex items-center gap-1 ${c337.rawApiResponseExposedOrStored ? 'text-red-600' : 'text-green-700'}`}>
+                <ShieldCheck className="h-3.5 w-3.5" /> raw API response 비표시·비저장 유지
+              </span>
+            </div>
+
+            <div className="mb-2 text-xs text-slate-500">
+              <span className="font-medium">원본 Task 336 상태:</span>{' '}
+              {c337.sourceVpsDeploymentCandidateClosureSummarySafetyAuditSealStatus}
+              {' | '}
+              <span className="font-medium">READY:</span> {c337.readyCount}개
+              {' | '}
+              <span className="font-medium">PARTIAL:</span> {c337.partialReadyCount}개
+              {' | '}
+              <span className="font-medium">BLOCKED:</span> {c337.blockedCount}개
+              {' | '}
+              <span className="font-medium">N/S:</span> {c337.notStartedCount}개
+              {' | '}
+              <span className="font-medium">Closure 대상:</span> {c337.totalClosureTargetCount}개
+            </div>
+
+            {c337.requiresSeparateTask338Approval && (
+              <p className="rounded border border-fuchsia-200 bg-white/80 px-3 py-2 text-xs text-fuchsia-900">
+                {c337.nextTaskApprovalPhrase}
               </p>
             )}
           </div>
