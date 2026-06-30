@@ -347,6 +347,8 @@ import { buildTmsReadOnlyOperatingDeploymentFinalApprovalSubmissionPacketReviewV
 import { buildTmsReadOnlyOperatingDeploymentFinalApprovalSubmissionPacketOutcomeCertificationView } from '@/src/services/tms-read-only-operating-deployment-final-approval-submission-packet-outcome-certification-view.service';
 import { buildTmsReadOnlyOperatingDeploymentFinalApprovalSubmissionSealReviewView } from '@/src/services/tms-read-only-operating-deployment-final-approval-submission-seal-review-view.service';
 import { buildTmsReadOnlyOperatingDeploymentFinalApprovalSubmissionSealOutcomeCertificationView } from '@/src/services/tms-read-only-operating-deployment-final-approval-submission-seal-outcome-certification-view.service';
+import { buildTmsReadOnlyOperatingDeploymentFinalApprovalSubmissionFinalReviewView } from '@/src/services/tms-read-only-operating-deployment-final-approval-submission-final-review-view.service';
+
 
 
 
@@ -1497,6 +1499,11 @@ export async function GET(
     const _tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionSealOutcomeCertificationView =
       buildTmsReadOnlyOperatingDeploymentFinalApprovalSubmissionSealOutcomeCertificationView(
         _tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionSealReviewView
+      );
+
+    const _tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionFinalReviewView =
+      buildTmsReadOnlyOperatingDeploymentFinalApprovalSubmissionFinalReviewView(
+        _tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionSealOutcomeCertificationView
       );
 
     const responseJob = {
@@ -2659,6 +2666,8 @@ export async function GET(
         _tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionSealReviewView,
       tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionSealOutcomeCertificationView:
         _tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionSealOutcomeCertificationView,
+      tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionFinalReviewView:
+        _tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionFinalReviewView,
     };
     return NextResponse.json({ ok: true, job: responseJob });
   } catch (error: unknown) {
