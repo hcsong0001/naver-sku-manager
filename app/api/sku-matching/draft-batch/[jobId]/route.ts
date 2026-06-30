@@ -341,6 +341,7 @@ import { buildTmsReadOnlyOperatingDeploymentFinalApprovalSealReviewView } from '
 import { buildTmsReadOnlyOperatingDeploymentFinalApprovalSealOutcomeCertificationView } from '@/src/services/tms-read-only-operating-deployment-final-approval-seal-outcome-certification-view.service';
 import { buildTmsReadOnlyOperatingDeploymentFinalApprovalCandidateReviewView } from '@/src/services/tms-read-only-operating-deployment-final-approval-candidate-review-view.service';
 import { buildTmsReadOnlyOperatingDeploymentFinalApprovalCandidateOutcomeCertificationView } from '@/src/services/tms-read-only-operating-deployment-final-approval-candidate-outcome-certification-view.service';
+import { buildTmsReadOnlyOperatingDeploymentFinalApprovalSubmissionBoundaryReviewView } from '@/src/services/tms-read-only-operating-deployment-final-approval-submission-boundary-review-view.service';
 
 // Compute safe DB environment hint from DATABASE_URL without exposing the original value.
 // Returns a classification key, never the actual URL.
@@ -1455,6 +1456,13 @@ export async function GET(
         {
           operatingDeploymentFinalApprovalCandidateReview:
             _tmsReadOnlyOperatingDeploymentFinalApprovalCandidateReviewView,
+        },
+      );
+    const _tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionBoundaryReviewView =
+      buildTmsReadOnlyOperatingDeploymentFinalApprovalSubmissionBoundaryReviewView(
+        {
+          operatingDeploymentFinalApprovalCandidateOutcomeCertification:
+            _tmsReadOnlyOperatingDeploymentFinalApprovalCandidateOutcomeCertificationView,
         },
       );
 
@@ -2606,6 +2614,8 @@ export async function GET(
         _tmsReadOnlyOperatingDeploymentFinalApprovalCandidateReviewView,
       tmsReadOnlyOperatingDeploymentFinalApprovalCandidateOutcomeCertificationView:
         _tmsReadOnlyOperatingDeploymentFinalApprovalCandidateOutcomeCertificationView,
+      tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionBoundaryReviewView:
+        _tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionBoundaryReviewView,
     };
 
     return NextResponse.json({ ok: true, job: responseJob });
