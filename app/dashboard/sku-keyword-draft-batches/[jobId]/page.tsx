@@ -3978,6 +3978,7 @@ type DraftBatchJob = {
   tmsReadOnlyOperatingDeploymentFinalApprovalPacketReviewView?: any;
   tmsReadOnlyOperatingDeploymentFinalApprovalPacketOutcomeCertificationView?: any;
   tmsReadOnlyOperatingDeploymentFinalApprovalSealReviewView?: any;
+  tmsReadOnlyOperatingDeploymentFinalApprovalSealOutcomeCertificationView?: any;
   tokenFirstTestSeparateApprovalFinalHoldNonReleaseHandoffClosureFinalStatusSealConfirmationFinalReviewClosureStatusFinalClosureFinalStatusExecutionReadinessWorkerPayloadInterpretationView?: {
     title: string; statusLabel: string; statusTone: 'neutral' | 'warning' | 'blocked'; summary: string;
     taskRangeLabel: string; previousExecutionReadinessQueueContractOverviewLabel: string; previousExecutionReadinessQueueContractOverviewCommit: string;
@@ -49761,6 +49762,217 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             {c357.nextTaskApprovalPhrase && (
               <p className="rounded border border-fuchsia-200 bg-white/80 px-3 py-2 text-xs text-fuchsia-900">
                 {c357.nextTaskApprovalPhrase}
+              </p>
+            )}
+          </div>
+        );
+      })()}
+
+      {/* ── Task 358: Read-Only Operating Deployment Final Approval Seal Outcome Certification ── */}
+      {job.tmsReadOnlyOperatingDeploymentFinalApprovalSealOutcomeCertificationView && (() => {
+        const c358 = job.tmsReadOnlyOperatingDeploymentFinalApprovalSealOutcomeCertificationView as {
+          taskId: number;
+          panelTitle: string;
+          description: string;
+          operatingDeploymentFinalApprovalSealOutcomeCertificationStatus: string;
+          outcomeCertifiedGoNoGoDecisionLabel: string;
+          totalFinalApprovalSealOutcomeCertificationItemCount: number;
+          readyItemCount: number;
+          partialReadyItemCount: number;
+          blockedItemCount: number;
+          notStartedItemCount: number;
+          finalApprovalSealLockCertificationItemCount: number;
+          deploymentApprovalSealLockCertificationItemCount: number;
+          deploymentExecutionSealLockCertificationItemCount: number;
+          infrastructureSealLockCertificationItemCount: number;
+          domainDnsHttpsSealLockCertificationItemCount: number;
+          operatingDbSealLockCertificationItemCount: number;
+          runtimeWorkerQueueAdapterSealLockCertificationItemCount: number;
+          apiAndSecretSealLockCertificationItemCount: number;
+          uiActionSealLockCertificationItemCount: number;
+          finalSealRequirementCertificationItemCount: number;
+          outcomeCertificationItems: {
+            certificationItemId: string;
+            category: string;
+            label: string;
+            description: string;
+            outcomeCertificationStatus: string;
+            isReady: boolean;
+            requiresSeparateApproval: boolean;
+          }[];
+          outcomeCertificationSummaryCards: {
+            label: string;
+            value: string;
+            tone: string;
+          }[];
+          finalApprovalSealOutcomeStillReadOnly: boolean;
+          isReadOnlyOperatingDeploymentFinalApprovalSealOutcomeCertification: boolean;
+          requiresSeparateTask359Approval: boolean;
+          nextTaskApprovalPhrase: string;
+          actualFinalApprovalGranted: boolean;
+          actualFinalApprovalPacketSubmitted: boolean;
+          actualGoNoGoDecisionSaved: boolean;
+          actualDeploymentApprovalGranted: boolean;
+          actualDeploymentStarted: boolean;
+          recommendedNextStep: string;
+          recommendedDeploymentMode: string;
+        };
+
+        const statusColor358 =
+          c358.operatingDeploymentFinalApprovalSealOutcomeCertificationStatus.includes('CERTIFIED_READY')
+            ? 'text-sky-700'
+            : c358.operatingDeploymentFinalApprovalSealOutcomeCertificationStatus.includes('PARTIAL_READY')
+              ? 'text-amber-700'
+              : c358.operatingDeploymentFinalApprovalSealOutcomeCertificationStatus.includes('BLOCKED')
+                ? 'text-red-700'
+                : 'text-slate-500';
+
+        const groupedItems358 = c358.outcomeCertificationItems.reduce<Record<string, typeof c358.outcomeCertificationItems>>((acc, item) => {
+          if (!acc[item.category]) acc[item.category] = [];
+          acc[item.category].push(item);
+          return acc;
+        }, {});
+
+        const groupMeta358: { category: string; label: string; count: number }[] = [
+          { category: 'FINAL_APPROVAL_SEAL_LOCK_OUTCOME', label: 'Final Approval Seal Lock 결과 인증', count: c358.finalApprovalSealLockCertificationItemCount },
+          { category: 'DEPLOYMENT_APPROVAL_SEAL_LOCK_OUTCOME', label: 'Deployment Approval Seal Lock 결과 인증', count: c358.deploymentApprovalSealLockCertificationItemCount },
+          { category: 'DEPLOYMENT_EXECUTION_SEAL_LOCK_OUTCOME', label: 'Deployment Execution Seal Lock 결과 인증', count: c358.deploymentExecutionSealLockCertificationItemCount },
+          { category: 'INFRASTRUCTURE_SEAL_LOCK_OUTCOME', label: 'Infrastructure Seal Lock 결과 인증', count: c358.infrastructureSealLockCertificationItemCount },
+          { category: 'DOMAIN_DNS_HTTPS_SEAL_LOCK_OUTCOME', label: 'Domain / DNS / HTTPS Seal Lock 결과 인증', count: c358.domainDnsHttpsSealLockCertificationItemCount },
+          { category: 'OPERATING_DB_SEAL_LOCK_OUTCOME', label: 'Operating DB Seal Lock 결과 인증', count: c358.operatingDbSealLockCertificationItemCount },
+          { category: 'RUNTIME_WORKER_QUEUE_ADAPTER_SEAL_LOCK_OUTCOME', label: 'Runtime / Worker / Queue / Adapter Seal Lock 결과 인증', count: c358.runtimeWorkerQueueAdapterSealLockCertificationItemCount },
+          { category: 'API_AND_SECRET_SEAL_LOCK_OUTCOME', label: 'API / Secret Seal Lock 결과 인증', count: c358.apiAndSecretSealLockCertificationItemCount },
+          { category: 'UI_ACTION_SEAL_LOCK_OUTCOME', label: 'UI Action Seal Lock 결과 인증', count: c358.uiActionSealLockCertificationItemCount },
+          { category: 'FINAL_SEAL_REQUIREMENT_OUTCOME', label: 'Final Seal Requirement 결과 인증', count: c358.finalSealRequirementCertificationItemCount },
+        ];
+
+        return (
+          <div className="mb-6 rounded-xl border border-sky-300 bg-sky-50/60 p-5 shadow-sm">
+            <div className="mb-3 flex items-center gap-2">
+              <span className="rounded bg-sky-100 px-2 py-0.5 text-xs font-bold text-sky-700">Task {c358.taskId}</span>
+              <h3 className="text-sm font-bold text-sky-900">{c358.panelTitle}</h3>
+            </div>
+            <p className="mb-3 text-xs text-slate-600">{c358.description}</p>
+
+            <div className="mb-3 flex flex-wrap gap-3">
+              <div className="rounded border border-sky-200 bg-white/80 px-3 py-2">
+                <p className="text-[10px] text-slate-500">Final Approval Seal Outcome Certification 상태</p>
+                <p className={`text-xs font-bold ${statusColor358}`}>
+                  {c358.operatingDeploymentFinalApprovalSealOutcomeCertificationStatus.replace('TMS_READ_ONLY_OPERATING_DEPLOYMENT_FINAL_APPROVAL_SEAL_OUTCOME_', '')}
+                </p>
+              </div>
+              <div className="rounded border border-sky-200 bg-white/80 px-3 py-2">
+                <p className="text-[10px] text-slate-500">인증된 Go/No-Go 후보</p>
+                <p className="text-xs font-bold text-sky-700">{c358.outcomeCertifiedGoNoGoDecisionLabel}</p>
+              </div>
+              <div className="rounded border border-sky-200 bg-white/80 px-3 py-2">
+                <p className="text-[10px] text-slate-500">총 Seal 결과 인증 항목</p>
+                <p className="text-xs font-bold text-sky-700">{c358.totalFinalApprovalSealOutcomeCertificationItemCount}개</p>
+              </div>
+            </div>
+
+            {c358.outcomeCertificationSummaryCards.length > 0 && (
+              <div className="mb-3 flex flex-wrap gap-2">
+                {c358.outcomeCertificationSummaryCards.map((card) => (
+                  <div
+                    key={card.label}
+                    className={`rounded border px-3 py-1.5 text-xs ${
+                      card.tone === 'positive'
+                        ? 'border-sky-200 bg-sky-50 text-sky-800'
+                        : card.tone === 'warning'
+                          ? 'border-amber-200 bg-amber-50 text-amber-800'
+                          : 'border-slate-200 bg-white text-slate-700'
+                    }`}
+                  >
+                    <span className="font-medium">{card.label}:</span> {card.value}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="mb-3 space-y-1">
+              {groupMeta358.map((group) => {
+                const items = groupedItems358[group.category] ?? [];
+                if (items.length === 0) return null;
+                return (
+                  <div key={group.category} className="mb-3">
+                    <p className="mb-1 text-xs font-semibold text-sky-800">
+                      {group.label} ({group.count}개)
+                    </p>
+                    <ul className="space-y-1">
+                      {items.map((item) => (
+                        <li key={item.certificationItemId} className="flex items-start gap-2 text-xs text-slate-700">
+                          <span
+                            className={
+                              item.isReady
+                                ? 'mt-0.5 h-2 w-2 shrink-0 rounded-full bg-sky-500'
+                                : item.outcomeCertificationStatus === 'CERTIFIED_PARTIAL_READY'
+                                  ? 'mt-0.5 h-2 w-2 shrink-0 rounded-full bg-amber-400'
+                                  : item.outcomeCertificationStatus === 'OUTCOME_BLOCKED'
+                                    ? 'mt-0.5 h-2 w-2 shrink-0 rounded-full bg-red-500'
+                                    : 'mt-0.5 h-2 w-2 shrink-0 rounded-full bg-slate-300'
+                            }
+                          />
+                          <span>
+                            <span className="font-medium">{item.label}</span>
+                            {item.requiresSeparateApproval && (
+                              <span className="ml-1 rounded bg-fuchsia-100 px-1 py-0.5 text-[10px] text-fuchsia-700">별도승인필요</span>
+                            )}
+                            <span className="ml-1 text-slate-500">- {item.description}</span>
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="mb-3 flex flex-wrap gap-2 text-xs">
+              <span className="rounded bg-sky-100 px-2 py-0.5 text-sky-700">Ready: {c358.readyItemCount}개</span>
+              <span className="rounded bg-amber-100 px-2 py-0.5 text-amber-700">Partial: {c358.partialReadyItemCount}개</span>
+              <span className="rounded bg-red-100 px-2 py-0.5 text-red-700">Blocked: {c358.blockedItemCount}개</span>
+              <span className="rounded bg-slate-100 px-2 py-0.5 text-slate-600">Not Started: {c358.notStartedItemCount}개</span>
+            </div>
+
+            <div className="mb-3 flex flex-wrap gap-2 text-xs">
+              {c358.finalApprovalSealOutcomeStillReadOnly && (
+                <span className="rounded bg-sky-100 px-2 py-0.5 text-sky-700">최종 승인 Seal 결과 Read-Only</span>
+              )}
+              {c358.isReadOnlyOperatingDeploymentFinalApprovalSealOutcomeCertification && (
+                <span className="rounded bg-slate-100 px-2 py-0.5 text-slate-600">실제 승인/배포 없음</span>
+              )}
+              {!c358.actualFinalApprovalGranted && (
+                <span className="rounded bg-slate-100 px-2 py-0.5 text-slate-500">실제 최종 승인 없음</span>
+              )}
+              {!c358.actualFinalApprovalPacketSubmitted && (
+                <span className="rounded bg-slate-100 px-2 py-0.5 text-slate-500">실제 최종 승인 제출 없음</span>
+              )}
+              {!c358.actualGoNoGoDecisionSaved && (
+                <span className="rounded bg-slate-100 px-2 py-0.5 text-slate-500">실제 Go/No-Go 결정 저장 없음</span>
+              )}
+              {!c358.actualDeploymentApprovalGranted && (
+                <span className="rounded bg-slate-100 px-2 py-0.5 text-slate-500">실제 배포 승인 없음</span>
+              )}
+              {!c358.actualDeploymentStarted && (
+                <span className="rounded bg-slate-100 px-2 py-0.5 text-slate-500">실제 배포 실행 없음</span>
+              )}
+              {c358.requiresSeparateTask359Approval && (
+                <span className="rounded bg-fuchsia-100 px-2 py-0.5 text-fuchsia-700">Task 359 별도 승인 필요</span>
+              )}
+            </div>
+
+            <div className="mb-3 text-xs text-slate-600">
+              <span className="font-medium">권장 다음 단계:</span>{' '}
+              <span className="text-sky-700">{c358.recommendedNextStep}</span>
+              {' | '}
+              <span className="font-medium">배포 모드:</span>{' '}
+              <span className="text-sky-700">{c358.recommendedDeploymentMode}</span>
+            </div>
+
+            {c358.nextTaskApprovalPhrase && (
+              <p className="rounded border border-fuchsia-200 bg-white/80 px-3 py-2 text-xs text-fuchsia-900">
+                {c358.nextTaskApprovalPhrase}
               </p>
             )}
           </div>
