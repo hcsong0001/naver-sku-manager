@@ -318,6 +318,7 @@ import { buildTmsReadOnlyVpsDeploymentCandidateClosureSummaryView } from '@/src/
 import { buildTmsReadOnlyVpsDeploymentCandidateClosureSummaryOutcomeCertificationView } from '@/src/services/tms-read-only-vps-deployment-candidate-closure-summary-outcome-certification-view.service';
 import { buildTmsReadOnlyVpsDeploymentCandidateClosureSummarySafetyAuditSealView } from '@/src/services/tms-read-only-vps-deployment-candidate-closure-summary-safety-audit-seal-view.service';
 import { buildTmsReadOnlyVpsDeploymentCandidateClosureSummarySafetyAuditSealOutcomeCertificationView } from '@/src/services/tms-read-only-vps-deployment-candidate-closure-summary-safety-audit-seal-outcome-certification-view.service';
+import { buildTmsReadOnlyVpsDeploymentCandidateFinalClosureSummaryView } from '@/src/services/tms-read-only-vps-deployment-candidate-final-closure-summary-view.service';
 
 // Compute safe DB environment hint from DATABASE_URL without exposing the original value.
 // Returns a classification key, never the actual URL.
@@ -1286,6 +1287,17 @@ export async function GET(
       buildTmsReadOnlyVpsDeploymentCandidateClosureSummarySafetyAuditSealOutcomeCertificationView({
         vpsDeploymentCandidateClosureSummarySafetyAuditSeal:
           _tmsReadOnlyVpsDeploymentCandidateClosureSummarySafetyAuditSealView,
+      });
+    const _tmsReadOnlyVpsDeploymentCandidateFinalClosureSummaryView =
+      buildTmsReadOnlyVpsDeploymentCandidateFinalClosureSummaryView({
+        vpsDeploymentCandidateClosureSummary:
+          _tmsReadOnlyVpsDeploymentCandidateClosureSummaryView,
+        vpsDeploymentCandidateClosureSummaryOutcomeCertification:
+          _tmsReadOnlyVpsDeploymentCandidateClosureSummaryOutcomeCertificationView,
+        vpsDeploymentCandidateClosureSummarySafetyAuditSeal:
+          _tmsReadOnlyVpsDeploymentCandidateClosureSummarySafetyAuditSealView,
+        vpsDeploymentCandidateClosureSummarySafetyAuditSealOutcomeCertification:
+          _tmsReadOnlyVpsDeploymentCandidateClosureSummarySafetyAuditSealOutcomeCertificationView,
       });
 
     const responseJob = {
@@ -2390,6 +2402,8 @@ export async function GET(
         _tmsReadOnlyVpsDeploymentCandidateClosureSummarySafetyAuditSealView,
       tmsReadOnlyVpsDeploymentCandidateClosureSummarySafetyAuditSealOutcomeCertificationView:
         _tmsReadOnlyVpsDeploymentCandidateClosureSummarySafetyAuditSealOutcomeCertificationView,
+      tmsReadOnlyVpsDeploymentCandidateFinalClosureSummaryView:
+        _tmsReadOnlyVpsDeploymentCandidateFinalClosureSummaryView,
     };
 
     return NextResponse.json({ ok: true, job: responseJob });
