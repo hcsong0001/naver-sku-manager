@@ -504,6 +504,7 @@ type DraftBatchJob = {
   tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestFinalSubmissionLockOutcomeCertificationView?: any;
   tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestSubmissionPreApprovalBoundaryView?: any;
   tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestSubmissionPreApprovalBoundaryOutcomeCertificationView?: any;
+  tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestSubmissionPreApprovalLockReviewView?: any;
   naverAuthTokenFirstTestSafetyBoundary?: {
     ok: boolean;
     readyForExplicitTokenTestApproval: boolean;
@@ -53660,6 +53661,99 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div>실제 Naver API/DB write 없음: {String(c385.actualNaverApiCall || c385.actualDbWrite)}</div>
               <div>실제 Runtime/Worker/Queue/Adapter 없음: {String(c385.actualRuntimeConfiguration || c385.actualWorkerRun || c385.actualQueueEnqueue || c385.actualAdapterConnection)}</div>
               <div>실행 버튼/submit action/POST API 추가 없음: {String(c385.actualExecutionButtonAdded || c385.actualSubmitActionAdded || c385.actualPostApiAdded)}</div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 386: Read-Only Submission Pre-Approval Lock Review ── */}
+      {job.tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestSubmissionPreApprovalLockReviewView && (() => {
+        const c386 = job.tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestSubmissionPreApprovalLockReviewView as any;
+        const groups386 = [
+          { key: 'submissionPreApprovalLockReviewReadinessItems', label: '사전 승인 Lock 준비도 검토' },
+          { key: 'submissionPreApprovalBoundaryOutcomeCertificationReferenceLockReviewItems', label: '사전 승인 경계 결과 인증 참조 Lock 검토' },
+          { key: 'approvalRequestCreationPreApprovalLockReviewItems', label: '승인 요청 생성 사전 승인 Lock 검토' },
+          { key: 'approvalRequestReviewSubmissionPreApprovalLockReviewItems', label: '승인 요청 검토 제출 사전 승인 Lock 검토' },
+          { key: 'approvalRequestSubmissionPreApprovalLockReviewItems', label: '승인 요청 제출 사전 승인 Lock 검토' },
+          { key: 'preApprovalGrantLockReviewItems', label: '사전 승인 부여 Lock 검토' },
+          { key: 'finalApprovalSubmissionPreApprovalLockReviewItems', label: '최종 승인 제출 사전 승인 Lock 검토' },
+          { key: 'finalApprovalGrantPreApprovalLockReviewItems', label: '최종 승인 부여 사전 승인 Lock 검토' },
+          { key: 'deploymentApprovalPreApprovalLockReviewItems', label: '배포 승인 사전 승인 Lock 검토' },
+          { key: 'deploymentExecutionPreApprovalLockReviewItems', label: '배포 실행 사전 승인 Lock 검토' },
+          { key: 'operatingTransitionPreApprovalLockReviewItems', label: '운영 전환 사전 승인 Lock 검토' },
+          { key: 'infrastructureDomainDnsHttpsPreApprovalLockReviewItems', label: '인프라/도메인/DNS/HTTPS 사전 승인 Lock 검토' },
+          { key: 'operatingDbRuntimeWorkerQueueAdapterPreApprovalLockReviewItems', label: '운영 DB/Runtime/Worker/Queue/Adapter 사전 승인 Lock 검토' },
+          { key: 'apiSecretUiActionPostPreApprovalLockReviewItems', label: 'API/Secret/UI Action/POST 사전 승인 Lock 검토' },
+        ];
+        return (
+          <div key="task386-submission-pre-approval-lock-review" className="mb-6 rounded-lg border border-orange-300 bg-orange-50 p-4">
+            <h3 className="mb-2 text-sm font-bold text-orange-800">
+              Task 386 - 운영 배포 최종 승인 제출 Approval Request Submission Pre-Approval Lock Review
+            </h3>
+            <p className="mb-2 text-xs text-orange-900">
+              이 패널은 실제 사전 승인 전 Lock 상태를 read-only로 검토하는 화면이며, 실제 승인 요청 생성/제출/사전 승인/최종 승인 제출 작업이 아닙니다.
+            </p>
+            <div className="mb-2 flex flex-wrap gap-2">
+              <span className="rounded bg-orange-100 px-2 py-0.5 text-xs font-medium text-orange-700">
+                상태: {c386.operatingDeploymentFinalApprovalSubmissionApprovalRequestSubmissionPreApprovalLockReviewStatus}
+              </span>
+              <span className="rounded bg-orange-100 px-2 py-0.5 text-xs font-medium text-orange-700">
+                결정값: {c386.recommendedPreApprovalLockReviewDecision}
+              </span>
+              <span className="rounded bg-orange-100 px-2 py-0.5 text-xs font-medium text-orange-700">
+                {c386.recommendedPreApprovalLockReviewDecisionLabel}
+              </span>
+            </div>
+            <div className="mb-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {(c386.submissionPreApprovalLockReviewSummaryCards ?? []).map((card: { label: string; value: number }) => (
+                <div key={card.label} className="rounded bg-white p-2 text-center shadow-sm">
+                  <div className="text-lg font-bold text-orange-700">{card.value}</div>
+                  <div className="text-xs text-gray-500">{card.label}</div>
+                </div>
+              ))}
+            </div>
+            <div className="mb-2 grid grid-cols-1 gap-1 sm:grid-cols-2">
+              {groups386.map((g) => (
+                <div key={g.key} className="flex items-center justify-between rounded bg-white px-2 py-1 text-xs shadow-sm">
+                  <span className="text-gray-600">{g.label}</span>
+                  <span className="font-medium text-orange-700">{(c386[g.key] ?? []).length}건</span>
+                </div>
+              ))}
+            </div>
+            <div className="mb-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-orange-700">추천 다음 단계</div>
+                <div className="text-gray-600 break-all">{c386.recommendedNextStep}</div>
+              </div>
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-orange-700">승인 모드</div>
+                <div className="text-gray-600">{c386.recommendedApprovalMode}</div>
+              </div>
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-orange-700">실행 모드</div>
+                <div className="text-gray-600">{c386.recommendedExecutionMode}</div>
+              </div>
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-orange-700">배포 모드</div>
+                <div className="text-gray-600">{c386.recommendedDeploymentMode}</div>
+              </div>
+            </div>
+            <div className="mb-2 rounded bg-white p-2 text-xs shadow-sm">
+              <div className="font-semibold text-orange-700">안전 모드</div>
+              <div className="text-gray-600">{c386.recommendedSafetyMode}</div>
+            </div>
+            <div className="rounded bg-orange-100 p-2 text-xs text-orange-900">
+              <div className="mb-1 font-semibold">안전 금지선 확인</div>
+              <div>실제 승인 요청 생성 없음: {String(c386.actualApprovalRequestCreated)}</div>
+              <div>실제 승인 요청 검토 제출 없음: {String(c386.actualApprovalRequestReviewedAsSubmission)}</div>
+              <div>실제 승인 요청 제출 없음: {String(c386.actualApprovalRequestSubmitted)}</div>
+              <div>Pre-Approval Lock Review가 실제 승인 또는 실제 제출로 해석되지 않음: {String(c386.actualSubmissionPreApprovalLockReviewSubmitted || c386.actualSubmissionPreApprovalLockReviewGranted)}</div>
+              <div>실제 최종 승인 제출 없음: {String(c386.actualFinalApprovalSubmission)}</div>
+              <div>실제 최종 승인 부여 없음: {String(c386.actualFinalApprovalGrant)}</div>
+              <div>실제 배포 승인/실행 없음: {String(c386.actualDeploymentApproval || c386.actualDeploymentExecution)}</div>
+              <div>실제 Naver API/DB write 없음: {String(c386.actualNaverApiCall || c386.actualDbWrite)}</div>
+              <div>실제 Runtime/Worker/Queue/Adapter 없음: {String(c386.actualRuntimeConfiguration || c386.actualWorkerRun || c386.actualQueueEnqueue || c386.actualAdapterConnection)}</div>
+              <div>실행 버튼/submit action/POST API 추가 없음: {String(c386.actualExecutionButtonAdded || c386.actualSubmitActionAdded || c386.actualPostApiAdded)}</div>
             </div>
           </div>
         );
