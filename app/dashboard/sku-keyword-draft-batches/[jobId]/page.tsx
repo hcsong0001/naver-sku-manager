@@ -511,6 +511,7 @@ type DraftBatchJob = {
   tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestExplicitApprovalRequestPacketReviewOutcomeCertificationView?: any;
   tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestExplicitApprovalRequestSubmissionBoundaryView?: any;
   tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestExplicitApprovalRequestSubmissionBoundaryOutcomeCertificationView?: any;
+  tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestExplicitApprovalRequestSubmissionLockReviewView?: any;
   naverAuthTokenFirstTestSafetyBoundary?: {
     ok: boolean;
     readyForExplicitTokenTestApproval: boolean;
@@ -54389,6 +54390,111 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div>실제 Naver API/DB write 없음: {String(c392.actualNaverApiCall || c392.actualDbWrite)}</div>
               <div>실제 Runtime/Worker/Queue/Adapter 없음: {String(c392.actualRuntimeConfiguration || c392.actualWorkerRun || c392.actualQueueEnqueue || c392.actualAdapterConnection)}</div>
               <div>실행 버튼/승인 버튼/submit action/POST API 추가 없음: {String(c392.actualExecutionButtonAdded || c392.actualApprovalButtonAdded || c392.actualSubmitActionAdded || c392.actualPostApiAdded)}</div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 393: Read-Only Explicit Approval Request Submission Lock Review ── */}
+      {job.tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestExplicitApprovalRequestSubmissionLockReviewView && (() => {
+        const c393 = job.tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestExplicitApprovalRequestSubmissionLockReviewView as any;
+        const groups393 = [
+          { key: 'explicitApprovalRequestSubmissionLockReviewReadinessItems', label: '명시 승인 요청 제출 Lock 검토 준비도' },
+          { key: 'submissionBoundaryOutcomeCertificationReferenceLockReviewItems', label: '제출 경계 결과 인증 참조 Lock 검토' },
+          { key: 'explicitApprovalPhraseNonInputLockReviewItems', label: '명시 승인 문구 비입력 Lock 검토' },
+          { key: 'explicitApprovalPhraseNonSubmissionLockReviewItems', label: '명시 승인 문구 비제출 Lock 검토' },
+          { key: 'explicitApprovalAcceptanceNonGrantLockReviewItems', label: '명시 승인 수락 비부여 Lock 검토' },
+          { key: 'explicitApprovalRequestCreationLockReviewItems', label: '명시 승인 요청 생성 Lock 검토' },
+          { key: 'explicitApprovalRequestSubmissionLockReviewDetailItems', label: '명시 승인 요청 제출 Lock 검토' },
+          { key: 'approvalRequestCreationNonExecutionLockReviewItems', label: '승인 요청 생성 비실행 Lock 검토' },
+          { key: 'approvalRequestSubmissionNonExecutionLockReviewItems', label: '승인 요청 제출 비실행 Lock 검토' },
+          { key: 'finalApprovalSubmissionNonExecutionLockReviewItems', label: '최종 승인 제출 비실행 Lock 검토' },
+          { key: 'finalApprovalGrantNonExecutionLockReviewItems', label: '최종 승인 부여 비실행 Lock 검토' },
+          { key: 'deploymentOperatingTransitionNonExecutionLockReviewItems', label: '배포/운영 전환 비실행 Lock 검토' },
+          { key: 'operatingDbRuntimeWorkerQueueAdapterLockReviewItems', label: '운영 DB/Runtime/Worker/Queue/Adapter Lock 검토' },
+          { key: 'apiSecretUiActionPostLockReviewItems', label: 'API/Secret/UI Action/POST Lock 검토' },
+        ];
+        return (
+          <div key="task393-explicit-approval-request-submission-lock-review" className="mb-6 rounded-lg border border-cyan-300 bg-cyan-50 p-4">
+            <h3 className="mb-2 text-sm font-bold text-cyan-800">
+              Task 393 - 운영 배포 최종 승인 제출 Explicit Approval Request Submission Lock Review
+            </h3>
+            <p className="mb-2 text-xs text-cyan-900">
+              이 패널은 명시 승인 요청 제출 Lock 유지 여부를 read-only로 검토하는 화면이며, 실제 명시 승인 요청 생성/제출/수락/최종 승인 제출 작업이 아닙니다.
+            </p>
+            <div className="mb-2 flex flex-wrap gap-2">
+              <span className="rounded bg-cyan-100 px-2 py-0.5 text-xs font-medium text-cyan-700">
+                상태: {c393.operatingDeploymentFinalApprovalSubmissionApprovalRequestExplicitApprovalRequestSubmissionLockReviewStatus}
+              </span>
+              <span className="rounded bg-cyan-100 px-2 py-0.5 text-xs font-medium text-cyan-700">
+                결정값: {c393.recommendedSubmissionLockReviewDecision}
+              </span>
+              <span className="rounded bg-cyan-100 px-2 py-0.5 text-xs font-medium text-cyan-700">
+                {c393.recommendedSubmissionLockReviewDecisionLabel}
+              </span>
+            </div>
+            <div className="mb-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {(c393.submissionLockReviewSummaryCards ?? []).map((card: { label: string; value: number }) => (
+                <div key={card.label} className="rounded bg-white p-2 text-center shadow-sm">
+                  <div className="text-lg font-bold text-cyan-700">{card.value}</div>
+                  <div className="text-xs text-gray-500">{card.label}</div>
+                </div>
+              ))}
+            </div>
+            <div className="mb-2 grid grid-cols-1 gap-1 sm:grid-cols-2">
+              {groups393.map((g) => (
+                <div key={g.key} className="flex items-center justify-between rounded bg-white px-2 py-1 text-xs shadow-sm">
+                  <span className="text-gray-600">{g.label}</span>
+                  <span className="font-medium text-cyan-700">{(c393[g.key] ?? []).length}건</span>
+                </div>
+              ))}
+            </div>
+            <div className="mb-2 rounded bg-white p-2 text-xs shadow-sm">
+              <div className="mb-1 font-semibold text-cyan-700">명시 승인 문구 Lock 검토</div>
+              <div className="text-gray-600">이번 화면은 명시 승인 요청 제출 Lock Review 화면입니다.</div>
+              <div className="text-gray-600">승인 문구는 이후 별도 승인 단계에서만 입력 가능합니다.</div>
+              <div className="text-gray-600">현재 화면에서 승인 문구 입력 없음: {String(c393.actualExplicitApprovalPhraseInputAdded)}</div>
+              <div className="text-gray-600">현재 화면에서 승인 문구 제출 없음: {String(c393.actualExplicitApprovalPhraseSubmitted)}</div>
+              <div className="text-gray-600">현재 화면에서 승인 수락 없음: {String(c393.actualExplicitApprovalGranted)}</div>
+              <div className="text-gray-600">현재 화면에서 명시 승인 요청 생성 없음: {String(c393.actualExplicitApprovalRequestCreated)}</div>
+              <div className="text-gray-600">현재 화면에서 명시 승인 요청 제출 없음: {String(c393.actualExplicitApprovalRequestSubmitted)}</div>
+            </div>
+            <div className="mb-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-cyan-700">추천 다음 단계</div>
+                <div className="text-gray-600 break-all">{c393.recommendedNextStep}</div>
+              </div>
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-cyan-700">승인 모드</div>
+                <div className="text-gray-600">{c393.recommendedApprovalMode}</div>
+              </div>
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-cyan-700">실행 모드</div>
+                <div className="text-gray-600">{c393.recommendedExecutionMode}</div>
+              </div>
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-cyan-700">배포 모드</div>
+                <div className="text-gray-600">{c393.recommendedDeploymentMode}</div>
+              </div>
+            </div>
+            <div className="mb-2 rounded bg-white p-2 text-xs shadow-sm">
+              <div className="font-semibold text-cyan-700">안전 모드</div>
+              <div className="text-gray-600">{c393.recommendedSafetyMode}</div>
+            </div>
+            <div className="rounded bg-cyan-100 p-2 text-xs text-cyan-900">
+              <div className="mb-1 font-semibold">안전 금지선 확인</div>
+              <div>실제 명시 승인 요청 생성 없음: {String(c393.actualExplicitApprovalRequestCreated)}</div>
+              <div>실제 명시 승인 요청 제출 없음: {String(c393.actualExplicitApprovalRequestSubmitted)}</div>
+              <div>실제 승인 요청 생성 없음: {String(c393.actualApprovalRequestCreated)}</div>
+              <div>실제 승인 요청 제출 없음: {String(c393.actualApprovalRequestSubmitted)}</div>
+              <div>실제 승인 문구 입력/제출/수락 없음: {String(c393.actualExplicitApprovalPhraseInputAdded || c393.actualExplicitApprovalPhraseSubmitted || c393.actualExplicitApprovalGranted)}</div>
+              <div>Submission Lock Review가 실제 승인 또는 실제 제출로 해석되지 않음: {String(c393.actualExplicitApprovalRequestCreated || c393.actualExplicitApprovalRequestSubmitted || c393.actualExplicitApprovalGranted || c393.actualExplicitApprovalRequestSubmissionBoundarySubmitted || c393.actualExplicitApprovalRequestSubmissionBoundaryOutcomeCertificationSubmitted || c393.actualExplicitApprovalRequestSubmissionLockReviewSubmitted)}</div>
+              <div>실제 최종 승인 제출 없음: {String(c393.actualFinalApprovalSubmission)}</div>
+              <div>실제 최종 승인 부여 없음: {String(c393.actualFinalApprovalGrant)}</div>
+              <div>실제 배포 승인/실행 없음: {String(c393.actualDeploymentApproval || c393.actualDeploymentExecution)}</div>
+              <div>실제 Naver API/DB write 없음: {String(c393.actualNaverApiCall || c393.actualDbWrite)}</div>
+              <div>실제 Runtime/Worker/Queue/Adapter 없음: {String(c393.actualRuntimeConfiguration || c393.actualWorkerRun || c393.actualQueueEnqueue || c393.actualAdapterConnection)}</div>
+              <div>실행 버튼/승인 버튼/submit action/POST API 추가 없음: {String(c393.actualExecutionButtonAdded || c393.actualApprovalButtonAdded || c393.actualSubmitActionAdded || c393.actualPostApiAdded)}</div>
             </div>
           </div>
         );
