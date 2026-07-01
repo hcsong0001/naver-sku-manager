@@ -493,6 +493,7 @@ type DraftBatchJob = {
   tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestPacketSealReviewView?: any;
   tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestPacketSealOutcomeCertificationView?: any;
   tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestPacketFinalReviewView?: any;
+  tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestPacketFinalReviewOutcomeCertificationView?: any;
   naverAuthTokenFirstTestSafetyBoundary?: {
     ok: boolean;
     readyForExplicitTokenTestApproval: boolean;
@@ -52603,6 +52604,104 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             {c374.nextTaskApprovalPhrase && (
               <p className="mt-1 text-xs text-gray-500">
                 {c374.nextTaskApprovalPhrase}
+              </p>
+            )}
+          </div>
+        );
+      })()}
+
+      {/* ── Task 375: TMS Read-Only Operating Deployment Final Approval Submission Approval Request Packet Final Review Outcome Certification ── */}
+      {job.tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestPacketFinalReviewOutcomeCertificationView && (() => {
+        const c375 = job.tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestPacketFinalReviewOutcomeCertificationView;
+        const groups375 = [
+          { key: 'approvalRequestPacketFinalReviewOutcomeCertificationReadinessItems', label: 'Final Review Outcome Certification Readiness' },
+          { key: 'approvalRequestPacketFinalReviewOutcomeCertificationItems', label: 'Final Review Outcome Certification' },
+          { key: 'approvalRequestPacketSealOutcomeCertificationReferenceFinalOutcomeCertificationItems', label: 'Seal Outcome Certification Reference Final Outcome Certification' },
+          { key: 'finalApprovalSubmissionRequestScopeFinalOutcomeCertificationItems', label: 'Final Approval Submission Request Scope Final Outcome Certification' },
+          { key: 'finalApprovalGrantRequestScopeFinalOutcomeCertificationItems', label: 'Final Approval Grant Request Scope Final Outcome Certification' },
+          { key: 'deploymentApprovalRequestScopeFinalOutcomeCertificationItems', label: 'Deployment Approval Request Scope Final Outcome Certification' },
+          { key: 'deploymentExecutionRequestScopeFinalOutcomeCertificationItems', label: 'Deployment Execution Request Scope Final Outcome Certification' },
+          { key: 'operatingTransitionRequestScopeFinalOutcomeCertificationItems', label: 'Operating Transition Request Scope Final Outcome Certification' },
+          { key: 'infrastructureRequestBoundaryFinalOutcomeCertificationItems', label: 'Infrastructure Request Boundary Final Outcome Certification' },
+          { key: 'domainDnsHttpsRequestBoundaryFinalOutcomeCertificationItems', label: 'Domain/DNS/HTTPS Request Boundary Final Outcome Certification' },
+          { key: 'operatingDbRequestBoundaryFinalOutcomeCertificationItems', label: 'Operating DB Request Boundary Final Outcome Certification' },
+          { key: 'runtimeWorkerQueueAdapterRequestBoundaryFinalOutcomeCertificationItems', label: 'Runtime/Worker/Queue/Adapter Request Boundary Final Outcome Certification' },
+          { key: 'apiSecretRawResponseRequestBoundaryFinalOutcomeCertificationItems', label: 'API/Secret/Raw Response Request Boundary Final Outcome Certification' },
+          { key: 'uiActionPostSubmitRequestBoundaryFinalOutcomeCertificationItems', label: 'UI Action/POST/Submit Request Boundary Final Outcome Certification' },
+        ];
+        return (
+          <div key="task375-final-review-outcome-certification" className="mb-6 rounded-lg border border-purple-300 bg-purple-50 p-4">
+            <h3 className="mb-2 text-sm font-bold text-purple-800">
+              Task 375 - 운영 배포 최종 승인 제출 Approval Request Packet Final Review 결과 인증
+            </h3>
+            <div className="mb-2 flex flex-wrap gap-2">
+              <span className="rounded bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-700">
+                상태: {c375.operatingDeploymentFinalApprovalSubmissionApprovalRequestPacketFinalReviewOutcomeCertificationStatus}
+              </span>
+              <span className="rounded bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-700">
+                결정: {c375.recommendedOutcomeCertificationDecision}
+              </span>
+              <span className="rounded bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-700">
+                {c375.recommendedOutcomeCertificationDecisionLabel}
+              </span>
+            </div>
+            <div className="mb-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {(c375.outcomeCertificationSummaryCards ?? []).map((card: { label: string; value: number }) => (
+                <div key={card.label} className="rounded bg-white p-2 text-center shadow-sm">
+                  <div className="text-lg font-bold text-purple-700">{card.value}</div>
+                  <div className="text-xs text-gray-500">{card.label}</div>
+                </div>
+              ))}
+            </div>
+            <div className="mb-2">
+              <div className="mb-1 text-xs font-semibold text-purple-700">14개 Final Review Outcome Certification 그룹</div>
+              <div className="grid grid-cols-1 gap-1 sm:grid-cols-2">
+                {groups375.map((g) => (
+                  <div key={g.key} className="flex items-center justify-between rounded bg-white px-2 py-1 text-xs shadow-sm">
+                    <span className="text-gray-600">{g.label}</span>
+                    <span className="font-medium text-purple-700">{(c375[g.key] ?? []).length}건</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="mb-2 grid grid-cols-2 gap-2 sm:grid-cols-4 text-xs">
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-purple-700">추천 다음 단계</div>
+                <div className="text-gray-600 break-all">{c375.recommendedNextStep}</div>
+              </div>
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-purple-700">승인 모드</div>
+                <div className="text-gray-600">{c375.recommendedApprovalMode}</div>
+              </div>
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-purple-700">실행 모드</div>
+                <div className="text-gray-600">{c375.recommendedExecutionMode}</div>
+              </div>
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-purple-700">배포 모드</div>
+                <div className="text-gray-600">{c375.recommendedDeploymentMode}</div>
+              </div>
+            </div>
+            <div className="mb-2 rounded bg-white p-2 text-xs shadow-sm">
+              <div className="font-semibold text-purple-700">안전 모드</div>
+              <div className="text-gray-600">{c375.recommendedSafetyMode}</div>
+            </div>
+            <div className="rounded bg-purple-100 p-2 text-xs text-purple-800">
+              <div className="font-semibold mb-1">안전 금지선 확인</div>
+              <div>실제 승인 요청 생성 없음: {String(c375.approvalRequestStillNotCreated)}</div>
+              <div>Final Review 결과 인증이 실제 제출로 해석되지 않음: {String(c375.finalReviewOutcomeCertificationNotInterpretedAsSubmission)}</div>
+              <div>Final Review 결과 인증 아직 미제출: {String(c375.finalReviewOutcomeCertificationStillNotSubmitted)}</div>
+              <div>최종 승인 제출 아직 미수행: {String(c375.finalApprovalSubmissionStillNotPerformed)}</div>
+              <div>실제 Naver API 호출: {String(c375.actualNaverApiCall)}</div>
+              <div>실제 DB write: {String(c375.actualDbWrite)}</div>
+              <div>실제 배포 승인: {String(c375.actualDeploymentApproval)}</div>
+              <div>실제 배포 실행: {String(c375.actualDeploymentExecution)}</div>
+              <div>실제 운영 전환: {String(c375.actualOperatingTransition)}</div>
+              <div>실행 버튼/POST API/submit action 추가: {String(c375.actualExecutionButtonAdded || c375.actualPostApiAdded || c375.actualSubmitActionAdded)}</div>
+            </div>
+            {c375.nextTaskApprovalPhrase && (
+              <p className="mt-1 text-xs text-gray-500">
+                {c375.nextTaskApprovalPhrase}
               </p>
             )}
           </div>
