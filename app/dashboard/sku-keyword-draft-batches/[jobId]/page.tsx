@@ -498,6 +498,7 @@ type DraftBatchJob = {
   tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestSubmissionReadinessOutcomeCertificationView?: any;
   tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestSubmissionLockReviewView?: any;
   tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestSubmissionLockOutcomeCertificationView?: any;
+  tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestFinalSubmissionBoundaryReviewView?: any;
   naverAuthTokenFirstTestSafetyBoundary?: {
     ok: boolean;
     readyForExplicitTokenTestApproval: boolean;
@@ -53097,6 +53098,99 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
                 {c379.nextTaskApprovalPhrase}
               </p>
             )}
+          </div>
+        );
+      })()}
+
+      {/* ── Task 380: Read-Only Approval Request Final Submission Boundary Review ── */}
+      {job.tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestFinalSubmissionBoundaryReviewView && (() => {
+        const c380 = job.tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestFinalSubmissionBoundaryReviewView as any;
+        const groups380 = [
+          { key: 'finalSubmissionBoundaryReviewReadinessItems', label: '최종 제출 경계 준비도 검토' },
+          { key: 'submissionLockOutcomeCertificationReferenceBoundaryReviewItems', label: 'Submission Lock 결과 인증 참조 경계 검토' },
+          { key: 'approvalRequestCreationBoundaryReviewItems', label: '승인 요청 생성 경계 검토' },
+          { key: 'approvalRequestReviewSubmissionBoundaryReviewItems', label: '승인 요청 검토 제출 경계 검토' },
+          { key: 'approvalRequestSubmissionBoundaryReviewItems', label: '승인 요청 제출 경계 검토' },
+          { key: 'finalApprovalSubmissionBoundaryReviewItems', label: '최종 승인 제출 경계 검토' },
+          { key: 'finalApprovalGrantBoundaryReviewItems', label: '최종 승인 부여 경계 검토' },
+          { key: 'deploymentApprovalBoundaryReviewItems', label: '배포 승인 경계 검토' },
+          { key: 'deploymentExecutionBoundaryReviewItems', label: '배포 실행 경계 검토' },
+          { key: 'operatingTransitionBoundaryReviewItems', label: '운영 전환 경계 검토' },
+          { key: 'infrastructureDomainDnsHttpsBoundaryReviewItems', label: '인프라/도메인/DNS/HTTPS 경계 검토' },
+          { key: 'operatingDbBoundaryReviewItems', label: '운영 DB 경계 검토' },
+          { key: 'runtimeWorkerQueueAdapterBoundaryReviewItems', label: 'Runtime/Worker/Queue/Adapter 경계 검토' },
+          { key: 'apiSecretUiActionPostBoundaryReviewItems', label: 'API/Secret/UI Action/POST 경계 검토' },
+        ];
+        return (
+          <div key="task380-final-submission-boundary-review" className="mb-6 rounded-lg border border-cyan-300 bg-cyan-50 p-4">
+            <h3 className="mb-2 text-sm font-bold text-cyan-800">
+              Task 380 - 운영 배포 최종 승인 제출 Approval Request Final Submission Boundary Review
+            </h3>
+            <p className="mb-2 text-xs text-cyan-900">
+              이 패널은 실제 최종 승인 요청 제출 직전 경계를 read-only로 검토하는 화면이며, 실제 승인 요청 생성/제출/최종 승인 제출 작업이 아닙니다.
+            </p>
+            <div className="mb-2 flex flex-wrap gap-2">
+              <span className="rounded bg-cyan-100 px-2 py-0.5 text-xs font-medium text-cyan-700">
+                상태: {c380.operatingDeploymentFinalApprovalSubmissionApprovalRequestFinalSubmissionBoundaryReviewStatus}
+              </span>
+              <span className="rounded bg-cyan-100 px-2 py-0.5 text-xs font-medium text-cyan-700">
+                결정값: {c380.recommendedBoundaryReviewDecision}
+              </span>
+              <span className="rounded bg-cyan-100 px-2 py-0.5 text-xs font-medium text-cyan-700">
+                {c380.recommendedBoundaryReviewDecisionLabel}
+              </span>
+            </div>
+            <div className="mb-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {(c380.boundaryReviewSummaryCards ?? []).map((card: { label: string; value: number }) => (
+                <div key={card.label} className="rounded bg-white p-2 text-center shadow-sm">
+                  <div className="text-lg font-bold text-cyan-700">{card.value}</div>
+                  <div className="text-xs text-gray-500">{card.label}</div>
+                </div>
+              ))}
+            </div>
+            <div className="mb-2 grid grid-cols-1 gap-1 sm:grid-cols-2">
+              {groups380.map((g) => (
+                <div key={g.key} className="flex items-center justify-between rounded bg-white px-2 py-1 text-xs shadow-sm">
+                  <span className="text-gray-600">{g.label}</span>
+                  <span className="font-medium text-cyan-700">{(c380[g.key] ?? []).length}건</span>
+                </div>
+              ))}
+            </div>
+            <div className="mb-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-cyan-700">추천 다음 단계</div>
+                <div className="text-gray-600 break-all">{c380.recommendedNextStep}</div>
+              </div>
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-cyan-700">승인 모드</div>
+                <div className="text-gray-600">{c380.recommendedApprovalMode}</div>
+              </div>
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-cyan-700">실행 모드</div>
+                <div className="text-gray-600">{c380.recommendedExecutionMode}</div>
+              </div>
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-cyan-700">배포 모드</div>
+                <div className="text-gray-600">{c380.recommendedDeploymentMode}</div>
+              </div>
+            </div>
+            <div className="mb-2 rounded bg-white p-2 text-xs shadow-sm">
+              <div className="font-semibold text-cyan-700">안전 모드</div>
+              <div className="text-gray-600">{c380.recommendedSafetyMode}</div>
+            </div>
+            <div className="rounded bg-cyan-100 p-2 text-xs text-cyan-900">
+              <div className="mb-1 font-semibold">안전 금지선 확인</div>
+              <div>실제 승인 요청 생성 없음: {String(c380.actualApprovalRequestCreated)}</div>
+              <div>실제 승인 요청 검토 제출 없음: {String(c380.actualApprovalRequestReviewedAsSubmission)}</div>
+              <div>실제 승인 요청 제출 없음: {String(c380.actualApprovalRequestSubmitted)}</div>
+              <div>Final Submission Boundary Review가 실제 제출로 해석되지 않음: {String(c380.actualFinalSubmissionBoundaryReviewSubmitted)}</div>
+              <div>실제 최종 승인 제출 없음: {String(c380.actualFinalApprovalSubmission)}</div>
+              <div>실제 최종 승인 부여 없음: {String(c380.actualFinalApprovalGrant)}</div>
+              <div>실제 배포 승인/실행 없음: {String(c380.actualDeploymentApproval || c380.actualDeploymentExecution)}</div>
+              <div>실제 Naver API/DB write 없음: {String(c380.actualNaverApiCall || c380.actualDbWrite)}</div>
+              <div>실제 Runtime/Worker/Queue/Adapter 없음: {String(c380.actualRuntimeConfiguration || c380.actualWorkerRun || c380.actualQueueEnqueue || c380.actualAdapterConnection)}</div>
+              <div>실행 버튼/submit action/POST API 추가 없음: {String(c380.actualExecutionButtonAdded || c380.actualSubmitActionAdded || c380.actualPostApiAdded)}</div>
+            </div>
           </div>
         );
       })()}
