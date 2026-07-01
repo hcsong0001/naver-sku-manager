@@ -361,6 +361,7 @@ import { buildTmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalReque
 import { buildTmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestSubmissionLockReviewView } from '@/src/services/tms-read-only-operating-deployment-final-approval-submission-approval-request-submission-lock-review-view.service';
 import { buildTmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestSubmissionLockOutcomeCertificationView } from '@/src/services/tms-read-only-operating-deployment-final-approval-submission-approval-request-submission-lock-outcome-certification-view.service';
 import { buildTmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestFinalSubmissionBoundaryReviewView } from '@/src/services/tms-read-only-operating-deployment-final-approval-submission-approval-request-final-submission-boundary-review-view.service';
+import { buildTmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestFinalSubmissionBoundaryOutcomeCertificationView } from '@/src/services/tms-read-only-operating-deployment-final-approval-submission-approval-request-final-submission-boundary-outcome-certification-view.service';
 
 
 
@@ -1587,6 +1588,11 @@ export async function GET(
         _tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestSubmissionLockOutcomeCertificationView
       );
 
+    const _tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestFinalSubmissionBoundaryOutcomeCertificationView =
+      buildTmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestFinalSubmissionBoundaryOutcomeCertificationView(
+        _tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestFinalSubmissionBoundaryReviewView
+      );
+
     const responseJob = {
       id: job.id,
       status: job.status,
@@ -2775,6 +2781,8 @@ export async function GET(
         _tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestSubmissionLockOutcomeCertificationView,
       tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestFinalSubmissionBoundaryReviewView:
         _tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestFinalSubmissionBoundaryReviewView,
+      tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestFinalSubmissionBoundaryOutcomeCertificationView:
+        _tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestFinalSubmissionBoundaryOutcomeCertificationView,
     };
     return NextResponse.json({ ok: true, job: responseJob });
   } catch (error: unknown) {

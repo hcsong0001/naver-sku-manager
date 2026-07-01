@@ -499,6 +499,7 @@ type DraftBatchJob = {
   tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestSubmissionLockReviewView?: any;
   tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestSubmissionLockOutcomeCertificationView?: any;
   tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestFinalSubmissionBoundaryReviewView?: any;
+  tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestFinalSubmissionBoundaryOutcomeCertificationView?: any;
   naverAuthTokenFirstTestSafetyBoundary?: {
     ok: boolean;
     readyForExplicitTokenTestApproval: boolean;
@@ -53190,6 +53191,99 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div>실제 Naver API/DB write 없음: {String(c380.actualNaverApiCall || c380.actualDbWrite)}</div>
               <div>실제 Runtime/Worker/Queue/Adapter 없음: {String(c380.actualRuntimeConfiguration || c380.actualWorkerRun || c380.actualQueueEnqueue || c380.actualAdapterConnection)}</div>
               <div>실행 버튼/submit action/POST API 추가 없음: {String(c380.actualExecutionButtonAdded || c380.actualSubmitActionAdded || c380.actualPostApiAdded)}</div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 381: Read-Only Final Submission Boundary Outcome Certification ── */}
+      {job.tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestFinalSubmissionBoundaryOutcomeCertificationView && (() => {
+        const c381 = job.tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestFinalSubmissionBoundaryOutcomeCertificationView as any;
+        const groups381 = [
+          { key: 'finalSubmissionBoundaryOutcomeCertificationReadinessItems', label: '최종 제출 경계 결과 인증 준비도' },
+          { key: 'finalSubmissionBoundaryReviewOutcomeCertificationItems', label: '최종 제출 경계 검토 결과 인증' },
+          { key: 'submissionLockOutcomeCertificationReferenceBoundaryOutcomeCertificationItems', label: 'Submission Lock 결과 인증 참조 경계 결과 인증' },
+          { key: 'approvalRequestCreationBoundaryOutcomeCertificationItems', label: '승인 요청 생성 경계 결과 인증' },
+          { key: 'approvalRequestReviewSubmissionBoundaryOutcomeCertificationItems', label: '승인 요청 검토 제출 경계 결과 인증' },
+          { key: 'approvalRequestSubmissionBoundaryOutcomeCertificationItems', label: '승인 요청 제출 경계 결과 인증' },
+          { key: 'finalApprovalSubmissionBoundaryOutcomeCertificationItems', label: '최종 승인 제출 경계 결과 인증' },
+          { key: 'finalApprovalGrantBoundaryOutcomeCertificationItems', label: '최종 승인 부여 경계 결과 인증' },
+          { key: 'deploymentApprovalBoundaryOutcomeCertificationItems', label: '배포 승인 경계 결과 인증' },
+          { key: 'deploymentExecutionBoundaryOutcomeCertificationItems', label: '배포 실행 경계 결과 인증' },
+          { key: 'operatingTransitionBoundaryOutcomeCertificationItems', label: '운영 전환 경계 결과 인증' },
+          { key: 'infrastructureDomainDnsHttpsBoundaryOutcomeCertificationItems', label: '인프라/도메인/DNS/HTTPS 경계 결과 인증' },
+          { key: 'operatingDbRuntimeWorkerQueueAdapterBoundaryOutcomeCertificationItems', label: '운영 DB/Runtime/Worker/Queue/Adapter 경계 결과 인증' },
+          { key: 'apiSecretUiActionPostBoundaryOutcomeCertificationItems', label: 'API/Secret/UI Action/POST 경계 결과 인증' },
+        ];
+        return (
+          <div key="task381-final-submission-boundary-outcome-certification" className="mb-6 rounded-lg border border-amber-300 bg-amber-50 p-4">
+            <h3 className="mb-2 text-sm font-bold text-amber-800">
+              Task 381 - 운영 배포 최종 승인 제출 Approval Request Final Submission Boundary 결과 인증
+            </h3>
+            <p className="mb-2 text-xs text-amber-900">
+              이 패널은 최종 제출 경계 검토 결과를 read-only로 인증하는 화면이며, 실제 승인 요청 생성/제출/최종 승인 제출 작업이 아닙니다.
+            </p>
+            <div className="mb-2 flex flex-wrap gap-2">
+              <span className="rounded bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
+                상태: {c381.operatingDeploymentFinalApprovalSubmissionApprovalRequestFinalSubmissionBoundaryOutcomeCertificationStatus}
+              </span>
+              <span className="rounded bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
+                결정값: {c381.recommendedOutcomeCertificationDecision}
+              </span>
+              <span className="rounded bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
+                {c381.recommendedOutcomeCertificationDecisionLabel}
+              </span>
+            </div>
+            <div className="mb-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {(c381.outcomeCertificationSummaryCards ?? []).map((card: { label: string; value: number }) => (
+                <div key={card.label} className="rounded bg-white p-2 text-center shadow-sm">
+                  <div className="text-lg font-bold text-amber-700">{card.value}</div>
+                  <div className="text-xs text-gray-500">{card.label}</div>
+                </div>
+              ))}
+            </div>
+            <div className="mb-2 grid grid-cols-1 gap-1 sm:grid-cols-2">
+              {groups381.map((g) => (
+                <div key={g.key} className="flex items-center justify-between rounded bg-white px-2 py-1 text-xs shadow-sm">
+                  <span className="text-gray-600">{g.label}</span>
+                  <span className="font-medium text-amber-700">{(c381[g.key] ?? []).length}건</span>
+                </div>
+              ))}
+            </div>
+            <div className="mb-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-amber-700">추천 다음 단계</div>
+                <div className="text-gray-600 break-all">{c381.recommendedNextStep}</div>
+              </div>
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-amber-700">승인 모드</div>
+                <div className="text-gray-600">{c381.recommendedApprovalMode}</div>
+              </div>
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-amber-700">실행 모드</div>
+                <div className="text-gray-600">{c381.recommendedExecutionMode}</div>
+              </div>
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-amber-700">배포 모드</div>
+                <div className="text-gray-600">{c381.recommendedDeploymentMode}</div>
+              </div>
+            </div>
+            <div className="mb-2 rounded bg-white p-2 text-xs shadow-sm">
+              <div className="font-semibold text-amber-700">안전 모드</div>
+              <div className="text-gray-600">{c381.recommendedSafetyMode}</div>
+            </div>
+            <div className="rounded bg-amber-100 p-2 text-xs text-amber-900">
+              <div className="mb-1 font-semibold">안전 금지선 확인</div>
+              <div>실제 승인 요청 생성 없음: {String(c381.actualApprovalRequestCreated)}</div>
+              <div>실제 승인 요청 검토 제출 없음: {String(c381.actualApprovalRequestReviewedAsSubmission)}</div>
+              <div>실제 승인 요청 제출 없음: {String(c381.actualApprovalRequestSubmitted)}</div>
+              <div>Final Submission Boundary 결과 인증이 실제 제출로 해석되지 않음: {String(c381.actualFinalSubmissionBoundaryOutcomeCertificationSubmitted)}</div>
+              <div>실제 최종 승인 제출 없음: {String(c381.actualFinalApprovalSubmission)}</div>
+              <div>실제 최종 승인 부여 없음: {String(c381.actualFinalApprovalGrant)}</div>
+              <div>실제 배포 승인/실행 없음: {String(c381.actualDeploymentApproval || c381.actualDeploymentExecution)}</div>
+              <div>실제 Naver API/DB write 없음: {String(c381.actualNaverApiCall || c381.actualDbWrite)}</div>
+              <div>실제 Runtime/Worker/Queue/Adapter 없음: {String(c381.actualRuntimeConfiguration || c381.actualWorkerRun || c381.actualQueueEnqueue || c381.actualAdapterConnection)}</div>
+              <div>실행 버튼/submit action/POST API 추가 없음: {String(c381.actualExecutionButtonAdded || c381.actualSubmitActionAdded || c381.actualPostApiAdded)}</div>
             </div>
           </div>
         );
