@@ -492,6 +492,7 @@ type DraftBatchJob = {
   tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestPacketReviewOutcomeCertificationView?: any;
   tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestPacketSealReviewView?: any;
   tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestPacketSealOutcomeCertificationView?: any;
+  tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestPacketFinalReviewView?: any;
   naverAuthTokenFirstTestSafetyBoundary?: {
     ok: boolean;
     readyForExplicitTokenTestApproval: boolean;
@@ -52504,6 +52505,104 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             {c373.nextTaskApprovalPhrase && (
               <p className="mt-1 text-xs text-gray-500">
                 {c373.nextTaskApprovalPhrase}
+              </p>
+            )}
+          </div>
+        );
+      })()}
+
+      {/* ── Task 374: TMS Read-Only Operating Deployment Final Approval Submission Approval Request Packet Final Review ── */}
+      {job.tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestPacketFinalReviewView && (() => {
+        const c374 = job.tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestPacketFinalReviewView;
+        const groups374 = [
+          { key: 'approvalRequestPacketFinalReviewReadinessItems', label: 'Final Review Readiness' },
+          { key: 'approvalRequestPacketSealOutcomeCertificationFinalReviewItems', label: 'Seal Outcome Certification Final Review' },
+          { key: 'approvalRequestPacketReviewOutcomeCertificationReferenceFinalReviewItems', label: 'Review Outcome Certification Reference Final Review' },
+          { key: 'finalApprovalSubmissionRequestScopeFinalReviewItems', label: 'Final Approval Submission Request Scope Final Review' },
+          { key: 'finalApprovalGrantRequestScopeFinalReviewItems', label: 'Final Approval Grant Request Scope Final Review' },
+          { key: 'deploymentApprovalRequestScopeFinalReviewItems', label: 'Deployment Approval Request Scope Final Review' },
+          { key: 'deploymentExecutionRequestScopeFinalReviewItems', label: 'Deployment Execution Request Scope Final Review' },
+          { key: 'operatingTransitionRequestScopeFinalReviewItems', label: 'Operating Transition Request Scope Final Review' },
+          { key: 'infrastructureRequestBoundaryFinalReviewItems', label: 'Infrastructure Request Boundary Final Review' },
+          { key: 'domainDnsHttpsRequestBoundaryFinalReviewItems', label: 'Domain/DNS/HTTPS Request Boundary Final Review' },
+          { key: 'operatingDbRequestBoundaryFinalReviewItems', label: 'Operating DB Request Boundary Final Review' },
+          { key: 'runtimeWorkerQueueAdapterRequestBoundaryFinalReviewItems', label: 'Runtime/Worker/Queue/Adapter Request Boundary Final Review' },
+          { key: 'apiSecretRawResponseRequestBoundaryFinalReviewItems', label: 'API/Secret/Raw Response Request Boundary Final Review' },
+          { key: 'uiActionPostSubmitRequestBoundaryFinalReviewItems', label: 'UI Action/POST/Submit Request Boundary Final Review' },
+        ];
+        return (
+          <div key="task374-final-review" className="mb-6 rounded-lg border border-violet-300 bg-violet-50 p-4">
+            <h3 className="mb-2 text-sm font-bold text-violet-800">
+              Task 374 - 운영 배포 최종 승인 제출 Approval Request Packet Final Review
+            </h3>
+            <div className="mb-2 flex flex-wrap gap-2">
+              <span className="rounded bg-violet-100 px-2 py-0.5 text-xs font-medium text-violet-700">
+                상태: {c374.operatingDeploymentFinalApprovalSubmissionApprovalRequestPacketFinalReviewStatus}
+              </span>
+              <span className="rounded bg-violet-100 px-2 py-0.5 text-xs font-medium text-violet-700">
+                결정: {c374.recommendedFinalReviewDecision}
+              </span>
+              <span className="rounded bg-violet-100 px-2 py-0.5 text-xs font-medium text-violet-700">
+                {c374.recommendedFinalReviewDecisionLabel}
+              </span>
+            </div>
+            <div className="mb-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {(c374.finalReviewSummaryCards ?? []).map((card: { label: string; value: number }) => (
+                <div key={card.label} className="rounded bg-white p-2 text-center shadow-sm">
+                  <div className="text-lg font-bold text-violet-700">{card.value}</div>
+                  <div className="text-xs text-gray-500">{card.label}</div>
+                </div>
+              ))}
+            </div>
+            <div className="mb-2">
+              <div className="mb-1 text-xs font-semibold text-violet-700">14개 Final Review 그룹</div>
+              <div className="grid grid-cols-1 gap-1 sm:grid-cols-2">
+                {groups374.map((g) => (
+                  <div key={g.key} className="flex items-center justify-between rounded bg-white px-2 py-1 text-xs shadow-sm">
+                    <span className="text-gray-600">{g.label}</span>
+                    <span className="font-medium text-violet-700">{(c374[g.key] ?? []).length}건</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="mb-2 grid grid-cols-2 gap-2 sm:grid-cols-4 text-xs">
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-violet-700">추천 다음 단계</div>
+                <div className="text-gray-600 break-all">{c374.recommendedNextStep}</div>
+              </div>
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-violet-700">승인 모드</div>
+                <div className="text-gray-600">{c374.recommendedApprovalMode}</div>
+              </div>
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-violet-700">실행 모드</div>
+                <div className="text-gray-600">{c374.recommendedExecutionMode}</div>
+              </div>
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-violet-700">배포 모드</div>
+                <div className="text-gray-600">{c374.recommendedDeploymentMode}</div>
+              </div>
+            </div>
+            <div className="mb-2 rounded bg-white p-2 text-xs shadow-sm">
+              <div className="font-semibold text-violet-700">안전 모드</div>
+              <div className="text-gray-600">{c374.recommendedSafetyMode}</div>
+            </div>
+            <div className="rounded bg-violet-100 p-2 text-xs text-violet-800">
+              <div className="font-semibold mb-1">안전 금지선 확인</div>
+              <div>실제 승인 요청 생성 없음: {String(c374.approvalRequestStillNotCreated)}</div>
+              <div>Final Review가 실제 제출로 해석되지 않음: {String(c374.finalReviewNotInterpretedAsSubmission)}</div>
+              <div>Final Review 아직 미제출: {String(c374.finalReviewStillNotSubmitted)}</div>
+              <div>최종 승인 제출 아직 미수행: {String(c374.finalApprovalSubmissionStillNotPerformed)}</div>
+              <div>실제 Naver API 호출: {String(c374.actualNaverApiCall)}</div>
+              <div>실제 DB write: {String(c374.actualDbWrite)}</div>
+              <div>실제 배포 승인: {String(c374.actualDeploymentApproval)}</div>
+              <div>실제 배포 실행: {String(c374.actualDeploymentExecution)}</div>
+              <div>실제 운영 전환: {String(c374.actualOperatingTransition)}</div>
+              <div>실행 버튼/POST API/submit action 추가: {String(c374.actualExecutionButtonAdded || c374.actualPostApiAdded || c374.actualSubmitActionAdded)}</div>
+            </div>
+            {c374.nextTaskApprovalPhrase && (
+              <p className="mt-1 text-xs text-gray-500">
+                {c374.nextTaskApprovalPhrase}
               </p>
             )}
           </div>
