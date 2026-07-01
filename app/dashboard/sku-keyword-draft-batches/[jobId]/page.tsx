@@ -514,6 +514,7 @@ type DraftBatchJob = {
   tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestExplicitApprovalRequestSubmissionLockReviewView?: any;
   tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestExplicitApprovalRequestSubmissionLockOutcomeCertificationView?: any;
   tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestUserApprovalPhrasePreparationBoundaryView?: any;
+  tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestUserApprovalPhrasePreparationBoundaryOutcomeCertificationView?: any;
   naverAuthTokenFirstTestSafetyBoundary?: {
     ok: boolean;
     readyForExplicitTokenTestApproval: boolean;
@@ -54709,6 +54710,113 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div>실제 env 읽기/쓰기 없음: {String(c395.actualEnvReadOrWrite)}</div>
               <div>실제 Runtime/Worker/Queue/Adapter 없음: {String(c395.actualRuntimeConfiguration || c395.actualWorkerRun || c395.actualQueueEnqueue || c395.actualAdapterConnection)}</div>
               <div>실행 버튼/승인 버튼/승인 문구 입력창/submit action/POST API 추가 없음: {String(c395.actualExecutionButtonAdded || c395.actualApprovalButtonAdded || c395.actualUserApprovalPhraseInputAddedToUi || c395.actualSubmitActionAdded || c395.actualPostApiAdded)}</div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 396: Read-Only User Approval Phrase Preparation Boundary Outcome Certification ── */}
+      {job.tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestUserApprovalPhrasePreparationBoundaryOutcomeCertificationView && (() => {
+        const c396 = job.tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestUserApprovalPhrasePreparationBoundaryOutcomeCertificationView as any;
+        const groups396 = [
+          { key: 'userApprovalPhrasePreparationBoundaryOutcomeCertificationReadinessItems', label: '사용자 승인 문구 준비 경계 결과 인증 준비도' },
+          { key: 'userApprovalPhrasePreparationBoundaryReferenceOutcomeCertificationItems', label: '사용자 승인 문구 준비 경계 참조 결과 인증' },
+          { key: 'userApprovalPhraseRequiredOutcomeCertificationItems', label: '사용자 승인 문구 필요 결과 인증' },
+          { key: 'userApprovalPhraseExampleDisplayOutcomeCertificationItems', label: '사용자 승인 문구 예시 표시 결과 인증' },
+          { key: 'userApprovalPhraseNonInputOutcomeCertificationItems', label: '사용자 승인 문구 비입력 결과 인증' },
+          { key: 'userApprovalPhraseNonSubmissionOutcomeCertificationItems', label: '사용자 승인 문구 비제출 결과 인증' },
+          { key: 'userApprovalAcceptanceNonGrantOutcomeCertificationItems', label: '사용자 승인 수락 비부여 결과 인증' },
+          { key: 'explicitApprovalRequestCreationNonExecutionOutcomeCertificationItems', label: '명시 승인 요청 생성 비실행 결과 인증' },
+          { key: 'explicitApprovalRequestSubmissionNonExecutionOutcomeCertificationItems', label: '명시 승인 요청 제출 비실행 결과 인증' },
+          { key: 'finalApprovalSubmissionNonExecutionOutcomeCertificationItems', label: '최종 승인 제출 비실행 결과 인증' },
+          { key: 'finalApprovalGrantNonExecutionOutcomeCertificationItems', label: '최종 승인 부여 비실행 결과 인증' },
+          { key: 'deploymentOperatingTransitionNonExecutionOutcomeCertificationItems', label: '배포/운영 전환 비실행 결과 인증' },
+          { key: 'operatingDbRuntimeWorkerQueueAdapterOutcomeCertificationItems', label: '운영 DB/Runtime/Worker/Queue/Adapter 결과 인증' },
+          { key: 'apiSecretUiActionPostOutcomeCertificationItems', label: 'API/Secret/UI Action/POST 결과 인증' },
+        ];
+        return (
+          <div key="task396-user-approval-phrase-preparation-boundary-outcome-certification" className="mb-6 rounded-lg border border-lime-300 bg-lime-50 p-4">
+            <h3 className="mb-2 text-sm font-bold text-lime-800">
+              Task 396 - 운영 배포 최종 승인 제출 User Approval Phrase Preparation Boundary 결과 인증
+            </h3>
+            <p className="mb-2 text-xs text-lime-900">
+              이 패널은 사용자 승인 문구 준비 경계 결과를 read-only로 인증하는 화면이며, 실제 승인 문구 입력/제출/수락/명시 승인 요청 생성/제출/최종 승인 제출 작업이 아닙니다.
+            </p>
+            <div className="mb-2 flex flex-wrap gap-2">
+              <span className="rounded bg-lime-100 px-2 py-0.5 text-xs font-medium text-lime-700">
+                상태: {c396.operatingDeploymentFinalApprovalSubmissionApprovalRequestUserApprovalPhrasePreparationBoundaryOutcomeCertificationStatus}
+              </span>
+              <span className="rounded bg-lime-100 px-2 py-0.5 text-xs font-medium text-lime-700">
+                결정값: {c396.recommendedOutcomeCertificationDecision}
+              </span>
+              <span className="rounded bg-lime-100 px-2 py-0.5 text-xs font-medium text-lime-700">
+                {c396.recommendedOutcomeCertificationDecisionLabel}
+              </span>
+            </div>
+            <div className="mb-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {(c396.outcomeCertificationSummaryCards ?? []).map((card: { label: string; value: number }) => (
+                <div key={card.label} className="rounded bg-white p-2 text-center shadow-sm">
+                  <div className="text-lg font-bold text-lime-700">{card.value}</div>
+                  <div className="text-xs text-gray-500">{card.label}</div>
+                </div>
+              ))}
+            </div>
+            <div className="mb-2 grid grid-cols-1 gap-1 sm:grid-cols-2">
+              {groups396.map((g) => (
+                <div key={g.key} className="flex items-center justify-between rounded bg-white px-2 py-1 text-xs shadow-sm">
+                  <span className="text-gray-600">{g.label}</span>
+                  <span className="font-medium text-lime-700">{(c396[g.key] ?? []).length}건</span>
+                </div>
+              ))}
+            </div>
+            <div className="mb-2 rounded bg-white p-2 text-xs shadow-sm">
+              <div className="mb-1 font-semibold text-lime-700">사용자 승인 문구 준비 결과 인증 안내</div>
+              <div className="text-gray-600">{c396.userApprovalPhraseGuidance}</div>
+              <div className="mt-1 text-gray-600">예시 문구: {c396.userApprovalPhraseExample}</div>
+              <div className="text-gray-600">현재 화면에서 승인 문구 입력창 없음: {String(c396.actualUserApprovalPhraseInputAddedToUi)}</div>
+              <div className="text-gray-600">현재 화면에서 승인 문구 입력 없음: {String(c396.actualUserApprovalPhraseInputAdded)}</div>
+              <div className="text-gray-600">현재 화면에서 승인 문구 제출 없음: {String(c396.actualUserApprovalPhraseSubmitted)}</div>
+              <div className="text-gray-600">현재 화면에서 승인 문구 수락 없음: {String(c396.actualUserApprovalPhraseAccepted)}</div>
+              <div className="text-gray-600">현재 화면에서 명시 승인 요청 생성 없음: {String(c396.actualExplicitApprovalRequestCreated)}</div>
+              <div className="text-gray-600">현재 화면에서 명시 승인 요청 제출 없음: {String(c396.actualExplicitApprovalRequestSubmitted)}</div>
+            </div>
+            <div className="mb-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-lime-700">추천 다음 단계</div>
+                <div className="text-gray-600 break-all">{c396.recommendedNextStep}</div>
+              </div>
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-lime-700">승인 모드</div>
+                <div className="text-gray-600">{c396.recommendedApprovalMode}</div>
+              </div>
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-lime-700">실행 모드</div>
+                <div className="text-gray-600">{c396.recommendedExecutionMode}</div>
+              </div>
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-lime-700">배포 모드</div>
+                <div className="text-gray-600">{c396.recommendedDeploymentMode}</div>
+              </div>
+            </div>
+            <div className="mb-2 rounded bg-white p-2 text-xs shadow-sm">
+              <div className="font-semibold text-lime-700">안전 모드</div>
+              <div className="text-gray-600">{c396.recommendedSafetyMode}</div>
+            </div>
+            <div className="rounded bg-lime-100 p-2 text-xs text-lime-900">
+              <div className="mb-1 font-semibold">안전 금지선 확인</div>
+              <div>실제 사용자 승인 문구 입력/제출/수락 없음: {String(c396.actualUserApprovalPhraseInputAdded || c396.actualUserApprovalPhraseSubmitted || c396.actualUserApprovalPhraseAccepted || c396.actualUserApprovalGranted)}</div>
+              <div>실제 명시 승인 요청 생성 없음: {String(c396.actualExplicitApprovalRequestCreated)}</div>
+              <div>실제 명시 승인 요청 제출 없음: {String(c396.actualExplicitApprovalRequestSubmitted)}</div>
+              <div>실제 승인 요청 생성 없음: {String(c396.actualApprovalRequestCreated)}</div>
+              <div>실제 승인 요청 제출 없음: {String(c396.actualApprovalRequestSubmitted)}</div>
+              <div>User Approval Phrase Preparation Boundary 결과 인증이 실제 승인 또는 실제 제출로 해석되지 않음: {String(c396.actualUserApprovalPhraseInputAdded || c396.actualUserApprovalPhraseSubmitted || c396.actualUserApprovalPhraseAccepted || c396.actualUserApprovalGranted || c396.actualExplicitApprovalRequestCreated || c396.actualExplicitApprovalRequestSubmitted || c396.actualApprovalRequestCreated || c396.actualApprovalRequestSubmitted || c396.actualUserApprovalPhrasePreparationBoundarySubmitted || c396.actualUserApprovalPhrasePreparationBoundaryOutcomeCertificationSubmitted)}</div>
+              <div>실제 최종 승인 제출 없음: {String(c396.actualFinalApprovalSubmission)}</div>
+              <div>실제 최종 승인 부여 없음: {String(c396.actualFinalApprovalGrant)}</div>
+              <div>실제 배포 승인/실행 없음: {String(c396.actualDeploymentApproval || c396.actualDeploymentExecution)}</div>
+              <div>실제 Naver API/DB write 없음: {String(c396.actualNaverApiCall || c396.actualDbWrite)}</div>
+              <div>실제 env 읽기/쓰기 없음: {String(c396.actualEnvReadOrWrite)}</div>
+              <div>실제 Runtime/Worker/Queue/Adapter 없음: {String(c396.actualRuntimeConfiguration || c396.actualWorkerRun || c396.actualQueueEnqueue || c396.actualAdapterConnection)}</div>
+              <div>실행 버튼/승인 버튼/승인 문구 입력창/submit action/POST API 추가 없음: {String(c396.actualExecutionButtonAdded || c396.actualApprovalButtonAdded || c396.actualUserApprovalPhraseInputAddedToUi || c396.actualSubmitActionAdded || c396.actualPostApiAdded)}</div>
             </div>
           </div>
         );
