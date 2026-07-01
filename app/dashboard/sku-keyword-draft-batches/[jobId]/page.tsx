@@ -491,6 +491,7 @@ type DraftBatchJob = {
   tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestPacketReviewView?: any;
   tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestPacketReviewOutcomeCertificationView?: any;
   tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestPacketSealReviewView?: any;
+  tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestPacketSealOutcomeCertificationView?: any;
   naverAuthTokenFirstTestSafetyBoundary?: {
     ok: boolean;
     readyForExplicitTokenTestApproval: boolean;
@@ -52392,6 +52393,117 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             {c372.nextTaskApprovalPhrase && (
               <p className="mt-1 text-xs text-gray-500">
                 {c372.nextTaskApprovalPhrase}
+              </p>
+            )}
+          </div>
+        );
+      })()}
+
+      {/* ── Task 373: TMS Read-Only Operating Deployment Final Approval Submission Approval Request Packet Seal Outcome Certification ── */}
+      {job.tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestPacketSealOutcomeCertificationView && (() => {
+        const c373 = job.tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestPacketSealOutcomeCertificationView;
+        const groups = [
+          { title: '1. Seal Outcome Certification Readiness', items: c373.approvalRequestPacketSealOutcomeCertificationReadinessItems },
+          { title: '2. Approval Request Packet Seal Review Outcome Certification', items: c373.approvalRequestPacketSealReviewOutcomeCertificationItems },
+          { title: '3. Approval Request Packet Review Outcome Certification Reference Seal Outcome Certification', items: c373.approvalRequestPacketReviewOutcomeCertificationReferenceSealOutcomeCertificationItems },
+          { title: '4. Final Approval Submission Request Scope Seal Outcome Certification', items: c373.finalApprovalSubmissionRequestScopeSealOutcomeCertificationItems },
+          { title: '5. Final Approval Grant Request Scope Seal Outcome Certification', items: c373.finalApprovalGrantRequestScopeSealOutcomeCertificationItems },
+          { title: '6. Deployment Approval Request Scope Seal Outcome Certification', items: c373.deploymentApprovalRequestScopeSealOutcomeCertificationItems },
+          { title: '7. Deployment Execution Request Scope Seal Outcome Certification', items: c373.deploymentExecutionRequestScopeSealOutcomeCertificationItems },
+          { title: '8. Operating Transition Request Scope Seal Outcome Certification', items: c373.operatingTransitionRequestScopeSealOutcomeCertificationItems },
+          { title: '9. Infrastructure Request Boundary Seal Outcome Certification', items: c373.infrastructureRequestBoundarySealOutcomeCertificationItems },
+          { title: '10. Domain/DNS/HTTPS Request Boundary Seal Outcome Certification', items: c373.domainDnsHttpsRequestBoundarySealOutcomeCertificationItems },
+          { title: '11. Operating DB Request Boundary Seal Outcome Certification', items: c373.operatingDbRequestBoundarySealOutcomeCertificationItems },
+          { title: '12. Runtime/Worker/Queue/Adapter Request Boundary Seal Outcome Certification', items: c373.runtimeWorkerQueueAdapterRequestBoundarySealOutcomeCertificationItems },
+          { title: '13. API/Secret/Raw Response Request Boundary Seal Outcome Certification', items: c373.apiSecretRawResponseRequestBoundarySealOutcomeCertificationItems },
+          { title: '14. UI Action/POST/Submit Request Boundary Seal Outcome Certification', items: c373.uiActionPostSubmitRequestBoundarySealOutcomeCertificationItems },
+        ];
+        return (
+          <div className="mb-6 rounded border border-indigo-300 bg-indigo-50 p-4">
+            <h3 className="mb-3 text-base font-bold text-indigo-800">
+              Task 373 - 운영 배포 최종 승인 제출 Approval Request Packet Seal 결과 인증
+            </h3>
+            <p className="mb-2 text-xs text-indigo-600">
+              [read-only] 이 패널은 Task 372 Approval Request Packet Seal Review 결과를 read-only로 인증합니다.
+              실제 승인 요청 생성·제출·최종 승인·배포 실행이 아닙니다.
+            </p>
+
+            <div className="mb-3 grid grid-cols-2 gap-2 text-xs">
+              <div className="rounded bg-white p-2 shadow-sm">
+                <span className="font-semibold">Seal Outcome Certification 상태:</span>{' '}
+                <span className="font-mono text-indigo-700">{c373.operatingDeploymentFinalApprovalSubmissionApprovalRequestPacketSealOutcomeCertificationStatus}</span>
+              </div>
+              <div className="rounded bg-white p-2 shadow-sm">
+                <span className="font-semibold">소스 Seal Review 상태:</span>{' '}
+                <span className="font-mono">{c373.sourceSealReviewStatus}</span>
+              </div>
+            </div>
+
+            <div className="mb-3 rounded bg-white p-3 shadow-sm text-xs">
+              <h4 className="mb-2 text-sm font-bold text-indigo-700">Seal Outcome Certification Decision (Task 373)</h4>
+              <ul className="space-y-1">
+                <li><span className="font-semibold">인증 결정:</span> {c373.recommendedOutcomeCertificationDecisionLabel}</li>
+                <li><span className="font-semibold">추천 다음 단계:</span> {c373.recommendedNextStep}</li>
+                <li><span className="font-semibold">승인 모드:</span> {c373.recommendedApprovalMode}</li>
+                <li><span className="font-semibold">실행 모드:</span> {c373.recommendedExecutionMode}</li>
+                <li><span className="font-semibold">배포 모드:</span> {c373.recommendedDeploymentMode}</li>
+                <li><span className="font-semibold">안전 모드:</span> {c373.recommendedSafetyMode}</li>
+              </ul>
+            </div>
+
+            <div className="mb-3 rounded bg-white p-3 shadow-sm text-xs">
+              <h4 className="mb-2 text-sm font-bold text-indigo-700">안전 금지선 확인 (Task 373)</h4>
+              <ul className="space-y-1 text-green-700">
+                <li>✓ 실제 승인 요청 생성 없음 (actualApprovalRequestCreated: {String(c373.actualApprovalRequestCreated)})</li>
+                <li>✓ 실제 승인 요청 검토 제출 없음 (actualApprovalRequestReviewedAsSubmission: {String(c373.actualApprovalRequestReviewedAsSubmission)})</li>
+                <li>✓ 실제 승인 요청 제출 없음 (actualApprovalRequestSubmitted: {String(c373.actualApprovalRequestSubmitted)})</li>
+                <li>✓ 실제 최종 승인 부여 없음 (actualFinalApprovalGrant: {String(c373.actualFinalApprovalGrant)})</li>
+                <li>✓ 실제 최종 승인 제출 없음 (actualFinalApprovalSubmission: {String(c373.actualFinalApprovalSubmission)})</li>
+                <li>✓ 실제 배포 승인 없음 (actualDeploymentApproval: {String(c373.actualDeploymentApproval)})</li>
+                <li>✓ 실제 배포 실행 없음 (actualDeploymentExecution: {String(c373.actualDeploymentExecution)})</li>
+                <li>✓ Naver API 호출 없음 (actualNaverApiCall: {String(c373.actualNaverApiCall)})</li>
+                <li>✓ DB write 없음 (actualDbWrite: {String(c373.actualDbWrite)})</li>
+                <li>✓ 실행 버튼/submit action/POST API 없음 (actualExecutionButtonAdded: {String(c373.actualExecutionButtonAdded)})</li>
+                <li>✓ Seal 결과 인증이 실제 제출로 해석되지 않음 (sealOutcomeCertificationNotInterpretedAsSubmission: {String(c373.sealOutcomeCertificationNotInterpretedAsSubmission)})</li>
+              </ul>
+            </div>
+
+            <div className="mb-3 rounded bg-white p-3 shadow-sm text-xs">
+              <h4 className="mb-2 text-sm font-bold text-indigo-700">14개 Seal Outcome Certification 그룹 요약</h4>
+              <div className="space-y-2">
+                {groups.map((g) => (
+                  <div key={g.title} className="border-b border-indigo-100 pb-1">
+                    <p className="font-semibold text-indigo-700">{g.title} ({g.items?.length ?? 0}건)</p>
+                    {g.items && g.items.length > 0 && (
+                      <ul className="mt-1 ml-2 space-y-0.5 text-gray-600">
+                        {g.items.map((item: { outcomeCertificationItemId: string; label: string; outcomeCertificationStatus: string }) => (
+                          <li key={item.outcomeCertificationItemId}>
+                            [{item.outcomeCertificationStatus}] {item.label}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {c373.outcomeCertificationSummaryCards && (
+              <div className="mb-3 flex flex-wrap gap-2 text-xs">
+                {c373.outcomeCertificationSummaryCards.map((card: { label: string; value: number }) => (
+                  <div key={card.label} className="rounded bg-indigo-100 px-2 py-1">
+                    <span className="font-semibold">{card.label}:</span> {card.value}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <p className="mt-2 rounded bg-yellow-50 p-2 text-xs text-yellow-700">
+              Task 374는 사용자 별도 명시 승인 없이는 진행하지 않습니다.
+            </p>
+            {c373.nextTaskApprovalPhrase && (
+              <p className="mt-1 text-xs text-gray-500">
+                {c373.nextTaskApprovalPhrase}
               </p>
             )}
           </div>
