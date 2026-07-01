@@ -500,6 +500,7 @@ type DraftBatchJob = {
   tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestSubmissionLockOutcomeCertificationView?: any;
   tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestFinalSubmissionBoundaryReviewView?: any;
   tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestFinalSubmissionBoundaryOutcomeCertificationView?: any;
+  tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestFinalSubmissionLockReviewView?: any;
   naverAuthTokenFirstTestSafetyBoundary?: {
     ok: boolean;
     readyForExplicitTokenTestApproval: boolean;
@@ -53284,6 +53285,99 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div>실제 Naver API/DB write 없음: {String(c381.actualNaverApiCall || c381.actualDbWrite)}</div>
               <div>실제 Runtime/Worker/Queue/Adapter 없음: {String(c381.actualRuntimeConfiguration || c381.actualWorkerRun || c381.actualQueueEnqueue || c381.actualAdapterConnection)}</div>
               <div>실행 버튼/submit action/POST API 추가 없음: {String(c381.actualExecutionButtonAdded || c381.actualSubmitActionAdded || c381.actualPostApiAdded)}</div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 382: Read-Only Final Submission Lock Review ── */}
+      {job.tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestFinalSubmissionLockReviewView && (() => {
+        const c382 = job.tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestFinalSubmissionLockReviewView as any;
+        const groups382 = [
+          { key: 'finalSubmissionLockReviewReadinessItems', label: '최종 제출 Lock 준비도 검토' },
+          { key: 'finalSubmissionBoundaryOutcomeCertificationReferenceLockReviewItems', label: '최종 제출 경계 결과 인증 참조 Lock 검토' },
+          { key: 'approvalRequestCreationFinalLockReviewItems', label: '승인 요청 생성 최종 Lock 검토' },
+          { key: 'approvalRequestReviewSubmissionFinalLockReviewItems', label: '승인 요청 검토 제출 최종 Lock 검토' },
+          { key: 'approvalRequestSubmissionFinalLockReviewItems', label: '승인 요청 제출 최종 Lock 검토' },
+          { key: 'finalApprovalSubmissionFinalLockReviewItems', label: '최종 승인 제출 최종 Lock 검토' },
+          { key: 'finalApprovalGrantFinalLockReviewItems', label: '최종 승인 부여 최종 Lock 검토' },
+          { key: 'deploymentApprovalFinalLockReviewItems', label: '배포 승인 최종 Lock 검토' },
+          { key: 'deploymentExecutionFinalLockReviewItems', label: '배포 실행 최종 Lock 검토' },
+          { key: 'operatingTransitionFinalLockReviewItems', label: '운영 전환 최종 Lock 검토' },
+          { key: 'infrastructureDomainDnsHttpsFinalLockReviewItems', label: '인프라/도메인/DNS/HTTPS 최종 Lock 검토' },
+          { key: 'operatingDbFinalLockReviewItems', label: '운영 DB 최종 Lock 검토' },
+          { key: 'runtimeWorkerQueueAdapterFinalLockReviewItems', label: 'Runtime/Worker/Queue/Adapter 최종 Lock 검토' },
+          { key: 'apiSecretUiActionPostFinalLockReviewItems', label: 'API/Secret/UI Action/POST 최종 Lock 검토' },
+        ];
+        return (
+          <div key="task382-final-submission-lock-review" className="mb-6 rounded-lg border border-lime-300 bg-lime-50 p-4">
+            <h3 className="mb-2 text-sm font-bold text-lime-800">
+              Task 382 - 운영 배포 최종 승인 제출 Approval Request Final Submission Lock Review
+            </h3>
+            <p className="mb-2 text-xs text-lime-900">
+              이 패널은 실제 최종 승인 요청 제출 직전 Lock 상태를 read-only로 검토하는 화면이며, 실제 승인 요청 생성/제출/최종 승인 제출 작업이 아닙니다.
+            </p>
+            <div className="mb-2 flex flex-wrap gap-2">
+              <span className="rounded bg-lime-100 px-2 py-0.5 text-xs font-medium text-lime-700">
+                상태: {c382.operatingDeploymentFinalApprovalSubmissionApprovalRequestFinalSubmissionLockReviewStatus}
+              </span>
+              <span className="rounded bg-lime-100 px-2 py-0.5 text-xs font-medium text-lime-700">
+                결정값: {c382.recommendedFinalSubmissionLockReviewDecision}
+              </span>
+              <span className="rounded bg-lime-100 px-2 py-0.5 text-xs font-medium text-lime-700">
+                {c382.recommendedFinalSubmissionLockReviewDecisionLabel}
+              </span>
+            </div>
+            <div className="mb-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {(c382.finalSubmissionLockReviewSummaryCards ?? []).map((card: { label: string; value: number }) => (
+                <div key={card.label} className="rounded bg-white p-2 text-center shadow-sm">
+                  <div className="text-lg font-bold text-lime-700">{card.value}</div>
+                  <div className="text-xs text-gray-500">{card.label}</div>
+                </div>
+              ))}
+            </div>
+            <div className="mb-2 grid grid-cols-1 gap-1 sm:grid-cols-2">
+              {groups382.map((g) => (
+                <div key={g.key} className="flex items-center justify-between rounded bg-white px-2 py-1 text-xs shadow-sm">
+                  <span className="text-gray-600">{g.label}</span>
+                  <span className="font-medium text-lime-700">{(c382[g.key] ?? []).length}건</span>
+                </div>
+              ))}
+            </div>
+            <div className="mb-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-lime-700">추천 다음 단계</div>
+                <div className="text-gray-600 break-all">{c382.recommendedNextStep}</div>
+              </div>
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-lime-700">승인 모드</div>
+                <div className="text-gray-600">{c382.recommendedApprovalMode}</div>
+              </div>
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-lime-700">실행 모드</div>
+                <div className="text-gray-600">{c382.recommendedExecutionMode}</div>
+              </div>
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-lime-700">배포 모드</div>
+                <div className="text-gray-600">{c382.recommendedDeploymentMode}</div>
+              </div>
+            </div>
+            <div className="mb-2 rounded bg-white p-2 text-xs shadow-sm">
+              <div className="font-semibold text-lime-700">안전 모드</div>
+              <div className="text-gray-600">{c382.recommendedSafetyMode}</div>
+            </div>
+            <div className="rounded bg-lime-100 p-2 text-xs text-lime-900">
+              <div className="mb-1 font-semibold">안전 금지선 확인</div>
+              <div>실제 승인 요청 생성 없음: {String(c382.actualApprovalRequestCreated)}</div>
+              <div>실제 승인 요청 검토 제출 없음: {String(c382.actualApprovalRequestReviewedAsSubmission)}</div>
+              <div>실제 승인 요청 제출 없음: {String(c382.actualApprovalRequestSubmitted)}</div>
+              <div>Final Submission Lock Review가 실제 제출로 해석되지 않음: {String(c382.actualFinalSubmissionLockReviewSubmitted)}</div>
+              <div>실제 최종 승인 제출 없음: {String(c382.actualFinalApprovalSubmission)}</div>
+              <div>실제 최종 승인 부여 없음: {String(c382.actualFinalApprovalGrant)}</div>
+              <div>실제 배포 승인/실행 없음: {String(c382.actualDeploymentApproval || c382.actualDeploymentExecution)}</div>
+              <div>실제 Naver API/DB write 없음: {String(c382.actualNaverApiCall || c382.actualDbWrite)}</div>
+              <div>실제 Runtime/Worker/Queue/Adapter 없음: {String(c382.actualRuntimeConfiguration || c382.actualWorkerRun || c382.actualQueueEnqueue || c382.actualAdapterConnection)}</div>
+              <div>실행 버튼/submit action/POST API 추가 없음: {String(c382.actualExecutionButtonAdded || c382.actualSubmitActionAdded || c382.actualPostApiAdded)}</div>
             </div>
           </div>
         );
