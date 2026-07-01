@@ -523,6 +523,7 @@ type DraftBatchJob = {
   tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestUserApprovalPhraseFinalPreInputLockOutcomeCertificationView?: any;
   tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestUserApprovalPhraseActualInputSeparateApprovalBoundaryView?: any;
   tmsFastConnectionNaverProductLookupOneTimeTransitionRecoveryView?: any;
+  tmsFastConnectionNaverApiSecretEnvAccessSeparateApprovalRequestPacketView?: any;
   naverAuthTokenFirstTestSafetyBoundary?: {
     ok: boolean;
     readyForExplicitTokenTestApproval: boolean;
@@ -55688,6 +55689,121 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div>Worker 실행 / Queue enqueue / Adapter 연결 / Runtime 구성 없음: {String(c404.actualWorkerRun || c404.actualQueueEnqueue || c404.actualAdapterConnection || c404.actualRuntimeConfiguration)}</div>
               <div>POST API / 실행 버튼 / 승인 버튼 / submit action 추가 없음: {String(c404.actualPostApiAdded || c404.actualSubmitActionAdded || c404.actualExecutionButtonAdded || c404.actualApprovalButtonAdded)}</div>
               <div>실제 운영 전환 없음: {String(c404.actualOperatingTransition)}</div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 405: Naver API Secret/Env 접근 별도 승인 요청 Packet ── */}
+      {job.tmsFastConnectionNaverApiSecretEnvAccessSeparateApprovalRequestPacketView && (() => {
+        const c405 = job.tmsFastConnectionNaverApiSecretEnvAccessSeparateApprovalRequestPacketView as any;
+        const groups405 = [
+          { key: 'secretEnvAccessApprovalRequestPacketReadinessItems', label: 'Secret/Env 접근 승인 요청 Packet 준비도' },
+          { key: 'fastConnectionTransitionRecoveryReferenceItems', label: 'Task 404 Fast Connection Transition Recovery 참조' },
+          { key: 'secretEnvAccessPurposeItems', label: 'Secret/Env 접근 목적' },
+          { key: 'secretEnvAccessScopeCandidatesItems', label: 'Secret/Env 접근 범위 후보' },
+          { key: 'noSecretValueExposureGuardItems', label: 'Secret 값 노출 금지' },
+          { key: 'noActualAccessOrApiCallGuardItems', label: '실제 접근/API 호출 없음' },
+          { key: 'requiredUserApprovalPhraseGuidanceItems', label: '별도 승인 문구 안내' },
+          { key: 'nextPreflightRoadmapItems', label: '다음 Preflight 로드맵' },
+        ];
+        return (
+          <div key="task405-fast-connection-naver-api-secret-env-access-separate-approval-request-packet" className="mb-6 rounded-lg border border-amber-300 bg-amber-50 p-4">
+            <h3 className="mb-2 text-sm font-bold text-amber-800">
+              Task 405 - Naver API Secret/Env 접근 별도 승인 요청 Packet
+            </h3>
+            <p className="mb-2 text-xs text-amber-900">
+              이 패널은 Naver API 상품 조회 1회 테스트를 위해 .env/.env.local/secret/token 접근이 왜 필요한지 read-only로 안내하는 승인 요청 Packet이며,
+              실제 승인 제출/수락, .env 접근, secret 접근, token 사용, 실제 Naver API 호출이 아닙니다.
+            </p>
+            <div className="mb-2 flex flex-wrap gap-2">
+              <span className="rounded bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
+                상태: {c405.fastConnectionNaverApiSecretEnvAccessSeparateApprovalRequestPacketStatus}
+              </span>
+              <span className="rounded bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
+                결정값: {c405.recommendedApprovalRequestPacketDecision}
+              </span>
+              <span className="rounded bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
+                {c405.recommendedApprovalRequestPacketDecisionLabel}
+              </span>
+            </div>
+            <div className="mb-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {(c405.secretEnvAccessApprovalRequestPacketSummaryCards ?? []).map((card: { label: string; value: number }) => (
+                <div key={card.label} className="rounded bg-white p-2 text-center shadow-sm">
+                  <div className="text-lg font-bold text-amber-700">{card.value}</div>
+                  <div className="text-xs text-gray-500">{card.label}</div>
+                </div>
+              ))}
+            </div>
+            <div className="mb-2 grid grid-cols-1 gap-1 sm:grid-cols-2">
+              {groups405.map((g) => (
+                <div key={g.key} className="flex items-center justify-between rounded bg-white px-2 py-1 text-xs shadow-sm">
+                  <span className="text-gray-600">{g.label}</span>
+                  <span className="font-medium text-amber-700">{(c405[g.key] ?? []).length}건</span>
+                </div>
+              ))}
+            </div>
+            <div className="mb-2 rounded bg-white p-2 text-xs shadow-sm">
+              <div className="mb-1 font-semibold text-amber-700">Secret/Env 접근 승인 요청 Packet 안내</div>
+              <div className="text-gray-600">{c405.secretEnvAccessApprovalRequestPacketGuidance}</div>
+              <div className="mt-1 text-gray-600">최우선 목표: {c405.recommendedPrimaryGoal}</div>
+              <div className="text-gray-600">대상 API: {c405.recommendedTargetApi}</div>
+              <div className="text-gray-600">대표 상품 후보: {c405.recommendedTargetProductNo} ({c405.recommendedTargetProductLabel})</div>
+              <div className="text-gray-600">{c405.environmentVariableDisclosureNotice}</div>
+              <div className="mt-1 flex flex-wrap gap-1">
+                {(c405.environmentVariableNameCandidates ?? []).map((name: string) => (
+                  <span key={name} className="rounded bg-amber-100 px-2 py-0.5 font-mono text-xs text-amber-700">{name}</span>
+                ))}
+              </div>
+              <div className="mt-1 text-gray-600">승인 문구 예시: {c405.userApprovalPhraseExample}</div>
+              <div className="text-gray-600">{c405.userApprovalPhraseGuidance}</div>
+              <div className="text-gray-600">secret/env 접근 전 별도 승인 필요: {String(c405.recommendedApprovalMode === 'SEPARATE_USER_APPROVAL_REQUIRED_BEFORE_ENV_OR_SECRET_ACCESS')}</div>
+              <div className="text-gray-600">현재 화면에서 secret/env 접근 없음: {String(c405.actualEnvRead || c405.actualEnvWrite || c405.actualEnvFileOpen || c405.actualSecretAccess || c405.actualSecretExposure)}</div>
+              <div className="text-gray-600">현재 화면에서 token 사용 없음: {String(c405.actualTokenIssue || c405.actualTokenReissue || c405.actualTokenUse)}</div>
+              <div className="text-gray-600">현재 화면에서 실제 API 호출 없음: {String(c405.actualNaverApiCall || c405.actualProductLookupApiCall || c405.actualProductUpdateApiCall)}</div>
+              <div className="text-gray-600">현재 화면에서 DB write 없음: {String(c405.actualDbWrite)}</div>
+              <div className="text-gray-600">현재 화면에서 POST/action/button 없음: {String(c405.actualPostApiAdded || c405.actualSubmitActionAdded || c405.actualExecutionButtonAdded || c405.actualApprovalButtonAdded)}</div>
+            </div>
+            <div className="mb-2 rounded bg-white p-2 text-xs shadow-sm">
+              <div className="mb-1 font-semibold text-amber-700">Task 406~411 압축 로드맵</div>
+              {(c405.compressedFastConnectionRoadmap ?? []).map((r: { taskId: number; label: string }) => (
+                <div key={r.taskId} className="text-gray-600">{r.label}</div>
+              ))}
+            </div>
+            <div className="mb-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-amber-700">추천 다음 단계</div>
+                <div className="break-all text-gray-600">{c405.recommendedNextStep}</div>
+              </div>
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-amber-700">승인 모드</div>
+                <div className="text-gray-600">{c405.recommendedApprovalMode}</div>
+              </div>
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-amber-700">실행 모드</div>
+                <div className="text-gray-600">{c405.recommendedExecutionMode}</div>
+              </div>
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-amber-700">배포 모드</div>
+                <div className="text-gray-600">{c405.recommendedDeploymentMode}</div>
+              </div>
+            </div>
+            <div className="mb-2 rounded bg-white p-2 text-xs shadow-sm">
+              <div className="font-semibold text-amber-700">안전 모드</div>
+              <div className="text-gray-600">{c405.recommendedSafetyMode}</div>
+            </div>
+            <div className="rounded bg-amber-100 p-2 text-xs text-amber-900">
+              <div className="mb-1 font-semibold">안전 금지선 확인</div>
+              <div>실제 Naver API 호출/상품 조회 API/상품 수정 API 없음: {String(c405.actualNaverApiCall || c405.actualProductLookupApiCall || c405.actualProductUpdateApiCall || c405.actualProductLookupExecuted || c405.actualProductUpdateExecuted)}</div>
+              <div>Token 발급/재발급/사용 없음: {String(c405.actualTokenIssue || c405.actualTokenReissue || c405.actualTokenUse)}</div>
+              <div>.env/.env.local 열람/수정 없음: {String(c405.actualEnvRead || c405.actualEnvWrite || c405.actualEnvFileOpen)}</div>
+              <div>secret 노출 없음: {String(c405.actualSecretAccess || c405.actualSecretExposure)}</div>
+              <div>authorization/header/signature 노출 없음: {String(c405.actualAuthorizationHeaderExposure || c405.actualSignatureExposure)}</div>
+              <div>raw API response 노출 없음: {String(c405.actualRawApiResponseExposure)}</div>
+              <div>DB write / 가격 변경 / 재고 변경 없음: {String(c405.actualDbWrite || c405.actualPriceChange || c405.actualStockChange)}</div>
+              <div>Worker 실행 / Queue enqueue / Adapter 연결 / Runtime 구성 없음: {String(c405.actualWorkerRun || c405.actualQueueEnqueue || c405.actualAdapterConnection || c405.actualRuntimeConfiguration)}</div>
+              <div>POST API / 실행 버튼 / 승인 버튼 / submit action 추가 없음: {String(c405.actualPostApiAdded || c405.actualSubmitActionAdded || c405.actualExecutionButtonAdded || c405.actualApprovalButtonAdded)}</div>
+              <div>실제 승인 수락 없음: {String(c405.actualApprovalAccepted)}</div>
             </div>
           </div>
         );

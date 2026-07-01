@@ -385,6 +385,7 @@ import { buildTmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalReque
 import { buildTmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestUserApprovalPhraseFinalPreInputLockOutcomeCertificationView } from '@/src/services/tms-read-only-operating-deployment-final-approval-submission-approval-request-user-approval-phrase-final-pre-input-lock-outcome-certification-view.service';
 import { buildTmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestUserApprovalPhraseActualInputSeparateApprovalBoundaryView } from '@/src/services/tms-read-only-operating-deployment-final-approval-submission-approval-request-user-approval-phrase-actual-input-separate-approval-boundary-view.service';
 import { buildTmsFastConnectionNaverProductLookupOneTimeTransitionRecoveryView } from '@/src/services/tms-fast-connection-naver-product-lookup-one-time-transition-recovery-view.service';
+import { buildTmsFastConnectionNaverApiSecretEnvAccessSeparateApprovalRequestPacketView } from '@/src/services/tms-fast-connection-naver-api-secret-env-access-separate-approval-request-packet-view.service';
 
 
 
@@ -1724,6 +1725,10 @@ export async function GET(
       buildTmsFastConnectionNaverProductLookupOneTimeTransitionRecoveryView(
         _tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestUserApprovalPhraseActualInputSeparateApprovalBoundaryView
       );
+    const _tmsFastConnectionNaverApiSecretEnvAccessSeparateApprovalRequestPacketView =
+      buildTmsFastConnectionNaverApiSecretEnvAccessSeparateApprovalRequestPacketView(
+        _tmsFastConnectionNaverProductLookupOneTimeTransitionRecoveryView
+      );
 
     const responseJob = {
       id: job.id,
@@ -2961,6 +2966,8 @@ export async function GET(
         _tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestUserApprovalPhraseActualInputSeparateApprovalBoundaryView,
       tmsFastConnectionNaverProductLookupOneTimeTransitionRecoveryView:
         _tmsFastConnectionNaverProductLookupOneTimeTransitionRecoveryView,
+      tmsFastConnectionNaverApiSecretEnvAccessSeparateApprovalRequestPacketView:
+        _tmsFastConnectionNaverApiSecretEnvAccessSeparateApprovalRequestPacketView,
     };
     return NextResponse.json({ ok: true, job: responseJob });
   } catch (error: unknown) {
