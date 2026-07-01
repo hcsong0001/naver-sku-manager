@@ -497,6 +497,7 @@ type DraftBatchJob = {
   tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestSubmissionReadinessReviewView?: any;
   tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestSubmissionReadinessOutcomeCertificationView?: any;
   tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestSubmissionLockReviewView?: any;
+  tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestSubmissionLockOutcomeCertificationView?: any;
   naverAuthTokenFirstTestSafetyBoundary?: {
     ok: boolean;
     readyForExplicitTokenTestApproval: boolean;
@@ -52999,6 +53000,101 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             {c378.nextTaskApprovalPhrase && (
               <p className="mt-1 text-xs text-gray-500">
                 {c378.nextTaskApprovalPhrase}
+              </p>
+            )}
+          </div>
+        );
+      })()}
+
+      {/* ── Task 379: Read-Only Approval Request Submission Lock Outcome Certification ── */}
+      {job.tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestSubmissionLockOutcomeCertificationView && (() => {
+        const c379 = job.tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestSubmissionLockOutcomeCertificationView as any;
+        const groups379 = [
+          { key: 'approvalRequestSubmissionLockOutcomeCertificationReadinessItems', label: 'Approval Request Submission Lock Outcome Certification Readiness' },
+          { key: 'approvalRequestSubmissionLockReviewOutcomeCertificationItems', label: 'Approval Request Submission Lock Review Outcome Certification' },
+          { key: 'approvalRequestSubmissionReadinessOutcomeCertificationReferenceItems', label: 'Approval Request Submission Readiness Outcome Certification Reference' },
+          { key: 'approvalRequestCreationLockOutcomeCertificationItems', label: 'Approval Request Creation Lock Outcome Certification' },
+          { key: 'approvalRequestReviewSubmissionLockOutcomeCertificationItems', label: 'Approval Request Review Submission Lock Outcome Certification' },
+          { key: 'approvalRequestSubmissionLockOutcomeCertificationItems', label: 'Approval Request Submission Lock Outcome Certification' },
+          { key: 'finalApprovalSubmissionLockOutcomeCertificationItems', label: 'Final Approval Submission Lock Outcome Certification' },
+          { key: 'finalApprovalGrantLockOutcomeCertificationItems', label: 'Final Approval Grant Lock Outcome Certification' },
+          { key: 'deploymentApprovalLockOutcomeCertificationItems', label: 'Deployment Approval Lock Outcome Certification' },
+          { key: 'deploymentExecutionLockOutcomeCertificationItems', label: 'Deployment Execution Lock Outcome Certification' },
+          { key: 'operatingTransitionLockOutcomeCertificationItems', label: 'Operating Transition Lock Outcome Certification' },
+          { key: 'infrastructureDomainDnsHttpsLockOutcomeCertificationItems', label: 'Infrastructure Domain DNS HTTPS Lock Outcome Certification' },
+          { key: 'operatingDbRuntimeWorkerQueueAdapterLockOutcomeCertificationItems', label: 'Operating DB Runtime Worker Queue Adapter Lock Outcome Certification' },
+          { key: 'apiSecretUiActionPostLockOutcomeCertificationItems', label: 'API Secret UI Action Post Lock Outcome Certification' },
+        ];
+        return (
+          <div key="task379-submission-lock-outcome-certification" className="mb-6 rounded-lg border border-teal-300 bg-teal-50 p-4">
+            <h3 className="mb-2 text-sm font-bold text-teal-800">
+              Task 379 - 운영 배포 최종 승인 제출 Approval Request Submission Lock 결과 인증
+            </h3>
+            <div className="mb-2 flex flex-wrap gap-2">
+              <span className="rounded bg-teal-100 px-2 py-0.5 text-xs font-medium text-teal-700">
+                상태: {c379.operatingDeploymentFinalApprovalSubmissionApprovalRequestSubmissionLockOutcomeCertificationStatus}
+              </span>
+              <span className="rounded bg-teal-100 px-2 py-0.5 text-xs font-medium text-teal-700">
+                결정: {c379.recommendedOutcomeCertificationDecision}
+              </span>
+              <span className="rounded bg-teal-100 px-2 py-0.5 text-xs font-medium text-teal-700">
+                {c379.recommendedOutcomeCertificationDecisionLabel}
+              </span>
+            </div>
+            <div className="mb-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {(c379.outcomeCertificationSummaryCards ?? []).map((card: { label: string; value: number }) => (
+                <div key={card.label} className="rounded bg-white p-2 text-center shadow-sm">
+                  <div className="text-lg font-bold text-teal-700">{card.value}</div>
+                  <div className="text-xs text-gray-500">{card.label}</div>
+                </div>
+              ))}
+            </div>
+            <div className="mb-2 grid grid-cols-1 gap-1 sm:grid-cols-2">
+              {groups379.map((g) => (
+                <div key={g.key} className="flex items-center justify-between rounded bg-white px-2 py-1 text-xs shadow-sm">
+                  <span className="text-gray-600">{g.label}</span>
+                  <span className="font-medium text-teal-700">{(c379[g.key] ?? []).length}건</span>
+                </div>
+              ))}
+            </div>
+            <div className="mb-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-teal-700">추천 다음 단계</div>
+                <div className="text-gray-600 break-all">{c379.recommendedNextStep}</div>
+              </div>
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-teal-700">승인 모드</div>
+                <div className="text-gray-600">{c379.recommendedApprovalMode}</div>
+              </div>
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-teal-700">실행 모드</div>
+                <div className="text-gray-600">{c379.recommendedExecutionMode}</div>
+              </div>
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-teal-700">배포 모드</div>
+                <div className="text-gray-600">{c379.recommendedDeploymentMode}</div>
+              </div>
+            </div>
+            <div className="mb-2 rounded bg-white p-2 text-xs shadow-sm">
+              <div className="font-semibold text-teal-700">안전 모드</div>
+              <div className="text-gray-600">{c379.recommendedSafetyMode}</div>
+            </div>
+            <div className="rounded bg-teal-100 p-2 text-xs text-teal-800">
+              <div className="font-semibold mb-1">안전 금지선 확인</div>
+              <div>실제 승인 요청 생성 없음: {String(c379.approvalRequestStillNotCreated)}</div>
+              <div>Submission Lock 결과 인증이 실제 제출로 해석되지 않음: {String(c379.submissionLockOutcomeCertificationNotInterpretedAsSubmission)}</div>
+              <div>Submission Lock 결과 인증 아직 미제출: {String(c379.submissionLockOutcomeCertificationStillNotSubmitted)}</div>
+              <div>최종 승인 제출 아직 미수행: {String(c379.finalApprovalSubmissionStillNotPerformed)}</div>
+              <div>실제 Naver API 호출: {String(c379.actualNaverApiCall)}</div>
+              <div>실제 DB write: {String(c379.actualDbWrite)}</div>
+              <div>실제 배포 승인: {String(c379.actualDeploymentApproval)}</div>
+              <div>실제 배포 실행: {String(c379.actualDeploymentExecution)}</div>
+              <div>실제 운영 전환: {String(c379.actualOperatingTransition)}</div>
+              <div>실행 버튼/POST API/submit action 추가: {String(c379.actualExecutionButtonAdded || c379.actualPostApiAdded || c379.actualSubmitActionAdded)}</div>
+            </div>
+            {c379.nextTaskApprovalPhrase && (
+              <p className="mt-1 text-xs text-gray-500">
+                {c379.nextTaskApprovalPhrase}
               </p>
             )}
           </div>
