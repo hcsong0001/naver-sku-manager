@@ -357,6 +357,7 @@ import { buildTmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalReque
 import { buildTmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestPacketFinalReviewView } from '@/src/services/tms-read-only-operating-deployment-final-approval-submission-approval-request-packet-final-review-view.service';
 import { buildTmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestPacketFinalReviewOutcomeCertificationView } from '@/src/services/tms-read-only-operating-deployment-final-approval-submission-approval-request-packet-final-review-outcome-certification-view.service';
 import { buildTmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestSubmissionReadinessReviewView } from '@/src/services/tms-read-only-operating-deployment-final-approval-submission-approval-request-submission-readiness-review-view.service';
+import { buildTmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestSubmissionReadinessOutcomeCertificationView } from '@/src/services/tms-read-only-operating-deployment-final-approval-submission-approval-request-submission-readiness-outcome-certification-view.service';
 
 
 
@@ -1563,6 +1564,11 @@ export async function GET(
         _tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestPacketFinalReviewOutcomeCertificationView
       );
 
+    const _tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestSubmissionReadinessOutcomeCertificationView =
+      buildTmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestSubmissionReadinessOutcomeCertificationView(
+        _tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestSubmissionReadinessReviewView
+      );
+
     const responseJob = {
       id: job.id,
       status: job.status,
@@ -2743,6 +2749,8 @@ export async function GET(
         _tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestPacketFinalReviewOutcomeCertificationView,
       tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestSubmissionReadinessReviewView:
         _tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestSubmissionReadinessReviewView,
+      tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestSubmissionReadinessOutcomeCertificationView:
+        _tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestSubmissionReadinessOutcomeCertificationView,
     };
     return NextResponse.json({ ok: true, job: responseJob });
   } catch (error: unknown) {

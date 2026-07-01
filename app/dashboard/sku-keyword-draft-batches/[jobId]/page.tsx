@@ -495,6 +495,7 @@ type DraftBatchJob = {
   tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestPacketFinalReviewView?: any;
   tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestPacketFinalReviewOutcomeCertificationView?: any;
   tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestSubmissionReadinessReviewView?: any;
+  tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestSubmissionReadinessOutcomeCertificationView?: any;
   naverAuthTokenFirstTestSafetyBoundary?: {
     ok: boolean;
     readyForExplicitTokenTestApproval: boolean;
@@ -52801,6 +52802,104 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
             {c376.nextTaskApprovalPhrase && (
               <p className="mt-1 text-xs text-gray-500">
                 {c376.nextTaskApprovalPhrase}
+              </p>
+            )}
+          </div>
+        );
+      })()}
+
+      {/* ── Task 377: Read-Only Approval Request Submission Readiness Outcome Certification ── */}
+      {job.tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestSubmissionReadinessOutcomeCertificationView && (() => {
+        const c377 = job.tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestSubmissionReadinessOutcomeCertificationView as any;
+        const groups377 = [
+          { key: 'approvalRequestSubmissionReadinessOutcomeCertificationReadinessItems', label: 'Approval Request Submission Readiness Outcome Certification Readiness' },
+          { key: 'approvalRequestPacketFinalReviewOutcomeCertificationReferenceItems', label: 'Approval Request Packet Final Review Outcome Certification Reference' },
+          { key: 'approvalRequestSubmissionScopeOutcomeCertificationItems', label: 'Approval Request Submission Scope Outcome Certification' },
+          { key: 'finalApprovalSubmissionScopeOutcomeCertificationItems', label: 'Final Approval Submission Scope Outcome Certification' },
+          { key: 'finalApprovalGrantScopeOutcomeCertificationItems', label: 'Final Approval Grant Scope Outcome Certification' },
+          { key: 'deploymentApprovalScopeOutcomeCertificationItems', label: 'Deployment Approval Scope Outcome Certification' },
+          { key: 'deploymentExecutionScopeOutcomeCertificationItems', label: 'Deployment Execution Scope Outcome Certification' },
+          { key: 'operatingTransitionScopeOutcomeCertificationItems', label: 'Operating Transition Scope Outcome Certification' },
+          { key: 'infrastructureSubmissionBoundaryOutcomeCertificationItems', label: 'Infrastructure Submission Boundary Outcome Certification' },
+          { key: 'domainDnsHttpsSubmissionBoundaryOutcomeCertificationItems', label: 'Domain DNS HTTPS Submission Boundary Outcome Certification' },
+          { key: 'operatingDbSubmissionBoundaryOutcomeCertificationItems', label: 'Operating DB Submission Boundary Outcome Certification' },
+          { key: 'runtimeWorkerQueueAdapterSubmissionBoundaryOutcomeCertificationItems', label: 'Runtime Worker Queue Adapter Submission Boundary Outcome Certification' },
+          { key: 'apiSecretRawResponseSubmissionBoundaryOutcomeCertificationItems', label: 'API Secret Raw Response Submission Boundary Outcome Certification' },
+          { key: 'uiActionPostSubmitSubmissionBoundaryOutcomeCertificationItems', label: 'UI Action Post Submit Submission Boundary Outcome Certification' },
+        ];
+        return (
+          <div key="task377-submission-readiness-outcome-certification" className="mb-6 rounded-lg border border-blue-300 bg-blue-50 p-4">
+            <h3 className="mb-2 text-sm font-bold text-blue-800">
+              Task 377 - 운영 배포 최종 승인 제출 Approval Request Submission Readiness 결과 인증
+            </h3>
+            <div className="mb-2 flex flex-wrap gap-2">
+              <span className="rounded bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700">
+                상태: {c377.operatingDeploymentFinalApprovalSubmissionApprovalRequestSubmissionReadinessOutcomeCertificationStatus}
+              </span>
+              <span className="rounded bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700">
+                결정: {c377.recommendedOutcomeCertificationDecision}
+              </span>
+              <span className="rounded bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700">
+                {c377.recommendedOutcomeCertificationDecisionLabel}
+              </span>
+            </div>
+            <div className="mb-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {(c377.outcomeCertificationSummaryCards ?? []).map((card: { label: string; value: number }) => (
+                <div key={card.label} className="rounded bg-white p-2 text-center shadow-sm">
+                  <div className="text-lg font-bold text-blue-700">{card.value}</div>
+                  <div className="text-xs text-gray-500">{card.label}</div>
+                </div>
+              ))}
+            </div>
+            <div className="mb-2">
+              <div className="mb-1 text-xs font-semibold text-blue-700">14개 Submission Readiness Outcome Certification 그룹</div>
+              <div className="grid grid-cols-1 gap-1 sm:grid-cols-2">
+                {groups377.map((g) => (
+                  <div key={g.key} className="flex items-center justify-between rounded bg-white px-2 py-1 text-xs shadow-sm">
+                    <span className="text-gray-600">{g.label}</span>
+                    <span className="font-medium text-blue-700">{(c377[g.key] ?? []).length}건</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="mb-2 grid grid-cols-2 gap-2 sm:grid-cols-4 text-xs">
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-blue-700">추천 다음 단계</div>
+                <div className="text-gray-600 break-all">{c377.recommendedNextStep}</div>
+              </div>
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-blue-700">승인 모드</div>
+                <div className="text-gray-600">{c377.recommendedApprovalMode}</div>
+              </div>
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-blue-700">실행 모드</div>
+                <div className="text-gray-600">{c377.recommendedExecutionMode}</div>
+              </div>
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-blue-700">배포 모드</div>
+                <div className="text-gray-600">{c377.recommendedDeploymentMode}</div>
+              </div>
+            </div>
+            <div className="mb-2 rounded bg-white p-2 text-xs shadow-sm">
+              <div className="font-semibold text-blue-700">안전 모드</div>
+              <div className="text-gray-600">{c377.recommendedSafetyMode}</div>
+            </div>
+            <div className="rounded bg-blue-100 p-2 text-xs text-blue-800">
+              <div className="font-semibold mb-1">안전 금지선 확인</div>
+              <div>실제 승인 요청 생성 없음: {String(c377.approvalRequestStillNotCreated)}</div>
+              <div>Submission Readiness 결과 인증이 실제 제출로 해석되지 않음: {String(c377.submissionReadinessOutcomeCertificationNotInterpretedAsSubmission)}</div>
+              <div>Submission Readiness 결과 인증 아직 미제출: {String(c377.submissionReadinessOutcomeCertificationStillNotSubmitted)}</div>
+              <div>최종 승인 제출 아직 미수행: {String(c377.finalApprovalSubmissionStillNotPerformed)}</div>
+              <div>실제 Naver API 호출: {String(c377.actualNaverApiCall)}</div>
+              <div>실제 DB write: {String(c377.actualDbWrite)}</div>
+              <div>실제 배포 승인: {String(c377.actualDeploymentApproval)}</div>
+              <div>실제 배포 실행: {String(c377.actualDeploymentExecution)}</div>
+              <div>실제 운영 전환: {String(c377.actualOperatingTransition)}</div>
+              <div>실행 버튼/POST API/submit action 추가: {String(c377.actualExecutionButtonAdded || c377.actualPostApiAdded || c377.actualSubmitActionAdded)}</div>
+            </div>
+            {c377.nextTaskApprovalPhrase && (
+              <p className="mt-1 text-xs text-gray-500">
+                {c377.nextTaskApprovalPhrase}
               </p>
             )}
           </div>
