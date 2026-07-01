@@ -501,6 +501,7 @@ type DraftBatchJob = {
   tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestFinalSubmissionBoundaryReviewView?: any;
   tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestFinalSubmissionBoundaryOutcomeCertificationView?: any;
   tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestFinalSubmissionLockReviewView?: any;
+  tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestFinalSubmissionLockOutcomeCertificationView?: any;
   naverAuthTokenFirstTestSafetyBoundary?: {
     ok: boolean;
     readyForExplicitTokenTestApproval: boolean;
@@ -53378,6 +53379,99 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div>실제 Naver API/DB write 없음: {String(c382.actualNaverApiCall || c382.actualDbWrite)}</div>
               <div>실제 Runtime/Worker/Queue/Adapter 없음: {String(c382.actualRuntimeConfiguration || c382.actualWorkerRun || c382.actualQueueEnqueue || c382.actualAdapterConnection)}</div>
               <div>실행 버튼/submit action/POST API 추가 없음: {String(c382.actualExecutionButtonAdded || c382.actualSubmitActionAdded || c382.actualPostApiAdded)}</div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 383: Read-Only Final Submission Lock Outcome Certification ── */}
+      {job.tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestFinalSubmissionLockOutcomeCertificationView && (() => {
+        const c383 = job.tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestFinalSubmissionLockOutcomeCertificationView as any;
+        const groups383 = [
+          { key: 'finalSubmissionLockOutcomeCertificationReadinessItems', label: '최종 제출 Lock 결과 인증 준비도' },
+          { key: 'finalSubmissionLockReviewOutcomeCertificationItems', label: '최종 제출 Lock 검토 결과 인증' },
+          { key: 'finalSubmissionBoundaryOutcomeCertificationReferenceLockOutcomeCertificationItems', label: '최종 제출 경계 결과 인증 참조 Lock 결과 인증' },
+          { key: 'approvalRequestCreationFinalLockOutcomeCertificationItems', label: '승인 요청 생성 최종 Lock 결과 인증' },
+          { key: 'approvalRequestReviewSubmissionFinalLockOutcomeCertificationItems', label: '승인 요청 검토 제출 최종 Lock 결과 인증' },
+          { key: 'approvalRequestSubmissionFinalLockOutcomeCertificationItems', label: '승인 요청 제출 최종 Lock 결과 인증' },
+          { key: 'finalApprovalSubmissionFinalLockOutcomeCertificationItems', label: '최종 승인 제출 최종 Lock 결과 인증' },
+          { key: 'finalApprovalGrantFinalLockOutcomeCertificationItems', label: '최종 승인 부여 최종 Lock 결과 인증' },
+          { key: 'deploymentApprovalFinalLockOutcomeCertificationItems', label: '배포 승인 최종 Lock 결과 인증' },
+          { key: 'deploymentExecutionFinalLockOutcomeCertificationItems', label: '배포 실행 최종 Lock 결과 인증' },
+          { key: 'operatingTransitionFinalLockOutcomeCertificationItems', label: '운영 전환 최종 Lock 결과 인증' },
+          { key: 'infrastructureDomainDnsHttpsFinalLockOutcomeCertificationItems', label: '인프라/도메인/DNS/HTTPS 최종 Lock 결과 인증' },
+          { key: 'operatingDbRuntimeWorkerQueueAdapterFinalLockOutcomeCertificationItems', label: '운영 DB/Runtime/Worker/Queue/Adapter 최종 Lock 결과 인증' },
+          { key: 'apiSecretUiActionPostFinalLockOutcomeCertificationItems', label: 'API/Secret/UI Action/POST 최종 Lock 결과 인증' },
+        ];
+        return (
+          <div key="task383-final-submission-lock-outcome-certification" className="mb-6 rounded-lg border border-fuchsia-300 bg-fuchsia-50 p-4">
+            <h3 className="mb-2 text-sm font-bold text-fuchsia-800">
+              Task 383 - 운영 배포 최종 승인 제출 Approval Request Final Submission Lock 결과 인증
+            </h3>
+            <p className="mb-2 text-xs text-fuchsia-900">
+              이 패널은 최종 제출 Lock 검토 결과를 read-only로 인증하는 화면이며, 실제 승인 요청 생성/제출/최종 승인 제출 작업이 아닙니다.
+            </p>
+            <div className="mb-2 flex flex-wrap gap-2">
+              <span className="rounded bg-fuchsia-100 px-2 py-0.5 text-xs font-medium text-fuchsia-700">
+                상태: {c383.operatingDeploymentFinalApprovalSubmissionApprovalRequestFinalSubmissionLockOutcomeCertificationStatus}
+              </span>
+              <span className="rounded bg-fuchsia-100 px-2 py-0.5 text-xs font-medium text-fuchsia-700">
+                결정값: {c383.recommendedOutcomeCertificationDecision}
+              </span>
+              <span className="rounded bg-fuchsia-100 px-2 py-0.5 text-xs font-medium text-fuchsia-700">
+                {c383.recommendedOutcomeCertificationDecisionLabel}
+              </span>
+            </div>
+            <div className="mb-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {(c383.outcomeCertificationSummaryCards ?? []).map((card: { label: string; value: number }) => (
+                <div key={card.label} className="rounded bg-white p-2 text-center shadow-sm">
+                  <div className="text-lg font-bold text-fuchsia-700">{card.value}</div>
+                  <div className="text-xs text-gray-500">{card.label}</div>
+                </div>
+              ))}
+            </div>
+            <div className="mb-2 grid grid-cols-1 gap-1 sm:grid-cols-2">
+              {groups383.map((g) => (
+                <div key={g.key} className="flex items-center justify-between rounded bg-white px-2 py-1 text-xs shadow-sm">
+                  <span className="text-gray-600">{g.label}</span>
+                  <span className="font-medium text-fuchsia-700">{(c383[g.key] ?? []).length}건</span>
+                </div>
+              ))}
+            </div>
+            <div className="mb-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-fuchsia-700">추천 다음 단계</div>
+                <div className="text-gray-600 break-all">{c383.recommendedNextStep}</div>
+              </div>
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-fuchsia-700">승인 모드</div>
+                <div className="text-gray-600">{c383.recommendedApprovalMode}</div>
+              </div>
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-fuchsia-700">실행 모드</div>
+                <div className="text-gray-600">{c383.recommendedExecutionMode}</div>
+              </div>
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-fuchsia-700">배포 모드</div>
+                <div className="text-gray-600">{c383.recommendedDeploymentMode}</div>
+              </div>
+            </div>
+            <div className="mb-2 rounded bg-white p-2 text-xs shadow-sm">
+              <div className="font-semibold text-fuchsia-700">안전 모드</div>
+              <div className="text-gray-600">{c383.recommendedSafetyMode}</div>
+            </div>
+            <div className="rounded bg-fuchsia-100 p-2 text-xs text-fuchsia-900">
+              <div className="mb-1 font-semibold">안전 금지선 확인</div>
+              <div>실제 승인 요청 생성 없음: {String(c383.actualApprovalRequestCreated)}</div>
+              <div>실제 승인 요청 검토 제출 없음: {String(c383.actualApprovalRequestReviewedAsSubmission)}</div>
+              <div>실제 승인 요청 제출 없음: {String(c383.actualApprovalRequestSubmitted)}</div>
+              <div>Final Submission Lock 결과 인증이 실제 제출로 해석되지 않음: {String(c383.actualFinalSubmissionLockOutcomeCertificationSubmitted)}</div>
+              <div>실제 최종 승인 제출 없음: {String(c383.actualFinalApprovalSubmission)}</div>
+              <div>실제 최종 승인 부여 없음: {String(c383.actualFinalApprovalGrant)}</div>
+              <div>실제 배포 승인/실행 없음: {String(c383.actualDeploymentApproval || c383.actualDeploymentExecution)}</div>
+              <div>실제 Naver API/DB write 없음: {String(c383.actualNaverApiCall || c383.actualDbWrite)}</div>
+              <div>실제 Runtime/Worker/Queue/Adapter 없음: {String(c383.actualRuntimeConfiguration || c383.actualWorkerRun || c383.actualQueueEnqueue || c383.actualAdapterConnection)}</div>
+              <div>실행 버튼/submit action/POST API 추가 없음: {String(c383.actualExecutionButtonAdded || c383.actualSubmitActionAdded || c383.actualPostApiAdded)}</div>
             </div>
           </div>
         );
