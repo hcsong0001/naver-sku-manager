@@ -525,6 +525,7 @@ type DraftBatchJob = {
   tmsFastConnectionNaverProductLookupOneTimeTransitionRecoveryView?: any;
   tmsFastConnectionNaverApiSecretEnvAccessSeparateApprovalRequestPacketView?: any;
   tmsFastConnectionNaverApiEnvExistenceNoSecretPreflightView?: any;
+  tmsFastConnectionNaverProductLookupOneTimeLiveTestApprovalPacketView?: any;
   naverAuthTokenFirstTestSafetyBoundary?: {
     ok: boolean;
     readyForExplicitTokenTestApproval: boolean;
@@ -55924,6 +55925,116 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div>Worker 실행 / Queue enqueue / Adapter 연결 / Runtime 구성 없음: {String(c406.actualWorkerRun || c406.actualQueueEnqueue || c406.actualAdapterConnection || c406.actualRuntimeConfiguration)}</div>
               <div>POST API / 실행 버튼 / 승인 버튼 / submit action 추가 없음: {String(c406.actualPostApiAdded || c406.actualSubmitActionAdded || c406.actualExecutionButtonAdded || c406.actualApprovalButtonAdded)}</div>
               <div>실제 승인 수락 없음: {String(c406.actualApprovalAccepted)}</div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 407: Naver API 상품 조회 1회 Live Test 승인 Packet ── */}
+      {job.tmsFastConnectionNaverProductLookupOneTimeLiveTestApprovalPacketView && (() => {
+        const c407 = job.tmsFastConnectionNaverProductLookupOneTimeLiveTestApprovalPacketView as any;
+        const groups407 = [
+          { key: 'liveTestApprovalPacketReadinessItems', label: 'Live Test 승인 Packet 준비도' },
+          { key: 'task406NoSecretPreflightReferenceItems', label: 'Task 406 No-Secret Preflight 참조' },
+          { key: 'oneTimeProductLookupPurposeItems', label: '상품 조회 1회 테스트 목적' },
+          { key: 'oneTimeProductLookupTargetScopeItems', label: '상품 조회 1회 대상 범위' },
+          { key: 'liveTestApprovalPhraseGuidanceItems', label: 'Live Test 승인 문구 안내' },
+          { key: 'liveTestStillForbiddenActionsItems', label: 'Live Test 여전히 금지되는 작업' },
+          { key: 'noEnvSecretTokenApiCallGuardItems', label: 'env/secret/token/API 호출 없음' },
+          { key: 'nextFinalSafetyGateRoadmapItems', label: '다음 Final Safety Gate 로드맵' },
+        ];
+        return (
+          <div key="task407-fast-connection-naver-product-lookup-one-time-live-test-approval-packet" className="mb-6 rounded-lg border border-indigo-300 bg-indigo-50 p-4">
+            <h3 className="mb-2 text-sm font-bold text-indigo-800">
+              Task 407 - Naver API 상품 조회 1회 Live Test 승인 Packet
+            </h3>
+            <p className="mb-2 text-xs text-indigo-900">
+              {c407.liveTestScopeNotice}
+            </p>
+            <div className="mb-2 flex flex-wrap gap-2">
+              <span className="rounded bg-indigo-100 px-2 py-0.5 text-xs font-medium text-indigo-700">
+                상태: {c407.fastConnectionNaverProductLookupOneTimeLiveTestApprovalPacketStatus}
+              </span>
+              <span className="rounded bg-indigo-100 px-2 py-0.5 text-xs font-medium text-indigo-700">
+                결정값: {c407.recommendedLiveTestApprovalPacketDecision}
+              </span>
+              <span className="rounded bg-indigo-100 px-2 py-0.5 text-xs font-medium text-indigo-700">
+                {c407.recommendedLiveTestApprovalPacketDecisionLabel}
+              </span>
+            </div>
+            <div className="mb-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {(c407.liveTestApprovalPacketSummaryCards ?? []).map((card: { label: string; value: number }) => (
+                <div key={card.label} className="rounded bg-white p-2 text-center shadow-sm">
+                  <div className="text-lg font-bold text-indigo-700">{card.value}</div>
+                  <div className="text-xs text-gray-500">{card.label}</div>
+                </div>
+              ))}
+            </div>
+            <div className="mb-2 grid grid-cols-1 gap-1 sm:grid-cols-2">
+              {groups407.map((g) => (
+                <div key={g.key} className="flex items-center justify-between rounded bg-white px-2 py-1 text-xs shadow-sm">
+                  <span className="text-gray-600">{g.label}</span>
+                  <span className="font-medium text-indigo-700">{(c407[g.key] ?? []).length}건</span>
+                </div>
+              ))}
+            </div>
+            <div className="mb-2 rounded bg-white p-2 text-xs shadow-sm">
+              <div className="mb-1 font-semibold text-indigo-700">Live Test 승인 Packet 안내</div>
+              <div className="text-gray-600">{c407.liveTestApprovalPacketGuidance}</div>
+              <div className="mt-1 text-gray-600">최우선 목표: {c407.recommendedPrimaryGoal}</div>
+              <div className="text-gray-600">대상 API: {c407.targetApi}</div>
+              <div className="text-gray-600">대표 상품 후보: {c407.targetProductNo} ({c407.targetProductLabel})</div>
+              <div className="text-gray-600">최대 조회 호출 수: {c407.maxLookupCallCount}회</div>
+              <div className="text-gray-600">상품 수정 허용: {String(c407.productUpdateAllowed)}, 가격 변경 허용: {String(c407.priceChangeAllowed)}, 재고 변경 허용: {String(c407.stockChangeAllowed)}, DB write 허용: {String(c407.dbWriteAllowed)}</div>
+              <div className="mt-1 text-gray-600">승인 문구 예시: {c407.userApprovalPhraseExample}</div>
+              <div className="text-gray-600">{c407.userApprovalPhraseGuidance}</div>
+              <div className="text-gray-600">현재 화면에서 실제 승인 수락 없음: {String(c407.actualLiveTestApprovalAccepted || c407.actualApprovalAccepted)}</div>
+              <div className="text-gray-600">현재 화면에서 env/secret 접근 없음: {String(c407.actualEnvRead || c407.actualEnvWrite || c407.actualEnvFileOpen || c407.actualSecretAccess || c407.actualSecretExposure)}</div>
+              <div className="text-gray-600">현재 화면에서 token 사용 없음: {String(c407.actualTokenIssue || c407.actualTokenReissue || c407.actualTokenUse)}</div>
+              <div className="text-gray-600">현재 화면에서 실제 API 호출 없음: {String(c407.actualNaverApiCall || c407.actualProductLookupApiCall || c407.actualProductUpdateApiCall)}</div>
+              <div className="text-gray-600">현재 화면에서 POST/action/button 없음: {String(c407.actualPostApiAdded || c407.actualSubmitActionAdded || c407.actualExecutionButtonAdded || c407.actualApprovalButtonAdded)}</div>
+            </div>
+            <div className="mb-2 rounded bg-white p-2 text-xs shadow-sm">
+              <div className="mb-1 font-semibold text-indigo-700">Task 408~411 압축 로드맵</div>
+              {(c407.compressedFastConnectionRoadmap ?? []).map((r: { taskId: number; label: string }) => (
+                <div key={r.taskId} className="text-gray-600">{r.label}</div>
+              ))}
+            </div>
+            <div className="mb-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-indigo-700">추천 다음 단계</div>
+                <div className="break-all text-gray-600">{c407.recommendedNextStep}</div>
+              </div>
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-indigo-700">승인 모드</div>
+                <div className="text-gray-600">{c407.recommendedApprovalMode}</div>
+              </div>
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-indigo-700">실행 모드</div>
+                <div className="text-gray-600">{c407.recommendedExecutionMode}</div>
+              </div>
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-indigo-700">배포 모드</div>
+                <div className="text-gray-600">{c407.recommendedDeploymentMode}</div>
+              </div>
+            </div>
+            <div className="mb-2 rounded bg-white p-2 text-xs shadow-sm">
+              <div className="font-semibold text-indigo-700">안전 모드</div>
+              <div className="text-gray-600">{c407.recommendedSafetyMode}</div>
+            </div>
+            <div className="rounded bg-indigo-100 p-2 text-xs text-indigo-900">
+              <div className="mb-1 font-semibold">안전 금지선 확인</div>
+              <div>실제 Naver API 호출/상품 조회 API/상품 수정 API 없음: {String(c407.actualNaverApiCall || c407.actualProductLookupApiCall || c407.actualProductUpdateApiCall || c407.actualProductLookupExecuted || c407.actualProductUpdateExecuted)}</div>
+              <div>Token 발급/재발급/사용 없음: {String(c407.actualTokenIssue || c407.actualTokenReissue || c407.actualTokenUse)}</div>
+              <div>.env/.env.local 열람/수정 없음: {String(c407.actualEnvRead || c407.actualEnvWrite || c407.actualEnvFileOpen)}</div>
+              <div>process.env 실제 조회 없음: {String(c407.actualProcessEnvRead)}</div>
+              <div>secret 노출 없음: {String(c407.actualSecretAccess || c407.actualSecretExposure)}</div>
+              <div>authorization/header/signature 노출 없음: {String(c407.actualAuthorizationHeaderExposure || c407.actualSignatureExposure)}</div>
+              <div>raw API response 노출/저장 없음: {String(c407.actualRawApiResponseExposure || c407.actualRawApiResponseStored)}</div>
+              <div>DB write / 가격 변경 / 재고 변경 없음: {String(c407.actualDbWrite || c407.actualPriceChange || c407.actualStockChange)}</div>
+              <div>Worker 실행 / Queue enqueue / Adapter 연결 / Runtime 구성 없음: {String(c407.actualWorkerRun || c407.actualQueueEnqueue || c407.actualAdapterConnection || c407.actualRuntimeConfiguration)}</div>
+              <div>POST API / 실행 버튼 / 승인 버튼 / submit action 추가 없음: {String(c407.actualPostApiAdded || c407.actualSubmitActionAdded || c407.actualExecutionButtonAdded || c407.actualApprovalButtonAdded)}</div>
+              <div>실제 승인 수락 / Live Test 실행 없음: {String(c407.actualApprovalAccepted || c407.actualLiveTestApprovalAccepted || c407.actualLiveTestExecuted)}</div>
             </div>
           </div>
         );

@@ -387,6 +387,7 @@ import { buildTmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalReque
 import { buildTmsFastConnectionNaverProductLookupOneTimeTransitionRecoveryView } from '@/src/services/tms-fast-connection-naver-product-lookup-one-time-transition-recovery-view.service';
 import { buildTmsFastConnectionNaverApiSecretEnvAccessSeparateApprovalRequestPacketView } from '@/src/services/tms-fast-connection-naver-api-secret-env-access-separate-approval-request-packet-view.service';
 import { buildTmsFastConnectionNaverApiEnvExistenceNoSecretPreflightView } from '@/src/services/tms-fast-connection-naver-api-env-existence-no-secret-preflight-view.service';
+import { buildTmsFastConnectionNaverProductLookupOneTimeLiveTestApprovalPacketView } from '@/src/services/tms-fast-connection-naver-product-lookup-one-time-live-test-approval-packet-view.service';
 
 
 
@@ -1734,6 +1735,10 @@ export async function GET(
       buildTmsFastConnectionNaverApiEnvExistenceNoSecretPreflightView(
         _tmsFastConnectionNaverApiSecretEnvAccessSeparateApprovalRequestPacketView
       );
+    const _tmsFastConnectionNaverProductLookupOneTimeLiveTestApprovalPacketView =
+      buildTmsFastConnectionNaverProductLookupOneTimeLiveTestApprovalPacketView(
+        _tmsFastConnectionNaverApiEnvExistenceNoSecretPreflightView
+      );
 
     const responseJob = {
       id: job.id,
@@ -2975,6 +2980,8 @@ export async function GET(
         _tmsFastConnectionNaverApiSecretEnvAccessSeparateApprovalRequestPacketView,
       tmsFastConnectionNaverApiEnvExistenceNoSecretPreflightView:
         _tmsFastConnectionNaverApiEnvExistenceNoSecretPreflightView,
+      tmsFastConnectionNaverProductLookupOneTimeLiveTestApprovalPacketView:
+        _tmsFastConnectionNaverProductLookupOneTimeLiveTestApprovalPacketView,
     };
     return NextResponse.json({ ok: true, job: responseJob });
   } catch (error: unknown) {
