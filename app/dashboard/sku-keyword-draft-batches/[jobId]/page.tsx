@@ -522,6 +522,7 @@ type DraftBatchJob = {
   tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestUserApprovalPhraseFinalPreInputLockReviewView?: any;
   tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestUserApprovalPhraseFinalPreInputLockOutcomeCertificationView?: any;
   tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestUserApprovalPhraseActualInputSeparateApprovalBoundaryView?: any;
+  tmsFastConnectionNaverProductLookupOneTimeTransitionRecoveryView?: any;
   naverAuthTokenFirstTestSafetyBoundary?: {
     ok: boolean;
     readyForExplicitTokenTestApproval: boolean;
@@ -55576,6 +55577,117 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div>실제 env 읽기/쓰기 없음: {String(c403.actualEnvReadOrWrite)}</div>
               <div>실제 Runtime/Worker/Queue/Adapter 없음: {String(c403.actualRuntimeConfiguration || c403.actualWorkerRun || c403.actualQueueEnqueue || c403.actualAdapterConnection)}</div>
               <div>실행 버튼/승인 버튼/승인 문구 입력창/submit action/POST API 추가 없음: {String(c403.actualExecutionButtonAdded || c403.actualApprovalButtonAdded || c403.actualUserApprovalPhraseInputAddedToUi || c403.actualSubmitActionAdded || c403.actualPostApiAdded)}</div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 404: Naver API 1회 상품 조회 Fast Connection Mode 전환 복구 ── */}
+      {job.tmsFastConnectionNaverProductLookupOneTimeTransitionRecoveryView && (() => {
+        const c404 = job.tmsFastConnectionNaverProductLookupOneTimeTransitionRecoveryView as any;
+        const groups404 = [
+          { key: 'fastConnectionTransitionRecoveryReadinessItems', label: 'Fast Connection Transition Recovery 준비도' },
+          { key: 'task403LegacyBoundaryReferenceSummaryItems', label: 'Task 403 Legacy Boundary 참조 요약' },
+          { key: 'fastConnectionModeEnabledFromTask404Items', label: 'Fast Connection Mode 활성화 (Task 404부터)' },
+          { key: 'naverProductLookupOneTimePrimaryGoalItems', label: 'Naver 상품 조회 1회 최우선 목표' },
+          { key: 'secretEnvAccessRequiresSeparateApprovalItems', label: 'Secret/Env 접근 별도 승인 필요' },
+          { key: 'actualApiCallRequiresSeparateApprovalItems', label: '실제 API 호출 별도 승인 필요' },
+          { key: 'representativeProductLookupCandidateItems', label: '대표 검증 상품 후보' },
+          { key: 'compressedFastConnectionRoadmapItems', label: '압축 로드맵' },
+        ];
+        return (
+          <div key="task404-fast-connection-naver-product-lookup-one-time-transition-recovery" className="mb-6 rounded-lg border border-emerald-300 bg-emerald-50 p-4">
+            <h3 className="mb-2 text-sm font-bold text-emerald-800">
+              Task 404 - Naver API 1회 상품 조회 Fast Connection Mode 전환 복구
+            </h3>
+            <p className="mb-2 text-xs text-emerald-900">
+              Task 403까지 기존 User Approval Phrase Actual Input Separate Approval Boundary 흐름이 완료되었습니다.
+              Task 404부터는 불필요한 Lock/Review/Outcome Certification 반복을 중단하고 Fast Connection Mode로 전환합니다.
+              이 패널은 read-only이며 실제 API 호출, secret/env 접근, token 사용, DB write, POST API, 실행/승인 버튼 추가를 수행하지 않습니다.
+            </p>
+            <div className="mb-2 flex flex-wrap gap-2">
+              <span className="rounded bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">
+                상태: {c404.fastConnectionNaverProductLookupOneTimeTransitionRecoveryStatus}
+              </span>
+              <span className="rounded bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">
+                결정값: {c404.recommendedFastConnectionDecision}
+              </span>
+              <span className="rounded bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">
+                {c404.recommendedFastConnectionDecisionLabel}
+              </span>
+            </div>
+            <div className="mb-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {(c404.fastConnectionTransitionRecoverySummaryCards ?? []).map((card: { label: string; value: number }) => (
+                <div key={card.label} className="rounded bg-white p-2 text-center shadow-sm">
+                  <div className="text-lg font-bold text-emerald-700">{card.value}</div>
+                  <div className="text-xs text-gray-500">{card.label}</div>
+                </div>
+              ))}
+            </div>
+            <div className="mb-2 grid grid-cols-1 gap-1 sm:grid-cols-2">
+              {groups404.map((g) => (
+                <div key={g.key} className="flex items-center justify-between rounded bg-white px-2 py-1 text-xs shadow-sm">
+                  <span className="text-gray-600">{g.label}</span>
+                  <span className="font-medium text-emerald-700">{(c404[g.key] ?? []).length}건</span>
+                </div>
+              ))}
+            </div>
+            <div className="mb-2 rounded bg-white p-2 text-xs shadow-sm">
+              <div className="mb-1 font-semibold text-emerald-700">Fast Connection Mode 전환 복구 안내</div>
+              <div className="text-gray-600">{c404.fastConnectionTransitionRecoveryGuidance}</div>
+              <div className="mt-1 text-gray-600">최우선 목표: {c404.recommendedPrimaryGoal}</div>
+              <div className="text-gray-600">대상 API: {c404.recommendedTargetApi}</div>
+              <div className="text-gray-600">대표 상품 후보: {c404.recommendedTargetProductNo} ({c404.recommendedTargetProductLabel})</div>
+              <div className="text-gray-600">Fast Connection Mode 활성화: {String(c404.fastConnectionModeEnabled)}</div>
+              <div className="text-gray-600">Task 403 Legacy 흐름에서 복구됨: {String(c404.fastConnectionModeRecoveredFromLegacyTask403)}</div>
+              <div className="text-gray-600">반복 Lock/Certification 흐름 중단: {String(c404.legacyApprovalPhraseBoundaryFlowStoppedAfterTask403)}</div>
+              <div className="text-gray-600">secret/env 접근 전 별도 승인 필요: {String(c404.recommendedApprovalMode === 'SEPARATE_USER_APPROVAL_REQUIRED_BEFORE_SECRET_OR_API_CALL')}</div>
+              <div className="text-gray-600">현재 화면에서 secret/env 접근 없음: {String(c404.actualEnvRead || c404.actualEnvWrite || c404.actualSecretAccess || c404.actualSecretExposure)}</div>
+              <div className="text-gray-600">현재 화면에서 token 사용 없음: {String(c404.actualTokenIssue || c404.actualTokenReissue || c404.actualTokenUse)}</div>
+              <div className="text-gray-600">현재 화면에서 실제 API 호출 없음: {String(c404.actualNaverApiCall || c404.actualProductLookupApiCall || c404.actualProductUpdateApiCall)}</div>
+              <div className="text-gray-600">현재 화면에서 DB write 없음: {String(c404.actualDbWrite)}</div>
+              <div className="text-gray-600">현재 화면에서 POST/action/button 없음: {String(c404.actualPostApiAdded || c404.actualSubmitActionAdded || c404.actualExecutionButtonAdded || c404.actualApprovalButtonAdded)}</div>
+              <div className="text-gray-600">상품 수정 API/가격 변경/재고 변경은 아직 범위 밖: {String(!c404.actualProductUpdateApiCall && !c404.actualPriceChange && !c404.actualStockChange)}</div>
+            </div>
+            <div className="mb-2 rounded bg-white p-2 text-xs shadow-sm">
+              <div className="mb-1 font-semibold text-emerald-700">Task 405~411 압축 로드맵</div>
+              {(c404.compressedFastConnectionRoadmap ?? []).map((r: { taskId: number; label: string }) => (
+                <div key={r.taskId} className="text-gray-600">{r.label}</div>
+              ))}
+            </div>
+            <div className="mb-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-emerald-700">추천 다음 단계</div>
+                <div className="break-all text-gray-600">{c404.recommendedNextStep}</div>
+              </div>
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-emerald-700">승인 모드</div>
+                <div className="text-gray-600">{c404.recommendedApprovalMode}</div>
+              </div>
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-emerald-700">실행 모드</div>
+                <div className="text-gray-600">{c404.recommendedExecutionMode}</div>
+              </div>
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-emerald-700">배포 모드</div>
+                <div className="text-gray-600">{c404.recommendedDeploymentMode}</div>
+              </div>
+            </div>
+            <div className="mb-2 rounded bg-white p-2 text-xs shadow-sm">
+              <div className="font-semibold text-emerald-700">안전 모드</div>
+              <div className="text-gray-600">{c404.recommendedSafetyMode}</div>
+            </div>
+            <div className="rounded bg-emerald-100 p-2 text-xs text-emerald-900">
+              <div className="mb-1 font-semibold">안전 금지선 확인</div>
+              <div>실제 Naver API 호출/상품 조회 API/상품 수정 API 없음: {String(c404.actualNaverApiCall || c404.actualProductLookupApiCall || c404.actualProductUpdateApiCall || c404.actualProductLookupExecuted || c404.actualProductUpdateExecuted)}</div>
+              <div>Token 발급/재발급/사용 없음: {String(c404.actualTokenIssue || c404.actualTokenReissue || c404.actualTokenUse)}</div>
+              <div>.env/.env.local 열람/수정 없음: {String(c404.actualEnvRead || c404.actualEnvWrite)}</div>
+              <div>secret 노출 없음: {String(c404.actualSecretAccess || c404.actualSecretExposure)}</div>
+              <div>raw API response 노출 없음: {String(c404.actualRawApiResponseExposure)}</div>
+              <div>DB write / 가격 변경 / 재고 변경 없음: {String(c404.actualDbWrite || c404.actualPriceChange || c404.actualStockChange)}</div>
+              <div>Worker 실행 / Queue enqueue / Adapter 연결 / Runtime 구성 없음: {String(c404.actualWorkerRun || c404.actualQueueEnqueue || c404.actualAdapterConnection || c404.actualRuntimeConfiguration)}</div>
+              <div>POST API / 실행 버튼 / 승인 버튼 / submit action 추가 없음: {String(c404.actualPostApiAdded || c404.actualSubmitActionAdded || c404.actualExecutionButtonAdded || c404.actualApprovalButtonAdded)}</div>
+              <div>실제 운영 전환 없음: {String(c404.actualOperatingTransition)}</div>
             </div>
           </div>
         );
