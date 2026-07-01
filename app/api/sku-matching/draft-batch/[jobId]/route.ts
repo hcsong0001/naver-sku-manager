@@ -374,6 +374,7 @@ import { buildTmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalReque
 import { buildTmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestExplicitApprovalRequestSubmissionBoundaryView } from '@/src/services/tms-read-only-operating-deployment-final-approval-submission-approval-request-explicit-approval-request-submission-boundary-view.service';
 import { buildTmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestExplicitApprovalRequestSubmissionBoundaryOutcomeCertificationView } from '@/src/services/tms-read-only-operating-deployment-final-approval-submission-approval-request-explicit-approval-request-submission-boundary-outcome-certification-view.service';
 import { buildTmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestExplicitApprovalRequestSubmissionLockReviewView } from '@/src/services/tms-read-only-operating-deployment-final-approval-submission-approval-request-explicit-approval-request-submission-lock-review-view.service';
+import { buildTmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestExplicitApprovalRequestSubmissionLockOutcomeCertificationView } from '@/src/services/tms-read-only-operating-deployment-final-approval-submission-approval-request-explicit-approval-request-submission-lock-outcome-certification-view.service';
 
 
 
@@ -1665,6 +1666,11 @@ export async function GET(
         _tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestExplicitApprovalRequestSubmissionBoundaryOutcomeCertificationView
       );
 
+    const _tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestExplicitApprovalRequestSubmissionLockOutcomeCertificationView =
+      buildTmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestExplicitApprovalRequestSubmissionLockOutcomeCertificationView(
+        _tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestExplicitApprovalRequestSubmissionLockReviewView
+      );
+
     const responseJob = {
       id: job.id,
       status: job.status,
@@ -2879,6 +2885,8 @@ export async function GET(
         _tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestExplicitApprovalRequestSubmissionBoundaryOutcomeCertificationView,
       tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestExplicitApprovalRequestSubmissionLockReviewView:
         _tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestExplicitApprovalRequestSubmissionLockReviewView,
+      tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestExplicitApprovalRequestSubmissionLockOutcomeCertificationView:
+        _tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestExplicitApprovalRequestSubmissionLockOutcomeCertificationView,
     };
     return NextResponse.json({ ok: true, job: responseJob });
   } catch (error: unknown) {
