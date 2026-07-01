@@ -506,6 +506,7 @@ type DraftBatchJob = {
   tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestSubmissionPreApprovalBoundaryOutcomeCertificationView?: any;
   tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestSubmissionPreApprovalLockReviewView?: any;
   tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestSubmissionPreApprovalLockOutcomeCertificationView?: any;
+  tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestExplicitApprovalRequestPacketView?: any;
   naverAuthTokenFirstTestSafetyBoundary?: {
     ok: boolean;
     readyForExplicitTokenTestApproval: boolean;
@@ -53848,6 +53849,120 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div>실제 Naver API/DB write 없음: {String(c387.actualNaverApiCall || c387.actualDbWrite)}</div>
               <div>실제 Runtime/Worker/Queue/Adapter 없음: {String(c387.actualRuntimeConfiguration || c387.actualWorkerRun || c387.actualQueueEnqueue || c387.actualAdapterConnection)}</div>
               <div>실행 버튼/submit action/POST API 추가 없음: {String(c387.actualExecutionButtonAdded || c387.actualSubmitActionAdded || c387.actualPostApiAdded)}</div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 388: Read-Only Explicit Approval Request Packet ── */}
+      {job.tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestExplicitApprovalRequestPacketView && (() => {
+        const c388 = job.tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestExplicitApprovalRequestPacketView as any;
+        const groups388 = [
+          { key: 'explicitApprovalRequestPacketReadinessItems', label: '명시 승인 요청 Packet 준비도' },
+          { key: 'preApprovalLockOutcomeCertificationReferencePacketItems', label: '사전 승인 Lock 결과 인증 참조 Packet' },
+          { key: 'approvalRequestScopePacketItems', label: '승인 요청 범위 Packet' },
+          { key: 'explicitUserApprovalPhrasePacketItems', label: '명시 승인 문구 Packet' },
+          { key: 'approvalRequestCreationNonExecutionPacketItems', label: '승인 요청 생성 비실행 Packet' },
+          { key: 'approvalRequestSubmissionNonExecutionPacketItems', label: '승인 요청 제출 비실행 Packet' },
+          { key: 'finalApprovalSubmissionNonExecutionPacketItems', label: '최종 승인 제출 비실행 Packet' },
+          { key: 'finalApprovalGrantNonExecutionPacketItems', label: '최종 승인 부여 비실행 Packet' },
+          { key: 'deploymentApprovalNonExecutionPacketItems', label: '배포 승인 비실행 Packet' },
+          { key: 'deploymentExecutionNonExecutionPacketItems', label: '배포 실행 비실행 Packet' },
+          { key: 'operatingTransitionNonExecutionPacketItems', label: '운영 전환 비실행 Packet' },
+          { key: 'infrastructureDomainDnsHttpsNonExecutionPacketItems', label: '인프라/도메인/DNS/HTTPS 비실행 Packet' },
+          { key: 'operatingDbRuntimeWorkerQueueAdapterNonExecutionPacketItems', label: '운영 DB/Runtime/Worker/Queue/Adapter 비실행 Packet' },
+          { key: 'apiSecretUiActionPostNonExecutionPacketItems', label: 'API/Secret/UI Action/POST 비실행 Packet' },
+        ];
+        return (
+          <div key="task388-explicit-approval-request-packet" className="mb-6 rounded-lg border border-yellow-300 bg-yellow-50 p-4">
+            <h3 className="mb-2 text-sm font-bold text-yellow-800">
+              Task 388 - 운영 배포 최종 승인 제출 Explicit Approval Request Packet
+            </h3>
+            <p className="mb-2 text-xs text-yellow-900">
+              이 패널은 이후 별도 승인 단계에서 사용자에게 보여줄 명시 승인 요청 패킷을 read-only로 구성하는 화면이며, 실제 승인 요청 생성/제출/수락/최종 승인 제출 작업이 아닙니다.
+            </p>
+            <div className="mb-2 flex flex-wrap gap-2">
+              <span className="rounded bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-700">
+                상태: {c388.operatingDeploymentFinalApprovalSubmissionApprovalRequestExplicitApprovalRequestPacketStatus}
+              </span>
+              <span className="rounded bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-700">
+                결정값: {c388.recommendedExplicitApprovalRequestPacketDecision}
+              </span>
+              <span className="rounded bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-700">
+                {c388.recommendedExplicitApprovalRequestPacketDecisionLabel}
+              </span>
+            </div>
+            <div className="mb-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {(c388.packetSummaryCards ?? []).map((card: { label: string; value: number }) => (
+                <div key={card.label} className="rounded bg-white p-2 text-center shadow-sm">
+                  <div className="text-lg font-bold text-yellow-700">{card.value}</div>
+                  <div className="text-xs text-gray-500">{card.label}</div>
+                </div>
+              ))}
+            </div>
+            <div className="mb-2 grid grid-cols-1 gap-1 sm:grid-cols-2">
+              {groups388.map((g) => (
+                <div key={g.key} className="flex items-center justify-between rounded bg-white px-2 py-1 text-xs shadow-sm">
+                  <span className="text-gray-600">{g.label}</span>
+                  <span className="font-medium text-yellow-700">{(c388[g.key] ?? []).length}건</span>
+                </div>
+              ))}
+            </div>
+            <div className="mb-2 rounded bg-white p-2 text-xs shadow-sm">
+              <div className="mb-1 font-semibold text-yellow-700">명시 승인 문구 안내</div>
+              <div className="text-gray-600">{c388.explicitApprovalPhraseGuidance}</div>
+              <div className="mt-2 rounded bg-yellow-50 px-2 py-1 text-yellow-900">
+                예시 문구: {c388.explicitApprovalPhraseExample}
+              </div>
+              <div className="mt-2 text-gray-600">
+                명시 승인 문구 필요 여부: {String(c388.explicitApprovalPhraseRequired)}
+              </div>
+              <div className="text-gray-600">
+                현재 화면에서 승인 문구 수락 여부: {String(c388.explicitApprovalPhraseAccepted)}
+              </div>
+              <div className="text-gray-600">
+                현재 화면에서 승인 문구 제출 여부: {String(c388.actualExplicitApprovalPhraseSubmitted)}
+              </div>
+              <div className="text-gray-600">
+                실제 승인 수락 여부: {String(c388.actualExplicitApprovalGranted)}
+              </div>
+            </div>
+            <div className="mb-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-yellow-700">추천 다음 단계</div>
+                <div className="text-gray-600 break-all">{c388.recommendedNextStep}</div>
+              </div>
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-yellow-700">승인 모드</div>
+                <div className="text-gray-600">{c388.recommendedApprovalMode}</div>
+              </div>
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-yellow-700">실행 모드</div>
+                <div className="text-gray-600">{c388.recommendedExecutionMode}</div>
+              </div>
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-yellow-700">배포 모드</div>
+                <div className="text-gray-600">{c388.recommendedDeploymentMode}</div>
+              </div>
+            </div>
+            <div className="mb-2 rounded bg-white p-2 text-xs shadow-sm">
+              <div className="font-semibold text-yellow-700">안전 모드</div>
+              <div className="text-gray-600">{c388.recommendedSafetyMode}</div>
+            </div>
+            <div className="rounded bg-yellow-100 p-2 text-xs text-yellow-900">
+              <div className="mb-1 font-semibold">안전 금지선 확인</div>
+              <div>실제 명시 승인 요청 생성 없음: {String(c388.actualExplicitApprovalRequestCreated)}</div>
+              <div>실제 명시 승인 요청 제출 없음: {String(c388.actualExplicitApprovalRequestSubmitted)}</div>
+              <div>실제 승인 요청 생성 없음: {String(c388.actualApprovalRequestCreated)}</div>
+              <div>실제 승인 요청 제출 없음: {String(c388.actualApprovalRequestSubmitted)}</div>
+              <div>실제 승인 문구 입력/제출/수락 없음: {String(c388.actualExplicitApprovalPhraseSubmitted || c388.actualExplicitApprovalGranted)}</div>
+              <div>Explicit Approval Request Packet이 실제 승인 또는 실제 제출로 해석되지 않음: {String(c388.actualExplicitApprovalRequestCreated || c388.actualExplicitApprovalRequestSubmitted || c388.actualExplicitApprovalGranted)}</div>
+              <div>실제 최종 승인 제출 없음: {String(c388.actualFinalApprovalSubmission)}</div>
+              <div>실제 최종 승인 부여 없음: {String(c388.actualFinalApprovalGrant)}</div>
+              <div>실제 배포 승인/실행 없음: {String(c388.actualDeploymentApproval || c388.actualDeploymentExecution)}</div>
+              <div>실제 Naver API/DB write 없음: {String(c388.actualNaverApiCall || c388.actualDbWrite)}</div>
+              <div>실제 Runtime/Worker/Queue/Adapter 없음: {String(c388.actualRuntimeConfiguration || c388.actualWorkerRun || c388.actualQueueEnqueue || c388.actualAdapterConnection)}</div>
+              <div>실행 버튼/submit action/POST API 추가 없음: {String(c388.actualExecutionButtonAdded || c388.actualSubmitActionAdded || c388.actualPostApiAdded)}</div>
             </div>
           </div>
         );
