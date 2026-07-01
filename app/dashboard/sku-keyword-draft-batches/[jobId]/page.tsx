@@ -520,6 +520,7 @@ type DraftBatchJob = {
   tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestUserApprovalPhraseExplicitInputBoundaryView?: any;
   tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestUserApprovalPhraseExplicitInputBoundaryOutcomeCertificationView?: any;
   tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestUserApprovalPhraseFinalPreInputLockReviewView?: any;
+  tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestUserApprovalPhraseFinalPreInputLockOutcomeCertificationView?: any;
   naverAuthTokenFirstTestSafetyBoundary?: {
     ok: boolean;
     readyForExplicitTokenTestApproval: boolean;
@@ -55357,6 +55358,113 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div>실제 env 읽기/쓰기 없음: {String(c401.actualEnvReadOrWrite)}</div>
               <div>실제 Runtime/Worker/Queue/Adapter 없음: {String(c401.actualRuntimeConfiguration || c401.actualWorkerRun || c401.actualQueueEnqueue || c401.actualAdapterConnection)}</div>
               <div>실행 버튼/승인 버튼/승인 문구 입력창/submit action/POST API 추가 없음: {String(c401.actualExecutionButtonAdded || c401.actualApprovalButtonAdded || c401.actualUserApprovalPhraseInputAddedToUi || c401.actualSubmitActionAdded || c401.actualPostApiAdded)}</div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 402: Read-Only User Approval Phrase Final Pre-Input Lock Outcome Certification ── */}
+      {job.tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestUserApprovalPhraseFinalPreInputLockOutcomeCertificationView && (() => {
+        const c402 = job.tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestUserApprovalPhraseFinalPreInputLockOutcomeCertificationView as any;
+        const groups402 = [
+          { key: 'userApprovalPhraseFinalPreInputLockOutcomeCertificationReadinessItems', label: '사용자 승인 문구 Final Pre-Input Lock 결과 인증 준비도' },
+          { key: 'userApprovalPhraseFinalPreInputLockReviewReferenceOutcomeCertificationItems', label: '사용자 승인 문구 Final Pre-Input Lock Review 참조 결과 인증' },
+          { key: 'userApprovalPhraseRequiredFinalPreInputLockOutcomeCertificationItems', label: '사용자 승인 문구 필요 Final Pre-Input Lock 결과 인증' },
+          { key: 'userApprovalPhraseExampleDisplayFinalPreInputLockOutcomeCertificationItems', label: '사용자 승인 문구 예시 표시 Final Pre-Input Lock 결과 인증' },
+          { key: 'userApprovalPhraseInputUiNonAdditionFinalPreInputLockOutcomeCertificationItems', label: '사용자 승인 문구 입력 UI 미추가 Final Pre-Input Lock 결과 인증' },
+          { key: 'userApprovalPhraseInputNonExecutionFinalPreInputLockOutcomeCertificationItems', label: '사용자 승인 문구 입력 비실행 Final Pre-Input Lock 결과 인증' },
+          { key: 'userApprovalPhraseSubmissionNonExecutionFinalPreInputLockOutcomeCertificationItems', label: '사용자 승인 문구 제출 비실행 Final Pre-Input Lock 결과 인증' },
+          { key: 'userApprovalAcceptanceNonGrantFinalPreInputLockOutcomeCertificationItems', label: '사용자 승인 수락 비부여 Final Pre-Input Lock 결과 인증' },
+          { key: 'explicitApprovalRequestCreationNonExecutionFinalPreInputLockOutcomeCertificationItems', label: '명시 승인 요청 생성 비실행 Final Pre-Input Lock 결과 인증' },
+          { key: 'explicitApprovalRequestSubmissionNonExecutionFinalPreInputLockOutcomeCertificationItems', label: '명시 승인 요청 제출 비실행 Final Pre-Input Lock 결과 인증' },
+          { key: 'finalApprovalSubmissionNonExecutionFinalPreInputLockOutcomeCertificationItems', label: '최종 승인 제출 비실행 Final Pre-Input Lock 결과 인증' },
+          { key: 'deploymentOperatingTransitionNonExecutionFinalPreInputLockOutcomeCertificationItems', label: '배포/운영 전환 비실행 Final Pre-Input Lock 결과 인증' },
+          { key: 'operatingDbRuntimeWorkerQueueAdapterFinalPreInputLockOutcomeCertificationItems', label: '운영 DB/Runtime/Worker/Queue/Adapter Final Pre-Input Lock 결과 인증' },
+          { key: 'apiSecretUiActionPostFinalPreInputLockOutcomeCertificationItems', label: 'API/Secret/UI Action/POST Final Pre-Input Lock 결과 인증' },
+        ];
+        return (
+          <div key="task402-user-approval-phrase-final-pre-input-lock-outcome-certification" className="mb-6 rounded-lg border border-emerald-300 bg-emerald-50 p-4">
+            <h3 className="mb-2 text-sm font-bold text-emerald-800">
+              Task 402 - 운영 배포 최종 승인 제출 User Approval Phrase Final Pre-Input Lock 결과 인증
+            </h3>
+            <p className="mb-2 text-xs text-emerald-900">
+              이 패널은 실제 사용자 승인 문구 입력 직전 최종 Lock 결과를 read-only로 인증하는 화면이며, 실제 승인 문구 입력창 추가/입력/제출/수락/명시 승인 요청 생성/제출/최종 승인 제출 작업이 아닙니다.
+            </p>
+            <div className="mb-2 flex flex-wrap gap-2">
+              <span className="rounded bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">
+                상태: {c402.operatingDeploymentFinalApprovalSubmissionApprovalRequestUserApprovalPhraseFinalPreInputLockOutcomeCertificationStatus}
+              </span>
+              <span className="rounded bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">
+                결정값: {c402.recommendedOutcomeCertificationDecision}
+              </span>
+              <span className="rounded bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">
+                {c402.recommendedOutcomeCertificationDecisionLabel}
+              </span>
+            </div>
+            <div className="mb-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {(c402.outcomeCertificationSummaryCards ?? []).map((card: { label: string; value: number }) => (
+                <div key={card.label} className="rounded bg-white p-2 text-center shadow-sm">
+                  <div className="text-lg font-bold text-emerald-700">{card.value}</div>
+                  <div className="text-xs text-gray-500">{card.label}</div>
+                </div>
+              ))}
+            </div>
+            <div className="mb-2 grid grid-cols-1 gap-1 sm:grid-cols-2">
+              {groups402.map((g) => (
+                <div key={g.key} className="flex items-center justify-between rounded bg-white px-2 py-1 text-xs shadow-sm">
+                  <span className="text-gray-600">{g.label}</span>
+                  <span className="font-medium text-emerald-700">{(c402[g.key] ?? []).length}건</span>
+                </div>
+              ))}
+            </div>
+            <div className="mb-2 rounded bg-white p-2 text-xs shadow-sm">
+              <div className="mb-1 font-semibold text-emerald-700">사용자 승인 문구 Final Pre-Input Lock 결과 인증 안내</div>
+              <div className="text-gray-600">{c402.userApprovalPhraseGuidance}</div>
+              <div className="mt-1 text-gray-600">예시 문구: {c402.userApprovalPhraseExample}</div>
+              <div className="text-gray-600">현재 화면에서 승인 문구 입력창 없음: {String(c402.actualUserApprovalPhraseInputAddedToUi)}</div>
+              <div className="text-gray-600">현재 화면에서 승인 문구 입력 없음: {String(c402.actualUserApprovalPhraseInputAdded)}</div>
+              <div className="text-gray-600">현재 화면에서 승인 문구 제출 없음: {String(c402.actualUserApprovalPhraseSubmitted)}</div>
+              <div className="text-gray-600">현재 화면에서 승인 문구 수락 없음: {String(c402.actualUserApprovalPhraseAccepted)}</div>
+              <div className="text-gray-600">현재 화면에서 명시 승인 요청 생성 없음: {String(c402.actualExplicitApprovalRequestCreated)}</div>
+              <div className="text-gray-600">현재 화면에서 명시 승인 요청 제출 없음: {String(c402.actualExplicitApprovalRequestSubmitted)}</div>
+            </div>
+            <div className="mb-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-emerald-700">추천 다음 단계</div>
+                <div className="break-all text-gray-600">{c402.recommendedNextStep}</div>
+              </div>
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-emerald-700">승인 모드</div>
+                <div className="text-gray-600">{c402.recommendedApprovalMode}</div>
+              </div>
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-emerald-700">실행 모드</div>
+                <div className="text-gray-600">{c402.recommendedExecutionMode}</div>
+              </div>
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-emerald-700">배포 모드</div>
+                <div className="text-gray-600">{c402.recommendedDeploymentMode}</div>
+              </div>
+            </div>
+            <div className="mb-2 rounded bg-white p-2 text-xs shadow-sm">
+              <div className="font-semibold text-emerald-700">안전 모드</div>
+              <div className="text-gray-600">{c402.recommendedSafetyMode}</div>
+            </div>
+            <div className="rounded bg-emerald-100 p-2 text-xs text-emerald-900">
+              <div className="mb-1 font-semibold">안전 금지선 확인</div>
+              <div>실제 사용자 승인 문구 입력창/입력/제출/수락 없음: {String(c402.actualUserApprovalPhraseInputAddedToUi || c402.actualUserApprovalPhraseInputAdded || c402.actualUserApprovalPhraseSubmitted || c402.actualUserApprovalPhraseAccepted || c402.actualUserApprovalGranted)}</div>
+              <div>실제 명시 승인 요청 생성 없음: {String(c402.actualExplicitApprovalRequestCreated)}</div>
+              <div>실제 명시 승인 요청 제출 없음: {String(c402.actualExplicitApprovalRequestSubmitted)}</div>
+              <div>실제 승인 요청 생성 없음: {String(c402.actualApprovalRequestCreated)}</div>
+              <div>실제 승인 요청 제출 없음: {String(c402.actualApprovalRequestSubmitted)}</div>
+              <div>User Approval Phrase Final Pre-Input Lock 결과 인증이 실제 승인 또는 실제 제출로 해석되지 않음: {String(c402.actualUserApprovalPhraseInputAddedToUi || c402.actualUserApprovalPhraseInputAdded || c402.actualUserApprovalPhraseSubmitted || c402.actualUserApprovalPhraseAccepted || c402.actualUserApprovalGranted || c402.actualExplicitApprovalRequestCreated || c402.actualExplicitApprovalRequestSubmitted || c402.actualApprovalRequestCreated || c402.actualApprovalRequestSubmitted || c402.actualUserApprovalPhrasePreparationBoundarySubmitted || c402.actualUserApprovalPhrasePreparationBoundaryOutcomeCertificationSubmitted || c402.actualUserApprovalPhraseLockReviewSubmitted || c402.actualUserApprovalPhraseLockOutcomeCertificationSubmitted || c402.actualUserApprovalPhraseExplicitInputBoundarySubmitted || c402.actualUserApprovalPhraseExplicitInputBoundaryOutcomeCertificationSubmitted || c402.actualUserApprovalPhraseFinalPreInputLockReviewSubmitted || c402.actualUserApprovalPhraseFinalPreInputLockOutcomeCertificationSubmitted)}</div>
+              <div>실제 최종 승인 제출 없음: {String(c402.actualFinalApprovalSubmission)}</div>
+              <div>실제 최종 승인 부여 없음: {String(c402.actualFinalApprovalGrant)}</div>
+              <div>실제 배포 승인/실행 없음: {String(c402.actualDeploymentApproval || c402.actualDeploymentExecution)}</div>
+              <div>실제 Naver API/DB write 없음: {String(c402.actualNaverApiCall || c402.actualDbWrite)}</div>
+              <div>실제 env 읽기/쓰기 없음: {String(c402.actualEnvReadOrWrite)}</div>
+              <div>실제 Runtime/Worker/Queue/Adapter 없음: {String(c402.actualRuntimeConfiguration || c402.actualWorkerRun || c402.actualQueueEnqueue || c402.actualAdapterConnection)}</div>
+              <div>실행 버튼/승인 버튼/승인 문구 입력창/submit action/POST API 추가 없음: {String(c402.actualExecutionButtonAdded || c402.actualApprovalButtonAdded || c402.actualUserApprovalPhraseInputAddedToUi || c402.actualSubmitActionAdded || c402.actualPostApiAdded)}</div>
             </div>
           </div>
         );
