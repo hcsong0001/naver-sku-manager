@@ -510,6 +510,7 @@ type DraftBatchJob = {
   tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestExplicitApprovalRequestPacketReviewView?: any;
   tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestExplicitApprovalRequestPacketReviewOutcomeCertificationView?: any;
   tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestExplicitApprovalRequestSubmissionBoundaryView?: any;
+  tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestExplicitApprovalRequestSubmissionBoundaryOutcomeCertificationView?: any;
   naverAuthTokenFirstTestSafetyBoundary?: {
     ok: boolean;
     readyForExplicitTokenTestApproval: boolean;
@@ -54283,6 +54284,111 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div>실제 Naver API/DB write 없음: {String(c391.actualNaverApiCall || c391.actualDbWrite)}</div>
               <div>실제 Runtime/Worker/Queue/Adapter 없음: {String(c391.actualRuntimeConfiguration || c391.actualWorkerRun || c391.actualQueueEnqueue || c391.actualAdapterConnection)}</div>
               <div>실행 버튼/승인 버튼/submit action/POST API 추가 없음: {String(c391.actualExecutionButtonAdded || c391.actualApprovalButtonAdded || c391.actualSubmitActionAdded || c391.actualPostApiAdded)}</div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 392: Read-Only Explicit Approval Request Submission Boundary Outcome Certification ── */}
+      {job.tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestExplicitApprovalRequestSubmissionBoundaryOutcomeCertificationView && (() => {
+        const c392 = job.tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestExplicitApprovalRequestSubmissionBoundaryOutcomeCertificationView as any;
+        const groups392 = [
+          { key: 'explicitApprovalRequestSubmissionBoundaryOutcomeCertificationReadinessItems', label: '명시 승인 요청 제출 경계 결과 인증 준비도' },
+          { key: 'explicitApprovalRequestSubmissionBoundaryReferenceOutcomeCertificationItems', label: '명시 승인 요청 제출 경계 참조 결과 인증' },
+          { key: 'explicitApprovalPhraseNonInputOutcomeCertificationItems', label: '명시 승인 문구 비입력 결과 인증' },
+          { key: 'explicitApprovalPhraseNonSubmissionOutcomeCertificationItems', label: '명시 승인 문구 비제출 결과 인증' },
+          { key: 'explicitApprovalAcceptanceNonGrantOutcomeCertificationItems', label: '명시 승인 수락 비부여 결과 인증' },
+          { key: 'explicitApprovalRequestCreationBoundaryOutcomeCertificationItems', label: '명시 승인 요청 생성 경계 결과 인증' },
+          { key: 'explicitApprovalRequestSubmissionBoundaryOutcomeCertificationItems', label: '명시 승인 요청 제출 경계 결과 인증' },
+          { key: 'approvalRequestCreationNonExecutionOutcomeCertificationItems', label: '승인 요청 생성 비실행 결과 인증' },
+          { key: 'approvalRequestSubmissionNonExecutionOutcomeCertificationItems', label: '승인 요청 제출 비실행 결과 인증' },
+          { key: 'finalApprovalSubmissionNonExecutionOutcomeCertificationItems', label: '최종 승인 제출 비실행 결과 인증' },
+          { key: 'finalApprovalGrantNonExecutionOutcomeCertificationItems', label: '최종 승인 부여 비실행 결과 인증' },
+          { key: 'deploymentOperatingTransitionNonExecutionOutcomeCertificationItems', label: '배포/운영 전환 비실행 결과 인증' },
+          { key: 'operatingDbRuntimeWorkerQueueAdapterOutcomeCertificationItems', label: '운영 DB/Runtime/Worker/Queue/Adapter 결과 인증' },
+          { key: 'apiSecretUiActionPostOutcomeCertificationItems', label: 'API/Secret/UI Action/POST 결과 인증' },
+        ];
+        return (
+          <div key="task392-explicit-approval-request-submission-boundary-outcome-certification" className="mb-6 rounded-lg border border-cyan-300 bg-cyan-50 p-4">
+            <h3 className="mb-2 text-sm font-bold text-cyan-800">
+              Task 392 - 운영 배포 최종 승인 제출 Explicit Approval Request Submission Boundary 결과 인증
+            </h3>
+            <p className="mb-2 text-xs text-cyan-900">
+              이 패널은 명시 승인 요청 제출 경계 결과를 read-only로 인증하는 화면이며, 실제 명시 승인 요청 생성/제출/수락/최종 승인 제출 작업이 아닙니다.
+            </p>
+            <div className="mb-2 flex flex-wrap gap-2">
+              <span className="rounded bg-cyan-100 px-2 py-0.5 text-xs font-medium text-cyan-700">
+                상태: {c392.operatingDeploymentFinalApprovalSubmissionApprovalRequestExplicitApprovalRequestSubmissionBoundaryOutcomeCertificationStatus}
+              </span>
+              <span className="rounded bg-cyan-100 px-2 py-0.5 text-xs font-medium text-cyan-700">
+                결정값: {c392.recommendedOutcomeCertificationDecision}
+              </span>
+              <span className="rounded bg-cyan-100 px-2 py-0.5 text-xs font-medium text-cyan-700">
+                {c392.recommendedOutcomeCertificationDecisionLabel}
+              </span>
+            </div>
+            <div className="mb-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {(c392.outcomeCertificationSummaryCards ?? []).map((card: { label: string; value: number }) => (
+                <div key={card.label} className="rounded bg-white p-2 text-center shadow-sm">
+                  <div className="text-lg font-bold text-cyan-700">{card.value}</div>
+                  <div className="text-xs text-gray-500">{card.label}</div>
+                </div>
+              ))}
+            </div>
+            <div className="mb-2 grid grid-cols-1 gap-1 sm:grid-cols-2">
+              {groups392.map((g) => (
+                <div key={g.key} className="flex items-center justify-between rounded bg-white px-2 py-1 text-xs shadow-sm">
+                  <span className="text-gray-600">{g.label}</span>
+                  <span className="font-medium text-cyan-700">{(c392[g.key] ?? []).length}건</span>
+                </div>
+              ))}
+            </div>
+            <div className="mb-2 rounded bg-white p-2 text-xs shadow-sm">
+              <div className="mb-1 font-semibold text-cyan-700">명시 승인 문구 결과 인증</div>
+              <div className="text-gray-600">이번 화면은 명시 승인 요청 제출 경계 결과 인증 화면입니다.</div>
+              <div className="text-gray-600">승인 문구는 이후 별도 승인 단계에서만 입력 가능합니다.</div>
+              <div className="text-gray-600">현재 화면에서 승인 문구 입력 없음: {String(c392.actualExplicitApprovalPhraseInputAdded)}</div>
+              <div className="text-gray-600">현재 화면에서 승인 문구 제출 없음: {String(c392.actualExplicitApprovalPhraseSubmitted)}</div>
+              <div className="text-gray-600">현재 화면에서 승인 수락 없음: {String(c392.actualExplicitApprovalGranted)}</div>
+              <div className="text-gray-600">현재 화면에서 명시 승인 요청 생성 없음: {String(c392.actualExplicitApprovalRequestCreated)}</div>
+              <div className="text-gray-600">현재 화면에서 명시 승인 요청 제출 없음: {String(c392.actualExplicitApprovalRequestSubmitted)}</div>
+            </div>
+            <div className="mb-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-cyan-700">추천 다음 단계</div>
+                <div className="text-gray-600 break-all">{c392.recommendedNextStep}</div>
+              </div>
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-cyan-700">승인 모드</div>
+                <div className="text-gray-600">{c392.recommendedApprovalMode}</div>
+              </div>
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-cyan-700">실행 모드</div>
+                <div className="text-gray-600">{c392.recommendedExecutionMode}</div>
+              </div>
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-cyan-700">배포 모드</div>
+                <div className="text-gray-600">{c392.recommendedDeploymentMode}</div>
+              </div>
+            </div>
+            <div className="mb-2 rounded bg-white p-2 text-xs shadow-sm">
+              <div className="font-semibold text-cyan-700">안전 모드</div>
+              <div className="text-gray-600">{c392.recommendedSafetyMode}</div>
+            </div>
+            <div className="rounded bg-cyan-100 p-2 text-xs text-cyan-900">
+              <div className="mb-1 font-semibold">안전 금지선 확인</div>
+              <div>실제 명시 승인 요청 생성 없음: {String(c392.actualExplicitApprovalRequestCreated)}</div>
+              <div>실제 명시 승인 요청 제출 없음: {String(c392.actualExplicitApprovalRequestSubmitted)}</div>
+              <div>실제 승인 요청 생성 없음: {String(c392.actualApprovalRequestCreated)}</div>
+              <div>실제 승인 요청 제출 없음: {String(c392.actualApprovalRequestSubmitted)}</div>
+              <div>실제 승인 문구 입력/제출/수락 없음: {String(c392.actualExplicitApprovalPhraseInputAdded || c392.actualExplicitApprovalPhraseSubmitted || c392.actualExplicitApprovalGranted)}</div>
+              <div>Submission Boundary 결과 인증이 실제 승인 또는 실제 제출로 해석되지 않음: {String(c392.actualExplicitApprovalRequestCreated || c392.actualExplicitApprovalRequestSubmitted || c392.actualExplicitApprovalGranted || c392.actualExplicitApprovalRequestSubmissionBoundarySubmitted || c392.actualExplicitApprovalRequestSubmissionBoundaryOutcomeCertificationSubmitted)}</div>
+              <div>실제 최종 승인 제출 없음: {String(c392.actualFinalApprovalSubmission)}</div>
+              <div>실제 최종 승인 부여 없음: {String(c392.actualFinalApprovalGrant)}</div>
+              <div>실제 배포 승인/실행 없음: {String(c392.actualDeploymentApproval || c392.actualDeploymentExecution)}</div>
+              <div>실제 Naver API/DB write 없음: {String(c392.actualNaverApiCall || c392.actualDbWrite)}</div>
+              <div>실제 Runtime/Worker/Queue/Adapter 없음: {String(c392.actualRuntimeConfiguration || c392.actualWorkerRun || c392.actualQueueEnqueue || c392.actualAdapterConnection)}</div>
+              <div>실행 버튼/승인 버튼/submit action/POST API 추가 없음: {String(c392.actualExecutionButtonAdded || c392.actualApprovalButtonAdded || c392.actualSubmitActionAdded || c392.actualPostApiAdded)}</div>
             </div>
           </div>
         );
