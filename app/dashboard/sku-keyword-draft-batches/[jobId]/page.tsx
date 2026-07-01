@@ -517,6 +517,7 @@ type DraftBatchJob = {
   tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestUserApprovalPhrasePreparationBoundaryOutcomeCertificationView?: any;
   tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestUserApprovalPhraseLockReviewView?: any;
   tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestUserApprovalPhraseLockOutcomeCertificationView?: any;
+  tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestUserApprovalPhraseExplicitInputBoundaryView?: any;
   naverAuthTokenFirstTestSafetyBoundary?: {
     ok: boolean;
     readyForExplicitTokenTestApproval: boolean;
@@ -55033,6 +55034,113 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div>실제 env 읽기/쓰기 없음: {String(c398.actualEnvReadOrWrite)}</div>
               <div>실제 Runtime/Worker/Queue/Adapter 없음: {String(c398.actualRuntimeConfiguration || c398.actualWorkerRun || c398.actualQueueEnqueue || c398.actualAdapterConnection)}</div>
               <div>실행 버튼/승인 버튼/승인 문구 입력창/submit action/POST API 추가 없음: {String(c398.actualExecutionButtonAdded || c398.actualApprovalButtonAdded || c398.actualUserApprovalPhraseInputAddedToUi || c398.actualSubmitActionAdded || c398.actualPostApiAdded)}</div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 399: Read-Only User Approval Phrase Explicit Input Boundary ── */}
+      {job.tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestUserApprovalPhraseExplicitInputBoundaryView && (() => {
+        const c399 = job.tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestUserApprovalPhraseExplicitInputBoundaryView as any;
+        const groups399 = [
+          { key: 'userApprovalPhraseExplicitInputBoundaryReadinessItems', label: '사용자 승인 문구 Explicit Input Boundary 준비도' },
+          { key: 'userApprovalPhraseLockOutcomeCertificationReferenceExplicitInputBoundaryItems', label: '사용자 승인 문구 Lock 결과 인증 참조 Explicit Input Boundary' },
+          { key: 'userApprovalPhraseRequiredExplicitInputBoundaryItems', label: '사용자 승인 문구 필요 Explicit Input Boundary' },
+          { key: 'userApprovalPhraseExampleDisplayExplicitInputBoundaryItems', label: '사용자 승인 문구 예시 표시 Explicit Input Boundary' },
+          { key: 'userApprovalPhraseInputUiNonAdditionBoundaryItems', label: '사용자 승인 문구 입력 UI 미추가 경계' },
+          { key: 'userApprovalPhraseInputNonExecutionBoundaryItems', label: '사용자 승인 문구 입력 비실행 경계' },
+          { key: 'userApprovalPhraseSubmissionNonExecutionBoundaryItems', label: '사용자 승인 문구 제출 비실행 경계' },
+          { key: 'userApprovalAcceptanceNonGrantExplicitInputBoundaryItems', label: '사용자 승인 수락 비부여 Explicit Input Boundary' },
+          { key: 'explicitApprovalRequestCreationNonExecutionExplicitInputBoundaryItems', label: '명시 승인 요청 생성 비실행 Explicit Input Boundary' },
+          { key: 'explicitApprovalRequestSubmissionNonExecutionExplicitInputBoundaryItems', label: '명시 승인 요청 제출 비실행 Explicit Input Boundary' },
+          { key: 'finalApprovalSubmissionNonExecutionExplicitInputBoundaryItems', label: '최종 승인 제출 비실행 Explicit Input Boundary' },
+          { key: 'deploymentOperatingTransitionNonExecutionExplicitInputBoundaryItems', label: '배포/운영 전환 비실행 Explicit Input Boundary' },
+          { key: 'operatingDbRuntimeWorkerQueueAdapterExplicitInputBoundaryItems', label: '운영 DB/Runtime/Worker/Queue/Adapter Explicit Input Boundary' },
+          { key: 'apiSecretUiActionPostExplicitInputBoundaryItems', label: 'API/Secret/UI Action/POST Explicit Input Boundary' },
+        ];
+        return (
+          <div key="task399-user-approval-phrase-explicit-input-boundary" className="mb-6 rounded-lg border border-cyan-300 bg-cyan-50 p-4">
+            <h3 className="mb-2 text-sm font-bold text-cyan-800">
+              Task 399 - 운영 배포 최종 승인 제출 User Approval Phrase Explicit Input Boundary
+            </h3>
+            <p className="mb-2 text-xs text-cyan-900">
+              이 패널은 사용자 승인 문구 명시 입력 직전 경계를 read-only로 표시하는 화면이며, 실제 승인 문구 입력창 추가/입력/제출/수락/명시 승인 요청 생성/제출/최종 승인 제출 작업이 아닙니다.
+            </p>
+            <div className="mb-2 flex flex-wrap gap-2">
+              <span className="rounded bg-cyan-100 px-2 py-0.5 text-xs font-medium text-cyan-700">
+                상태: {c399.operatingDeploymentFinalApprovalSubmissionApprovalRequestUserApprovalPhraseExplicitInputBoundaryStatus}
+              </span>
+              <span className="rounded bg-cyan-100 px-2 py-0.5 text-xs font-medium text-cyan-700">
+                결정값: {c399.recommendedUserApprovalPhraseExplicitInputBoundaryDecision}
+              </span>
+              <span className="rounded bg-cyan-100 px-2 py-0.5 text-xs font-medium text-cyan-700">
+                {c399.recommendedUserApprovalPhraseExplicitInputBoundaryDecisionLabel}
+              </span>
+            </div>
+            <div className="mb-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {(c399.explicitInputBoundarySummaryCards ?? []).map((card: { label: string; value: number }) => (
+                <div key={card.label} className="rounded bg-white p-2 text-center shadow-sm">
+                  <div className="text-lg font-bold text-cyan-700">{card.value}</div>
+                  <div className="text-xs text-gray-500">{card.label}</div>
+                </div>
+              ))}
+            </div>
+            <div className="mb-2 grid grid-cols-1 gap-1 sm:grid-cols-2">
+              {groups399.map((g) => (
+                <div key={g.key} className="flex items-center justify-between rounded bg-white px-2 py-1 text-xs shadow-sm">
+                  <span className="text-gray-600">{g.label}</span>
+                  <span className="font-medium text-cyan-700">{(c399[g.key] ?? []).length}건</span>
+                </div>
+              ))}
+            </div>
+            <div className="mb-2 rounded bg-white p-2 text-xs shadow-sm">
+              <div className="mb-1 font-semibold text-cyan-700">사용자 승인 문구 Explicit Input Boundary 안내</div>
+              <div className="text-gray-600">{c399.userApprovalPhraseGuidance}</div>
+              <div className="mt-1 text-gray-600">예시 문구: {c399.userApprovalPhraseExample}</div>
+              <div className="text-gray-600">현재 화면에서 승인 문구 입력창 없음: {String(c399.actualUserApprovalPhraseInputAddedToUi)}</div>
+              <div className="text-gray-600">현재 화면에서 승인 문구 입력 없음: {String(c399.actualUserApprovalPhraseInputAdded)}</div>
+              <div className="text-gray-600">현재 화면에서 승인 문구 제출 없음: {String(c399.actualUserApprovalPhraseSubmitted)}</div>
+              <div className="text-gray-600">현재 화면에서 승인 문구 수락 없음: {String(c399.actualUserApprovalPhraseAccepted)}</div>
+              <div className="text-gray-600">현재 화면에서 명시 승인 요청 생성 없음: {String(c399.actualExplicitApprovalRequestCreated)}</div>
+              <div className="text-gray-600">현재 화면에서 명시 승인 요청 제출 없음: {String(c399.actualExplicitApprovalRequestSubmitted)}</div>
+            </div>
+            <div className="mb-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-cyan-700">추천 다음 단계</div>
+                <div className="text-gray-600 break-all">{c399.recommendedNextStep}</div>
+              </div>
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-cyan-700">승인 모드</div>
+                <div className="text-gray-600">{c399.recommendedApprovalMode}</div>
+              </div>
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-cyan-700">실행 모드</div>
+                <div className="text-gray-600">{c399.recommendedExecutionMode}</div>
+              </div>
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-cyan-700">배포 모드</div>
+                <div className="text-gray-600">{c399.recommendedDeploymentMode}</div>
+              </div>
+            </div>
+            <div className="mb-2 rounded bg-white p-2 text-xs shadow-sm">
+              <div className="font-semibold text-cyan-700">안전 모드</div>
+              <div className="text-gray-600">{c399.recommendedSafetyMode}</div>
+            </div>
+            <div className="rounded bg-cyan-100 p-2 text-xs text-cyan-900">
+              <div className="mb-1 font-semibold">안전 금지선 확인</div>
+              <div>실제 사용자 승인 문구 입력창/입력/제출/수락 없음: {String(c399.actualUserApprovalPhraseInputAddedToUi || c399.actualUserApprovalPhraseInputAdded || c399.actualUserApprovalPhraseSubmitted || c399.actualUserApprovalPhraseAccepted || c399.actualUserApprovalGranted)}</div>
+              <div>실제 명시 승인 요청 생성 없음: {String(c399.actualExplicitApprovalRequestCreated)}</div>
+              <div>실제 명시 승인 요청 제출 없음: {String(c399.actualExplicitApprovalRequestSubmitted)}</div>
+              <div>실제 승인 요청 생성 없음: {String(c399.actualApprovalRequestCreated)}</div>
+              <div>실제 승인 요청 제출 없음: {String(c399.actualApprovalRequestSubmitted)}</div>
+              <div>User Approval Phrase Explicit Input Boundary가 실제 승인 또는 실제 제출로 해석되지 않음: {String(c399.actualUserApprovalPhraseInputAddedToUi || c399.actualUserApprovalPhraseInputAdded || c399.actualUserApprovalPhraseSubmitted || c399.actualUserApprovalPhraseAccepted || c399.actualUserApprovalGranted || c399.actualExplicitApprovalRequestCreated || c399.actualExplicitApprovalRequestSubmitted || c399.actualApprovalRequestCreated || c399.actualApprovalRequestSubmitted || c399.actualUserApprovalPhrasePreparationBoundarySubmitted || c399.actualUserApprovalPhrasePreparationBoundaryOutcomeCertificationSubmitted || c399.actualUserApprovalPhraseLockReviewSubmitted || c399.actualUserApprovalPhraseLockOutcomeCertificationSubmitted || c399.actualUserApprovalPhraseExplicitInputBoundarySubmitted)}</div>
+              <div>실제 최종 승인 제출 없음: {String(c399.actualFinalApprovalSubmission)}</div>
+              <div>실제 최종 승인 부여 없음: {String(c399.actualFinalApprovalGrant)}</div>
+              <div>실제 배포 승인/실행 없음: {String(c399.actualDeploymentApproval || c399.actualDeploymentExecution)}</div>
+              <div>실제 Naver API/DB write 없음: {String(c399.actualNaverApiCall || c399.actualDbWrite)}</div>
+              <div>실제 env 읽기/쓰기 없음: {String(c399.actualEnvReadOrWrite)}</div>
+              <div>실제 Runtime/Worker/Queue/Adapter 없음: {String(c399.actualRuntimeConfiguration || c399.actualWorkerRun || c399.actualQueueEnqueue || c399.actualAdapterConnection)}</div>
+              <div>실행 버튼/승인 버튼/승인 문구 입력창/submit action/POST API 추가 없음: {String(c399.actualExecutionButtonAdded || c399.actualApprovalButtonAdded || c399.actualUserApprovalPhraseInputAddedToUi || c399.actualSubmitActionAdded || c399.actualPostApiAdded)}</div>
             </div>
           </div>
         );
