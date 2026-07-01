@@ -515,6 +515,7 @@ type DraftBatchJob = {
   tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestExplicitApprovalRequestSubmissionLockOutcomeCertificationView?: any;
   tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestUserApprovalPhrasePreparationBoundaryView?: any;
   tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestUserApprovalPhrasePreparationBoundaryOutcomeCertificationView?: any;
+  tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestUserApprovalPhraseLockReviewView?: any;
   naverAuthTokenFirstTestSafetyBoundary?: {
     ok: boolean;
     readyForExplicitTokenTestApproval: boolean;
@@ -54817,6 +54818,113 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div>실제 env 읽기/쓰기 없음: {String(c396.actualEnvReadOrWrite)}</div>
               <div>실제 Runtime/Worker/Queue/Adapter 없음: {String(c396.actualRuntimeConfiguration || c396.actualWorkerRun || c396.actualQueueEnqueue || c396.actualAdapterConnection)}</div>
               <div>실행 버튼/승인 버튼/승인 문구 입력창/submit action/POST API 추가 없음: {String(c396.actualExecutionButtonAdded || c396.actualApprovalButtonAdded || c396.actualUserApprovalPhraseInputAddedToUi || c396.actualSubmitActionAdded || c396.actualPostApiAdded)}</div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 397: Read-Only User Approval Phrase Lock Review ── */}
+      {job.tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestUserApprovalPhraseLockReviewView && (() => {
+        const c397 = job.tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestUserApprovalPhraseLockReviewView as any;
+        const groups397 = [
+          { key: 'userApprovalPhraseLockReviewReadinessItems', label: '사용자 승인 문구 Lock 검토 준비도' },
+          { key: 'userApprovalPhrasePreparationBoundaryOutcomeCertificationReferenceLockReviewItems', label: '사용자 승인 문구 준비 경계 결과 인증 참조 Lock 검토' },
+          { key: 'userApprovalPhraseRequiredLockReviewItems', label: '사용자 승인 문구 필요 Lock 검토' },
+          { key: 'userApprovalPhraseExampleDisplayLockReviewItems', label: '사용자 승인 문구 예시 표시 Lock 검토' },
+          { key: 'userApprovalPhraseNonInputLockReviewItems', label: '사용자 승인 문구 비입력 Lock 검토' },
+          { key: 'userApprovalPhraseNonSubmissionLockReviewItems', label: '사용자 승인 문구 비제출 Lock 검토' },
+          { key: 'userApprovalAcceptanceNonGrantLockReviewItems', label: '사용자 승인 수락 비부여 Lock 검토' },
+          { key: 'explicitApprovalRequestCreationNonExecutionLockReviewItems', label: '명시 승인 요청 생성 비실행 Lock 검토' },
+          { key: 'explicitApprovalRequestSubmissionNonExecutionLockReviewItems', label: '명시 승인 요청 제출 비실행 Lock 검토' },
+          { key: 'finalApprovalSubmissionNonExecutionLockReviewItems', label: '최종 승인 제출 비실행 Lock 검토' },
+          { key: 'finalApprovalGrantNonExecutionLockReviewItems', label: '최종 승인 부여 비실행 Lock 검토' },
+          { key: 'deploymentOperatingTransitionNonExecutionLockReviewItems', label: '배포/운영 전환 비실행 Lock 검토' },
+          { key: 'operatingDbRuntimeWorkerQueueAdapterLockReviewItems', label: '운영 DB/Runtime/Worker/Queue/Adapter Lock 검토' },
+          { key: 'apiSecretUiActionPostLockReviewItems', label: 'API/Secret/UI Action/POST Lock 검토' },
+        ];
+        return (
+          <div key="task397-user-approval-phrase-lock-review" className="mb-6 rounded-lg border border-amber-300 bg-amber-50 p-4">
+            <h3 className="mb-2 text-sm font-bold text-amber-800">
+              Task 397 - 운영 배포 최종 승인 제출 User Approval Phrase Lock Review
+            </h3>
+            <p className="mb-2 text-xs text-amber-900">
+              이 패널은 사용자 승인 문구 Lock을 read-only로 검토하는 화면이며, 실제 승인 문구 입력/제출/수락/명시 승인 요청 생성/제출/최종 승인 제출 작업이 아닙니다.
+            </p>
+            <div className="mb-2 flex flex-wrap gap-2">
+              <span className="rounded bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
+                상태: {c397.operatingDeploymentFinalApprovalSubmissionApprovalRequestUserApprovalPhraseLockReviewStatus}
+              </span>
+              <span className="rounded bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
+                결정값: {c397.recommendedUserApprovalPhraseLockReviewDecision}
+              </span>
+              <span className="rounded bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
+                {c397.recommendedUserApprovalPhraseLockReviewDecisionLabel}
+              </span>
+            </div>
+            <div className="mb-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {(c397.userApprovalPhraseLockReviewSummaryCards ?? []).map((card: { label: string; value: number }) => (
+                <div key={card.label} className="rounded bg-white p-2 text-center shadow-sm">
+                  <div className="text-lg font-bold text-amber-700">{card.value}</div>
+                  <div className="text-xs text-gray-500">{card.label}</div>
+                </div>
+              ))}
+            </div>
+            <div className="mb-2 grid grid-cols-1 gap-1 sm:grid-cols-2">
+              {groups397.map((g) => (
+                <div key={g.key} className="flex items-center justify-between rounded bg-white px-2 py-1 text-xs shadow-sm">
+                  <span className="text-gray-600">{g.label}</span>
+                  <span className="font-medium text-amber-700">{(c397[g.key] ?? []).length}건</span>
+                </div>
+              ))}
+            </div>
+            <div className="mb-2 rounded bg-white p-2 text-xs shadow-sm">
+              <div className="mb-1 font-semibold text-amber-700">사용자 승인 문구 Lock 검토 안내</div>
+              <div className="text-gray-600">{c397.userApprovalPhraseGuidance}</div>
+              <div className="mt-1 text-gray-600">예시 문구: {c397.userApprovalPhraseExample}</div>
+              <div className="text-gray-600">현재 화면에서 승인 문구 입력창 없음: {String(c397.actualUserApprovalPhraseInputAddedToUi)}</div>
+              <div className="text-gray-600">현재 화면에서 승인 문구 입력 없음: {String(c397.actualUserApprovalPhraseInputAdded)}</div>
+              <div className="text-gray-600">현재 화면에서 승인 문구 제출 없음: {String(c397.actualUserApprovalPhraseSubmitted)}</div>
+              <div className="text-gray-600">현재 화면에서 승인 문구 수락 없음: {String(c397.actualUserApprovalPhraseAccepted)}</div>
+              <div className="text-gray-600">현재 화면에서 명시 승인 요청 생성 없음: {String(c397.actualExplicitApprovalRequestCreated)}</div>
+              <div className="text-gray-600">현재 화면에서 명시 승인 요청 제출 없음: {String(c397.actualExplicitApprovalRequestSubmitted)}</div>
+            </div>
+            <div className="mb-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-amber-700">추천 다음 단계</div>
+                <div className="text-gray-600 break-all">{c397.recommendedNextStep}</div>
+              </div>
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-amber-700">승인 모드</div>
+                <div className="text-gray-600">{c397.recommendedApprovalMode}</div>
+              </div>
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-amber-700">실행 모드</div>
+                <div className="text-gray-600">{c397.recommendedExecutionMode}</div>
+              </div>
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-amber-700">배포 모드</div>
+                <div className="text-gray-600">{c397.recommendedDeploymentMode}</div>
+              </div>
+            </div>
+            <div className="mb-2 rounded bg-white p-2 text-xs shadow-sm">
+              <div className="font-semibold text-amber-700">안전 모드</div>
+              <div className="text-gray-600">{c397.recommendedSafetyMode}</div>
+            </div>
+            <div className="rounded bg-amber-100 p-2 text-xs text-amber-900">
+              <div className="mb-1 font-semibold">안전 금지선 확인</div>
+              <div>실제 사용자 승인 문구 입력/제출/수락 없음: {String(c397.actualUserApprovalPhraseInputAdded || c397.actualUserApprovalPhraseSubmitted || c397.actualUserApprovalPhraseAccepted || c397.actualUserApprovalGranted)}</div>
+              <div>실제 명시 승인 요청 생성 없음: {String(c397.actualExplicitApprovalRequestCreated)}</div>
+              <div>실제 명시 승인 요청 제출 없음: {String(c397.actualExplicitApprovalRequestSubmitted)}</div>
+              <div>실제 승인 요청 생성 없음: {String(c397.actualApprovalRequestCreated)}</div>
+              <div>실제 승인 요청 제출 없음: {String(c397.actualApprovalRequestSubmitted)}</div>
+              <div>User Approval Phrase Lock Review가 실제 승인 또는 실제 제출로 해석되지 않음: {String(c397.actualUserApprovalPhraseInputAdded || c397.actualUserApprovalPhraseSubmitted || c397.actualUserApprovalPhraseAccepted || c397.actualUserApprovalGranted || c397.actualExplicitApprovalRequestCreated || c397.actualExplicitApprovalRequestSubmitted || c397.actualApprovalRequestCreated || c397.actualApprovalRequestSubmitted || c397.actualUserApprovalPhrasePreparationBoundarySubmitted || c397.actualUserApprovalPhrasePreparationBoundaryOutcomeCertificationSubmitted || c397.actualUserApprovalPhraseLockReviewSubmitted)}</div>
+              <div>실제 최종 승인 제출 없음: {String(c397.actualFinalApprovalSubmission)}</div>
+              <div>실제 최종 승인 부여 없음: {String(c397.actualFinalApprovalGrant)}</div>
+              <div>실제 배포 승인/실행 없음: {String(c397.actualDeploymentApproval || c397.actualDeploymentExecution)}</div>
+              <div>실제 Naver API/DB write 없음: {String(c397.actualNaverApiCall || c397.actualDbWrite)}</div>
+              <div>실제 env 읽기/쓰기 없음: {String(c397.actualEnvReadOrWrite)}</div>
+              <div>실제 Runtime/Worker/Queue/Adapter 없음: {String(c397.actualRuntimeConfiguration || c397.actualWorkerRun || c397.actualQueueEnqueue || c397.actualAdapterConnection)}</div>
+              <div>실행 버튼/승인 버튼/승인 문구 입력창/submit action/POST API 추가 없음: {String(c397.actualExecutionButtonAdded || c397.actualApprovalButtonAdded || c397.actualUserApprovalPhraseInputAddedToUi || c397.actualSubmitActionAdded || c397.actualPostApiAdded)}</div>
             </div>
           </div>
         );
