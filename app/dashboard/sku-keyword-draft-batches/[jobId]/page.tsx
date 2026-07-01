@@ -524,6 +524,7 @@ type DraftBatchJob = {
   tmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestUserApprovalPhraseActualInputSeparateApprovalBoundaryView?: any;
   tmsFastConnectionNaverProductLookupOneTimeTransitionRecoveryView?: any;
   tmsFastConnectionNaverApiSecretEnvAccessSeparateApprovalRequestPacketView?: any;
+  tmsFastConnectionNaverApiEnvExistenceNoSecretPreflightView?: any;
   naverAuthTokenFirstTestSafetyBoundary?: {
     ok: boolean;
     readyForExplicitTokenTestApproval: boolean;
@@ -55804,6 +55805,125 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div>Worker 실행 / Queue enqueue / Adapter 연결 / Runtime 구성 없음: {String(c405.actualWorkerRun || c405.actualQueueEnqueue || c405.actualAdapterConnection || c405.actualRuntimeConfiguration)}</div>
               <div>POST API / 실행 버튼 / 승인 버튼 / submit action 추가 없음: {String(c405.actualPostApiAdded || c405.actualSubmitActionAdded || c405.actualExecutionButtonAdded || c405.actualApprovalButtonAdded)}</div>
               <div>실제 승인 수락 없음: {String(c405.actualApprovalAccepted)}</div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 406: Naver API 환경 변수 존재 여부 No-Secret Preflight ── */}
+      {job.tmsFastConnectionNaverApiEnvExistenceNoSecretPreflightView && (() => {
+        const c406 = job.tmsFastConnectionNaverApiEnvExistenceNoSecretPreflightView as any;
+        const groups406 = [
+          { key: 'noSecretPreflightReadinessItems', label: 'No-Secret Preflight 준비도' },
+          { key: 'task405ApprovalRequestPacketReferenceItems', label: 'Task 405 승인 요청 Packet 참조' },
+          { key: 'envNameCandidateChecklistItems', label: '환경 변수 이름 후보 체크리스트' },
+          { key: 'noEnvFileOpenGuardItems', label: '.env 파일 미열람' },
+          { key: 'noProcessEnvReadGuardItems', label: 'process.env 미조회' },
+          { key: 'noSecretValueExposureGuardItems', label: 'Secret 값 노출 금지' },
+          { key: 'oneTimeProductLookupPreparedTargetItems', label: '상품 조회 1회 준비 대상' },
+          { key: 'nextLiveTestApprovalRoadmapItems', label: '다음 Live Test 승인 로드맵' },
+        ];
+        return (
+          <div key="task406-fast-connection-naver-api-env-existence-no-secret-preflight" className="mb-6 rounded-lg border border-teal-300 bg-teal-50 p-4">
+            <h3 className="mb-2 text-sm font-bold text-teal-800">
+              Task 406 - Naver API 환경 변수 존재 여부 No-Secret Preflight
+            </h3>
+            <p className="mb-2 text-xs text-teal-900">
+              이 패널은 Naver API 상품 조회 1회 Live Test로 가기 전 환경 변수 '존재 여부 확인 절차'를 read-only로 설계하는 No-Secret Preflight이며,
+              실제 .env 파일을 열거나 값을 읽지 않고, process.env를 조회하지 않고, 실제 Naver API를 호출하지 않습니다.
+            </p>
+            <div className="mb-2 flex flex-wrap gap-2">
+              <span className="rounded bg-teal-100 px-2 py-0.5 text-xs font-medium text-teal-700">
+                상태: {c406.fastConnectionNaverApiEnvExistenceNoSecretPreflightStatus}
+              </span>
+              <span className="rounded bg-teal-100 px-2 py-0.5 text-xs font-medium text-teal-700">
+                결정값: {c406.recommendedNoSecretPreflightDecision}
+              </span>
+              <span className="rounded bg-teal-100 px-2 py-0.5 text-xs font-medium text-teal-700">
+                {c406.recommendedNoSecretPreflightDecisionLabel}
+              </span>
+            </div>
+            <div className="mb-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {(c406.noSecretPreflightSummaryCards ?? []).map((card: { label: string; value: number }) => (
+                <div key={card.label} className="rounded bg-white p-2 text-center shadow-sm">
+                  <div className="text-lg font-bold text-teal-700">{card.value}</div>
+                  <div className="text-xs text-gray-500">{card.label}</div>
+                </div>
+              ))}
+            </div>
+            <div className="mb-2 grid grid-cols-1 gap-1 sm:grid-cols-2">
+              {groups406.map((g) => (
+                <div key={g.key} className="flex items-center justify-between rounded bg-white px-2 py-1 text-xs shadow-sm">
+                  <span className="text-gray-600">{g.label}</span>
+                  <span className="font-medium text-teal-700">{(c406[g.key] ?? []).length}건</span>
+                </div>
+              ))}
+            </div>
+            <div className="mb-2 rounded bg-white p-2 text-xs shadow-sm">
+              <div className="mb-1 font-semibold text-teal-700">No-Secret Preflight 안내</div>
+              <div className="text-gray-600">{c406.noSecretPreflightGuidance}</div>
+              <div className="mt-1 text-gray-600">최우선 목표: {c406.recommendedPrimaryGoal}</div>
+              <div className="text-gray-600">대상 API: {c406.recommendedTargetApi}</div>
+              <div className="text-gray-600">대표 상품 후보: {c406.recommendedTargetProductNo} ({c406.recommendedTargetProductLabel})</div>
+              <div className="text-gray-600">{c406.environmentVariableDisclosureNotice}</div>
+              <div className="mt-1 flex flex-wrap gap-1">
+                {(c406.environmentVariableNameCandidates ?? []).map((candidate: { name: string; candidateOnly: boolean; actualExistenceChecked: boolean; actualValueRead: boolean }) => (
+                  <span key={candidate.name} className="rounded bg-teal-100 px-2 py-0.5 font-mono text-xs text-teal-700">
+                    {candidate.name} (candidateOnly: {String(candidate.candidateOnly)}, existenceChecked: {String(candidate.actualExistenceChecked)}, valueRead: {String(candidate.actualValueRead)})
+                  </span>
+                ))}
+              </div>
+              <div className="mt-1 text-gray-600">승인 문구 예시: {c406.userApprovalPhraseExample}</div>
+              <div className="text-gray-600">{c406.userApprovalPhraseGuidance}</div>
+              <div className="text-gray-600">현재 화면에서 .env/.env.local 파일 미열람: {String(!c406.actualEnvFileOpen)}</div>
+              <div className="text-gray-600">현재 화면에서 process.env 미조회: {String(!c406.actualProcessEnvRead)}</div>
+              <div className="text-gray-600">현재 화면에서 secret/env 접근 없음: {String(c406.actualEnvRead || c406.actualEnvWrite || c406.actualSecretAccess || c406.actualSecretExposure)}</div>
+              <div className="text-gray-600">현재 화면에서 token 사용 없음: {String(c406.actualTokenIssue || c406.actualTokenReissue || c406.actualTokenUse)}</div>
+              <div className="text-gray-600">현재 화면에서 실제 API 호출 없음: {String(c406.actualNaverApiCall || c406.actualProductLookupApiCall || c406.actualProductUpdateApiCall)}</div>
+              <div className="text-gray-600">현재 화면에서 DB write 없음: {String(c406.actualDbWrite)}</div>
+              <div className="text-gray-600">현재 화면에서 POST/action/button 없음: {String(c406.actualPostApiAdded || c406.actualSubmitActionAdded || c406.actualExecutionButtonAdded || c406.actualApprovalButtonAdded)}</div>
+            </div>
+            <div className="mb-2 rounded bg-white p-2 text-xs shadow-sm">
+              <div className="mb-1 font-semibold text-teal-700">Task 407~411 압축 로드맵</div>
+              {(c406.compressedFastConnectionRoadmap ?? []).map((r: { taskId: number; label: string }) => (
+                <div key={r.taskId} className="text-gray-600">{r.label}</div>
+              ))}
+            </div>
+            <div className="mb-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-teal-700">추천 다음 단계</div>
+                <div className="break-all text-gray-600">{c406.recommendedNextStep}</div>
+              </div>
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-teal-700">승인 모드</div>
+                <div className="text-gray-600">{c406.recommendedApprovalMode}</div>
+              </div>
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-teal-700">실행 모드</div>
+                <div className="text-gray-600">{c406.recommendedExecutionMode}</div>
+              </div>
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-teal-700">배포 모드</div>
+                <div className="text-gray-600">{c406.recommendedDeploymentMode}</div>
+              </div>
+            </div>
+            <div className="mb-2 rounded bg-white p-2 text-xs shadow-sm">
+              <div className="font-semibold text-teal-700">안전 모드</div>
+              <div className="text-gray-600">{c406.recommendedSafetyMode}</div>
+            </div>
+            <div className="rounded bg-teal-100 p-2 text-xs text-teal-900">
+              <div className="mb-1 font-semibold">안전 금지선 확인</div>
+              <div>실제 Naver API 호출/상품 조회 API/상품 수정 API 없음: {String(c406.actualNaverApiCall || c406.actualProductLookupApiCall || c406.actualProductUpdateApiCall || c406.actualProductLookupExecuted || c406.actualProductUpdateExecuted)}</div>
+              <div>Token 발급/재발급/사용 없음: {String(c406.actualTokenIssue || c406.actualTokenReissue || c406.actualTokenUse)}</div>
+              <div>.env/.env.local 열람/수정 없음: {String(c406.actualEnvRead || c406.actualEnvWrite || c406.actualEnvFileOpen)}</div>
+              <div>process.env 실제 조회 없음: {String(c406.actualProcessEnvRead)}</div>
+              <div>secret 노출 없음: {String(c406.actualSecretAccess || c406.actualSecretExposure)}</div>
+              <div>authorization/header/signature 노출 없음: {String(c406.actualAuthorizationHeaderExposure || c406.actualSignatureExposure)}</div>
+              <div>raw API response 노출 없음: {String(c406.actualRawApiResponseExposure)}</div>
+              <div>DB write / 가격 변경 / 재고 변경 없음: {String(c406.actualDbWrite || c406.actualPriceChange || c406.actualStockChange)}</div>
+              <div>Worker 실행 / Queue enqueue / Adapter 연결 / Runtime 구성 없음: {String(c406.actualWorkerRun || c406.actualQueueEnqueue || c406.actualAdapterConnection || c406.actualRuntimeConfiguration)}</div>
+              <div>POST API / 실행 버튼 / 승인 버튼 / submit action 추가 없음: {String(c406.actualPostApiAdded || c406.actualSubmitActionAdded || c406.actualExecutionButtonAdded || c406.actualApprovalButtonAdded)}</div>
+              <div>실제 승인 수락 없음: {String(c406.actualApprovalAccepted)}</div>
             </div>
           </div>
         );

@@ -386,6 +386,7 @@ import { buildTmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalReque
 import { buildTmsReadOnlyOperatingDeploymentFinalApprovalSubmissionApprovalRequestUserApprovalPhraseActualInputSeparateApprovalBoundaryView } from '@/src/services/tms-read-only-operating-deployment-final-approval-submission-approval-request-user-approval-phrase-actual-input-separate-approval-boundary-view.service';
 import { buildTmsFastConnectionNaverProductLookupOneTimeTransitionRecoveryView } from '@/src/services/tms-fast-connection-naver-product-lookup-one-time-transition-recovery-view.service';
 import { buildTmsFastConnectionNaverApiSecretEnvAccessSeparateApprovalRequestPacketView } from '@/src/services/tms-fast-connection-naver-api-secret-env-access-separate-approval-request-packet-view.service';
+import { buildTmsFastConnectionNaverApiEnvExistenceNoSecretPreflightView } from '@/src/services/tms-fast-connection-naver-api-env-existence-no-secret-preflight-view.service';
 
 
 
@@ -1729,6 +1730,10 @@ export async function GET(
       buildTmsFastConnectionNaverApiSecretEnvAccessSeparateApprovalRequestPacketView(
         _tmsFastConnectionNaverProductLookupOneTimeTransitionRecoveryView
       );
+    const _tmsFastConnectionNaverApiEnvExistenceNoSecretPreflightView =
+      buildTmsFastConnectionNaverApiEnvExistenceNoSecretPreflightView(
+        _tmsFastConnectionNaverApiSecretEnvAccessSeparateApprovalRequestPacketView
+      );
 
     const responseJob = {
       id: job.id,
@@ -2968,6 +2973,8 @@ export async function GET(
         _tmsFastConnectionNaverProductLookupOneTimeTransitionRecoveryView,
       tmsFastConnectionNaverApiSecretEnvAccessSeparateApprovalRequestPacketView:
         _tmsFastConnectionNaverApiSecretEnvAccessSeparateApprovalRequestPacketView,
+      tmsFastConnectionNaverApiEnvExistenceNoSecretPreflightView:
+        _tmsFastConnectionNaverApiEnvExistenceNoSecretPreflightView,
     };
     return NextResponse.json({ ok: true, job: responseJob });
   } catch (error: unknown) {
