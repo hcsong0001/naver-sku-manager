@@ -548,6 +548,7 @@ type DraftBatchJob = {
   tmsFastConnectionNaverProductIdentityStrategyRedesignResultDecisionView?: any;
   tmsFastConnectionNaverChannelProductNoUpdateIdentifierReviewApprovalPacketView?: any;
   tmsFastConnectionNaverChannelProductNoUpdateIdentifierOfficialReviewView?: any;
+  tmsFastConnectionNaverChannelProductUpdatePayloadDesignApprovalPacketView?: any;
   naverAuthTokenFirstTestSafetyBoundary?: {
     ok: boolean;
     readyForExplicitTokenTestApproval: boolean;
@@ -58111,6 +58112,59 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div>가격/재고/DB write 없음: {String(!c429.actualPriceChange && !c429.actualStockChange && !c429.actualDbWrite)}</div>
               <div>raw/secret 노출 없음: {String(!c429.actualRawResponseExposure && !c429.actualRawResponseStored && !c429.actualSecretExposure && !c429.actualTokenExposure && !c429.actualAuthorizationHeaderExposure && !c429.actualSignatureExposure)}</div>
               <div>POST/button/submit 없음: {String(!c429.actualPostApiAdded && !c429.actualExecutionButtonAdded && !c429.actualApprovalButtonAdded && !c429.actualSubmitActionAdded)}</div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 430: Naver 채널 상품 수정 Payload 설계 승인 Packet ── */}
+      {job.tmsFastConnectionNaverChannelProductUpdatePayloadDesignApprovalPacketView && (() => {
+        const c430 = job.tmsFastConnectionNaverChannelProductUpdatePayloadDesignApprovalPacketView as any;
+        return (
+          <div key="task430-fast-connection-naver-channel-product-update-payload-design-approval-packet" className="mb-6 rounded-lg border border-rose-300 bg-rose-50 p-4">
+            <h3 className="mb-2 text-sm font-bold text-rose-800">
+              Task {c430.taskId}: {c430.title}
+            </h3>
+            <div className="mb-3 space-y-1 text-xs text-rose-900">
+              <div><span className="font-medium">승인 Packet 상태:</span> {c430.approvalPacketStatus}</div>
+              <div><span className="font-medium">소스 Task:</span> {c430.sourceTaskId}</div>
+              <div><span className="font-medium">대상 channelProductNo:</span> {c430.targetProductNo}</div>
+              <div><span className="font-medium">channelProductNo 수정 API path parameter 사용 가능:</span> {String(c430.channelProductNoCanBeUsedAsUpdatePathParameter)}</div>
+              <div><span className="font-medium">현재 수정 API 진입 상태:</span> {c430.productUpdateApiEntryDecision}</div>
+              <div><span className="font-medium">payload 설계 가능 여부:</span> {String(c430.canBuildUpdatePayload)}</div>
+              <div><span className="font-medium">수정 API 호출 가능 여부:</span> {String(c430.canCallUpdateApi)}</div>
+              <div><span className="font-medium">다음 payload 설계 별도 승인 필요:</span> {String(c430.nextPayloadDesignRequiresSeparateApproval)}</div>
+            </div>
+            <div className="mb-3 rounded border border-rose-400 bg-rose-100 p-2 text-xs text-rose-900">
+              <div className="mb-1 font-medium">필요한 승인 문구:</div>
+              <div className="font-mono">{c430.requiredApprovalPhrase}</div>
+            </div>
+            <div className="mb-3 text-xs text-rose-900">
+              <div className="mb-1 font-medium">승인 범위:</div>
+              <ul className="ml-4 list-disc space-y-0.5">
+                {Array.isArray(c430.approvalScope) && c430.approvalScope.map((item: string, i: number) => (
+                  <li key={i}>{item}</li>
+                ))}
+              </ul>
+            </div>
+            <div className="mb-3 text-xs text-rose-900">
+              <div className="mb-1 font-medium">계속 금지 항목:</div>
+              <ul className="ml-4 list-disc space-y-0.5">
+                {Array.isArray(c430.continuedForbiddenItems) && c430.continuedForbiddenItems.map((item: string, i: number) => (
+                  <li key={i}>{item}</li>
+                ))}
+              </ul>
+            </div>
+            <div className="mb-2 text-xs text-rose-900">
+              <div className="font-medium">다음 Task: {c430.nextTask}</div>
+            </div>
+            <div className="mt-2 text-xs text-rose-700">
+              <div>Naver API 재호출 없음: {String(!c430.actualNaverApiCall)}</div>
+              <div>수정 API 호출 없음: {String(!c430.actualProductUpdateApiCall)}</div>
+              <div>실제 전송 가능한 payload 생성 없음: true</div>
+              <div>가격/재고/DB write 없음: {String(!c430.actualPriceChange && !c430.actualStockChange && !c430.actualDbWrite)}</div>
+              <div>raw/secret 노출 없음: {String(!c430.actualRawResponseExposure && !c430.actualRawResponseStored && !c430.actualSecretExposure && !c430.actualTokenExposure && !c430.actualAuthorizationHeaderExposure && !c430.actualSignatureExposure)}</div>
+              <div>POST/button/submit 없음: {String(!c430.actualPostApiAdded && !c430.actualExecutionButtonAdded && !c430.actualApprovalButtonAdded && !c430.actualSubmitActionAdded)}</div>
             </div>
           </div>
         );

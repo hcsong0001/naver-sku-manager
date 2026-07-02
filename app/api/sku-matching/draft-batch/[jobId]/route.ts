@@ -410,6 +410,7 @@ import { buildTmsFastConnectionNaverProductIdentityStrategyRedesignOfficialStruc
 import { buildTmsFastConnectionNaverProductIdentityStrategyRedesignResultDecisionView } from '@/src/services/tms-fast-connection-naver-product-identity-strategy-redesign-result-decision-view.service';
 import { buildTmsFastConnectionNaverChannelProductNoUpdateIdentifierReviewApprovalPacketView } from '@/src/services/tms-fast-connection-naver-channel-product-no-update-identifier-review-approval-packet-view.service';
 import { buildTmsFastConnectionNaverChannelProductNoUpdateIdentifierOfficialReviewView } from '@/src/services/tms-fast-connection-naver-channel-product-no-update-identifier-official-review-view.service';
+import { buildTmsFastConnectionNaverChannelProductUpdatePayloadDesignApprovalPacketView } from '@/src/services/tms-fast-connection-naver-channel-product-update-payload-design-approval-packet-view.service';
 import type { TmsNaverProductLookupMaskedResponseShapeAugmentationSummary } from '@/src/services/tms-naver-product-lookup-masked-response-shape-augmentation.harness';
 import type { TmsNaverProductIdentityFieldExplorationSummary } from '@/src/services/tms-naver-product-identity-field-exploration.harness';
 
@@ -2158,6 +2159,10 @@ export async function GET(
         _tmsFastConnectionNaverProductIdentityStrategyRedesignResultDecisionView,
         _tmsFastConnectionNaverProductIdentityStrategyRedesignOfficialStructureReviewView
       );
+    const _tmsFastConnectionNaverChannelProductUpdatePayloadDesignApprovalPacketView =
+      buildTmsFastConnectionNaverChannelProductUpdatePayloadDesignApprovalPacketView(
+        _tmsFastConnectionNaverChannelProductNoUpdateIdentifierOfficialReviewView
+      );
 
     const responseJob = {
       id: job.id,
@@ -3445,6 +3450,8 @@ export async function GET(
         _tmsFastConnectionNaverChannelProductNoUpdateIdentifierReviewApprovalPacketView,
       tmsFastConnectionNaverChannelProductNoUpdateIdentifierOfficialReviewView:
         _tmsFastConnectionNaverChannelProductNoUpdateIdentifierOfficialReviewView,
+      tmsFastConnectionNaverChannelProductUpdatePayloadDesignApprovalPacketView:
+        _tmsFastConnectionNaverChannelProductUpdatePayloadDesignApprovalPacketView,
     };
     return NextResponse.json({ ok: true, job: responseJob });
   } catch (error: unknown) {
