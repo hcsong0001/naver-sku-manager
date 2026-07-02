@@ -396,6 +396,7 @@ import { buildTmsFastConnectionNaverProductLookupResponseProductIdentityFieldMap
 import { buildTmsFastConnectionNaverProductLookupMaskedResponseShapeAugmentationReviewView } from '@/src/services/tms-fast-connection-naver-product-lookup-masked-response-shape-augmentation-review-view.service';
 import { buildTmsFastConnectionNaverProductLookupMaskedResponseShapeAugmentationApprovalPacketView } from '@/src/services/tms-fast-connection-naver-product-lookup-masked-response-shape-augmentation-approval-packet-view.service';
 import { buildTmsFastConnectionNaverProductLookupMaskedResponseShapeAugmentationFinalGateView } from '@/src/services/tms-fast-connection-naver-product-lookup-masked-response-shape-augmentation-final-gate-view.service';
+import { buildTmsFastConnectionNaverProductLookupMaskedResponseShapeAugmentationActualCollectionView } from '@/src/services/tms-fast-connection-naver-product-lookup-masked-response-shape-augmentation-actual-collection-view.service';
 
 
 
@@ -1780,6 +1781,10 @@ export async function GET(
       buildTmsFastConnectionNaverProductLookupMaskedResponseShapeAugmentationFinalGateView(
         _tmsFastConnectionNaverProductLookupMaskedResponseShapeAugmentationApprovalPacketView
       );
+    const _tmsFastConnectionNaverProductLookupMaskedResponseShapeAugmentationActualCollectionView =
+      buildTmsFastConnectionNaverProductLookupMaskedResponseShapeAugmentationActualCollectionView(
+        _tmsFastConnectionNaverProductLookupMaskedResponseShapeAugmentationFinalGateView
+      );
 
     const responseJob = {
       id: job.id,
@@ -3039,6 +3044,8 @@ export async function GET(
         _tmsFastConnectionNaverProductLookupMaskedResponseShapeAugmentationApprovalPacketView,
       tmsFastConnectionNaverProductLookupMaskedResponseShapeAugmentationFinalGateView:
         _tmsFastConnectionNaverProductLookupMaskedResponseShapeAugmentationFinalGateView,
+      tmsFastConnectionNaverProductLookupMaskedResponseShapeAugmentationActualCollectionView:
+        _tmsFastConnectionNaverProductLookupMaskedResponseShapeAugmentationActualCollectionView,
     };
     return NextResponse.json({ ok: true, job: responseJob });
   } catch (error: unknown) {
