@@ -526,6 +526,7 @@ type DraftBatchJob = {
   tmsFastConnectionNaverApiSecretEnvAccessSeparateApprovalRequestPacketView?: any;
   tmsFastConnectionNaverApiEnvExistenceNoSecretPreflightView?: any;
   tmsFastConnectionNaverProductLookupOneTimeLiveTestApprovalPacketView?: any;
+  tmsFastConnectionNaverProductLookupOneTimeFinalSafetyGateView?: any;
   naverAuthTokenFirstTestSafetyBoundary?: {
     ok: boolean;
     readyForExplicitTokenTestApproval: boolean;
@@ -56035,6 +56036,117 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div>Worker 실행 / Queue enqueue / Adapter 연결 / Runtime 구성 없음: {String(c407.actualWorkerRun || c407.actualQueueEnqueue || c407.actualAdapterConnection || c407.actualRuntimeConfiguration)}</div>
               <div>POST API / 실행 버튼 / 승인 버튼 / submit action 추가 없음: {String(c407.actualPostApiAdded || c407.actualSubmitActionAdded || c407.actualExecutionButtonAdded || c407.actualApprovalButtonAdded)}</div>
               <div>실제 승인 수락 / Live Test 실행 없음: {String(c407.actualApprovalAccepted || c407.actualLiveTestApprovalAccepted || c407.actualLiveTestExecuted)}</div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 408: Naver API 상품 조회 1회 실행 전 Final Safety Gate ── */}
+      {job.tmsFastConnectionNaverProductLookupOneTimeFinalSafetyGateView && (() => {
+        const c408 = job.tmsFastConnectionNaverProductLookupOneTimeFinalSafetyGateView as any;
+        const groups408 = [
+          { key: 'finalSafetyGateReadinessItems', label: 'Final Safety Gate 준비도' },
+          { key: 'task407LiveTestApprovalPacketReferenceItems', label: 'Task 407 Live Test 승인 Packet 참조' },
+          { key: 'oneTimeLookupExecutionScopeGateItems', label: '상품 조회 1회 실행 범위 게이트' },
+          { key: 'envSecretTokenAccessStillLockedGateItems', label: 'env/secret/token 접근 잠금 유지 게이트' },
+          { key: 'apiCallStillLockedGateItems', label: 'API 호출 잠금 유지 게이트' },
+          { key: 'responseHandlingAndStorageGateItems', label: '응답 처리/저장 게이트' },
+          { key: 'productUpdatePriceStockDbWriteBlockGateItems', label: '상품 수정/가격/재고/DB write 차단 게이트' },
+          { key: 'task409ExplicitApprovalRequiredGateItems', label: 'Task 409 명시 승인 필요 게이트' },
+        ];
+        return (
+          <div key="task408-fast-connection-naver-product-lookup-one-time-final-safety-gate" className="mb-6 rounded-lg border border-rose-300 bg-rose-50 p-4">
+            <h3 className="mb-2 text-sm font-bold text-rose-800">
+              Task 408 - Naver API 상품 조회 1회 실행 전 Final Safety Gate
+            </h3>
+            <p className="mb-2 text-xs text-rose-900">
+              {c408.finalSafetyGateScopeNotice}
+            </p>
+            <div className="mb-2 flex flex-wrap gap-2">
+              <span className="rounded bg-rose-100 px-2 py-0.5 text-xs font-medium text-rose-700">
+                상태: {c408.fastConnectionNaverProductLookupOneTimeFinalSafetyGateStatus}
+              </span>
+              <span className="rounded bg-rose-100 px-2 py-0.5 text-xs font-medium text-rose-700">
+                결정값: {c408.recommendedFinalSafetyGateDecision}
+              </span>
+              <span className="rounded bg-rose-100 px-2 py-0.5 text-xs font-medium text-rose-700">
+                {c408.recommendedFinalSafetyGateDecisionLabel}
+              </span>
+            </div>
+            <div className="mb-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {(c408.finalSafetyGateSummaryCards ?? []).map((card: { label: string; value: number }) => (
+                <div key={card.label} className="rounded bg-white p-2 text-center shadow-sm">
+                  <div className="text-lg font-bold text-rose-700">{card.value}</div>
+                  <div className="text-xs text-gray-500">{card.label}</div>
+                </div>
+              ))}
+            </div>
+            <div className="mb-2 grid grid-cols-1 gap-1 sm:grid-cols-2">
+              {groups408.map((g) => (
+                <div key={g.key} className="flex items-center justify-between rounded bg-white px-2 py-1 text-xs shadow-sm">
+                  <span className="text-gray-600">{g.label}</span>
+                  <span className="font-medium text-rose-700">{(c408[g.key] ?? []).length}건</span>
+                </div>
+              ))}
+            </div>
+            <div className="mb-2 rounded bg-white p-2 text-xs shadow-sm">
+              <div className="mb-1 font-semibold text-rose-700">Final Safety Gate 안내</div>
+              <div className="text-gray-600">{c408.finalSafetyGateGuidance}</div>
+              <div className="mt-1 text-gray-600">최우선 목표: {c408.recommendedPrimaryGoal}</div>
+              <div className="text-gray-600">대상 API: {c408.targetApi}</div>
+              <div className="text-gray-600">대표 상품 후보: {c408.targetProductNo} ({c408.targetProductLabel})</div>
+              <div className="text-gray-600">최대 조회 호출 수: {c408.maxLookupCallCount}회</div>
+              <div className="text-gray-600">Task 409 필요 승인 문구: {c408.recommendedTask409RequiredApprovalPhrase}</div>
+              <div className="text-gray-600">{c408.userApprovalPhraseGuidance}</div>
+              <div className="text-gray-600">현재 화면에서 실제 승인 수락 없음: {String(c408.actualApprovalAccepted || c408.actualLiveTestApprovalAccepted)}</div>
+              <div className="text-gray-600">현재 화면에서 env/secret 접근 없음: {String(c408.actualEnvAccessUnlocked || c408.actualSecretAccessUnlocked || c408.actualEnvRead || c408.actualEnvWrite || c408.actualEnvFileOpen || c408.actualSecretAccess)}</div>
+              <div className="text-gray-600">현재 화면에서 token 사용 없음: {String(c408.actualTokenUseUnlocked || c408.actualTokenIssue || c408.actualTokenReissue || c408.actualTokenUse)}</div>
+              <div className="text-gray-600">현재 화면에서 실제 API 호출 없음: {String(c408.actualApiCallUnlocked || c408.actualNaverApiCall || c408.actualProductLookupApiCall || c408.actualProductUpdateApiCall)}</div>
+              <div className="text-gray-600">raw response 표시/저장 금지: {String(!c408.rawResponseDisplayAllowed && !c408.rawResponseStorageAllowed)}</div>
+              <div className="text-gray-600">상품 수정/가격 변경/재고 변경/DB write 금지: {String(!c408.productUpdateAllowed && !c408.priceChangeAllowed && !c408.stockChangeAllowed && !c408.dbWriteAllowed)}</div>
+              <div className="text-gray-600">현재 화면에서 POST/action/button 없음: {String(c408.actualPostApiAdded || c408.actualSubmitActionAdded || c408.actualExecutionButtonAdded || c408.actualApprovalButtonAdded)}</div>
+            </div>
+            <div className="mb-2 rounded bg-white p-2 text-xs shadow-sm">
+              <div className="mb-1 font-semibold text-rose-700">Task 409~411 압축 로드맵</div>
+              {(c408.compressedFastConnectionRoadmap ?? []).map((r: { taskId: number; label: string }) => (
+                <div key={r.taskId} className="text-gray-600">{r.label}</div>
+              ))}
+            </div>
+            <div className="mb-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-rose-700">추천 다음 단계</div>
+                <div className="break-all text-gray-600">{c408.recommendedNextStep}</div>
+              </div>
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-rose-700">승인 모드</div>
+                <div className="text-gray-600">{c408.recommendedApprovalMode}</div>
+              </div>
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-rose-700">실행 모드</div>
+                <div className="text-gray-600">{c408.recommendedExecutionMode}</div>
+              </div>
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-rose-700">배포 모드</div>
+                <div className="text-gray-600">{c408.recommendedDeploymentMode}</div>
+              </div>
+            </div>
+            <div className="mb-2 rounded bg-white p-2 text-xs shadow-sm">
+              <div className="font-semibold text-rose-700">안전 모드</div>
+              <div className="text-gray-600">{c408.recommendedSafetyMode}</div>
+            </div>
+            <div className="rounded bg-rose-100 p-2 text-xs text-rose-900">
+              <div className="mb-1 font-semibold">안전 금지선 확인</div>
+              <div>실제 Naver API 호출/상품 조회 API/상품 수정 API 없음: {String(c408.actualNaverApiCall || c408.actualProductLookupApiCall || c408.actualProductUpdateApiCall || c408.actualProductLookupExecuted || c408.actualProductUpdateExecuted)}</div>
+              <div>Token 발급/재발급/사용 없음: {String(c408.actualTokenIssue || c408.actualTokenReissue || c408.actualTokenUse)}</div>
+              <div>.env/.env.local 열람/수정 없음: {String(c408.actualEnvRead || c408.actualEnvWrite || c408.actualEnvFileOpen)}</div>
+              <div>process.env 실제 조회 없음: {String(c408.actualProcessEnvRead)}</div>
+              <div>secret 노출 없음: {String(c408.actualSecretAccess || c408.actualSecretExposure)}</div>
+              <div>authorization/header/signature 노출 없음: {String(c408.actualAuthorizationHeaderExposure || c408.actualSignatureExposure)}</div>
+              <div>raw API response 노출/저장 없음: {String(c408.actualRawApiResponseExposure || c408.actualRawApiResponseStored)}</div>
+              <div>DB write / 가격 변경 / 재고 변경 없음: {String(c408.actualDbWrite || c408.actualPriceChange || c408.actualStockChange)}</div>
+              <div>Worker 실행 / Queue enqueue / Adapter 연결 / Runtime 구성 없음: {String(c408.actualWorkerRun || c408.actualQueueEnqueue || c408.actualAdapterConnection || c408.actualRuntimeConfiguration)}</div>
+              <div>POST API / 실행 버튼 / 승인 버튼 / submit action 추가 없음: {String(c408.actualPostApiAdded || c408.actualSubmitActionAdded || c408.actualExecutionButtonAdded || c408.actualApprovalButtonAdded)}</div>
+              <div>실제 승인 수락 / Live Test 실행 / 실행 잠금 해제 없음: {String(c408.actualApprovalAccepted || c408.actualLiveTestApprovalAccepted || c408.actualLiveTestExecuted || c408.actualExecutionUnlocked)}</div>
             </div>
           </div>
         );
