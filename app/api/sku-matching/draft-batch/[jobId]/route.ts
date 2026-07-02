@@ -397,6 +397,8 @@ import { buildTmsFastConnectionNaverProductLookupMaskedResponseShapeAugmentation
 import { buildTmsFastConnectionNaverProductLookupMaskedResponseShapeAugmentationApprovalPacketView } from '@/src/services/tms-fast-connection-naver-product-lookup-masked-response-shape-augmentation-approval-packet-view.service';
 import { buildTmsFastConnectionNaverProductLookupMaskedResponseShapeAugmentationFinalGateView } from '@/src/services/tms-fast-connection-naver-product-lookup-masked-response-shape-augmentation-final-gate-view.service';
 import { buildTmsFastConnectionNaverProductLookupMaskedResponseShapeAugmentationActualCollectionView } from '@/src/services/tms-fast-connection-naver-product-lookup-masked-response-shape-augmentation-actual-collection-view.service';
+import { buildTmsFastConnectionNaverProductIdentityConfirmationDecisionView } from '@/src/services/tms-fast-connection-naver-product-identity-confirmation-decision-view.service';
+import type { TmsNaverProductLookupMaskedResponseShapeAugmentationSummary } from '@/src/services/tms-naver-product-lookup-masked-response-shape-augmentation.harness';
 
 
 
@@ -1781,9 +1783,111 @@ export async function GET(
       buildTmsFastConnectionNaverProductLookupMaskedResponseShapeAugmentationFinalGateView(
         _tmsFastConnectionNaverProductLookupMaskedResponseShapeAugmentationApprovalPacketView
       );
+    const _tmsFastConnectionNaverProductLookupMaskedResponseShapeAugmentationActualCollectionExecutionResult: TmsNaverProductLookupMaskedResponseShapeAugmentationSummary =
+      {
+        augmentationAttempted: true,
+        actualRecallCount: 1,
+        targetProductNo: '6597910207',
+        targetApi: 'NAVER_COMMERCE_PRODUCT_LOOKUP_API',
+        success: true,
+        httpStatusCode: 200,
+        responseShapeKeys: ['originProduct', 'smartstoreChannelProduct'],
+        candidatePathResults: [
+          {
+            candidatePath: 'smartstoreChannelProduct.channelProductNo',
+            exists: false,
+            valueType: 'undefined',
+            maskedPreviewLast4: null,
+            equalsTargetProductNo: null,
+            rawValueDisplayed: false,
+            rawValueStored: false,
+            rawResponseAccessedForDisplay: false,
+          },
+          {
+            candidatePath: 'smartstoreChannelProduct.id',
+            exists: false,
+            valueType: 'undefined',
+            maskedPreviewLast4: null,
+            equalsTargetProductNo: null,
+            rawValueDisplayed: false,
+            rawValueStored: false,
+            rawResponseAccessedForDisplay: false,
+          },
+          {
+            candidatePath: 'smartstoreChannelProduct.productNo',
+            exists: false,
+            valueType: 'undefined',
+            maskedPreviewLast4: null,
+            equalsTargetProductNo: null,
+            rawValueDisplayed: false,
+            rawValueStored: false,
+            rawResponseAccessedForDisplay: false,
+          },
+          {
+            candidatePath: 'smartstoreChannelProduct.originProductNo',
+            exists: false,
+            valueType: 'undefined',
+            maskedPreviewLast4: null,
+            equalsTargetProductNo: null,
+            rawValueDisplayed: false,
+            rawValueStored: false,
+            rawResponseAccessedForDisplay: false,
+          },
+          {
+            candidatePath: 'originProduct.originProductNo',
+            exists: false,
+            valueType: 'undefined',
+            maskedPreviewLast4: null,
+            equalsTargetProductNo: null,
+            rawValueDisplayed: false,
+            rawValueStored: false,
+            rawResponseAccessedForDisplay: false,
+          },
+          {
+            candidatePath: 'originProduct.id',
+            exists: false,
+            valueType: 'undefined',
+            maskedPreviewLast4: null,
+            equalsTargetProductNo: null,
+            rawValueDisplayed: false,
+            rawValueStored: false,
+            rawResponseAccessedForDisplay: false,
+          },
+          {
+            candidatePath: 'originProduct.productNo',
+            exists: false,
+            valueType: 'undefined',
+            maskedPreviewLast4: null,
+            equalsTargetProductNo: null,
+            rawValueDisplayed: false,
+            rawValueStored: false,
+            rawResponseAccessedForDisplay: false,
+          },
+        ],
+        productIdentityConfidenceScore: 30,
+        productIdentityMatchConfirmed: false,
+        productIdentityMatchReason:
+          'top-level response shape는 확인되었지만 candidate path 7개에서 식별 필드가 확인되지 않아 confidence score를 30으로 유지했습니다.',
+        rawResponseStored: false,
+        rawResponseDisplayed: false,
+        secretExposed: false,
+        tokenExposed: false,
+        authorizationHeaderExposed: false,
+        signatureExposed: false,
+        productUpdateCalled: false,
+        priceChanged: false,
+        stockChanged: false,
+        dbWritten: false,
+        sanitizedErrorMessage: null,
+      };
     const _tmsFastConnectionNaverProductLookupMaskedResponseShapeAugmentationActualCollectionView =
       buildTmsFastConnectionNaverProductLookupMaskedResponseShapeAugmentationActualCollectionView(
-        _tmsFastConnectionNaverProductLookupMaskedResponseShapeAugmentationFinalGateView
+        _tmsFastConnectionNaverProductLookupMaskedResponseShapeAugmentationFinalGateView,
+        _tmsFastConnectionNaverProductLookupMaskedResponseShapeAugmentationActualCollectionExecutionResult
+      );
+    const _tmsFastConnectionNaverProductIdentityConfirmationDecisionView =
+      buildTmsFastConnectionNaverProductIdentityConfirmationDecisionView(
+        _tmsFastConnectionNaverProductLookupMaskedResponseShapeAugmentationActualCollectionView
       );
 
     const responseJob = {
@@ -3046,6 +3150,8 @@ export async function GET(
         _tmsFastConnectionNaverProductLookupMaskedResponseShapeAugmentationFinalGateView,
       tmsFastConnectionNaverProductLookupMaskedResponseShapeAugmentationActualCollectionView:
         _tmsFastConnectionNaverProductLookupMaskedResponseShapeAugmentationActualCollectionView,
+      tmsFastConnectionNaverProductIdentityConfirmationDecisionView:
+        _tmsFastConnectionNaverProductIdentityConfirmationDecisionView,
     };
     return NextResponse.json({ ok: true, job: responseJob });
   } catch (error: unknown) {

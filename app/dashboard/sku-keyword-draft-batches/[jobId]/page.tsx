@@ -535,6 +535,7 @@ type DraftBatchJob = {
   tmsFastConnectionNaverProductLookupMaskedResponseShapeAugmentationApprovalPacketView?: any;
   tmsFastConnectionNaverProductLookupMaskedResponseShapeAugmentationFinalGateView?: any;
   tmsFastConnectionNaverProductLookupMaskedResponseShapeAugmentationActualCollectionView?: any;
+  tmsFastConnectionNaverProductIdentityConfirmationDecisionView?: any;
   naverAuthTokenFirstTestSafetyBoundary?: {
     ok: boolean;
     readyForExplicitTokenTestApproval: boolean;
@@ -57258,6 +57259,76 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div>full product name/full option name/full seller management code 노출 없음: {String(!c416.actualFullProductNameExposure && !c416.actualFullOptionNameExposure && !c416.actualFullSellerManagementCodeExposure)}</div>
               <div>Worker/Queue/Runtime 운영 전환 없음: {String(!c416.actualWorkerRun && !c416.actualQueueEnqueue && !c416.actualRuntimeConfiguration && !c416.actualOperatingTransition)}</div>
               <div>POST API / 실행 버튼 / 승인 버튼 / submit action 추가 없음: true</div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 417: Naver 상품 식별 확정 판단 화면 ── */}
+      {job.tmsFastConnectionNaverProductIdentityConfirmationDecisionView && (() => {
+        const c417 = job.tmsFastConnectionNaverProductIdentityConfirmationDecisionView as any;
+        return (
+          <div key="task417-fast-connection-naver-product-identity-confirmation-decision" className="mb-6 rounded-lg border border-lime-300 bg-lime-50 p-4">
+            <h3 className="mb-2 text-sm font-bold text-lime-800">
+              Task 417 - Naver 상품 식별 확정 판단 화면
+            </h3>
+            <p className="mb-2 text-xs text-lime-900">
+              {c417.decisionReason}
+            </p>
+            <div className="mb-2 flex flex-wrap gap-2">
+              <span className="rounded bg-lime-100 px-2 py-0.5 text-xs font-medium text-lime-700">
+                판단 상태: {c417.status}
+              </span>
+              <span className="rounded bg-lime-100 px-2 py-0.5 text-xs font-medium text-lime-700">
+                상품 수정 API 진입 판단: {c417.productUpdateApiEntryDecision}
+              </span>
+              <span className="rounded bg-lime-100 px-2 py-0.5 text-xs font-medium text-lime-700">
+                대상 상품번호: {c417.targetProductNo}
+              </span>
+            </div>
+            <div className="mb-2 rounded bg-white p-2 text-xs shadow-sm">
+              <div className="mb-1 font-semibold text-lime-700">Task 416 입력 요약</div>
+              <div className="text-gray-600">source task: Task {c417.sourceTaskId}</div>
+              <div className="text-gray-600">source lookup success: {String(c417.sourceLookupSucceeded)}</div>
+              <div className="text-gray-600">source collection executed: {String(c417.sourceCollectionExecuted)}</div>
+              <div className="text-gray-600">HTTP status: {String(c417.sourceHttpStatus)}</div>
+              <div className="text-gray-600">responseShapeKeys: {(c417.responseShapeKeys ?? []).join(', ') || '(없음)'}</div>
+            </div>
+            <div className="mb-2 rounded bg-white p-2 text-xs shadow-sm">
+              <div className="mb-1 font-semibold text-lime-700">상품 식별 확정 판단 결과</div>
+              <div className="text-gray-600">candidate path 7개 중 식별 확정 path 수: {String(c417.confirmedCandidatePathCount)}</div>
+              <div className="text-gray-600">candidate path 실패/미확정 수: {String(c417.failedCandidatePathCount)}</div>
+              <div className="text-gray-600">productIdentityConfidenceScore: {String(c417.productIdentityConfidenceScore)}</div>
+              <div className="text-gray-600">productIdentityMatchConfirmed: {String(c417.productIdentityMatchConfirmed)}</div>
+              <div className="text-gray-600">판단 결과: {c417.status === 'PRODUCT_IDENTITY_CONFIRMED' ? '상품 식별 확정' : '상품 식별 미확정'}</div>
+              <div className="text-gray-600">상품 수정 API 진입 판단: {c417.productUpdateApiEntryDecision}</div>
+              <div className="text-gray-600">보류 사유: {String(c417.blockedReason)}</div>
+              <div className="text-gray-600">다음 조치: {c417.nextAction}</div>
+              <div className="mt-1 rounded bg-lime-100 px-2 py-1 text-lime-900">{c417.separateApprovalRequiredNotice}</div>
+            </div>
+            <div className="mb-2 rounded bg-white p-2 text-xs shadow-sm">
+              <div className="mb-1 font-semibold text-lime-700">안전 금지선</div>
+              <div className="space-y-1">
+                {(c417.safetyNoticeItems ?? []).map((item: any) => (
+                  <div key={item.label} className="rounded bg-lime-50 px-2 py-1 text-gray-700">
+                    <span className="font-semibold text-lime-800">{item.label}</span>
+                    {' '}[{item.status}] {item.description}
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="rounded bg-lime-100 p-2 text-xs text-lime-900">
+              <div className="mb-1 font-semibold">read-only 확인</div>
+              <div>Naver API 재호출 없음: {String(!c417.actualNaverApiRecallInTask417)}</div>
+              <div>상품 수정 API 호출 없음: {String(!c417.actualProductUpdateApiCall)}</div>
+              <div>가격 변경 없음: {String(!c417.actualPriceChange)}</div>
+              <div>재고 변경 없음: {String(!c417.actualStockChange)}</div>
+              <div>DB write 없음: {String(!c417.actualDbWrite)}</div>
+              <div>raw response 전체 표시/저장 없음: {String(!c417.actualRawApiResponseExposure && !c417.actualRawApiResponseStored)}</div>
+              <div>secret/token/header/signature 노출 없음: {String(!c417.actualSecretExposure && !c417.actualTokenExposure && !c417.actualAuthorizationHeaderExposure && !c417.actualSignatureExposure)}</div>
+              <div>full product/option/seller code 노출 없음: {String(!c417.actualFullProductNameExposure && !c417.actualFullOptionNameExposure && !c417.actualFullSellerManagementCodeExposure)}</div>
+              <div>Worker/Queue/Runtime 운영 전환 없음: {String(!c417.actualWorkerRun && !c417.actualQueueEnqueue && !c417.actualRuntimeConfiguration)}</div>
+              <div>POST API / 실행 버튼 / 승인 버튼 / submit action 추가 없음: {String(!c417.actualPostApiAdded && !c417.actualExecutionButtonAdded && !c417.actualApprovalButtonAdded && !c417.actualSubmitActionAdded)}</div>
             </div>
           </div>
         );
