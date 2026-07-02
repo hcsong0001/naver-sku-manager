@@ -549,6 +549,7 @@ type DraftBatchJob = {
   tmsFastConnectionNaverChannelProductNoUpdateIdentifierReviewApprovalPacketView?: any;
   tmsFastConnectionNaverChannelProductNoUpdateIdentifierOfficialReviewView?: any;
   tmsFastConnectionNaverChannelProductUpdatePayloadDesignApprovalPacketView?: any;
+  tmsFastConnectionNaverChannelProductUpdatePayloadReadOnlyDesignView?: any;
   naverAuthTokenFirstTestSafetyBoundary?: {
     ok: boolean;
     readyForExplicitTokenTestApproval: boolean;
@@ -58165,6 +58166,71 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div>가격/재고/DB write 없음: {String(!c430.actualPriceChange && !c430.actualStockChange && !c430.actualDbWrite)}</div>
               <div>raw/secret 노출 없음: {String(!c430.actualRawResponseExposure && !c430.actualRawResponseStored && !c430.actualSecretExposure && !c430.actualTokenExposure && !c430.actualAuthorizationHeaderExposure && !c430.actualSignatureExposure)}</div>
               <div>POST/button/submit 없음: {String(!c430.actualPostApiAdded && !c430.actualExecutionButtonAdded && !c430.actualApprovalButtonAdded && !c430.actualSubmitActionAdded)}</div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 431: Naver 채널 상품 수정 Payload Read-Only 설계 ── */}
+      {job.tmsFastConnectionNaverChannelProductUpdatePayloadReadOnlyDesignView && (() => {
+        const c431 = job.tmsFastConnectionNaverChannelProductUpdatePayloadReadOnlyDesignView as any;
+        return (
+          <div key="task431-fast-connection-naver-channel-product-update-payload-read-only-design" className="mb-6 rounded-lg border border-indigo-300 bg-indigo-50 p-4">
+            <h3 className="mb-2 text-sm font-bold text-indigo-800">
+              Task {c431.taskId}: {c431.title}
+            </h3>
+            <div className="mb-3 space-y-1 text-xs text-indigo-900">
+              <div><span className="font-medium">설계 상태:</span> {c431.designStatus}</div>
+              <div><span className="font-medium">승인 문구 확인:</span> {String(c431.approvedPhraseAccepted)}</div>
+              <div><span className="font-medium">승인 문구:</span> {c431.userApprovalPhrase}</div>
+              <div><span className="font-medium">대상 channelProductNo:</span> {c431.targetChannelProductNo}</div>
+              <div><span className="font-medium">수정 endpoint:</span> {c431.updateEndpoint}</div>
+              <div><span className="font-medium">path parameter:</span> {c431.pathParameterName} = {c431.pathParameterValue}</div>
+              <div><span className="font-medium">channelProductNo path parameter 사용 가능:</span> {String(c431.channelProductNoCanBeUsedAsUpdatePathParameter)}</div>
+            </div>
+            <div className="mb-3 space-y-1 text-xs text-indigo-900">
+              <div><span className="font-medium">payload 설계 모드:</span> {c431.payloadDesignMode}</div>
+              <div><span className="font-medium">실제 전송 가능한 payload 생성 가능:</span> {String(c431.canBuildTransmittablePayload)}</div>
+              <div><span className="font-medium">수정 API 호출 가능:</span> {String(c431.canCallUpdateApi)}</div>
+              <div><span className="font-medium">현재 수정 API 진입 판단:</span> {c431.productUpdateApiEntryDecision}</div>
+            </div>
+            {Array.isArray(c431.designGroups) && c431.designGroups.length > 0 && (
+              <div className="mb-3 text-xs text-indigo-900">
+                <div className="mb-1 font-medium">설계 그룹 ({c431.designGroups.length}개)</div>
+                {c431.designGroups.map((g: { designId: string; title: string; purpose: string; designDecision: string; safetyStatus: string }, i: number) => (
+                  <div key={i} className="mb-1 rounded border border-indigo-200 bg-white p-2">
+                    <div className="font-medium">[{g.designId}] {g.title}</div>
+                    <div><span className="text-indigo-700">목적:</span> {g.purpose}</div>
+                    <div><span className="text-indigo-700">설계 결정:</span> {g.designDecision}</div>
+                    <div><span className="text-indigo-700">안전 상태:</span> {g.safetyStatus}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+            {c431.nonTransmittablePayloadDraft && (
+              <div className="mb-3 rounded border border-indigo-400 bg-indigo-100 p-2 text-xs text-indigo-900">
+                <div className="mb-1 font-medium">Non-Transmittable Payload Draft</div>
+                <div>path.channelProductNo: {c431.nonTransmittablePayloadDraft.path?.channelProductNo}</div>
+                <div>path.transmittable: {String(c431.nonTransmittablePayloadDraft.path?.transmittable)}</div>
+                <div>bodyDesign.originProduct.designOnly: {String(c431.nonTransmittablePayloadDraft.bodyDesign?.originProduct?.designOnly)}</div>
+                <div>bodyDesign.originProduct.actualValuesIncluded: {String(c431.nonTransmittablePayloadDraft.bodyDesign?.originProduct?.actualValuesIncluded)}</div>
+                <div>bodyDesign.originProduct.priceChangeIncluded: {String(c431.nonTransmittablePayloadDraft.bodyDesign?.originProduct?.priceChangeIncluded)}</div>
+                <div>bodyDesign.originProduct.stockChangeIncluded: {String(c431.nonTransmittablePayloadDraft.bodyDesign?.originProduct?.stockChangeIncluded)}</div>
+                <div>safety.transmittablePayloadGenerated: {String(c431.nonTransmittablePayloadDraft.safety?.transmittablePayloadGenerated)}</div>
+                <div>safety.updateApiCallable: {String(c431.nonTransmittablePayloadDraft.safety?.updateApiCallable)}</div>
+                <div>safety.requiresNextReview: {String(c431.nonTransmittablePayloadDraft.safety?.requiresNextReview)}</div>
+              </div>
+            )}
+            <div className="mb-2 text-xs text-indigo-900">
+              <div className="font-medium">다음 Task: {c431.nextRecommendedTask}</div>
+            </div>
+            <div className="mt-2 text-xs text-indigo-700">
+              <div>Naver API 재호출 없음: {String(!c431.actualNaverApiCall)}</div>
+              <div>수정 API 호출 없음: {String(!c431.actualProductUpdateApiCall)}</div>
+              <div>실제 전송 가능한 payload 생성 없음: {String(!c431.canBuildTransmittablePayload)}</div>
+              <div>가격/재고/DB write 없음: {String(!c431.actualPriceChange && !c431.actualStockChange && !c431.actualDbWrite)}</div>
+              <div>raw/secret 노출 없음: {String(!c431.actualRawResponseExposure && !c431.actualRawResponseStored && !c431.actualSecretExposure && !c431.actualTokenExposure && !c431.actualAuthorizationHeaderExposure && !c431.actualSignatureExposure)}</div>
+              <div>POST/button/submit 없음: {String(!c431.actualPostApiAdded && !c431.actualExecutionButtonAdded && !c431.actualApprovalButtonAdded && !c431.actualSubmitActionAdded)}</div>
             </div>
           </div>
         );
