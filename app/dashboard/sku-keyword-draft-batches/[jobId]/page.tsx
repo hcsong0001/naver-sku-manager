@@ -537,6 +537,7 @@ type DraftBatchJob = {
   tmsFastConnectionNaverProductLookupMaskedResponseShapeAugmentationActualCollectionView?: any;
   tmsFastConnectionNaverProductIdentityConfirmationDecisionView?: any;
   tmsFastConnectionNaverProductIdentityFieldExplorationDesignView?: any;
+  tmsFastConnectionNaverProductIdentityFieldExplorationApprovalPacketView?: any;
   naverAuthTokenFirstTestSafetyBoundary?: {
     ok: boolean;
     readyForExplicitTokenTestApproval: boolean;
@@ -57389,6 +57390,68 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div>가격/재고/DB write 없음: {String(!c418.actualPriceChange && !c418.actualStockChange && !c418.actualDbWrite)}</div>
               <div>raw/secret 노출 없음: {String(!c418.actualRawResponseExposure && !c418.actualRawResponseStored && !c418.actualSecretExposure && !c418.actualTokenExposure && !c418.actualAuthorizationHeaderExposure && !c418.actualSignatureExposure)}</div>
               <div>POST/button/submit 없음: {String(!c418.actualPostApiAdded && !c418.actualExecutionButtonAdded && !c418.actualApprovalButtonAdded && !c418.actualSubmitActionAdded)}</div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 419: Naver 상품 식별 필드 추가 탐색 승인 Packet ── */}
+      {job.tmsFastConnectionNaverProductIdentityFieldExplorationApprovalPacketView && (() => {
+        const c419 = job.tmsFastConnectionNaverProductIdentityFieldExplorationApprovalPacketView as any;
+        return (
+          <div key="task419-fast-connection-naver-product-identity-field-exploration-approval-packet" className="mb-6 rounded-lg border border-amber-300 bg-amber-50 p-4">
+            <h3 className="mb-2 text-sm font-bold text-amber-800">
+              Task 419 - Naver 상품 식별 필드 추가 탐색 승인 Packet
+            </h3>
+            <p className="mb-2 text-xs text-amber-900">
+              {c419.guidance}
+            </p>
+            <div className="mb-2 flex flex-wrap gap-2">
+              <span className="rounded bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
+                승인 Packet 상태: {c419.approvalPacketStatus}
+              </span>
+              <span className="rounded bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
+                sourceDesignStatus: {c419.sourceDesignStatus}
+              </span>
+              <span className="rounded bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
+                현재 수정 API 진입 상태: {c419.productUpdateApiEntryDecision}
+              </span>
+            </div>
+            <div className="mb-2 rounded bg-white p-2 text-xs shadow-sm">
+              <div className="mb-1 font-semibold text-amber-700">승인 Packet 요약</div>
+              <div className="text-gray-600">대상 상품번호: {c419.targetProductNo}</div>
+              <div className="text-gray-600">별도 승인 필요: {String(c419.nextCollectionRequiresSeparateApproval)}</div>
+              <div className="text-gray-600">최대 재조회 수: {String(c419.maxAllowedLookupRecallCount)}</div>
+              <div className="text-gray-600">필요한 승인 문구: {c419.requiredApprovalPhrase}</div>
+              <div className="text-gray-600">다음 Task: {c419.nextTask}</div>
+            </div>
+            <div className="mb-2 rounded bg-white p-2 text-xs shadow-sm">
+              <div className="mb-1 font-semibold text-amber-700">승인 범위</div>
+              <div className="space-y-1">
+                {(c419.approvalScope ?? []).map((item: string) => (
+                  <div key={item} className="rounded bg-amber-50 px-2 py-1 text-gray-700">
+                    {item}
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="mb-2 rounded bg-white p-2 text-xs shadow-sm">
+              <div className="mb-1 font-semibold text-amber-700">계속 금지 항목</div>
+              <div className="space-y-1">
+                {(c419.forbiddenItems ?? []).map((item: string) => (
+                  <div key={item} className="rounded bg-red-50 px-2 py-1 text-red-700">
+                    {item}
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="rounded bg-amber-100 p-2 text-xs text-amber-900">
+              <div className="mb-1 font-semibold">안전 확인</div>
+              <div>실제 API 재조회 없음: {String(!c419.actualApiRecallInTask419)}</div>
+              <div>수정 API/가격/재고/DB write 없음: {String(!c419.actualProductUpdateApiCall && !c419.actualPriceChange && !c419.actualStockChange && !c419.actualDbWrite)}</div>
+              <div>raw/full/secret 노출 없음: {String(!c419.actualRawResponseExposure && !c419.actualRawResponseStored && !c419.actualFullProductNameExposure && !c419.actualFullOptionNameExposure && !c419.actualFullSellerManagementCodeExposure && !c419.actualSecretExposure && !c419.actualTokenExposure && !c419.actualAuthorizationHeaderExposure && !c419.actualSignatureExposure)}</div>
+              <div>반복 조회/다른 상품/Worker/Queue/Runtime 없음: {String(!c419.actualRepeatedLookup && !c419.actualDifferentProductLookup && !c419.actualWorkerRun && !c419.actualQueueRun && !c419.actualRuntimeExecution)}</div>
+              <div>POST/button/submit 없음: {String(!c419.actualPostApiAdded && !c419.actualExecutionButtonAdded && !c419.actualApprovalButtonAdded && !c419.actualSubmitActionAdded)}</div>
             </div>
           </div>
         );

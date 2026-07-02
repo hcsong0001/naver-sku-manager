@@ -399,6 +399,7 @@ import { buildTmsFastConnectionNaverProductLookupMaskedResponseShapeAugmentation
 import { buildTmsFastConnectionNaverProductLookupMaskedResponseShapeAugmentationActualCollectionView } from '@/src/services/tms-fast-connection-naver-product-lookup-masked-response-shape-augmentation-actual-collection-view.service';
 import { buildTmsFastConnectionNaverProductIdentityConfirmationDecisionView } from '@/src/services/tms-fast-connection-naver-product-identity-confirmation-decision-view.service';
 import { buildTmsFastConnectionNaverProductIdentityFieldExplorationDesignView } from '@/src/services/tms-fast-connection-naver-product-identity-field-exploration-design-view.service';
+import { buildTmsFastConnectionNaverProductIdentityFieldExplorationApprovalPacketView } from '@/src/services/tms-fast-connection-naver-product-identity-field-exploration-approval-packet-view.service';
 import type { TmsNaverProductLookupMaskedResponseShapeAugmentationSummary } from '@/src/services/tms-naver-product-lookup-masked-response-shape-augmentation.harness';
 
 
@@ -1895,6 +1896,10 @@ export async function GET(
         _tmsFastConnectionNaverProductLookupMaskedResponseShapeAugmentationActualCollectionView,
         _tmsFastConnectionNaverProductIdentityConfirmationDecisionView
       );
+    const _tmsFastConnectionNaverProductIdentityFieldExplorationApprovalPacketView =
+      buildTmsFastConnectionNaverProductIdentityFieldExplorationApprovalPacketView(
+        _tmsFastConnectionNaverProductIdentityFieldExplorationDesignView
+      );
 
     const responseJob = {
       id: job.id,
@@ -3160,6 +3165,8 @@ export async function GET(
         _tmsFastConnectionNaverProductIdentityConfirmationDecisionView,
       tmsFastConnectionNaverProductIdentityFieldExplorationDesignView:
         _tmsFastConnectionNaverProductIdentityFieldExplorationDesignView,
+      tmsFastConnectionNaverProductIdentityFieldExplorationApprovalPacketView:
+        _tmsFastConnectionNaverProductIdentityFieldExplorationApprovalPacketView,
     };
     return NextResponse.json({ ok: true, job: responseJob });
   } catch (error: unknown) {
