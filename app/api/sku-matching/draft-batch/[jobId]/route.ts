@@ -402,6 +402,7 @@ import { buildTmsFastConnectionNaverProductIdentityFieldExplorationDesignView } 
 import { buildTmsFastConnectionNaverProductIdentityFieldExplorationApprovalPacketView } from '@/src/services/tms-fast-connection-naver-product-identity-field-exploration-approval-packet-view.service';
 import { buildTmsFastConnectionNaverProductIdentityFieldExplorationFinalGateView } from '@/src/services/tms-fast-connection-naver-product-identity-field-exploration-final-gate-view.service';
 import { buildTmsFastConnectionNaverProductIdentityFieldExplorationActualCollectionView } from '@/src/services/tms-fast-connection-naver-product-identity-field-exploration-actual-collection-view.service';
+import { buildTmsFastConnectionNaverProductIdentityFieldExplorationResultDecisionView } from '@/src/services/tms-fast-connection-naver-product-identity-field-exploration-result-decision-view.service';
 import type { TmsNaverProductLookupMaskedResponseShapeAugmentationSummary } from '@/src/services/tms-naver-product-lookup-masked-response-shape-augmentation.harness';
 import type { TmsNaverProductIdentityFieldExplorationSummary } from '@/src/services/tms-naver-product-identity-field-exploration.harness';
 
@@ -2112,6 +2113,10 @@ export async function GET(
         _tmsFastConnectionNaverProductIdentityFieldExplorationFinalGateView,
         _tmsFastConnectionNaverProductIdentityFieldExplorationActualCollectionExecutionResult
       );
+    const _tmsFastConnectionNaverProductIdentityFieldExplorationResultDecisionView =
+      buildTmsFastConnectionNaverProductIdentityFieldExplorationResultDecisionView(
+        _tmsFastConnectionNaverProductIdentityFieldExplorationActualCollectionView
+      );
 
     const responseJob = {
       id: job.id,
@@ -3383,6 +3388,8 @@ export async function GET(
         _tmsFastConnectionNaverProductIdentityFieldExplorationFinalGateView,
       tmsFastConnectionNaverProductIdentityFieldExplorationActualCollectionView:
         _tmsFastConnectionNaverProductIdentityFieldExplorationActualCollectionView,
+      tmsFastConnectionNaverProductIdentityFieldExplorationResultDecisionView:
+        _tmsFastConnectionNaverProductIdentityFieldExplorationResultDecisionView,
     };
     return NextResponse.json({ ok: true, job: responseJob });
   } catch (error: unknown) {

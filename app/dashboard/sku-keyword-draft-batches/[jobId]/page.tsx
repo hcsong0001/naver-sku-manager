@@ -540,6 +540,7 @@ type DraftBatchJob = {
   tmsFastConnectionNaverProductIdentityFieldExplorationApprovalPacketView?: any;
   tmsFastConnectionNaverProductIdentityFieldExplorationFinalGateView?: any;
   tmsFastConnectionNaverProductIdentityFieldExplorationActualCollectionView?: any;
+  tmsFastConnectionNaverProductIdentityFieldExplorationResultDecisionView?: any;
   naverAuthTokenFirstTestSafetyBoundary?: {
     ok: boolean;
     readyForExplicitTokenTestApproval: boolean;
@@ -57606,6 +57607,71 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div>secret/token/header/signature 노출 없음: {String(!c421.actualSecretExposure && !c421.actualTokenExposure && !c421.actualAuthorizationHeaderExposure && !c421.actualSignatureExposure)}</div>
               <div>반복 조회/다른 상품 조회 없음: {String(!c421.actualRepeatedLookup && !c421.actualDifferentProductLookup)}</div>
               <div>POST/button/submit 없음: {String(!c421.actualPostApiAdded && !c421.actualExecutionButtonAdded && !c421.actualApprovalButtonAdded && !c421.actualSubmitActionAdded)}</div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 422: Naver 상품 식별 추가 탐색 결과 판단 화면 ── */}
+      {job.tmsFastConnectionNaverProductIdentityFieldExplorationResultDecisionView && (() => {
+        const c422 = job.tmsFastConnectionNaverProductIdentityFieldExplorationResultDecisionView as any;
+        return (
+          <div key="task422-fast-connection-naver-product-identity-field-exploration-result-decision" className="mb-6 rounded-lg border border-indigo-300 bg-indigo-50 p-4">
+            <h3 className="mb-2 text-sm font-bold text-indigo-800">
+              Task 422 - Naver 상품 식별 추가 탐색 결과 판단 화면
+            </h3>
+            <p className="mb-2 text-xs text-indigo-900">
+              {c422.decisionReason}
+            </p>
+            <div className="mb-2 flex flex-wrap gap-2">
+              <span className="rounded bg-indigo-100 px-2 py-0.5 text-xs font-medium text-indigo-700">
+                판단 결과: {c422.decisionStatus}
+              </span>
+              <span className="rounded bg-indigo-100 px-2 py-0.5 text-xs font-medium text-indigo-700">
+                상품 수정 API 진입: {c422.productUpdateApiEntryDecision}
+              </span>
+              <span className="rounded bg-indigo-100 px-2 py-0.5 text-xs font-medium text-indigo-700">
+                대상 상품번호: {c422.targetProductNo}
+              </span>
+            </div>
+            <div className="mb-2 rounded bg-white p-2 text-xs shadow-sm">
+              <div className="mb-1 font-semibold text-indigo-700">Task 421 입력 요약</div>
+              <div className="text-gray-600">Task 421 조회 성공 여부: {String(c422.sourceLookupSucceeded)}</div>
+              <div className="text-gray-600">실제 재조회 수: {String(c422.lookupRecallCount)}</div>
+              <div className="text-gray-600">HTTP status: {String(c422.sourceHttpStatus)}</div>
+              <div className="text-gray-600">기존 candidate path 수: {String(c422.previousCandidatePathCount)}</div>
+              <div className="text-gray-600">추가 candidate path 수: {String(c422.additionalCandidatePathCount)}</div>
+              <div className="text-gray-600">상품번호 일치 candidate 수: {String(c422.matchedCandidatePathCount)}</div>
+              <div className="text-gray-600">productIdentityConfidenceScore: {String(c422.productIdentityConfidenceScore)}</div>
+              <div className="text-gray-600">productIdentityMatchConfirmed: {String(c422.productIdentityMatchConfirmed)}</div>
+            </div>
+            <div className="mb-2 rounded bg-white p-2 text-xs shadow-sm">
+              <div className="mb-1 font-semibold text-indigo-700">추가 후보 5개 판단 결과</div>
+              <div className="space-y-2">
+                {(c422.additionalCandidateSummaries ?? []).map((candidate: any) => (
+                  <div key={candidate.path} className="rounded bg-indigo-50 px-2 py-2 text-gray-700">
+                    <div className="font-mono text-xs text-indigo-800">{candidate.path}</div>
+                    <div>maskedPreviewLast4: {String(candidate.maskedPreviewLast4)}</div>
+                    <div>equalsTargetProductNo: {String(candidate.equalsTargetProductNo)}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="mb-2 rounded bg-white p-2 text-xs shadow-sm">
+              <div className="mb-1 font-semibold text-indigo-700">최종 판단</div>
+              <div className="text-gray-600">판단 결과: {c422.decisionStatus === 'PRODUCT_IDENTITY_STILL_NOT_CONFIRMED' ? '상품 식별 미확정' : '상품 식별 확정'}</div>
+              <div className="text-gray-600">상품 수정 API 진입: {c422.productUpdateApiEntryDecision}</div>
+              <div className="text-gray-600">보류 사유: {String(c422.blockedReason)}</div>
+              <div className="text-gray-600">다음 제안: {c422.nextRecommendedTask}</div>
+              <div className="mt-1 rounded bg-indigo-100 px-2 py-1 text-indigo-900">{c422.separateApprovalRequiredNotice}</div>
+            </div>
+            <div className="rounded bg-indigo-100 p-2 text-xs text-indigo-900">
+              <div className="mb-1 font-semibold">안전 금지선 확인</div>
+              <div>Naver API 재호출 없음: {String(!c422.actualNaverApiRecallInTask422)}</div>
+              <div>수정 API 호출 없음: {String(!c422.actualProductUpdateApiCall)}</div>
+              <div>가격/재고/DB write 없음: {String(!c422.actualPriceChange && !c422.actualStockChange && !c422.actualDbWrite)}</div>
+              <div>raw/secret 노출 없음: {String(!c422.actualRawResponseExposure && !c422.actualRawResponseStored && !c422.actualSecretExposure && !c422.actualTokenExposure && !c422.actualAuthorizationHeaderExposure && !c422.actualSignatureExposure)}</div>
+              <div>POST/button/submit 없음: {String(!c422.actualPostApiAdded && !c422.actualExecutionButtonAdded && !c422.actualApprovalButtonAdded && !c422.actualSubmitActionAdded)}</div>
             </div>
           </div>
         );
