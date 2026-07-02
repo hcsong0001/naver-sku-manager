@@ -551,6 +551,7 @@ type DraftBatchJob = {
   tmsFastConnectionNaverChannelProductUpdatePayloadDesignApprovalPacketView?: any;
   tmsFastConnectionNaverChannelProductUpdatePayloadReadOnlyDesignView?: any;
   tmsFastConnectionNaverChannelProductUpdatePayloadDesignResultDecisionView?: any;
+  tmsFastConnectionNaverChannelProductUpdatePayloadSafetyReviewApprovalPacketView?: any;
   naverAuthTokenFirstTestSafetyBoundary?: {
     ok: boolean;
     readyForExplicitTokenTestApproval: boolean;
@@ -58282,6 +58283,60 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div>가격/재고/DB write 없음: {String(!c432.actualPriceChange && !c432.actualStockChange && !c432.actualDbWrite)}</div>
               <div>raw/secret 노출 없음: {String(!c432.actualRawResponseExposure && !c432.actualRawResponseStored && !c432.actualSecretExposure && !c432.actualTokenExposure && !c432.actualAuthorizationHeaderExposure && !c432.actualSignatureExposure)}</div>
               <div>POST/button/submit 없음: {String(!c432.actualPostApiAdded && !c432.actualExecutionButtonAdded && !c432.actualApprovalButtonAdded && !c432.actualSubmitActionAdded)}</div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 433: Naver 채널 상품 수정 Payload Safety Review 승인 Packet ── */}
+      {job.tmsFastConnectionNaverChannelProductUpdatePayloadSafetyReviewApprovalPacketView && (() => {
+        const c433 = job.tmsFastConnectionNaverChannelProductUpdatePayloadSafetyReviewApprovalPacketView as any;
+        return (
+          <div key="task433-fast-connection-naver-channel-product-update-payload-safety-review-approval-packet" className="mb-6 rounded-lg border border-lime-300 bg-lime-50 p-4">
+            <h3 className="mb-2 text-sm font-bold text-lime-800">
+              Task {c433.taskId}: {c433.title}
+            </h3>
+            <div className="mb-3 space-y-1 text-xs text-lime-900">
+              <div><span className="font-medium">승인 Packet 상태:</span> {c433.approvalPacketStatus}</div>
+              <div><span className="font-medium">소스 판단 상태:</span> {c433.sourceDecisionStatus}</div>
+              <div><span className="font-medium">대상 channelProductNo:</span> {c433.targetChannelProductNo}</div>
+              <div><span className="font-medium">Payload Safety Review 필요:</span> {String(c433.payloadSafetyReviewRequired)}</div>
+              <div><span className="font-medium">현재 수정 API 진입 상태:</span> {c433.productUpdateApiEntryDecision}</div>
+              <div><span className="font-medium">실제 전송 가능한 payload 생성 가능:</span> {String(c433.canBuildTransmittablePayload)}</div>
+              <div><span className="font-medium">수정 API 호출 가능:</span> {String(c433.canCallUpdateApi)}</div>
+              <div><span className="font-medium">다음 Safety Review 별도 승인 필요:</span> {String(c433.nextSafetyReviewRequiresSeparateApproval)}</div>
+            </div>
+            <div className="mb-3 rounded border border-lime-400 bg-lime-100 p-2 text-xs text-lime-900">
+              <div className="mb-1 font-medium">필요한 승인 문구:</div>
+              <div className="font-mono">{c433.requiredApprovalPhrase}</div>
+            </div>
+            <div className="mb-3 text-xs text-lime-900">
+              <div className="mb-1 font-medium">승인 범위:</div>
+              <ul className="ml-4 list-disc space-y-0.5">
+                {Array.isArray(c433.approvalScope) && c433.approvalScope.map((item: string, i: number) => (
+                  <li key={i}>{item}</li>
+                ))}
+              </ul>
+            </div>
+            <div className="mb-3 text-xs text-lime-900">
+              <div className="mb-1 font-medium">계속 금지 항목:</div>
+              <ul className="ml-4 list-disc space-y-0.5">
+                {Array.isArray(c433.continuedForbiddenItems) && c433.continuedForbiddenItems.map((item: string, i: number) => (
+                  <li key={i}>{item}</li>
+                ))}
+              </ul>
+            </div>
+            <div className="mb-2 text-xs text-lime-900">
+              <div className="font-medium">다음 Task: {c433.nextTask}</div>
+            </div>
+            <div className="mt-2 text-xs text-lime-700">
+              <div>Naver API 재호출 없음: {String(!c433.actualNaverApiCall)}</div>
+              <div>수정 API 호출 없음: {String(!c433.actualProductUpdateApiCall)}</div>
+              <div>실제 Safety Review 실행 없음: true</div>
+              <div>실제 전송 가능한 payload 생성 없음: {String(!c433.canBuildTransmittablePayload)}</div>
+              <div>가격/재고/DB write 없음: {String(!c433.actualPriceChange && !c433.actualStockChange && !c433.actualDbWrite)}</div>
+              <div>raw/secret 노출 없음: {String(!c433.actualRawResponseExposure && !c433.actualRawResponseStored && !c433.actualSecretExposure && !c433.actualTokenExposure && !c433.actualAuthorizationHeaderExposure && !c433.actualSignatureExposure)}</div>
+              <div>POST/button/submit 없음: {String(!c433.actualPostApiAdded && !c433.actualExecutionButtonAdded && !c433.actualApprovalButtonAdded && !c433.actualSubmitActionAdded)}</div>
             </div>
           </div>
         );
