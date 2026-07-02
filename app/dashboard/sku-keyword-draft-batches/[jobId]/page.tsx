@@ -553,6 +553,7 @@ type DraftBatchJob = {
   tmsFastConnectionNaverChannelProductUpdatePayloadDesignResultDecisionView?: any;
   tmsFastConnectionNaverChannelProductUpdatePayloadSafetyReviewApprovalPacketView?: any;
   tmsFastConnectionNaverChannelProductUpdatePayloadSafetyReviewView?: any;
+  tmsFastConnectionNaverChannelProductUpdateTransmittablePayloadApprovalPacketView?: any;
   naverAuthTokenFirstTestSafetyBoundary?: {
     ok: boolean;
     readyForExplicitTokenTestApproval: boolean;
@@ -58402,6 +58403,66 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div>DB write 없음: {String(!c434.actualDbWrite)}</div>
               <div>raw/secret 노출 없음: {String(!c434.actualRawResponseExposure && !c434.actualRawResponseStored && !c434.actualSecretExposure && !c434.actualTokenExposure && !c434.actualAuthorizationHeaderExposure && !c434.actualSignatureExposure)}</div>
               <div>POST/button/submit 없음: {String(!c434.actualPostApiAdded && !c434.actualExecutionButtonAdded && !c434.actualApprovalButtonAdded && !c434.actualSubmitActionAdded)}</div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 435: Naver 채널 상품 수정 Transmittable Payload 승인 Packet ── */}
+      {job.tmsFastConnectionNaverChannelProductUpdateTransmittablePayloadApprovalPacketView && (() => {
+        const c435 = job.tmsFastConnectionNaverChannelProductUpdateTransmittablePayloadApprovalPacketView as any;
+        return (
+          <div key="task435-fast-connection-naver-channel-product-update-transmittable-payload-approval-packet" className="mb-6 rounded-lg border border-sky-300 bg-sky-50 p-4">
+            <h3 className="mb-2 text-sm font-bold text-sky-800">
+              Task 435 - Naver 채널 상품 수정 Transmittable Payload 승인 Packet
+            </h3>
+            <p className="mb-3 text-xs text-sky-900">
+              이 패널은 실제 사용자 승인 문구 입력 이후 전송 가능한 payload 생성 단계로 넘어가기 전 필요한 별도 승인 Packet을 read-only로 표시합니다. 이번 화면에서는 실제 전송 가능한 payload 생성, 수정 API 호출, 가격/재고 변경을 하지 않습니다.
+            </p>
+            <div className="mb-3 space-y-1 text-xs text-sky-900">
+              <div><span className="font-medium">승인 Packet 상태:</span> {c435.approvalPacketStatus}</div>
+              <div><span className="font-medium">대상 channelProductNo:</span> {c435.targetChannelProductNo}</div>
+              <div><span className="font-medium">Task 434 Safety Review 완료 여부:</span> {c435.sourceReviewStatus}</div>
+              <div><span className="font-medium">가격 변경 허용 여부:</span> {String(c435.priceChangeAllowed)}</div>
+              <div><span className="font-medium">재고 변경 허용 여부:</span> {String(c435.stockChangeAllowed)}</div>
+              <div><span className="font-medium">전송 가능 payload 생성 가능 여부:</span> {String(c435.canBuildTransmittablePayload)}</div>
+              <div><span className="font-medium">수정 API 호출 가능 여부:</span> {String(c435.canCallUpdateApi)}</div>
+              <div><span className="font-medium">현재 수정 API 진입 판단:</span> {c435.productUpdateApiEntryDecision}</div>
+              <div><span className="font-medium">다음 payload 단계 별도 승인 필요:</span> {String(c435.nextTransmittablePayloadRequiresSeparateApproval)}</div>
+            </div>
+
+            <div className="mb-3 rounded border border-sky-200 bg-white p-3 text-xs text-slate-700">
+              <div className="mb-1 font-medium text-sky-800">필요한 승인 문구</div>
+              <code className="block whitespace-pre-wrap rounded bg-slate-100 px-2 py-2 text-[11px] text-slate-800">
+                {c435.requiredApprovalPhrase}
+              </code>
+            </div>
+
+            <div className="mb-3 grid gap-3 lg:grid-cols-2">
+              <div className="rounded border border-sky-200 bg-white p-3">
+                <div className="mb-2 text-xs font-medium text-sky-800">승인 범위</div>
+                <ul className="list-disc space-y-1 pl-5 text-xs text-slate-700">
+                  {(c435.approvalScope ?? []).map((item: string) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+              <div className="rounded border border-sky-200 bg-white p-3">
+                <div className="mb-2 text-xs font-medium text-sky-800">계속 금지 항목</div>
+                <ul className="list-disc space-y-1 pl-5 text-xs text-slate-700">
+                  {(c435.continuedForbiddenItems ?? []).map((item: string) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+
+            <div className="rounded border border-sky-200 bg-white p-3 text-xs text-slate-700">
+              <div><span className="font-medium">다음 Task:</span> {c435.nextTask}</div>
+              <div><span className="font-medium">실제 별도 승인 부여 없음:</span> {String(c435.approvalPacketStatus === 'WAITING_FOR_SEPARATE_USER_APPROVAL')}</div>
+              <div><span className="font-medium">실제 승인 요청 생성/제출 없음:</span> {String(!c435.actualProductUpdateApiCall && !c435.actualPostApiAdded)}</div>
+              <div><span className="font-medium">승인 Packet은 실제 승인 또는 실제 제출이 아님:</span> {String(!c435.actualProductUpdateApiCall && !c435.actualPostApiAdded && !c435.actualApprovalButtonAdded && !c435.actualSubmitActionAdded)}</div>
+              <div><span className="font-medium">POST/button/submit 없음:</span> {String(!c435.actualPostApiAdded && !c435.actualExecutionButtonAdded && !c435.actualApprovalButtonAdded && !c435.actualSubmitActionAdded)}</div>
             </div>
           </div>
         );
