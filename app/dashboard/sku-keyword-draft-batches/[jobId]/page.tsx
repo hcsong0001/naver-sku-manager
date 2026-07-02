@@ -531,6 +531,7 @@ type DraftBatchJob = {
   tmsFastConnectionNaverProductLookupOneTimeResultEvidenceView?: any;
   tmsFastConnectionNaverProductUpdateApiEntryDecisionView?: any;
   tmsFastConnectionNaverProductLookupResponseProductIdentityFieldMappingReviewView?: any;
+  tmsFastConnectionNaverProductLookupMaskedResponseShapeAugmentationReviewView?: any;
   naverAuthTokenFirstTestSafetyBoundary?: {
     ok: boolean;
     readyForExplicitTokenTestApproval: boolean;
@@ -56608,6 +56609,152 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div>가격/재고/DB write 없음: {String(!c412.actualPriceChange && !c412.actualStockChange && !c412.actualDbWrite)}</div>
               <div>Worker/Queue/Runtime 운영 전환 없음: {String(!c412.actualWorkerRun && !c412.actualQueueEnqueue && !c412.actualRuntimeConfiguration && !c412.actualOperatingTransition)}</div>
               <div>POST API / 실행 버튼 / 승인 버튼 / submit action 추가 없음: {String(!c412.actualPostApiAdded && !c412.actualSubmitActionAdded && !c412.actualExecutionButtonAdded && !c412.actualApprovalButtonAdded)}</div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 413: Naver 상품 조회 마스킹 응답 shape 보강 검토 ── */}
+      {job.tmsFastConnectionNaverProductLookupMaskedResponseShapeAugmentationReviewView && (() => {
+        const c413 = job.tmsFastConnectionNaverProductLookupMaskedResponseShapeAugmentationReviewView as any;
+        const groups413 = [
+          { key: 'maskedResponseShapeAugmentationReviewReadinessItems', label: '마스킹 응답 shape 보강 검토 화면 준비도' },
+          { key: 'task412FieldMappingReviewReferenceItems', label: 'Task 412 후보 필드 경로 검토 참조' },
+          { key: 'currentMaskedEvidenceLimitationSummaryItems', label: '현재 masked evidence 한계 요약' },
+          { key: 'requiredMaskedShapeAugmentationItemsReviewItems', label: '보강 필요 shape 항목 정의' },
+          { key: 'safeMaskingRulesForNextStepItems', label: '다음 단계 마스킹 규칙' },
+          { key: 'productIdentityConfirmationCriteriaItems', label: '상품 식별 확정 기준' },
+          { key: 'updateApiEntryStillDeferredGuardItems', label: '상품 수정 API 진입 계속 보류 가드' },
+          { key: 'nextMaskedShapeAugmentationApprovalPacketRoadmapItems', label: '다음 승인 Packet 로드맵' },
+        ];
+        return (
+          <div key="task413-fast-connection-naver-product-lookup-masked-response-shape-augmentation-review" className="mb-6 rounded-lg border border-emerald-300 bg-emerald-50 p-4">
+            <h3 className="mb-2 text-sm font-bold text-emerald-800">
+              Task 413 - Naver 상품 조회 마스킹 응답 shape 보강 검토
+            </h3>
+            <p className="mb-2 text-xs text-emerald-900">
+              {c413.maskedShapeAugmentationReviewGuidance}
+            </p>
+            <div className="mb-2 flex flex-wrap gap-2">
+              <span className="rounded bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">
+                상태: {c413.fastConnectionNaverProductLookupMaskedResponseShapeAugmentationReviewStatus}
+              </span>
+              <span className="rounded bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">
+                결정값: {c413.recommendedAugmentationReviewDecision}
+              </span>
+              <span className="rounded bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">
+                {c413.recommendedAugmentationReviewDecisionLabel}
+              </span>
+            </div>
+            <div className="mb-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {(c413.maskedShapeAugmentationReviewSummaryCards ?? []).map((card: { label: string; value: number }) => (
+                <div key={card.label} className="rounded bg-white p-2 text-center shadow-sm">
+                  <div className="text-lg font-bold text-emerald-700">{card.value}</div>
+                  <div className="text-xs text-gray-500">{card.label}</div>
+                </div>
+              ))}
+            </div>
+            <div className="mb-2 grid grid-cols-1 gap-1 sm:grid-cols-2">
+              {groups413.map((g) => (
+                <div key={g.key} className="flex items-center justify-between rounded bg-white px-2 py-1 text-xs shadow-sm">
+                  <span className="text-gray-600">{g.label}</span>
+                  <span className="font-medium text-emerald-700">{(c413[g.key] ?? []).length}건</span>
+                </div>
+              ))}
+            </div>
+            <div className="mb-2 rounded bg-white p-2 text-xs shadow-sm">
+              <div className="mb-1 font-semibold text-emerald-700">조회 1회 성공 증적</div>
+              <div className="text-gray-600">조회 성공 여부: {String(c413.lookupOneTimeSucceeded)} / HTTP status: {c413.lookupHttpStatusCode}</div>
+              <div className="text-gray-600">실제 호출 수: {c413.lookupActualCallCount}</div>
+              <div className="text-gray-600">대상 API: {c413.lookupTargetApi}</div>
+              <div className="text-gray-600">대상 상품번호: {c413.lookupTargetProductNo}</div>
+              <div className="text-gray-600">responseShapeKeys: {(c413.lookupResponseShapeKeys ?? []).join(', ')}</div>
+              <div className="text-gray-600">productNoMatched: {String(c413.lookupProductNoMatched)}</div>
+            </div>
+            <div className="mb-2 rounded bg-white p-2 text-xs shadow-sm">
+              <div className="mb-1 font-semibold text-emerald-700">보강 필요 항목 목록</div>
+              <div className="space-y-1">
+                {(c413.requiredMaskedShapeAugmentationItems ?? []).map((item: { itemKey: string; label: string; description: string }) => (
+                  <div key={item.itemKey} className="rounded bg-emerald-50 px-2 py-1">
+                    <div className="font-medium text-emerald-700">{item.label}</div>
+                    <div className="text-gray-600">{item.description}</div>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-1 text-gray-600">보강 수집 실행 여부: {String(c413.maskedShapeAugmentationCollectionPerformed)}</div>
+              <div className="text-gray-600">상품 식별 확정 여부: {String(c413.productIdentityMatchConfirmed)}</div>
+              <div className="text-gray-600">상품 수정 API 진입 보류: {String(c413.productUpdateApiEntryDeferred)}</div>
+            </div>
+            <div className="mb-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
+              <div className="rounded bg-white p-2 text-xs shadow-sm">
+                <div className="mb-1 font-semibold text-emerald-700">allowedMaskedShapeData</div>
+                <div className="flex flex-wrap gap-1">
+                  {(c413.allowedMaskedShapeData ?? []).map((item: string) => (
+                    <span key={item} className="rounded bg-emerald-100 px-2 py-0.5 font-mono text-xs text-emerald-700">
+                      {item}
+                    </span>
+                  ))}
+                </div>
+              </div>
+              <div className="rounded bg-white p-2 text-xs shadow-sm">
+                <div className="mb-1 font-semibold text-rose-700">forbiddenData</div>
+                <div className="flex flex-wrap gap-1">
+                  {(c413.forbiddenData ?? []).map((item: string) => (
+                    <span key={item} className="rounded bg-rose-100 px-2 py-0.5 font-mono text-xs text-rose-700">
+                      {item}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div className="mb-2 rounded bg-white p-2 text-xs shadow-sm">
+              <div className="text-gray-600">raw response 저장/표시 없음: {String(!c413.actualRawApiResponseStored && !c413.actualRawApiResponseExposure)}</div>
+              <div className="text-gray-600">secret/token/header/signature 노출 없음: {String(!c413.actualSecretExposure && !c413.actualTokenExposure && !c413.actualAuthorizationHeaderExposure && !c413.actualSignatureExposure)}</div>
+              <div className="text-gray-600">상품 수정/가격 변경/재고 변경/DB write 없음: {String(!c413.actualProductUpdateApiCall && !c413.actualPriceChange && !c413.actualStockChange && !c413.actualDbWrite)}</div>
+              <div className="text-gray-600">Task 413에서는 API 재호출 없음: {String(!c413.actualNaverApiCallInTask413 && !c413.actualProductLookupApiRecall)}</div>
+            </div>
+            <div className="mb-2 rounded bg-white p-2 text-xs shadow-sm">
+              <div className="mb-1 font-semibold text-emerald-700">Task 414 로드맵</div>
+              {(c413.compressedFastConnectionRoadmap ?? []).map((r: { taskId: number; label: string }) => (
+                <div key={r.taskId} className="text-gray-600">{r.label}</div>
+              ))}
+            </div>
+            <div className="mb-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-emerald-700">추천 다음 단계</div>
+                <div className="break-all text-gray-600">{c413.recommendedNextStep}</div>
+                <div className="text-gray-600">{c413.recommendedNextStepLabel}</div>
+              </div>
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-emerald-700">달성된 목표</div>
+                <div className="text-gray-600">{c413.recommendedPrimaryGoalAchieved}</div>
+              </div>
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-emerald-700">실행 모드</div>
+                <div className="text-gray-600">{c413.recommendedExecutionMode}</div>
+              </div>
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-emerald-700">배포 모드</div>
+                <div className="text-gray-600">{c413.recommendedDeploymentMode}</div>
+              </div>
+            </div>
+            <div className="mb-2 rounded bg-white p-2 text-xs shadow-sm">
+              <div className="font-semibold text-emerald-700">안전 모드</div>
+              <div className="text-gray-600">{c413.recommendedSafetyMode}</div>
+            </div>
+            <div className="rounded bg-emerald-100 p-2 text-xs text-emerald-900">
+              <div className="mb-1 font-semibold">안전 금지선 확인</div>
+              <div>실제 Naver API 재호출 없음: {String(!c413.actualNaverApiCallInTask413 && !c413.actualProductLookupApiCallInTask413 && !c413.actualProductLookupApiRecall)}</div>
+              <div>상품 수정 API 호출 없음: {String(!c413.actualProductUpdateApiCall && !c413.actualProductUpdateExecuted)}</div>
+              <div>Token 발급/재발급/사용 없음: {String(!c413.actualTokenUseInTask413 && !c413.actualTokenExposure)}</div>
+              <div>.env/.env.local 열람/수정 없음: {String(!c413.actualEnvReadInTask413 && !c413.actualEnvFileOpenInTask413)}</div>
+              <div>process.env 실제 조회 없음: {String(!c413.actualProcessEnvReadInTask413)}</div>
+              <div>secret 노출 없음: {String(!c413.actualSecretAccessInTask413 && !c413.actualSecretExposure)}</div>
+              <div>authorization/header/signature 노출 없음: {String(!c413.actualAuthorizationHeaderExposure && !c413.actualSignatureExposure)}</div>
+              <div>raw API response 표시/저장 없음: {String(!c413.actualRawApiResponseExposure && !c413.actualRawApiResponseStored)}</div>
+              <div>가격/재고/DB write 없음: {String(!c413.actualPriceChange && !c413.actualStockChange && !c413.actualDbWrite)}</div>
+              <div>Worker/Queue/Runtime 운영 전환 없음: {String(!c413.actualWorkerRun && !c413.actualQueueEnqueue && !c413.actualRuntimeConfiguration && !c413.actualOperatingTransition)}</div>
+              <div>POST API / 실행 버튼 / 승인 버튼 / submit action 추가 없음: {String(!c413.actualPostApiAdded && !c413.actualSubmitActionAdded && !c413.actualExecutionButtonAdded && !c413.actualApprovalButtonAdded)}</div>
             </div>
           </div>
         );
