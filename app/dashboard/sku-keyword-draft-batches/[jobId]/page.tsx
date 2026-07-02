@@ -547,6 +547,7 @@ type DraftBatchJob = {
   tmsFastConnectionNaverProductIdentityStrategyRedesignOfficialStructureReviewView?: any;
   tmsFastConnectionNaverProductIdentityStrategyRedesignResultDecisionView?: any;
   tmsFastConnectionNaverChannelProductNoUpdateIdentifierReviewApprovalPacketView?: any;
+  tmsFastConnectionNaverChannelProductNoUpdateIdentifierOfficialReviewView?: any;
   naverAuthTokenFirstTestSafetyBoundary?: {
     ok: boolean;
     readyForExplicitTokenTestApproval: boolean;
@@ -58052,6 +58053,64 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div>가격/재고/DB write 없음: {String(!c428.actualPriceChange && !c428.actualStockChange && !c428.actualDbWrite)}</div>
               <div>raw/secret 노출 없음: {String(!c428.actualRawResponseExposure && !c428.actualRawResponseStored && !c428.actualSecretExposure && !c428.actualTokenExposure && !c428.actualAuthorizationHeaderExposure && !c428.actualSignatureExposure)}</div>
               <div>POST/button/submit 없음: {String(!c428.actualPostApiAdded && !c428.actualExecutionButtonAdded && !c428.actualApprovalButtonAdded && !c428.actualSubmitActionAdded)}</div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 429: Naver channelProductNo 수정 API 식별자 공식 검토 ── */}
+      {job.tmsFastConnectionNaverChannelProductNoUpdateIdentifierOfficialReviewView && (() => {
+        const c429 = job.tmsFastConnectionNaverChannelProductNoUpdateIdentifierOfficialReviewView as any;
+        return (
+          <div key="task429-fast-connection-naver-channel-product-no-update-identifier-official-review" className="mb-6 rounded-lg border border-cyan-300 bg-cyan-50 p-4">
+            <h3 className="mb-2 text-sm font-bold text-cyan-800">
+              Task {c429.taskId}: {c429.title}
+            </h3>
+            <div className="mb-3 space-y-1 text-xs text-cyan-900">
+              <div><span className="font-medium">검토 상태:</span> {c429.reviewStatus}</div>
+              <div><span className="font-medium">승인 문구 확인:</span> {String(c429.approvedPhraseAccepted)}</div>
+              <div><span className="font-medium">승인 문구:</span> {c429.userApprovalPhrase}</div>
+              <div><span className="font-medium">대상 상품번호:</span> {c429.targetProductNo}</div>
+            </div>
+            <div className="mb-3 rounded border border-cyan-400 bg-cyan-100 p-2 text-xs text-cyan-900">
+              <div className="mb-1 font-medium">공식 Endpoint 구조</div>
+              <div><span className="font-medium">조회:</span> {c429.officialReadEndpoint}</div>
+              <div><span className="font-medium">수정:</span> {c429.officialUpdateEndpoint}</div>
+            </div>
+            <div className="mb-3 space-y-1 text-xs text-cyan-900">
+              <div><span className="font-medium">channelProductNo 수정 API path parameter 사용 가능:</span> {String(c429.channelProductNoCanBeUsedAsUpdatePathParameter)}</div>
+              <div><span className="font-medium">식별자 검토 판단:</span> {c429.identifierReviewDecision}</div>
+              <div><span className="font-medium">판단 근거:</span> {c429.identifierReviewDecisionReason}</div>
+            </div>
+            <div className="mb-3 space-y-1 text-xs text-cyan-900">
+              <div><span className="font-medium">현재 수정 API 진입 판단:</span> {c429.productUpdateApiEntryDecision}</div>
+              <div><span className="font-medium">수정 payload 생성 가능:</span> {String(c429.canBuildUpdatePayload)}</div>
+              <div><span className="font-medium">수정 API 호출 가능:</span> {String(c429.canCallUpdateApi)}</div>
+              <div><span className="font-medium">다음 단계 별도 승인 필요:</span> {String(c429.nextActionRequiresSeparateApproval)}</div>
+            </div>
+            {Array.isArray(c429.reviewItems) && c429.reviewItems.length > 0 && (
+              <div className="mb-3 text-xs text-cyan-900">
+                <div className="mb-1 font-medium">검토 항목 ({c429.reviewItems.length}개)</div>
+                {c429.reviewItems.map((item: { reviewId: string; title: string; officialEvidence: string; projectEvidence: string; decision: string; remainingRisk: string }, i: number) => (
+                  <div key={i} className="mb-2 rounded border border-cyan-200 bg-white p-2">
+                    <div className="font-medium">[{item.reviewId}] {item.title}</div>
+                    <div><span className="text-cyan-700">공식 근거:</span> {item.officialEvidence}</div>
+                    <div><span className="text-cyan-700">프로젝트 근거:</span> {item.projectEvidence}</div>
+                    <div><span className="text-cyan-700">판단:</span> {item.decision}</div>
+                    <div><span className="text-cyan-700">잔여 위험:</span> {item.remainingRisk}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div className="mb-2 text-xs text-cyan-900">
+              <div className="font-medium">다음 Task: {c429.nextRecommendedTask}</div>
+            </div>
+            <div className="mt-2 text-xs text-cyan-700">
+              <div>Naver API 재호출 없음: {String(!c429.actualNaverApiCall)}</div>
+              <div>수정 API 호출 없음: {String(!c429.actualProductUpdateApiCall)}</div>
+              <div>가격/재고/DB write 없음: {String(!c429.actualPriceChange && !c429.actualStockChange && !c429.actualDbWrite)}</div>
+              <div>raw/secret 노출 없음: {String(!c429.actualRawResponseExposure && !c429.actualRawResponseStored && !c429.actualSecretExposure && !c429.actualTokenExposure && !c429.actualAuthorizationHeaderExposure && !c429.actualSignatureExposure)}</div>
+              <div>POST/button/submit 없음: {String(!c429.actualPostApiAdded && !c429.actualExecutionButtonAdded && !c429.actualApprovalButtonAdded && !c429.actualSubmitActionAdded)}</div>
             </div>
           </div>
         );
