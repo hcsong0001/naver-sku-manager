@@ -545,6 +545,7 @@ type DraftBatchJob = {
   tmsFastConnectionNaverProductIdentityStrategyRedesignApprovalPacketView?: any;
   tmsFastConnectionNaverProductIdentityStrategyRedesignFinalGateView?: any;
   tmsFastConnectionNaverProductIdentityStrategyRedesignOfficialStructureReviewView?: any;
+  tmsFastConnectionNaverProductIdentityStrategyRedesignResultDecisionView?: any;
   naverAuthTokenFirstTestSafetyBoundary?: {
     ok: boolean;
     readyForExplicitTokenTestApproval: boolean;
@@ -57935,6 +57936,68 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div>가격/재고/DB write 없음: {String(!c426.actualPriceChange && !c426.actualStockChange && !c426.actualDbWrite)}</div>
               <div>raw/secret 노출 없음: {String(!c426.actualRawResponseExposure && !c426.actualRawResponseStored && !c426.actualSecretExposure && !c426.actualTokenExposure && !c426.actualAuthorizationHeaderExposure && !c426.actualSignatureExposure)}</div>
               <div>POST/button/submit 없음: {String(!c426.actualPostApiAdded && !c426.actualExecutionButtonAdded && !c426.actualApprovalButtonAdded && !c426.actualSubmitActionAdded)}</div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 427: Naver 상품 식별 전략 재설계 결과 판단 화면 ── */}
+      {job.tmsFastConnectionNaverProductIdentityStrategyRedesignResultDecisionView && (() => {
+        const c427 = job.tmsFastConnectionNaverProductIdentityStrategyRedesignResultDecisionView as any;
+        return (
+          <div key="task427-fast-connection-naver-product-identity-strategy-result-decision" className="mb-6 rounded-lg border border-teal-300 bg-teal-50 p-4">
+            <h3 className="mb-2 text-sm font-bold text-teal-800">
+              Task 427 - Naver 상품 식별 전략 재설계 결과 판단 화면
+            </h3>
+            <div className="mb-2 flex flex-wrap gap-2">
+              <span className="rounded bg-teal-100 px-2 py-0.5 text-xs font-medium text-teal-700">
+                판단 상태: {c427.decisionStatus}
+              </span>
+              <span className="rounded bg-teal-100 px-2 py-0.5 text-xs font-medium text-teal-700">
+                대상 상품번호: {c427.targetProductNo}
+              </span>
+              <span className="rounded bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">
+                상품 수정 API 진입: {c427.productUpdateApiEntryDecision}
+              </span>
+            </div>
+            <div className="mb-2 rounded bg-white p-2 text-xs shadow-sm">
+              <div className="mb-1 font-semibold text-teal-700">현재 판단</div>
+              <div className="text-gray-600">공식 구조 검토 완료: {String(c427.sourceReviewStatus === 'OFFICIAL_STRUCTURE_REVIEW_COMPLETED')}</div>
+              <div className="text-gray-600">무작위 필드 탐색 권장: {String(c427.randomFieldExplorationRecommended)}</div>
+              <div className="text-gray-600">추가 API 재조회 권장: {String(c427.additionalApiRecallRecommended)}</div>
+              <div className="text-gray-600">우선 전략 후보: {c427.priorityStrategyCandidate}</div>
+              <div className="text-gray-600">전략 결정: {c427.strategyDecision}</div>
+              <div className="text-gray-600">수정 payload 생성 가능: {String(c427.canBuildUpdatePayload)}</div>
+              <div className="text-gray-600">수정 API 호출 가능: {String(c427.canCallUpdateApi)}</div>
+              <div className="text-gray-600">다음 행동 별도 승인 필요: {String(c427.nextActionRequiresSeparateApproval)}</div>
+            </div>
+            <div className="mb-2 rounded bg-amber-50 border border-amber-200 p-2 text-xs text-amber-900">
+              <div className="font-semibold mb-0.5">판단 이유</div>
+              <div>{c427.strategyDecisionReason}</div>
+            </div>
+            <div className="mb-2 rounded bg-white p-2 text-xs shadow-sm">
+              <div className="mb-1 font-semibold text-teal-700">전략 후보 우선순위 ({(c427.strategyCandidates ?? []).length}개)</div>
+              <div className="space-y-1">
+                {(c427.strategyCandidates ?? []).slice().sort((a: any, b: any) => a.priority - b.priority).map((candidate: any) => (
+                  <div key={candidate.candidateId} className={`rounded border p-2 text-xs ${candidate.priority === 1 ? 'border-teal-300 bg-teal-50' : 'border-gray-200 bg-gray-50'}`}>
+                    <div className="font-semibold text-teal-800">
+                      {candidate.priority}순위 [{candidate.label}] {candidate.description}
+                    </div>
+                    <div className="text-gray-500 mt-0.5">{candidate.priorityReason}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="mb-2 rounded bg-teal-100 p-2 text-xs text-teal-900">
+              <div className="font-semibold">다음 Task: {c427.nextRecommendedTask}</div>
+            </div>
+            <div className="rounded bg-teal-100 p-2 text-xs text-teal-900">
+              <div className="mb-1 font-semibold">안전 금지선 확인</div>
+              <div>Naver API 재호출 없음: {String(!c427.actualNaverApiCall)}</div>
+              <div>수정 API 호출 없음: {String(!c427.actualProductUpdateApiCall)}</div>
+              <div>가격/재고/DB write 없음: {String(!c427.actualPriceChange && !c427.actualStockChange && !c427.actualDbWrite)}</div>
+              <div>raw/secret 노출 없음: {String(!c427.actualRawResponseExposure && !c427.actualRawResponseStored && !c427.actualSecretExposure && !c427.actualTokenExposure && !c427.actualAuthorizationHeaderExposure && !c427.actualSignatureExposure)}</div>
+              <div>POST/button/submit 없음: {String(!c427.actualPostApiAdded && !c427.actualExecutionButtonAdded && !c427.actualApprovalButtonAdded && !c427.actualSubmitActionAdded)}</div>
             </div>
           </div>
         );
