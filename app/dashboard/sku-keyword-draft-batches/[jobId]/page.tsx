@@ -539,6 +539,7 @@ type DraftBatchJob = {
   tmsFastConnectionNaverProductIdentityFieldExplorationDesignView?: any;
   tmsFastConnectionNaverProductIdentityFieldExplorationApprovalPacketView?: any;
   tmsFastConnectionNaverProductIdentityFieldExplorationFinalGateView?: any;
+  tmsFastConnectionNaverProductIdentityFieldExplorationActualCollectionView?: any;
   naverAuthTokenFirstTestSafetyBoundary?: {
     ok: boolean;
     readyForExplicitTokenTestApproval: boolean;
@@ -57508,6 +57509,103 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div>가격/재고/DB write 없음: {String(!c420.actualPriceChange && !c420.actualStockChange && !c420.actualDbWrite)}</div>
               <div>raw/secret 노출 없음: {String(!c420.actualRawResponseExposure && !c420.actualRawResponseStored && !c420.actualSecretExposure && !c420.actualTokenExposure && !c420.actualAuthorizationHeaderExposure && !c420.actualSignatureExposure)}</div>
               <div>POST/button/submit 없음: {String(!c420.actualPostApiAdded && !c420.actualExecutionButtonAdded && !c420.actualApprovalButtonAdded && !c420.actualSubmitActionAdded)}</div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 421: Naver 상품 식별 필드 추가 탐색 실제 수집 ── */}
+      {job.tmsFastConnectionNaverProductIdentityFieldExplorationActualCollectionView && (() => {
+        const c421 = job.tmsFastConnectionNaverProductIdentityFieldExplorationActualCollectionView as any;
+        return (
+          <div key="task421-fast-connection-naver-product-identity-field-exploration-actual-collection" className="mb-6 rounded-lg border border-sky-300 bg-sky-50 p-4">
+            <h3 className="mb-2 text-sm font-bold text-sky-800">
+              Task 421 - Naver 상품 식별 필드 추가 탐색 실제 수집
+            </h3>
+            <p className="mb-2 text-xs text-sky-900">
+              {c421.guidance}
+            </p>
+            <div className="mb-2 flex flex-wrap gap-2">
+              <span className="rounded bg-sky-100 px-2 py-0.5 text-xs font-medium text-sky-700">
+                collectionStatus: {c421.collectionStatus}
+              </span>
+              <span className="rounded bg-sky-100 px-2 py-0.5 text-xs font-medium text-sky-700">
+                대상 상품번호: {c421.targetProductNo}
+              </span>
+              <span className="rounded bg-sky-100 px-2 py-0.5 text-xs font-medium text-sky-700">
+                상품 수정 API 진입 판단: {c421.productUpdateApiEntryDecision}
+              </span>
+            </div>
+            <div className="mb-2 rounded bg-white p-2 text-xs shadow-sm">
+              <div className="mb-1 font-semibold text-sky-700">실제 수집 승인 및 실행 요약</div>
+              <div className="text-gray-600">승인 문구 확인 여부: {String(c421.explicitSeparateUserApprovalConfirmed)}</div>
+              <div className="text-gray-600">필수 승인 문구: {c421.requiredApprovalPhrase}</div>
+              <div className="text-gray-600">실제 수집 실행 여부: {String(c421.executed)}</div>
+              <div className="text-gray-600">실제 재조회 수: {String(c421.lookupRecallCount)}</div>
+              <div className="text-gray-600">최대 재조회 수: {String(c421.maxLookupRecallCount)}</div>
+              <div className="text-gray-600">대상 API: {c421.targetApi}</div>
+              <div className="text-gray-600">HTTP status: {String(c421.httpStatus)}</div>
+              <div className="text-gray-600">성공 여부: {String(c421.success)}</div>
+            </div>
+            <div className="mb-2 rounded bg-white p-2 text-xs shadow-sm">
+              <div className="mb-1 font-semibold text-sky-700">key exploration 결과</div>
+              <div className="text-gray-600">topLevelKeys: {(c421.topLevelKeys ?? []).join(', ') || '(없음)'}</div>
+              <div className="text-gray-600">productIdentityConfidenceScore: {String(c421.productIdentityConfidenceScore)}</div>
+              <div className="text-gray-600">productIdentityMatchConfirmed: {String(c421.productIdentityMatchConfirmed)}</div>
+              <div className="text-gray-600">다음 추천 Task: {c421.nextRecommendedTask}</div>
+              {c421.sanitizedErrorMessage && (
+                <div className="text-gray-600">sanitizedErrorMessage: {c421.sanitizedErrorMessage}</div>
+              )}
+            </div>
+            <div className="mb-2 rounded bg-white p-2 text-xs shadow-sm">
+              <div className="mb-1 font-semibold text-sky-700">exploredKeyNameGroups</div>
+              {(c421.exploredKeyNameGroups ?? []).length > 0 ? (
+                <div className="space-y-2">
+                  {(c421.exploredKeyNameGroups ?? []).map((group: any) => (
+                    <div key={group.groupId} className="rounded bg-sky-50 px-2 py-2 text-gray-700">
+                      <div className="font-semibold text-sky-800">{group.groupId}</div>
+                      <div className="mt-1 flex flex-wrap gap-1">
+                        {(group.matchedKeyNames ?? []).map((keyName: string) => (
+                          <span key={`${group.groupId}-${keyName}`} className="rounded bg-sky-100 px-2 py-0.5 font-mono text-xs text-sky-700">
+                            {keyName}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-gray-600">실제 추가 탐색 수집 결과가 아직 고정되지 않았습니다.</div>
+              )}
+            </div>
+            <div className="mb-2 rounded bg-white p-2 text-xs shadow-sm">
+              <div className="mb-1 font-semibold text-sky-700">candidateFieldResults</div>
+              {(c421.candidateFieldResults ?? []).length > 0 ? (
+                <div className="space-y-2">
+                  {(c421.candidateFieldResults ?? []).map((result: any) => (
+                    <div key={result.path} className="rounded bg-sky-50 px-2 py-2 text-gray-700">
+                      <div className="font-mono text-xs text-sky-800">{result.path}</div>
+                      <div>exists: {String(result.exists)}</div>
+                      <div>valueType: {String(result.valueType)}</div>
+                      <div>maskedPreviewLast4: {String(result.maskedPreviewLast4)}</div>
+                      <div>equalsTargetProductNo: {String(result.equalsTargetProductNo)}</div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-gray-600">candidateFieldResults가 아직 없습니다.</div>
+              )}
+            </div>
+            <div className="rounded bg-sky-100 p-2 text-xs text-sky-900">
+              <div className="mb-1 font-semibold">안전 금지선 확인</div>
+              <div>Naver API 재조회 최대 1회: {String(c421.lookupRecallCount <= c421.maxLookupRecallCount)}</div>
+              <div>수정 API 호출 없음: {String(!c421.actualProductUpdateApiCall)}</div>
+              <div>가격/재고/DB write 없음: {String(!c421.actualPriceChange && !c421.actualStockChange && !c421.actualDbWrite)}</div>
+              <div>raw response 표시/저장 없음: {String(!c421.actualRawResponseExposure && !c421.actualRawResponseStored)}</div>
+              <div>full product/option/seller code 노출 없음: {String(!c421.actualFullProductNameExposure && !c421.actualFullOptionNameExposure && !c421.actualFullSellerManagementCodeExposure)}</div>
+              <div>secret/token/header/signature 노출 없음: {String(!c421.actualSecretExposure && !c421.actualTokenExposure && !c421.actualAuthorizationHeaderExposure && !c421.actualSignatureExposure)}</div>
+              <div>반복 조회/다른 상품 조회 없음: {String(!c421.actualRepeatedLookup && !c421.actualDifferentProductLookup)}</div>
+              <div>POST/button/submit 없음: {String(!c421.actualPostApiAdded && !c421.actualExecutionButtonAdded && !c421.actualApprovalButtonAdded && !c421.actualSubmitActionAdded)}</div>
             </div>
           </div>
         );

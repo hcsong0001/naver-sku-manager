@@ -401,7 +401,9 @@ import { buildTmsFastConnectionNaverProductIdentityConfirmationDecisionView } fr
 import { buildTmsFastConnectionNaverProductIdentityFieldExplorationDesignView } from '@/src/services/tms-fast-connection-naver-product-identity-field-exploration-design-view.service';
 import { buildTmsFastConnectionNaverProductIdentityFieldExplorationApprovalPacketView } from '@/src/services/tms-fast-connection-naver-product-identity-field-exploration-approval-packet-view.service';
 import { buildTmsFastConnectionNaverProductIdentityFieldExplorationFinalGateView } from '@/src/services/tms-fast-connection-naver-product-identity-field-exploration-final-gate-view.service';
+import { buildTmsFastConnectionNaverProductIdentityFieldExplorationActualCollectionView } from '@/src/services/tms-fast-connection-naver-product-identity-field-exploration-actual-collection-view.service';
 import type { TmsNaverProductLookupMaskedResponseShapeAugmentationSummary } from '@/src/services/tms-naver-product-lookup-masked-response-shape-augmentation.harness';
+import type { TmsNaverProductIdentityFieldExplorationSummary } from '@/src/services/tms-naver-product-identity-field-exploration.harness';
 
 
 
@@ -1905,6 +1907,211 @@ export async function GET(
       buildTmsFastConnectionNaverProductIdentityFieldExplorationFinalGateView(
         _tmsFastConnectionNaverProductIdentityFieldExplorationApprovalPacketView
       );
+    const _tmsFastConnectionNaverProductIdentityFieldExplorationActualCollectionExecutionResult: TmsNaverProductIdentityFieldExplorationSummary =
+      {
+        executed: true,
+        lookupRecallCount: 1,
+        targetProductNo: '6597910207',
+        targetApi: 'NAVER_COMMERCE_PRODUCT_LOOKUP_API',
+        httpStatus: 200,
+        success: true,
+        topLevelKeys: ['originProduct', 'smartstoreChannelProduct'],
+        exploredKeyNameGroups: [
+          {
+            groupId: 'top-level-key-names',
+            matchedKeyNames: ['originProduct', 'smartstoreChannelProduct'],
+          },
+          {
+            groupId: 'smartstore-channel-product-key-names',
+            matchedKeyNames: [
+              'storeKeepExclusiveProduct',
+              'naverShoppingRegistration',
+              'channelProductDisplayStatusType',
+            ],
+          },
+          {
+            groupId: 'origin-product-key-names',
+            matchedKeyNames: [
+              'statusType',
+              'saleType',
+              'leafCategoryId',
+              'name',
+              'detailContent',
+              'images',
+              'salePrice',
+              'stockQuantity',
+              'deliveryInfo',
+              'detailAttribute',
+              'customerBenefit',
+            ],
+          },
+          {
+            groupId: 'identifier-like-nested-key-names',
+            matchedKeyNames: [
+              'brandId',
+              'channelProductDisplayStatusType',
+              'customProductYn',
+              'deliveryBundleGroupId',
+              'id',
+              'itselfProductionProductYn',
+              'kcCertifiedProductExclusionYn',
+              'leafCategoryId',
+              'originAreaCode',
+              'originAreaInfo',
+              'originProduct',
+              'productAttributes',
+              'productInfoProvidedNotice',
+              'productInfoProvidedNoticeType',
+              'returnAddressId',
+              'shippingAddressId',
+              'smartstoreChannelProduct',
+              'storeKeepExclusiveProduct',
+              'supplementProductInfo',
+              'supplementProducts',
+            ],
+          },
+        ],
+        candidateFieldResults: [
+          {
+            path: 'smartstoreChannelProduct.channelProductNo',
+            exists: false,
+            valueType: null,
+            maskedPreviewLast4: null,
+            equalsTargetProductNo: null,
+            rawValueDisplayed: false,
+            rawValueStored: false,
+            rawResponseAccessedForDisplay: false,
+          },
+          {
+            path: 'smartstoreChannelProduct.id',
+            exists: false,
+            valueType: null,
+            maskedPreviewLast4: null,
+            equalsTargetProductNo: null,
+            rawValueDisplayed: false,
+            rawValueStored: false,
+            rawResponseAccessedForDisplay: false,
+          },
+          {
+            path: 'smartstoreChannelProduct.productNo',
+            exists: false,
+            valueType: null,
+            maskedPreviewLast4: null,
+            equalsTargetProductNo: null,
+            rawValueDisplayed: false,
+            rawValueStored: false,
+            rawResponseAccessedForDisplay: false,
+          },
+          {
+            path: 'smartstoreChannelProduct.originProductNo',
+            exists: false,
+            valueType: null,
+            maskedPreviewLast4: null,
+            equalsTargetProductNo: null,
+            rawValueDisplayed: false,
+            rawValueStored: false,
+            rawResponseAccessedForDisplay: false,
+          },
+          {
+            path: 'originProduct.originProductNo',
+            exists: false,
+            valueType: null,
+            maskedPreviewLast4: null,
+            equalsTargetProductNo: null,
+            rawValueDisplayed: false,
+            rawValueStored: false,
+            rawResponseAccessedForDisplay: false,
+          },
+          {
+            path: 'originProduct.id',
+            exists: false,
+            valueType: null,
+            maskedPreviewLast4: null,
+            equalsTargetProductNo: null,
+            rawValueDisplayed: false,
+            rawValueStored: false,
+            rawResponseAccessedForDisplay: false,
+          },
+          {
+            path: 'originProduct.productNo',
+            exists: false,
+            valueType: null,
+            maskedPreviewLast4: null,
+            equalsTargetProductNo: null,
+            rawValueDisplayed: false,
+            rawValueStored: false,
+            rawResponseAccessedForDisplay: false,
+          },
+          {
+            path: 'originProduct.deliveryInfo.claimDeliveryInfo.returnAddressId',
+            exists: true,
+            valueType: 'number',
+            maskedPreviewLast4: '****1499',
+            equalsTargetProductNo: false,
+            rawValueDisplayed: false,
+            rawValueStored: false,
+            rawResponseAccessedForDisplay: false,
+          },
+          {
+            path: 'originProduct.deliveryInfo.claimDeliveryInfo.shippingAddressId',
+            exists: true,
+            valueType: 'number',
+            maskedPreviewLast4: '****5497',
+            equalsTargetProductNo: false,
+            rawValueDisplayed: false,
+            rawValueStored: false,
+            rawResponseAccessedForDisplay: false,
+          },
+          {
+            path: 'originProduct.deliveryInfo.deliveryBundleGroupId',
+            exists: true,
+            valueType: 'number',
+            maskedPreviewLast4: '****9127',
+            equalsTargetProductNo: false,
+            rawValueDisplayed: false,
+            rawValueStored: false,
+            rawResponseAccessedForDisplay: false,
+          },
+          {
+            path: 'originProduct.detailAttribute.naverShoppingSearchInfo.brandId',
+            exists: true,
+            valueType: 'number',
+            maskedPreviewLast4: '****0560',
+            equalsTargetProductNo: false,
+            rawValueDisplayed: false,
+            rawValueStored: false,
+            rawResponseAccessedForDisplay: false,
+          },
+          {
+            path: 'originProduct.leafCategoryId',
+            exists: true,
+            valueType: 'string',
+            maskedPreviewLast4: '****3397',
+            equalsTargetProductNo: false,
+            rawValueDisplayed: false,
+            rawValueStored: false,
+            rawResponseAccessedForDisplay: false,
+          },
+        ],
+        productIdentityConfidenceScore: 30,
+        productIdentityMatchConfirmed: false,
+        rawResponseStored: false,
+        rawResponseDisplayed: false,
+        secretExposed: false,
+        tokenExposed: false,
+        authorizationHeaderExposed: false,
+        signatureExposed: false,
+        productUpdateCalled: false,
+        priceChanged: false,
+        stockChanged: false,
+        dbWritten: false,
+        sanitizedErrorMessage: null,
+      };
+    const _tmsFastConnectionNaverProductIdentityFieldExplorationActualCollectionView =
+      buildTmsFastConnectionNaverProductIdentityFieldExplorationActualCollectionView(
+        _tmsFastConnectionNaverProductIdentityFieldExplorationFinalGateView,
+        _tmsFastConnectionNaverProductIdentityFieldExplorationActualCollectionExecutionResult
+      );
 
     const responseJob = {
       id: job.id,
@@ -3174,6 +3381,8 @@ export async function GET(
         _tmsFastConnectionNaverProductIdentityFieldExplorationApprovalPacketView,
       tmsFastConnectionNaverProductIdentityFieldExplorationFinalGateView:
         _tmsFastConnectionNaverProductIdentityFieldExplorationFinalGateView,
+      tmsFastConnectionNaverProductIdentityFieldExplorationActualCollectionView:
+        _tmsFastConnectionNaverProductIdentityFieldExplorationActualCollectionView,
     };
     return NextResponse.json({ ok: true, job: responseJob });
   } catch (error: unknown) {
