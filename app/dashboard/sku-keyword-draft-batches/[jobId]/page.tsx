@@ -555,6 +555,7 @@ type DraftBatchJob = {
   tmsFastConnectionNaverChannelProductUpdatePayloadSafetyReviewView?: any;
   tmsFastConnectionNaverChannelProductUpdateTransmittablePayloadApprovalPacketView?: any;
   tmsFastConnectionNaverChannelProductUpdateTransmittablePayloadFinalGateView?: any;
+  tmsFastConnectionNaverChannelProductUpdateTransmittablePayloadBuildView?: any;
   naverAuthTokenFirstTestSafetyBoundary?: {
     ok: boolean;
     readyForExplicitTokenTestApproval: boolean;
@@ -58519,7 +58520,70 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
         );
       })()}
 
+      {/* ── Task 437: Naver 채널 상품 수정 Transmittable Payload 생성 ── */}
       {/* ── Task 332: Read-Only VPS Deployment Candidate Final Summary Safety Audit Seal ── */}
+      {job.tmsFastConnectionNaverChannelProductUpdateTransmittablePayloadBuildView && (() => {
+        const c437 = job.tmsFastConnectionNaverChannelProductUpdateTransmittablePayloadBuildView as any;
+        return (
+          <div key="task437-fast-connection-naver-channel-product-update-transmittable-payload-build-clean" className="mb-6 rounded-lg border border-emerald-300 bg-emerald-50 p-4">
+            <h3 className="mb-2 text-sm font-bold text-emerald-800">
+              {'Task 437 - Naver \uCC44\uB110 \uC0C1\uD488 \uC218\uC815 Transmittable Payload \uC0DD\uC131'}
+            </h3>
+            <p className="mb-3 text-xs text-emerald-900">
+              {'\uC0AC\uC6A9\uC790 \uC2B9\uC778 \uBB38\uAD6C\uB97C \uBC18\uC601\uD574 \uC804\uC1A1 \uAC00\uB2A5\uD55C payload \uC0DD\uC131 \uAC00\uB2A5 \uC5EC\uBD80\uB9CC \uD310\uB2E8\uD55C read-only \uACB0\uACFC\uC785\uB2C8\uB2E4.'}
+              {' \uC2E4\uC81C \uC218\uC815 API \uD638\uCD9C, \uAC00\uACA9/\uC7AC\uACE0 \uBCC0\uACBD, DB write\uB294 \uC218\uD589\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4.'}
+            </p>
+            <div className="mb-3 space-y-1 text-xs text-emerald-900">
+              <div><span className="font-medium">{'\uC2B9\uC778 \uBB38\uAD6C \uD655\uC778 \uC5EC\uBD80:'}</span> {String(c437.approvalAccepted)}</div>
+              <div><span className="font-medium">{'\uC2B9\uC778 \uBB38\uAD6C:'}</span> {c437.requiredApprovalPhrase}</div>
+              <div><span className="font-medium">{'\uB300\uC0C1 channelProductNo:'}</span> {c437.targetChannelProductNo}</div>
+              <div><span className="font-medium">buildStatus:</span> {c437.buildStatus}</div>
+              <div><span className="font-medium">transmittablePayloadGenerated:</span> {String(c437.transmittablePayloadGenerated)}</div>
+              <div><span className="font-medium">sourceDataGapDetected:</span> {String(c437.sourceDataGapDetected)}</div>
+              <div><span className="font-medium">priceChangeAllowed:</span> {String(c437.priceChangeAllowed)}</div>
+              <div><span className="font-medium">stockChangeAllowed:</span> {String(c437.stockChangeAllowed)}</div>
+              <div><span className="font-medium">updateApiCalled:</span> {String(c437.updateApiCalled)}</div>
+              <div><span className="font-medium">canCallUpdateApi:</span> {String(c437.canCallUpdateApi)}</div>
+            </div>
+
+            <div className="mb-3 rounded border border-emerald-200 bg-white p-3 text-xs text-slate-700">
+              <div className="mb-1 font-medium text-emerald-800">{'\uD45C\uC2DC \uAC00\uB2A5\uD55C payload summary'}</div>
+              {c437.payloadSummary ? (
+                <div className="space-y-1">
+                  <div><span className="font-medium">path.channelProductNo:</span> {c437.payloadSummary.pathChannelProductNo}</div>
+                  <div><span className="font-medium">method:</span> {c437.payloadSummary.method}</div>
+                  <div><span className="font-medium">endpoint:</span> {c437.payloadSummary.endpoint}</div>
+                  <div><span className="font-medium">body top-level keys:</span> {(c437.payloadSummary.bodyTopLevelKeys ?? []).join(', ')}</div>
+                  <div><span className="font-medium">priceChangeIncluded:</span> {String(c437.payloadSummary.priceChangeIncluded)}</div>
+                  <div><span className="font-medium">stockChangeIncluded:</span> {String(c437.payloadSummary.stockChangeIncluded)}</div>
+                  <div><span className="font-medium">updateApiCalled:</span> {String(c437.payloadSummary.updateApiCalled)}</div>
+                  <div><span className="font-medium">requiresFinalExecutionApproval:</span> {String(c437.payloadSummary.requiresFinalExecutionApproval)}</div>
+                </div>
+              ) : (
+                <div>{'source data gap\uC73C\uB85C \uC778\uD574 \uD45C\uC2DC \uAC00\uB2A5\uD55C payload summary\uB97C \uC0DD\uC131\uD558\uC9C0 \uC54A\uC558\uC2B5\uB2C8\uB2E4.'}</div>
+              )}
+            </div>
+
+            {c437.sourceDataGapDetected && (
+              <div className="mb-3 rounded border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
+                <div className="mb-1 font-medium">{'source data gap \uC0AC\uC720'}</div>
+                <ul className="list-disc space-y-1 pl-5">
+                  {(c437.sourceDataGapReasons ?? []).map((item: string) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            <div className="rounded border border-emerald-200 bg-white p-3 text-xs text-slate-700">
+              <div><span className="font-medium">{'\uB2E4\uC74C Task:'}</span> {c437.nextRecommendedTask}</div>
+              <div><span className="font-medium">{'\uC218\uC815 API \uD638\uCD9C \uC5C6\uC74C:'}</span> {String(!c437.canCallUpdateApi && !c437.updateApiCalled)}</div>
+              <div><span className="font-medium">{'POST/button/submit \uC5C6\uC74C:'}</span> {String(!c437.actualPostApiAdded && !c437.actualExecutionButtonAdded && !c437.actualApprovalButtonAdded && !c437.actualSubmitActionAdded)}</div>
+            </div>
+          </div>
+        );
+      })()}
+
       {job.tmsReadOnlyVpsDeploymentCandidateFinalSummarySafetyAuditSealView && (() => {
         const c332 = job.tmsReadOnlyVpsDeploymentCandidateFinalSummarySafetyAuditSealView as {
           taskId: number;
