@@ -541,6 +541,7 @@ type DraftBatchJob = {
   tmsFastConnectionNaverProductIdentityFieldExplorationFinalGateView?: any;
   tmsFastConnectionNaverProductIdentityFieldExplorationActualCollectionView?: any;
   tmsFastConnectionNaverProductIdentityFieldExplorationResultDecisionView?: any;
+  tmsFastConnectionNaverProductIdentityStrategyRedesignView?: any;
   naverAuthTokenFirstTestSafetyBoundary?: {
     ok: boolean;
     readyForExplicitTokenTestApproval: boolean;
@@ -57672,6 +57673,71 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div>가격/재고/DB write 없음: {String(!c422.actualPriceChange && !c422.actualStockChange && !c422.actualDbWrite)}</div>
               <div>raw/secret 노출 없음: {String(!c422.actualRawResponseExposure && !c422.actualRawResponseStored && !c422.actualSecretExposure && !c422.actualTokenExposure && !c422.actualAuthorizationHeaderExposure && !c422.actualSignatureExposure)}</div>
               <div>POST/button/submit 없음: {String(!c422.actualPostApiAdded && !c422.actualExecutionButtonAdded && !c422.actualApprovalButtonAdded && !c422.actualSubmitActionAdded)}</div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 423: Naver 상품 조회 응답 구조 기반 식별 전략 재설계 화면 ── */}
+      {job.tmsFastConnectionNaverProductIdentityStrategyRedesignView && (() => {
+        const c423 = job.tmsFastConnectionNaverProductIdentityStrategyRedesignView as any;
+        return (
+          <div key="task423-fast-connection-naver-product-identity-strategy-redesign" className="mb-6 rounded-lg border border-violet-300 bg-violet-50 p-4">
+            <h3 className="mb-2 text-sm font-bold text-violet-800">
+              Task 423 - Naver 상품 조회 응답 구조 기반 식별 전략 재설계 화면
+            </h3>
+            <div className="mb-2 flex flex-wrap gap-2">
+              <span className="rounded bg-violet-100 px-2 py-0.5 text-xs font-medium text-violet-700">
+                전략 상태: {c423.strategyStatus}
+              </span>
+              <span className="rounded bg-violet-100 px-2 py-0.5 text-xs font-medium text-violet-700">
+                대상 상품번호: {c423.targetProductNo}
+              </span>
+              <span className="rounded bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">
+                상품 수정 API 진입: {c423.productUpdateApiEntryDecision}
+              </span>
+            </div>
+            <div className="mb-2 rounded bg-white p-2 text-xs shadow-sm">
+              <div className="mb-1 font-semibold text-violet-700">현재 판단</div>
+              <div className="text-gray-600">상품 식별: {c423.sourceDecisionStatus === 'PRODUCT_IDENTITY_STILL_NOT_CONFIRMED' ? '미확정' : '확정'}</div>
+              <div className="text-gray-600">무작위 추가 필드 탐색 권장 여부: {String(c423.randomFieldExplorationRecommended)}</div>
+              <div className="text-gray-600">추가 API 재조회 권장 여부: {String(c423.additionalApiRecallRecommended)}</div>
+              <div className="text-gray-600">응답 구조 기반 전략 재설계 필요: {String(c423.officialStructureReviewNeeded)}</div>
+            </div>
+            <div className="mb-2 rounded bg-white p-2 text-xs shadow-sm">
+              <div className="mb-1 font-semibold text-violet-700">현재까지 결과 요약</div>
+              <div className="space-y-0.5">
+                {(c423.findingSummary ?? []).map((finding: string, idx: number) => (
+                  <div key={idx} className="text-gray-600">{idx + 1}. {finding}</div>
+                ))}
+              </div>
+            </div>
+            <div className="mb-2 rounded bg-white p-2 text-xs shadow-sm">
+              <div className="mb-1 font-semibold text-violet-700">전략 재설계 항목 ({(c423.strategyItems ?? []).length}개)</div>
+              <div className="space-y-3">
+                {(c423.strategyItems ?? []).map((item: any) => (
+                  <div key={item.strategyId} className="rounded border border-violet-200 bg-violet-50 p-2">
+                    <div className="mb-0.5 font-semibold text-violet-800">[{item.strategyId}] {item.title}</div>
+                    <div className="text-gray-600"><span className="font-medium">현재 발견:</span> {item.currentFinding}</div>
+                    <div className="text-gray-600"><span className="font-medium">재설계 방향:</span> {item.redesignDirection}</div>
+                    <div className="text-gray-600"><span className="font-medium">생략 시 위험:</span> {item.riskIfSkipped}</div>
+                    <div className="mt-1 text-gray-500">허용 다음 데이터: {(item.allowedNextData ?? []).join(', ')}</div>
+                    <div className="text-red-600">금지 다음 데이터: {(item.forbiddenNextData ?? []).join(', ')}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="mb-2 rounded bg-violet-100 p-2 text-xs text-violet-900">
+              <div className="font-semibold">다음 Task: {c423.nextRecommendedTask}</div>
+              <div className="mt-0.5 text-violet-700">Task 424도 실제 API 호출이 아닌 전략 재설계/공식 구조 검토를 승인하는 Packet으로 진행합니다.</div>
+            </div>
+            <div className="rounded bg-violet-100 p-2 text-xs text-violet-900">
+              <div className="mb-1 font-semibold">안전 금지선 확인</div>
+              <div>Naver API 재호출 없음: {String(!c423.actualNaverApiCall)}</div>
+              <div>수정 API 호출 없음: {String(!c423.actualProductUpdateApiCall)}</div>
+              <div>가격/재고/DB write 없음: {String(!c423.actualPriceChange && !c423.actualStockChange && !c423.actualDbWrite)}</div>
+              <div>raw/secret 노출 없음: {String(!c423.actualRawResponseExposure && !c423.actualRawResponseStored && !c423.actualSecretExposure && !c423.actualTokenExposure && !c423.actualAuthorizationHeaderExposure && !c423.actualSignatureExposure)}</div>
+              <div>POST/button/submit 없음: {String(!c423.actualPostApiAdded && !c423.actualExecutionButtonAdded && !c423.actualApprovalButtonAdded && !c423.actualSubmitActionAdded)}</div>
             </div>
           </div>
         );
