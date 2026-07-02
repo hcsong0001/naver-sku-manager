@@ -392,6 +392,7 @@ import { buildTmsFastConnectionNaverProductLookupOneTimeFinalSafetyGateView } fr
 import { buildTmsFastConnectionNaverProductLookupOneTimeActualLiveCallView } from '@/src/services/tms-fast-connection-naver-product-lookup-one-time-actual-live-call-view.service';
 import { buildTmsFastConnectionNaverProductLookupOneTimeResultEvidenceView } from '@/src/services/tms-fast-connection-naver-product-lookup-one-time-result-evidence-view.service';
 import { buildTmsFastConnectionNaverProductUpdateApiEntryDecisionView } from '@/src/services/tms-fast-connection-naver-product-update-api-entry-decision-view.service';
+import { buildTmsFastConnectionNaverProductLookupResponseProductIdentityFieldMappingReviewView } from '@/src/services/tms-fast-connection-naver-product-lookup-response-product-identity-field-mapping-review-view.service';
 
 
 
@@ -1760,6 +1761,10 @@ export async function GET(
       buildTmsFastConnectionNaverProductUpdateApiEntryDecisionView(
         _tmsFastConnectionNaverProductLookupOneTimeResultEvidenceView
       );
+    const _tmsFastConnectionNaverProductLookupResponseProductIdentityFieldMappingReviewView =
+      buildTmsFastConnectionNaverProductLookupResponseProductIdentityFieldMappingReviewView(
+        _tmsFastConnectionNaverProductUpdateApiEntryDecisionView
+      );
 
     const responseJob = {
       id: job.id,
@@ -3011,6 +3016,8 @@ export async function GET(
         _tmsFastConnectionNaverProductLookupOneTimeResultEvidenceView,
       tmsFastConnectionNaverProductUpdateApiEntryDecisionView:
         _tmsFastConnectionNaverProductUpdateApiEntryDecisionView,
+      tmsFastConnectionNaverProductLookupResponseProductIdentityFieldMappingReviewView:
+        _tmsFastConnectionNaverProductLookupResponseProductIdentityFieldMappingReviewView,
     };
     return NextResponse.json({ ok: true, job: responseJob });
   } catch (error: unknown) {

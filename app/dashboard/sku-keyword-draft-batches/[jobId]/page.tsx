@@ -530,6 +530,7 @@ type DraftBatchJob = {
   tmsFastConnectionNaverProductLookupOneTimeActualLiveCallView?: any;
   tmsFastConnectionNaverProductLookupOneTimeResultEvidenceView?: any;
   tmsFastConnectionNaverProductUpdateApiEntryDecisionView?: any;
+  tmsFastConnectionNaverProductLookupResponseProductIdentityFieldMappingReviewView?: any;
   naverAuthTokenFirstTestSafetyBoundary?: {
     ok: boolean;
     readyForExplicitTokenTestApproval: boolean;
@@ -56485,6 +56486,128 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div>가격/재고/DB write 없음: {String(c411.actualPriceChange || c411.actualStockChange || c411.actualDbWrite)}</div>
               <div>Worker/Queue/Runtime 운영 전환 없음: {String(c411.actualWorkerRun || c411.actualQueueEnqueue || c411.actualRuntimeConfiguration || c411.actualOperatingTransition)}</div>
               <div>POST API / 실행 버튼 / 승인 버튼 / submit action 추가 없음: {String(c411.actualPostApiAdded || c411.actualSubmitActionAdded || c411.actualExecutionButtonAdded || c411.actualApprovalButtonAdded)}</div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 412: Naver 상품 조회 응답 상품 식별 필드 매핑 검토 ── */}
+      {job.tmsFastConnectionNaverProductLookupResponseProductIdentityFieldMappingReviewView && (() => {
+        const c412 = job.tmsFastConnectionNaverProductLookupResponseProductIdentityFieldMappingReviewView as any;
+        const groups412 = [
+          { key: 'productIdentityFieldMappingReviewReadinessItems', label: '상품 식별 필드 매핑 검토 화면 준비도' },
+          { key: 'task411EntryDecisionReferenceItems', label: 'Task 411 진입 보류 판단 참조' },
+          { key: 'maskedResponseShapeReferenceItems', label: '마스킹된 응답 shape 참조' },
+          { key: 'productIdentityFieldCandidatePathsItems', label: '상품 식별 필드 후보 경로' },
+          { key: 'currentMatchingGapAnalysisItems', label: '현재 매칭 공백 분석' },
+          { key: 'updateApiEntryStillDeferredGuardItems', label: '상품 수정 API 진입 계속 보류 가드' },
+          { key: 'rawResponseSecretTokenNonExposureGuardItems', label: 'raw response/secret/token 미노출 가드' },
+          { key: 'nextMaskedShapeAugmentationRoadmapItems', label: '다음 마스킹 shape 보강 로드맵' },
+        ];
+        return (
+          <div key="task412-fast-connection-naver-product-lookup-response-product-identity-field-mapping-review" className="mb-6 rounded-lg border border-lime-300 bg-lime-50 p-4">
+            <h3 className="mb-2 text-sm font-bold text-lime-800">
+              Task 412 - Naver 상품 조회 응답 상품 식별 필드 매핑 검토
+            </h3>
+            <p className="mb-2 text-xs text-lime-900">
+              {c412.fieldMappingReviewGuidance}
+            </p>
+            <div className="mb-2 flex flex-wrap gap-2">
+              <span className="rounded bg-lime-100 px-2 py-0.5 text-xs font-medium text-lime-700">
+                상태: {c412.fastConnectionNaverProductLookupResponseProductIdentityFieldMappingReviewStatus}
+              </span>
+              <span className="rounded bg-lime-100 px-2 py-0.5 text-xs font-medium text-lime-700">
+                결정값: {c412.recommendedMappingReviewDecision}
+              </span>
+              <span className="rounded bg-lime-100 px-2 py-0.5 text-xs font-medium text-lime-700">
+                {c412.recommendedMappingReviewDecisionLabel}
+              </span>
+            </div>
+            <div className="mb-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {(c412.fieldMappingReviewSummaryCards ?? []).map((card: { label: string; value: number }) => (
+                <div key={card.label} className="rounded bg-white p-2 text-center shadow-sm">
+                  <div className="text-lg font-bold text-lime-700">{card.value}</div>
+                  <div className="text-xs text-gray-500">{card.label}</div>
+                </div>
+              ))}
+            </div>
+            <div className="mb-2 grid grid-cols-1 gap-1 sm:grid-cols-2">
+              {groups412.map((g) => (
+                <div key={g.key} className="flex items-center justify-between rounded bg-white px-2 py-1 text-xs shadow-sm">
+                  <span className="text-gray-600">{g.label}</span>
+                  <span className="font-medium text-lime-700">{(c412[g.key] ?? []).length}건</span>
+                </div>
+              ))}
+            </div>
+            <div className="mb-2 rounded bg-white p-2 text-xs shadow-sm">
+              <div className="mb-1 font-semibold text-lime-700">조회 1회 성공 증적</div>
+              <div className="text-gray-600">조회 성공 여부: {String(c412.lookupOneTimeSucceeded)} / HTTP status: {c412.lookupHttpStatusCode}</div>
+              <div className="text-gray-600">실제 호출 수: {c412.lookupActualCallCount}</div>
+              <div className="text-gray-600">대상 API: {c412.lookupTargetApi}</div>
+              <div className="text-gray-600">대상 상품번호: {c412.lookupTargetProductNo}</div>
+              <div className="text-gray-600">responseShapeKeys: {(c412.lookupResponseShapeKeys ?? []).join(', ')}</div>
+              <div className="text-gray-600">productNoMatched: {String(c412.lookupProductNoMatched)}</div>
+            </div>
+            <div className="mb-2 rounded bg-white p-2 text-xs shadow-sm">
+              <div className="mb-1 font-semibold text-lime-700">상품 식별 필드 후보 경로 (값 없이 경로명만 표시)</div>
+              <div className="flex flex-wrap gap-1">
+                {(c412.productIdentityFieldCandidates ?? []).map((candidate: { path: string }) => (
+                  <span key={candidate.path} className="rounded bg-lime-100 px-2 py-0.5 font-mono text-xs text-lime-700">
+                    {candidate.path}
+                  </span>
+                ))}
+              </div>
+              <div className="mt-1 text-gray-600">candidate path는 값 없이 경로명만 표시됨: true</div>
+              <div className="mt-1 text-gray-600">상품 식별 확정 여부: {String(c412.productIdentityMatchConfirmed)}</div>
+              <div className="text-gray-600">상품 수정 API 진입 보류: {String(c412.productUpdateApiEntryDeferred)} (사유: {c412.productUpdateApiEntryDeferredReason ?? '해당 없음'})</div>
+              <div className="text-gray-600">마스킹된 response shape 보강 필요: {String(c412.maskedResponseShapeAugmentationRequired)}</div>
+              <div className="text-gray-600">raw response 저장/표시 없음: {String(!c412.actualRawApiResponseStored && !c412.actualRawApiResponseExposure)}</div>
+              <div className="text-gray-600">secret/token/header/signature 노출 없음: {String(!c412.actualSecretExposure && !c412.actualTokenExposure && !c412.actualAuthorizationHeaderExposure && !c412.actualSignatureExposure)}</div>
+              <div className="text-gray-600">상품 수정/가격 변경/재고 변경/DB write 없음: {String(!c412.actualProductUpdateApiCall && !c412.actualPriceChange && !c412.actualStockChange && !c412.actualDbWrite)}</div>
+              <div className="mt-1 text-gray-600">Task 412에서는 API 재호출 없음: {String(!c412.actualNaverApiCallInTask412 && !c412.actualProductLookupApiRecall)}</div>
+            </div>
+            <div className="mb-2 rounded bg-white p-2 text-xs shadow-sm">
+              <div className="mb-1 font-semibold text-lime-700">Task 413 로드맵</div>
+              {(c412.compressedFastConnectionRoadmap ?? []).map((r: { taskId: number; label: string }) => (
+                <div key={r.taskId} className="text-gray-600">{r.label}</div>
+              ))}
+            </div>
+            <div className="mb-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-lime-700">추천 다음 단계</div>
+                <div className="break-all text-gray-600">{c412.recommendedNextStep}</div>
+                <div className="text-gray-600">{c412.recommendedNextStepLabel}</div>
+              </div>
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-lime-700">달성된 목표</div>
+                <div className="text-gray-600">{c412.recommendedPrimaryGoalAchieved}</div>
+              </div>
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-lime-700">실행 모드</div>
+                <div className="text-gray-600">{c412.recommendedExecutionMode}</div>
+              </div>
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-lime-700">배포 모드</div>
+                <div className="text-gray-600">{c412.recommendedDeploymentMode}</div>
+              </div>
+            </div>
+            <div className="mb-2 rounded bg-white p-2 text-xs shadow-sm">
+              <div className="font-semibold text-lime-700">안전 모드</div>
+              <div className="text-gray-600">{c412.recommendedSafetyMode}</div>
+            </div>
+            <div className="rounded bg-lime-100 p-2 text-xs text-lime-900">
+              <div className="mb-1 font-semibold">안전 금지선 확인</div>
+              <div>실제 Naver API 재호출 없음: {String(!c412.actualNaverApiCallInTask412 && !c412.actualProductLookupApiCallInTask412 && !c412.actualProductLookupApiRecall)}</div>
+              <div>상품 수정 API 호출 없음: {String(!c412.actualProductUpdateApiCall && !c412.actualProductUpdateExecuted)}</div>
+              <div>Token 발급/재발급/사용 없음: {String(!c412.actualTokenUseInTask412 && !c412.actualTokenExposure)}</div>
+              <div>.env/.env.local 열람/수정 없음: {String(!c412.actualEnvReadInTask412 && !c412.actualEnvFileOpenInTask412)}</div>
+              <div>process.env 실제 조회 없음: {String(!c412.actualProcessEnvReadInTask412)}</div>
+              <div>secret 노출 없음: {String(!c412.actualSecretAccessInTask412 && !c412.actualSecretExposure)}</div>
+              <div>authorization/header/signature 노출 없음: {String(!c412.actualAuthorizationHeaderExposure && !c412.actualSignatureExposure)}</div>
+              <div>raw API response 표시/저장 없음: {String(!c412.actualRawApiResponseExposure && !c412.actualRawApiResponseStored)}</div>
+              <div>가격/재고/DB write 없음: {String(!c412.actualPriceChange && !c412.actualStockChange && !c412.actualDbWrite)}</div>
+              <div>Worker/Queue/Runtime 운영 전환 없음: {String(!c412.actualWorkerRun && !c412.actualQueueEnqueue && !c412.actualRuntimeConfiguration && !c412.actualOperatingTransition)}</div>
+              <div>POST API / 실행 버튼 / 승인 버튼 / submit action 추가 없음: {String(!c412.actualPostApiAdded && !c412.actualSubmitActionAdded && !c412.actualExecutionButtonAdded && !c412.actualApprovalButtonAdded)}</div>
             </div>
           </div>
         );
