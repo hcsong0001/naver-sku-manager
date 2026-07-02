@@ -536,6 +536,7 @@ type DraftBatchJob = {
   tmsFastConnectionNaverProductLookupMaskedResponseShapeAugmentationFinalGateView?: any;
   tmsFastConnectionNaverProductLookupMaskedResponseShapeAugmentationActualCollectionView?: any;
   tmsFastConnectionNaverProductIdentityConfirmationDecisionView?: any;
+  tmsFastConnectionNaverProductIdentityFieldExplorationDesignView?: any;
   naverAuthTokenFirstTestSafetyBoundary?: {
     ok: boolean;
     readyForExplicitTokenTestApproval: boolean;
@@ -57329,6 +57330,65 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div>full product/option/seller code 노출 없음: {String(!c417.actualFullProductNameExposure && !c417.actualFullOptionNameExposure && !c417.actualFullSellerManagementCodeExposure)}</div>
               <div>Worker/Queue/Runtime 운영 전환 없음: {String(!c417.actualWorkerRun && !c417.actualQueueEnqueue && !c417.actualRuntimeConfiguration)}</div>
               <div>POST API / 실행 버튼 / 승인 버튼 / submit action 추가 없음: {String(!c417.actualPostApiAdded && !c417.actualExecutionButtonAdded && !c417.actualApprovalButtonAdded && !c417.actualSubmitActionAdded)}</div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 418: Naver 상품 식별 필드 추가 탐색 설계 화면 ── */}
+      {job.tmsFastConnectionNaverProductIdentityFieldExplorationDesignView && (() => {
+        const c418 = job.tmsFastConnectionNaverProductIdentityFieldExplorationDesignView as any;
+        return (
+          <div key="task418-fast-connection-naver-product-identity-field-exploration-design" className="mb-6 rounded-lg border border-orange-300 bg-orange-50 p-4">
+            <h3 className="mb-2 text-sm font-bold text-orange-800">
+              Task 418 - Naver 상품 식별 필드 추가 탐색 설계 화면
+            </h3>
+            <p className="mb-2 text-xs text-orange-900">
+              {c418.guidance}
+            </p>
+            <div className="mb-2 flex flex-wrap gap-2">
+              <span className="rounded bg-orange-100 px-2 py-0.5 text-xs font-medium text-orange-700">
+                현재 판단: {c418.sourceDecisionStatus === 'PRODUCT_IDENTITY_NOT_CONFIRMED' ? '상품 식별 미확정' : c418.sourceDecisionStatus}
+              </span>
+              <span className="rounded bg-orange-100 px-2 py-0.5 text-xs font-medium text-orange-700">
+                상품 수정 API 진입: {c418.currentProductUpdateApiEntryDecision}
+              </span>
+              <span className="rounded bg-orange-100 px-2 py-0.5 text-xs font-medium text-orange-700">
+                designStatus: {c418.designStatus}
+              </span>
+            </div>
+            <div className="mb-2 rounded bg-white p-2 text-xs shadow-sm">
+              <div className="mb-1 font-semibold text-orange-700">설계 요약</div>
+              <div className="text-gray-600">대상 상품번호: {c418.targetProductNo}</div>
+              <div className="text-gray-600">기존 candidate path 수: {String(c418.previousCandidatePathCount)}</div>
+              <div className="text-gray-600">확인된 candidate path 수: {String(c418.confirmedCandidatePathCount)}</div>
+              <div className="text-gray-600">추가 탐색 필요 여부: {String(c418.explorationNeeded)}</div>
+              <div className="text-gray-600">탐색 방식: {c418.explorationMode}</div>
+              <div className="text-gray-600">추가 API 호출 여부: 없음</div>
+              <div className="text-gray-600">다음 수집은 별도 승인 필요: {String(c418.nextCollectionRequiresSeparateApproval)}</div>
+              <div className="text-gray-600">추천 다음 Task: {c418.nextRecommendedTask}</div>
+            </div>
+            <div className="mb-2 rounded bg-white p-2 text-xs shadow-sm">
+              <div className="mb-1 font-semibold text-orange-700">추가 탐색 후보 그룹</div>
+              <div className="space-y-2">
+                {(c418.candidateExplorationGroups ?? []).map((group: any) => (
+                  <div key={group.groupId} className="rounded bg-orange-50 px-2 py-2 text-gray-700">
+                    <div className="font-semibold text-orange-800">{group.title}</div>
+                    <div>{group.purpose}</div>
+                    <div className="mt-1">requiresApiRecall: {String(group.requiresApiRecall)}</div>
+                    <div>requiresSeparateApproval: {String(group.requiresSeparateApproval)}</div>
+                    <div>expectedNextTask: {group.expectedNextTask}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="rounded bg-orange-100 p-2 text-xs text-orange-900">
+              <div className="mb-1 font-semibold">안전 확인</div>
+              <div>Naver API 재호출 없음: {String(!c418.actualApiRecallInTask418)}</div>
+              <div>수정 API 호출 없음: {String(!c418.actualProductUpdateApiCall)}</div>
+              <div>가격/재고/DB write 없음: {String(!c418.actualPriceChange && !c418.actualStockChange && !c418.actualDbWrite)}</div>
+              <div>raw/secret 노출 없음: {String(!c418.actualRawResponseExposure && !c418.actualRawResponseStored && !c418.actualSecretExposure && !c418.actualTokenExposure && !c418.actualAuthorizationHeaderExposure && !c418.actualSignatureExposure)}</div>
+              <div>POST/button/submit 없음: {String(!c418.actualPostApiAdded && !c418.actualExecutionButtonAdded && !c418.actualApprovalButtonAdded && !c418.actualSubmitActionAdded)}</div>
             </div>
           </div>
         );
