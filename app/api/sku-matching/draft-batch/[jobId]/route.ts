@@ -416,6 +416,7 @@ import { buildTmsFastConnectionNaverChannelProductUpdatePayloadDesignResultDecis
 import { buildTmsFastConnectionNaverChannelProductUpdatePayloadSafetyReviewApprovalPacketView } from '@/src/services/tms-fast-connection-naver-channel-product-update-payload-safety-review-approval-packet-view.service';
 import { buildTmsFastConnectionNaverChannelProductUpdatePayloadSafetyReviewView } from '@/src/services/tms-fast-connection-naver-channel-product-update-payload-safety-review-view.service';
 import { buildTmsFastConnectionNaverChannelProductUpdateTransmittablePayloadApprovalPacketView } from '@/src/services/tms-fast-connection-naver-channel-product-update-transmittable-payload-approval-packet-view.service';
+import { buildTmsFastConnectionNaverChannelProductUpdateTransmittablePayloadFinalGateView } from '@/src/services/tms-fast-connection-naver-channel-product-update-transmittable-payload-final-gate-view.service';
 import type { TmsNaverProductLookupMaskedResponseShapeAugmentationSummary } from '@/src/services/tms-naver-product-lookup-masked-response-shape-augmentation.harness';
 import type { TmsNaverProductIdentityFieldExplorationSummary } from '@/src/services/tms-naver-product-identity-field-exploration.harness';
 
@@ -2191,6 +2192,11 @@ export async function GET(
       buildTmsFastConnectionNaverChannelProductUpdateTransmittablePayloadApprovalPacketView(
         _tmsFastConnectionNaverChannelProductUpdatePayloadSafetyReviewView
       );
+    const _tmsFastConnectionNaverChannelProductUpdateTransmittablePayloadFinalGateView =
+      buildTmsFastConnectionNaverChannelProductUpdateTransmittablePayloadFinalGateView(
+        _tmsFastConnectionNaverChannelProductUpdateTransmittablePayloadApprovalPacketView,
+        _tmsFastConnectionNaverChannelProductUpdatePayloadSafetyReviewView
+      );
 
     const responseJob = {
       id: job.id,
@@ -3490,6 +3496,8 @@ export async function GET(
         _tmsFastConnectionNaverChannelProductUpdatePayloadSafetyReviewView,
       tmsFastConnectionNaverChannelProductUpdateTransmittablePayloadApprovalPacketView:
         _tmsFastConnectionNaverChannelProductUpdateTransmittablePayloadApprovalPacketView,
+      tmsFastConnectionNaverChannelProductUpdateTransmittablePayloadFinalGateView:
+        _tmsFastConnectionNaverChannelProductUpdateTransmittablePayloadFinalGateView,
     };
     return NextResponse.json({ ok: true, job: responseJob });
   } catch (error: unknown) {

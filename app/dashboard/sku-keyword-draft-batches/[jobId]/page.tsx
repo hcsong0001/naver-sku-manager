@@ -554,6 +554,7 @@ type DraftBatchJob = {
   tmsFastConnectionNaverChannelProductUpdatePayloadSafetyReviewApprovalPacketView?: any;
   tmsFastConnectionNaverChannelProductUpdatePayloadSafetyReviewView?: any;
   tmsFastConnectionNaverChannelProductUpdateTransmittablePayloadApprovalPacketView?: any;
+  tmsFastConnectionNaverChannelProductUpdateTransmittablePayloadFinalGateView?: any;
   naverAuthTokenFirstTestSafetyBoundary?: {
     ok: boolean;
     readyForExplicitTokenTestApproval: boolean;
@@ -58463,6 +58464,56 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div><span className="font-medium">실제 승인 요청 생성/제출 없음:</span> {String(!c435.actualProductUpdateApiCall && !c435.actualPostApiAdded)}</div>
               <div><span className="font-medium">승인 Packet은 실제 승인 또는 실제 제출이 아님:</span> {String(!c435.actualProductUpdateApiCall && !c435.actualPostApiAdded && !c435.actualApprovalButtonAdded && !c435.actualSubmitActionAdded)}</div>
               <div><span className="font-medium">POST/button/submit 없음:</span> {String(!c435.actualPostApiAdded && !c435.actualExecutionButtonAdded && !c435.actualApprovalButtonAdded && !c435.actualSubmitActionAdded)}</div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 436: Naver 채널 상품 수정 Transmittable Payload 실행 전 Final Gate ── */}
+      {job.tmsFastConnectionNaverChannelProductUpdateTransmittablePayloadFinalGateView && (() => {
+        const c436 = job.tmsFastConnectionNaverChannelProductUpdateTransmittablePayloadFinalGateView as any;
+        return (
+          <div key="task436-fast-connection-naver-channel-product-update-transmittable-payload-final-gate" className="mb-6 rounded-lg border border-cyan-300 bg-cyan-50 p-4">
+            <h3 className="mb-2 text-sm font-bold text-cyan-800">
+              Task 436 - Naver 채널 상품 수정 Transmittable Payload 실행 전 Final Gate
+            </h3>
+            <p className="mb-3 text-xs text-cyan-900">
+              이 패널은 사용자 승인 문구를 아직 받기 전, 전송 가능 Payload 생성 직전의 Final Gate를 read-only로 표시합니다. 이번 화면에서는 실제 전송 가능한 payload 생성, 수정 API 호출, 가격/재고 변경을 하지 않습니다.
+            </p>
+            <div className="mb-3 space-y-1 text-xs text-cyan-900">
+              <div><span className="font-medium">Final Gate 상태:</span> {c436.finalGateStatus}</div>
+              <div><span className="font-medium">대상 channelProductNo:</span> {c436.targetChannelProductNo}</div>
+              <div><span className="font-medium">승인 접수 여부:</span> {String(c436.approvalAccepted)}</div>
+              <div><span className="font-medium">승인 상태:</span> {c436.approvalStatus}</div>
+              <div><span className="font-medium">전송 가능 Payload 생성 가능 여부:</span> {String(c436.canBuildTransmittablePayload)}</div>
+              <div><span className="font-medium">전송 가능 Payload 단계 진행 가능 여부:</span> {String(c436.canProceedToTransmittablePayloadBuild)}</div>
+              <div><span className="font-medium">수정 API 호출 가능 여부:</span> {String(c436.canCallUpdateApi)}</div>
+              <div><span className="font-medium">가격 변경 허용 여부:</span> {String(c436.priceChangeAllowed)}</div>
+              <div><span className="font-medium">재고 변경 허용 여부:</span> {String(c436.stockChangeAllowed)}</div>
+              <div><span className="font-medium">현재 수정 API 진입 판단:</span> {c436.productUpdateApiEntryDecision}</div>
+            </div>
+
+            <div className="mb-3 rounded border border-cyan-200 bg-white p-3 text-xs text-slate-700">
+              <div className="mb-1 font-medium text-cyan-800">필요한 승인 문구</div>
+              <code className="block whitespace-pre-wrap rounded bg-slate-100 px-2 py-2 text-[11px] text-slate-800">
+                {c436.requiredApprovalPhrase}
+              </code>
+            </div>
+
+            <div className="mb-3 rounded border border-cyan-200 bg-white p-3 text-xs text-slate-700">
+              <div className="mb-2 font-medium text-cyan-800">계속 금지 항목</div>
+              <ul className="list-disc space-y-1 pl-5">
+                {(c436.continuedForbiddenItems ?? []).map((item: string) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="rounded border border-cyan-200 bg-white p-3 text-xs text-slate-700">
+              <div><span className="font-medium">다음 Task:</span> {c436.nextTaskIfApproved}</div>
+              <div><span className="font-medium">실제 payload 생성 없음:</span> {String(!c436.canBuildTransmittablePayload)}</div>
+              <div><span className="font-medium">실제 수정 API 호출 없음:</span> {String(!c436.canCallUpdateApi)}</div>
+              <div><span className="font-medium">POST/button/submit 없음:</span> {String(!c436.actualPostApiAdded && !c436.actualExecutionButtonAdded && !c436.actualApprovalButtonAdded && !c436.actualSubmitActionAdded)}</div>
             </div>
           </div>
         );
