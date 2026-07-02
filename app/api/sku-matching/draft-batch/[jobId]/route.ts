@@ -400,6 +400,7 @@ import { buildTmsFastConnectionNaverProductLookupMaskedResponseShapeAugmentation
 import { buildTmsFastConnectionNaverProductIdentityConfirmationDecisionView } from '@/src/services/tms-fast-connection-naver-product-identity-confirmation-decision-view.service';
 import { buildTmsFastConnectionNaverProductIdentityFieldExplorationDesignView } from '@/src/services/tms-fast-connection-naver-product-identity-field-exploration-design-view.service';
 import { buildTmsFastConnectionNaverProductIdentityFieldExplorationApprovalPacketView } from '@/src/services/tms-fast-connection-naver-product-identity-field-exploration-approval-packet-view.service';
+import { buildTmsFastConnectionNaverProductIdentityFieldExplorationFinalGateView } from '@/src/services/tms-fast-connection-naver-product-identity-field-exploration-final-gate-view.service';
 import type { TmsNaverProductLookupMaskedResponseShapeAugmentationSummary } from '@/src/services/tms-naver-product-lookup-masked-response-shape-augmentation.harness';
 
 
@@ -1900,6 +1901,10 @@ export async function GET(
       buildTmsFastConnectionNaverProductIdentityFieldExplorationApprovalPacketView(
         _tmsFastConnectionNaverProductIdentityFieldExplorationDesignView
       );
+    const _tmsFastConnectionNaverProductIdentityFieldExplorationFinalGateView =
+      buildTmsFastConnectionNaverProductIdentityFieldExplorationFinalGateView(
+        _tmsFastConnectionNaverProductIdentityFieldExplorationApprovalPacketView
+      );
 
     const responseJob = {
       id: job.id,
@@ -3167,6 +3172,8 @@ export async function GET(
         _tmsFastConnectionNaverProductIdentityFieldExplorationDesignView,
       tmsFastConnectionNaverProductIdentityFieldExplorationApprovalPacketView:
         _tmsFastConnectionNaverProductIdentityFieldExplorationApprovalPacketView,
+      tmsFastConnectionNaverProductIdentityFieldExplorationFinalGateView:
+        _tmsFastConnectionNaverProductIdentityFieldExplorationFinalGateView,
     };
     return NextResponse.json({ ok: true, job: responseJob });
   } catch (error: unknown) {

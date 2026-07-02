@@ -538,6 +538,7 @@ type DraftBatchJob = {
   tmsFastConnectionNaverProductIdentityConfirmationDecisionView?: any;
   tmsFastConnectionNaverProductIdentityFieldExplorationDesignView?: any;
   tmsFastConnectionNaverProductIdentityFieldExplorationApprovalPacketView?: any;
+  tmsFastConnectionNaverProductIdentityFieldExplorationFinalGateView?: any;
   naverAuthTokenFirstTestSafetyBoundary?: {
     ok: boolean;
     readyForExplicitTokenTestApproval: boolean;
@@ -57452,6 +57453,61 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div>raw/full/secret 노출 없음: {String(!c419.actualRawResponseExposure && !c419.actualRawResponseStored && !c419.actualFullProductNameExposure && !c419.actualFullOptionNameExposure && !c419.actualFullSellerManagementCodeExposure && !c419.actualSecretExposure && !c419.actualTokenExposure && !c419.actualAuthorizationHeaderExposure && !c419.actualSignatureExposure)}</div>
               <div>반복 조회/다른 상품/Worker/Queue/Runtime 없음: {String(!c419.actualRepeatedLookup && !c419.actualDifferentProductLookup && !c419.actualWorkerRun && !c419.actualQueueRun && !c419.actualRuntimeExecution)}</div>
               <div>POST/button/submit 없음: {String(!c419.actualPostApiAdded && !c419.actualExecutionButtonAdded && !c419.actualApprovalButtonAdded && !c419.actualSubmitActionAdded)}</div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 420: Naver 상품 식별 필드 추가 탐색 실행 전 Final Gate ── */}
+      {job.tmsFastConnectionNaverProductIdentityFieldExplorationFinalGateView && (() => {
+        const c420 = job.tmsFastConnectionNaverProductIdentityFieldExplorationFinalGateView as any;
+        return (
+          <div key="task420-fast-connection-naver-product-identity-field-exploration-final-gate" className="mb-6 rounded-lg border border-rose-300 bg-rose-50 p-4">
+            <h3 className="mb-2 text-sm font-bold text-rose-800">
+              Task 420 - Naver 상품 식별 필드 추가 탐색 실행 전 Final Gate
+            </h3>
+            <p className="mb-2 text-xs text-rose-900">
+              {c420.guidance}
+            </p>
+            <div className="mb-2 flex flex-wrap gap-2">
+              <span className="rounded bg-rose-100 px-2 py-0.5 text-xs font-medium text-rose-700">
+                Final Gate 상태: {c420.finalGateStatus}
+              </span>
+              <span className="rounded bg-rose-100 px-2 py-0.5 text-xs font-medium text-rose-700">
+                승인 접수 상태: {c420.approvalStatus}
+              </span>
+              <span className="rounded bg-rose-100 px-2 py-0.5 text-xs font-medium text-rose-700">
+                상품 수정 API 진입: {c420.productUpdateApiEntryDecision}
+              </span>
+            </div>
+            <div className="mb-2 rounded bg-white p-2 text-xs shadow-sm">
+              <div className="mb-1 font-semibold text-rose-700">Final Gate 요약</div>
+              <div className="text-gray-600">대상 상품번호: {c420.targetProductNo}</div>
+              <div className="text-gray-600">필요한 승인 문구: {c420.requiredApprovalPhrase}</div>
+              <div className="text-gray-600">승인 접수 여부: {String(c420.approvalAccepted)}</div>
+              <div className="text-gray-600">실제 추가 탐색 수집 가능 여부: {String(c420.canProceedToActualCollection)}</div>
+              <div className="text-gray-600">상품 조회 API 재조회: {c420.productLookupApiRecallDecision}</div>
+              <div className="text-gray-600">실제 추가 탐색 수집: {c420.actualCollectionDecision}</div>
+              <div className="text-gray-600">다음 단계: {c420.nextAction}</div>
+              <div className="text-gray-600">다음 Task: {c420.nextTaskIfApproved}</div>
+            </div>
+            <div className="mb-2 rounded bg-white p-2 text-xs shadow-sm">
+              <div className="mb-1 font-semibold text-rose-700">계속 금지 항목</div>
+              <div className="space-y-1">
+                {(c420.forbiddenItems ?? []).map((item: string) => (
+                  <div key={item} className="rounded bg-red-50 px-2 py-1 text-red-700">
+                    {item}
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="rounded bg-rose-100 p-2 text-xs text-rose-900">
+              <div className="mb-1 font-semibold">안전 확인</div>
+              <div>Naver API 재호출 없음: {String(!c420.actualApiRecallInTask420)}</div>
+              <div>수정 API 호출 없음: {String(!c420.actualProductUpdateApiCall)}</div>
+              <div>가격/재고/DB write 없음: {String(!c420.actualPriceChange && !c420.actualStockChange && !c420.actualDbWrite)}</div>
+              <div>raw/secret 노출 없음: {String(!c420.actualRawResponseExposure && !c420.actualRawResponseStored && !c420.actualSecretExposure && !c420.actualTokenExposure && !c420.actualAuthorizationHeaderExposure && !c420.actualSignatureExposure)}</div>
+              <div>POST/button/submit 없음: {String(!c420.actualPostApiAdded && !c420.actualExecutionButtonAdded && !c420.actualApprovalButtonAdded && !c420.actualSubmitActionAdded)}</div>
             </div>
           </div>
         );
