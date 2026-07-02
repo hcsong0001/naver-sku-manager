@@ -395,6 +395,7 @@ import { buildTmsFastConnectionNaverProductUpdateApiEntryDecisionView } from '@/
 import { buildTmsFastConnectionNaverProductLookupResponseProductIdentityFieldMappingReviewView } from '@/src/services/tms-fast-connection-naver-product-lookup-response-product-identity-field-mapping-review-view.service';
 import { buildTmsFastConnectionNaverProductLookupMaskedResponseShapeAugmentationReviewView } from '@/src/services/tms-fast-connection-naver-product-lookup-masked-response-shape-augmentation-review-view.service';
 import { buildTmsFastConnectionNaverProductLookupMaskedResponseShapeAugmentationApprovalPacketView } from '@/src/services/tms-fast-connection-naver-product-lookup-masked-response-shape-augmentation-approval-packet-view.service';
+import { buildTmsFastConnectionNaverProductLookupMaskedResponseShapeAugmentationFinalGateView } from '@/src/services/tms-fast-connection-naver-product-lookup-masked-response-shape-augmentation-final-gate-view.service';
 
 
 
@@ -1775,6 +1776,10 @@ export async function GET(
       buildTmsFastConnectionNaverProductLookupMaskedResponseShapeAugmentationApprovalPacketView(
         _tmsFastConnectionNaverProductLookupMaskedResponseShapeAugmentationReviewView
       );
+    const _tmsFastConnectionNaverProductLookupMaskedResponseShapeAugmentationFinalGateView =
+      buildTmsFastConnectionNaverProductLookupMaskedResponseShapeAugmentationFinalGateView(
+        _tmsFastConnectionNaverProductLookupMaskedResponseShapeAugmentationApprovalPacketView
+      );
 
     const responseJob = {
       id: job.id,
@@ -3032,6 +3037,8 @@ export async function GET(
         _tmsFastConnectionNaverProductLookupMaskedResponseShapeAugmentationReviewView,
       tmsFastConnectionNaverProductLookupMaskedResponseShapeAugmentationApprovalPacketView:
         _tmsFastConnectionNaverProductLookupMaskedResponseShapeAugmentationApprovalPacketView,
+      tmsFastConnectionNaverProductLookupMaskedResponseShapeAugmentationFinalGateView:
+        _tmsFastConnectionNaverProductLookupMaskedResponseShapeAugmentationFinalGateView,
     };
     return NextResponse.json({ ok: true, job: responseJob });
   } catch (error: unknown) {
