@@ -389,6 +389,7 @@ import { buildTmsFastConnectionNaverApiSecretEnvAccessSeparateApprovalRequestPac
 import { buildTmsFastConnectionNaverApiEnvExistenceNoSecretPreflightView } from '@/src/services/tms-fast-connection-naver-api-env-existence-no-secret-preflight-view.service';
 import { buildTmsFastConnectionNaverProductLookupOneTimeLiveTestApprovalPacketView } from '@/src/services/tms-fast-connection-naver-product-lookup-one-time-live-test-approval-packet-view.service';
 import { buildTmsFastConnectionNaverProductLookupOneTimeFinalSafetyGateView } from '@/src/services/tms-fast-connection-naver-product-lookup-one-time-final-safety-gate-view.service';
+import { buildTmsFastConnectionNaverProductLookupOneTimeActualLiveCallView } from '@/src/services/tms-fast-connection-naver-product-lookup-one-time-actual-live-call-view.service';
 
 
 
@@ -1744,6 +1745,11 @@ export async function GET(
       buildTmsFastConnectionNaverProductLookupOneTimeFinalSafetyGateView(
         _tmsFastConnectionNaverProductLookupOneTimeLiveTestApprovalPacketView
       );
+    // 참고: 이번 GET 응답 생성 중에는 실제 Naver API 호출을 수행하지 않는다. 실제 1회 호출은 harness를 통해서만 수행된다.
+    const _tmsFastConnectionNaverProductLookupOneTimeActualLiveCallView =
+      buildTmsFastConnectionNaverProductLookupOneTimeActualLiveCallView(
+        _tmsFastConnectionNaverProductLookupOneTimeFinalSafetyGateView
+      );
 
     const responseJob = {
       id: job.id,
@@ -2989,6 +2995,8 @@ export async function GET(
         _tmsFastConnectionNaverProductLookupOneTimeLiveTestApprovalPacketView,
       tmsFastConnectionNaverProductLookupOneTimeFinalSafetyGateView:
         _tmsFastConnectionNaverProductLookupOneTimeFinalSafetyGateView,
+      tmsFastConnectionNaverProductLookupOneTimeActualLiveCallView:
+        _tmsFastConnectionNaverProductLookupOneTimeActualLiveCallView,
     };
     return NextResponse.json({ ok: true, job: responseJob });
   } catch (error: unknown) {

@@ -527,6 +527,7 @@ type DraftBatchJob = {
   tmsFastConnectionNaverApiEnvExistenceNoSecretPreflightView?: any;
   tmsFastConnectionNaverProductLookupOneTimeLiveTestApprovalPacketView?: any;
   tmsFastConnectionNaverProductLookupOneTimeFinalSafetyGateView?: any;
+  tmsFastConnectionNaverProductLookupOneTimeActualLiveCallView?: any;
   naverAuthTokenFirstTestSafetyBoundary?: {
     ok: boolean;
     readyForExplicitTokenTestApproval: boolean;
@@ -56147,6 +56148,120 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div>Worker 실행 / Queue enqueue / Adapter 연결 / Runtime 구성 없음: {String(c408.actualWorkerRun || c408.actualQueueEnqueue || c408.actualAdapterConnection || c408.actualRuntimeConfiguration)}</div>
               <div>POST API / 실행 버튼 / 승인 버튼 / submit action 추가 없음: {String(c408.actualPostApiAdded || c408.actualSubmitActionAdded || c408.actualExecutionButtonAdded || c408.actualApprovalButtonAdded)}</div>
               <div>실제 승인 수락 / Live Test 실행 / 실행 잠금 해제 없음: {String(c408.actualApprovalAccepted || c408.actualLiveTestApprovalAccepted || c408.actualLiveTestExecuted || c408.actualExecutionUnlocked)}</div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 409: Naver API 상품 조회 1회 실제 호출 ── */}
+      {job.tmsFastConnectionNaverProductLookupOneTimeActualLiveCallView && (() => {
+        const c409 = job.tmsFastConnectionNaverProductLookupOneTimeActualLiveCallView as any;
+        const groups409 = [
+          { key: 'actualLiveCallApprovalConfirmationItems', label: '사용자 별도 승인 문구 확인' },
+          { key: 'task408FinalSafetyGateReferenceItems', label: 'Task 408 Final Safety Gate 참조' },
+          { key: 'oneTimeLookupExecutionScopeItems', label: '상품 조회 1회 실행 범위' },
+          { key: 'envSecretTokenUseBoundaryItems', label: 'env/secret/token 사용 경계' },
+          { key: 'liveCallExecutionResultSummaryItems', label: '실제 호출 실행 결과 요약' },
+          { key: 'rawResponseMaskingAndNonStorageGuardItems', label: 'raw response 마스킹/비저장 가드' },
+          { key: 'productUpdatePriceStockDbWriteBlockItems', label: '상품 수정/가격/재고/DB write 차단' },
+          { key: 'nextEvidenceScreenRoadmapItems', label: '다음 결과 증적 화면 로드맵' },
+        ];
+        return (
+          <div key="task409-fast-connection-naver-product-lookup-one-time-actual-live-call" className="mb-6 rounded-lg border border-fuchsia-300 bg-fuchsia-50 p-4">
+            <h3 className="mb-2 text-sm font-bold text-fuchsia-800">
+              Task 409 - Naver API 상품 조회 1회 실제 호출
+            </h3>
+            <p className="mb-2 text-xs text-fuchsia-900">
+              {c409.actualLiveCallGuidance}
+            </p>
+            <div className="mb-2 flex flex-wrap gap-2">
+              <span className="rounded bg-fuchsia-100 px-2 py-0.5 text-xs font-medium text-fuchsia-700">
+                상태: {c409.fastConnectionNaverProductLookupOneTimeActualLiveCallStatus}
+              </span>
+              <span className="rounded bg-fuchsia-100 px-2 py-0.5 text-xs font-medium text-fuchsia-700">
+                결정값: {c409.recommendedActualLiveCallDecision}
+              </span>
+              <span className="rounded bg-fuchsia-100 px-2 py-0.5 text-xs font-medium text-fuchsia-700">
+                {c409.recommendedActualLiveCallDecisionLabel}
+              </span>
+            </div>
+            <div className="mb-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {(c409.actualLiveCallSummaryCards ?? []).map((card: { label: string; value: number }) => (
+                <div key={card.label} className="rounded bg-white p-2 text-center shadow-sm">
+                  <div className="text-lg font-bold text-fuchsia-700">{card.value}</div>
+                  <div className="text-xs text-gray-500">{card.label}</div>
+                </div>
+              ))}
+            </div>
+            <div className="mb-2 grid grid-cols-1 gap-1 sm:grid-cols-2">
+              {groups409.map((g) => (
+                <div key={g.key} className="flex items-center justify-between rounded bg-white px-2 py-1 text-xs shadow-sm">
+                  <span className="text-gray-600">{g.label}</span>
+                  <span className="font-medium text-fuchsia-700">{(c409[g.key] ?? []).length}건</span>
+                </div>
+              ))}
+            </div>
+            <div className="mb-2 rounded bg-white p-2 text-xs shadow-sm">
+              <div className="mb-1 font-semibold text-fuchsia-700">실제 호출 실행 결과</div>
+              <div className="text-gray-600">사용자 별도 승인 문구 확인됨: {String(c409.explicitSeparateUserApprovalConfirmed)}</div>
+              <div className="text-gray-600">최우선 목표: {c409.recommendedPrimaryGoal}</div>
+              <div className="text-gray-600">대상 API: {c409.targetApi}</div>
+              <div className="text-gray-600">대표 상품 후보: {c409.targetProductNo} ({c409.targetProductLabel})</div>
+              <div className="text-gray-600">최대 조회 호출 수: {c409.maxLookupCallCount}회 / 실제 호출 수: {c409.actualLookupCallCount}회</div>
+              <div className="text-gray-600">
+                실행 상태:{' '}
+                {c409.actualLiveTestExecuted
+                  ? (c409.httpStatusCode != null && c409.sanitizedErrorMessage == null ? 'success' : 'failed')
+                  : 'not executed'}
+              </div>
+              <div className="text-gray-600">httpStatusCode: {String(c409.httpStatusCode)}</div>
+              <div className="text-gray-600">productNoMatched: {String(c409.productNoMatched)}</div>
+              <div className="text-gray-600">responseShapeKeys: {(c409.responseShapeKeys ?? []).join(', ') || '(없음)'}</div>
+              {c409.sanitizedErrorMessage && (
+                <div className="text-gray-600">sanitizedErrorMessage: {c409.sanitizedErrorMessage}</div>
+              )}
+              <div className="mt-1 text-gray-600">raw response 저장/표시 없음: {String(!c409.actualRawApiResponseStored && !c409.actualRawApiResponseExposure)}</div>
+              <div className="text-gray-600">secret/token/header/signature 노출 없음: {String(!c409.actualSecretExposure && !c409.actualTokenExposure && !c409.actualAuthorizationHeaderExposure && !c409.actualSignatureExposure)}</div>
+              <div className="text-gray-600">상품 수정/가격 변경/재고 변경/DB write 없음: {String(!c409.actualProductUpdateApiCall && !c409.actualPriceChange && !c409.actualStockChange && !c409.actualDbWrite)}</div>
+            </div>
+            <div className="mb-2 rounded bg-white p-2 text-xs shadow-sm">
+              <div className="mb-1 font-semibold text-fuchsia-700">Task 410~411 압축 로드맵</div>
+              {(c409.compressedFastConnectionRoadmap ?? []).map((r: { taskId: number; label: string }) => (
+                <div key={r.taskId} className="text-gray-600">{r.label}</div>
+              ))}
+            </div>
+            <div className="mb-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-fuchsia-700">추천 다음 단계</div>
+                <div className="break-all text-gray-600">{c409.recommendedNextStep}</div>
+              </div>
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-fuchsia-700">승인 모드</div>
+                <div className="text-gray-600">{c409.recommendedApprovalMode}</div>
+              </div>
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-fuchsia-700">실행 모드</div>
+                <div className="text-gray-600">{c409.recommendedExecutionMode}</div>
+              </div>
+              <div className="rounded bg-white p-2 shadow-sm">
+                <div className="font-semibold text-fuchsia-700">배포 모드</div>
+                <div className="text-gray-600">{c409.recommendedDeploymentMode}</div>
+              </div>
+            </div>
+            <div className="mb-2 rounded bg-white p-2 text-xs shadow-sm">
+              <div className="font-semibold text-fuchsia-700">안전 모드</div>
+              <div className="text-gray-600">{c409.recommendedSafetyMode}</div>
+            </div>
+            <div className="rounded bg-fuchsia-100 p-2 text-xs text-fuchsia-900">
+              <div className="mb-1 font-semibold">안전 금지선 확인</div>
+              <div>상품 조회 API 호출은 최대 1회만 수행: {String(c409.actualLookupCallCount <= c409.maxLookupCallCount)}</div>
+              <div>상품 수정 API 호출 없음: {String(c409.actualProductUpdateApiCall || c409.actualProductUpdateExecuted)}</div>
+              <div>가격/재고 변경 없음: {String(c409.actualPriceChange || c409.actualStockChange)}</div>
+              <div>DB write 없음: {String(c409.actualDbWrite)}</div>
+              <div>raw API response 전체 표시/저장 없음: {String(c409.actualRawApiResponseExposure || c409.actualRawApiResponseStored)}</div>
+              <div>secret/token/header/signature 노출 없음: {String(c409.actualSecretExposure || c409.actualTokenExposure || c409.actualAuthorizationHeaderExposure || c409.actualSignatureExposure)}</div>
+              <div>Worker/Queue/Runtime 운영 전환 없음: {String(c409.actualWorkerRun || c409.actualQueueEnqueue || c409.actualRuntimeConfiguration || c409.actualOperatingTransition)}</div>
+              <div>POST API / 실행 버튼 / 승인 버튼 / submit action 추가 없음: (본 패널에는 버튼/입력창/POST 없음)</div>
             </div>
           </div>
         );
