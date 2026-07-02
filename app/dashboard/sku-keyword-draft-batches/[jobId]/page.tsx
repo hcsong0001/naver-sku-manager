@@ -543,6 +543,7 @@ type DraftBatchJob = {
   tmsFastConnectionNaverProductIdentityFieldExplorationResultDecisionView?: any;
   tmsFastConnectionNaverProductIdentityStrategyRedesignView?: any;
   tmsFastConnectionNaverProductIdentityStrategyRedesignApprovalPacketView?: any;
+  tmsFastConnectionNaverProductIdentityStrategyRedesignFinalGateView?: any;
   naverAuthTokenFirstTestSafetyBoundary?: {
     ok: boolean;
     readyForExplicitTokenTestApproval: boolean;
@@ -57797,6 +57798,68 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div>가격/재고/DB write 없음: {String(!c424.actualPriceChange && !c424.actualStockChange && !c424.actualDbWrite)}</div>
               <div>raw/secret 노출 없음: {String(!c424.actualRawResponseExposure && !c424.actualRawResponseStored && !c424.actualSecretExposure && !c424.actualTokenExposure && !c424.actualAuthorizationHeaderExposure && !c424.actualSignatureExposure)}</div>
               <div>POST/button/submit 없음: {String(!c424.actualPostApiAdded && !c424.actualExecutionButtonAdded && !c424.actualApprovalButtonAdded && !c424.actualSubmitActionAdded)}</div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 425: Naver 상품 식별 전략 재설계 실행 전 Final Gate ── */}
+      {job.tmsFastConnectionNaverProductIdentityStrategyRedesignFinalGateView && (() => {
+        const c425 = job.tmsFastConnectionNaverProductIdentityStrategyRedesignFinalGateView as any;
+        return (
+          <div key="task425-fast-connection-naver-product-identity-strategy-redesign-final-gate" className="mb-6 rounded-lg border border-fuchsia-300 bg-fuchsia-50 p-4">
+            <h3 className="mb-2 text-sm font-bold text-fuchsia-800">
+              Task 425 - Naver 상품 식별 전략 재설계 실행 전 Final Gate
+            </h3>
+            <div className="mb-2 flex flex-wrap gap-2">
+              <span className="rounded bg-fuchsia-100 px-2 py-0.5 text-xs font-medium text-fuchsia-700">
+                Final Gate 상태: {c425.finalGateStatus}
+              </span>
+              <span className="rounded bg-fuchsia-100 px-2 py-0.5 text-xs font-medium text-fuchsia-700">
+                대상 상품번호: {c425.targetProductNo}
+              </span>
+              <span className="rounded bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">
+                상품 수정 API 진입: {c425.productUpdateApiEntryDecision}
+              </span>
+            </div>
+            <div className="mb-2 rounded bg-white p-2 text-xs shadow-sm">
+              <div className="mb-1 font-semibold text-fuchsia-700">필요한 승인 문구</div>
+              <div className="rounded bg-fuchsia-100 px-2 py-1.5 font-mono text-fuchsia-900">
+                {c425.requiredApprovalPhrase}
+              </div>
+              <div className="mt-1 text-gray-500">※ 이 문구를 Task 426 진입 전 사용자가 직접 제공해야 합니다.</div>
+            </div>
+            <div className="mb-2 rounded bg-white p-2 text-xs shadow-sm">
+              <div className="mb-1 font-semibold text-fuchsia-700">현재 상태</div>
+              <div className="text-gray-600">승인 접수 여부: {String(c425.approvalAccepted)}</div>
+              <div className="text-gray-600">승인 상태: {c425.approvalStatus}</div>
+              <div className="text-gray-600">전략 재설계 실행 가능: {String(c425.canProceedToStrategyRedesignReview)}</div>
+              <div className="text-gray-600">공식 구조 검토 실행 가능: {String(c425.canProceedToOfficialStructureReview)}</div>
+              <div className="text-gray-600">공식 구조 검토 필요: {String(c425.officialStructureReviewNeeded)}</div>
+            </div>
+            <div className="mb-2 rounded bg-amber-50 border border-amber-200 p-2 text-xs text-amber-900">
+              <div className="font-semibold mb-0.5">차단 사유</div>
+              <div>{c425.gateBlockedReason}</div>
+            </div>
+            <div className="mb-2 rounded bg-white p-2 text-xs shadow-sm">
+              <div className="mb-1 font-semibold text-red-700">금지 항목 ({(c425.forbiddenActions ?? []).length}개)</div>
+              <div className="space-y-0.5">
+                {(c425.forbiddenActions ?? []).map((item: string, idx: number) => (
+                  <div key={idx} className="text-red-600">✗ {item}</div>
+                ))}
+              </div>
+            </div>
+            <div className="mb-2 rounded bg-fuchsia-100 p-2 text-xs text-fuchsia-900">
+              <div className="font-semibold">승인 후 다음 Task: {c425.nextTaskIfApproved}</div>
+            </div>
+            <div className="rounded bg-fuchsia-100 p-2 text-xs text-fuchsia-900">
+              <div className="mb-1 font-semibold">안전 금지선 확인</div>
+              <div>Naver API 재호출 없음: {String(!c425.actualNaverApiCall)}</div>
+              <div>공식 문서 조회 실행 없음: {String(!c425.actualOfficialDocReview)}</div>
+              <div>수정 API 호출 없음: {String(!c425.actualProductUpdateApiCall)}</div>
+              <div>가격/재고/DB write 없음: {String(!c425.actualPriceChange && !c425.actualStockChange && !c425.actualDbWrite)}</div>
+              <div>raw/secret 노출 없음: {String(!c425.actualRawResponseExposure && !c425.actualRawResponseStored && !c425.actualSecretExposure && !c425.actualTokenExposure && !c425.actualAuthorizationHeaderExposure && !c425.actualSignatureExposure)}</div>
+              <div>POST/button/submit 없음: {String(!c425.actualPostApiAdded && !c425.actualExecutionButtonAdded && !c425.actualApprovalButtonAdded && !c425.actualSubmitActionAdded)}</div>
             </div>
           </div>
         );
