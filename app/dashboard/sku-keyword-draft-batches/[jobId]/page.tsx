@@ -542,6 +542,7 @@ type DraftBatchJob = {
   tmsFastConnectionNaverProductIdentityFieldExplorationActualCollectionView?: any;
   tmsFastConnectionNaverProductIdentityFieldExplorationResultDecisionView?: any;
   tmsFastConnectionNaverProductIdentityStrategyRedesignView?: any;
+  tmsFastConnectionNaverProductIdentityStrategyRedesignApprovalPacketView?: any;
   naverAuthTokenFirstTestSafetyBoundary?: {
     ok: boolean;
     readyForExplicitTokenTestApproval: boolean;
@@ -57738,6 +57739,64 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div>가격/재고/DB write 없음: {String(!c423.actualPriceChange && !c423.actualStockChange && !c423.actualDbWrite)}</div>
               <div>raw/secret 노출 없음: {String(!c423.actualRawResponseExposure && !c423.actualRawResponseStored && !c423.actualSecretExposure && !c423.actualTokenExposure && !c423.actualAuthorizationHeaderExposure && !c423.actualSignatureExposure)}</div>
               <div>POST/button/submit 없음: {String(!c423.actualPostApiAdded && !c423.actualExecutionButtonAdded && !c423.actualApprovalButtonAdded && !c423.actualSubmitActionAdded)}</div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 424: Naver 상품 식별 전략 재설계 승인 Packet ── */}
+      {job.tmsFastConnectionNaverProductIdentityStrategyRedesignApprovalPacketView && (() => {
+        const c424 = job.tmsFastConnectionNaverProductIdentityStrategyRedesignApprovalPacketView as any;
+        return (
+          <div key="task424-fast-connection-naver-product-identity-strategy-redesign-approval-packet" className="mb-6 rounded-lg border border-purple-300 bg-purple-50 p-4">
+            <h3 className="mb-2 text-sm font-bold text-purple-800">
+              Task 424 - Naver 상품 식별 전략 재설계 승인 Packet
+            </h3>
+            <div className="mb-2 flex flex-wrap gap-2">
+              <span className="rounded bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-700">
+                승인 Packet 상태: {c424.approvalPacketStatus}
+              </span>
+              <span className="rounded bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-700">
+                대상 상품번호: {c424.targetProductNo}
+              </span>
+              <span className="rounded bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">
+                상품 수정 API 진입: {c424.productUpdateApiEntryDecision}
+              </span>
+            </div>
+            <div className="mb-2 rounded bg-white p-2 text-xs shadow-sm">
+              <div className="mb-1 font-semibold text-purple-700">필요한 승인 문구</div>
+              <div className="rounded bg-purple-100 px-2 py-1.5 font-mono text-purple-900">
+                {c424.requiredApprovalPhrase}
+              </div>
+              <div className="mt-1 text-gray-500">※ 이 문구는 Task 425 Final Gate에서 사용자가 직접 제공해야 합니다.</div>
+            </div>
+            <div className="mb-2 rounded bg-white p-2 text-xs shadow-sm">
+              <div className="mb-1 font-semibold text-purple-700">승인 범위 ({(c424.approvalScope ?? []).length}개)</div>
+              <div className="space-y-0.5">
+                {(c424.approvalScope ?? []).map((item: string, idx: number) => (
+                  <div key={idx} className="text-gray-600">{idx + 1}. {item}</div>
+                ))}
+              </div>
+            </div>
+            <div className="mb-2 rounded bg-white p-2 text-xs shadow-sm">
+              <div className="mb-1 font-semibold text-red-700">계속 금지 항목 ({(c424.continuedForbiddenItems ?? []).length}개)</div>
+              <div className="space-y-0.5">
+                {(c424.continuedForbiddenItems ?? []).map((item: string, idx: number) => (
+                  <div key={idx} className="text-red-600">✗ {item}</div>
+                ))}
+              </div>
+            </div>
+            <div className="mb-2 rounded bg-purple-100 p-2 text-xs text-purple-900">
+              <div className="font-semibold">다음 Task: {c424.nextRecommendedTask}</div>
+              <div className="mt-0.5 text-purple-700">공식 구조 검토 필요: {String(c424.officialStructureReviewNeeded)} / 별도 승인 필요: {String(c424.nextReviewRequiresSeparateApproval)}</div>
+            </div>
+            <div className="rounded bg-purple-100 p-2 text-xs text-purple-900">
+              <div className="mb-1 font-semibold">안전 금지선 확인</div>
+              <div>Naver API 재호출 없음: {String(!c424.actualNaverApiCall)}</div>
+              <div>수정 API 호출 없음: {String(!c424.actualProductUpdateApiCall)}</div>
+              <div>가격/재고/DB write 없음: {String(!c424.actualPriceChange && !c424.actualStockChange && !c424.actualDbWrite)}</div>
+              <div>raw/secret 노출 없음: {String(!c424.actualRawResponseExposure && !c424.actualRawResponseStored && !c424.actualSecretExposure && !c424.actualTokenExposure && !c424.actualAuthorizationHeaderExposure && !c424.actualSignatureExposure)}</div>
+              <div>POST/button/submit 없음: {String(!c424.actualPostApiAdded && !c424.actualExecutionButtonAdded && !c424.actualApprovalButtonAdded && !c424.actualSubmitActionAdded)}</div>
             </div>
           </div>
         );
