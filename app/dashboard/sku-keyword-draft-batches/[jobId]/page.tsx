@@ -544,6 +544,7 @@ type DraftBatchJob = {
   tmsFastConnectionNaverProductIdentityStrategyRedesignView?: any;
   tmsFastConnectionNaverProductIdentityStrategyRedesignApprovalPacketView?: any;
   tmsFastConnectionNaverProductIdentityStrategyRedesignFinalGateView?: any;
+  tmsFastConnectionNaverProductIdentityStrategyRedesignOfficialStructureReviewView?: any;
   naverAuthTokenFirstTestSafetyBoundary?: {
     ok: boolean;
     readyForExplicitTokenTestApproval: boolean;
@@ -57860,6 +57861,80 @@ export default function DraftBatchDetailPage(props: { params: Promise<{ jobId: s
               <div>가격/재고/DB write 없음: {String(!c425.actualPriceChange && !c425.actualStockChange && !c425.actualDbWrite)}</div>
               <div>raw/secret 노출 없음: {String(!c425.actualRawResponseExposure && !c425.actualRawResponseStored && !c425.actualSecretExposure && !c425.actualTokenExposure && !c425.actualAuthorizationHeaderExposure && !c425.actualSignatureExposure)}</div>
               <div>POST/button/submit 없음: {String(!c425.actualPostApiAdded && !c425.actualExecutionButtonAdded && !c425.actualApprovalButtonAdded && !c425.actualSubmitActionAdded)}</div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Task 426: Naver 상품 식별 전략 재설계 및 공식 구조 검토 ── */}
+      {job.tmsFastConnectionNaverProductIdentityStrategyRedesignOfficialStructureReviewView && (() => {
+        const c426 = job.tmsFastConnectionNaverProductIdentityStrategyRedesignOfficialStructureReviewView as any;
+        return (
+          <div key="task426-fast-connection-naver-product-identity-official-structure-review" className="mb-6 rounded-lg border border-sky-300 bg-sky-50 p-4">
+            <h3 className="mb-2 text-sm font-bold text-sky-800">
+              Task 426 - Naver 상품 식별 전략 재설계 및 공식 구조 검토
+            </h3>
+            <div className="mb-2 rounded bg-sky-100 px-2 py-1 text-xs font-mono text-sky-900">
+              승인 문구: {c426.userApprovalPhrase}
+            </div>
+            <div className="mb-2 flex flex-wrap gap-2">
+              <span className="rounded bg-sky-100 px-2 py-0.5 text-xs font-medium text-sky-700">
+                검토 상태: {c426.reviewStatus}
+              </span>
+              <span className="rounded bg-sky-100 px-2 py-0.5 text-xs font-medium text-sky-700">
+                대상 상품번호: {c426.targetProductNo}
+              </span>
+              <span className="rounded bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">
+                상품 수정 API 진입: {c426.productUpdateApiEntryDecision}
+              </span>
+            </div>
+            <div className="mb-2 rounded bg-white p-2 text-xs shadow-sm">
+              <div className="mb-1 font-semibold text-sky-700">현재까지 수집 증거 요약</div>
+              <div className="text-gray-600">조회 API 성공 이력: {String(c426.sourceLookupSucceeded)}</div>
+              <div className="text-gray-600">응답 top-level keys: {(c426.sourceResponseTopLevelKeys ?? []).join(', ')}</div>
+              <div className="text-gray-600">기존 candidate path 수: {String(c426.previousCandidatePathCount)}개 — 모두 exists false: {String(c426.previousCandidateAllExistsFalse)}</div>
+              <div className="text-gray-600">추가 candidate path 수: {String(c426.additionalCandidatePathCount)}개 — 모두 equalsTarget false: {String(c426.additionalCandidateAllEqualsTargetFalse)}</div>
+              <div className="text-gray-500 mt-1">추가 탐색 path: {(c426.additionalCandidatePaths ?? []).join(' / ')}</div>
+              <div className="text-gray-600 mt-1">무작위 추가 탐색 권장: {String(c426.randomFieldExplorationRecommended)}</div>
+            </div>
+            <div className="mb-2 rounded bg-white p-2 text-xs shadow-sm">
+              <div className="mb-1 font-semibold text-sky-700">공식 구조 검토 항목 ({(c426.reviewItems ?? []).length}개)</div>
+              <div className="space-y-3">
+                {(c426.reviewItems ?? []).map((item: any) => (
+                  <div key={item.reviewId} className="rounded border border-sky-200 bg-sky-50 p-2">
+                    <div className="mb-0.5 font-semibold text-sky-800">[{item.reviewId}] {item.title}</div>
+                    <div className="text-gray-600"><span className="font-medium">현재 증거:</span> {item.currentEvidence}</div>
+                    <div className="text-gray-600"><span className="font-medium">공식 구조 해석:</span> {item.officialStructureInterpretation}</div>
+                    <div className="text-gray-600"><span className="font-medium">전략 결정:</span> {item.strategyDecision}</div>
+                    <div className="text-amber-700"><span className="font-medium">오해 시 위험:</span> {item.riskIfMisinterpreted}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="mb-2 rounded bg-white p-2 text-xs shadow-sm">
+              <div className="mb-1 font-semibold text-sky-700">전략 재설계 결론</div>
+              <div className="text-gray-700">{c426.strategyConclusion}</div>
+            </div>
+            <div className="mb-2 rounded bg-white p-2 text-xs shadow-sm">
+              <div className="mb-1 font-semibold text-sky-700">다음 전략 후보 ({(c426.nextStrategyCandidates ?? []).length}개)</div>
+              <div className="space-y-1">
+                {(c426.nextStrategyCandidates ?? []).map((candidate: any) => (
+                  <div key={candidate.candidateId} className={`rounded px-2 py-1 text-xs ${candidate.recommended ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-gray-50 text-gray-700'}`}>
+                    <span className="font-semibold">[{candidate.candidateId}]</span>{candidate.recommended ? ' (권장) ' : ' '}{candidate.description}
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="mb-2 rounded bg-sky-100 p-2 text-xs text-sky-900">
+              <div className="font-semibold">다음 Task: {c426.nextRecommendedTask}</div>
+            </div>
+            <div className="rounded bg-sky-100 p-2 text-xs text-sky-900">
+              <div className="mb-1 font-semibold">안전 금지선 확인</div>
+              <div>Naver API 재호출 없음: {String(!c426.actualNaverApiCall)}</div>
+              <div>수정 API 호출 없음: {String(!c426.actualProductUpdateApiCall)}</div>
+              <div>가격/재고/DB write 없음: {String(!c426.actualPriceChange && !c426.actualStockChange && !c426.actualDbWrite)}</div>
+              <div>raw/secret 노출 없음: {String(!c426.actualRawResponseExposure && !c426.actualRawResponseStored && !c426.actualSecretExposure && !c426.actualTokenExposure && !c426.actualAuthorizationHeaderExposure && !c426.actualSignatureExposure)}</div>
+              <div>POST/button/submit 없음: {String(!c426.actualPostApiAdded && !c426.actualExecutionButtonAdded && !c426.actualApprovalButtonAdded && !c426.actualSubmitActionAdded)}</div>
             </div>
           </div>
         );
